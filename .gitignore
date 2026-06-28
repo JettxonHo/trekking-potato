@@ -11,3 +11,4 @@ __.wxss.map
 dist/
 .vscode/
 .idea/
+package-lock.json
