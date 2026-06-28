@@ -10,5 +10,6 @@ App({
   },
   globalData: {
     userInfo: null,
+    adviceResult: null,
   },
 })
