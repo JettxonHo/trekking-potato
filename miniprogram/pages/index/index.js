@@ -8,11 +8,11 @@ Page({
     levelIndex: 1,
     minDate: '',
     loading: false,
+    loadingStage: '',
     error: null,
   },
 
   onLoad() {
-    // 设置最小日期为今天
     const today = new Date()
     const y = today.getFullYear()
     const m = String(today.getMonth() + 1).padStart(2, '0')
@@ -40,7 +40,6 @@ Page({
   onSubmit() {
     const { route, date, level, days } = this.data
 
-    // 输入校验
     if (!route.trim()) {
       wx.showToast({ title: '请输入路线名', icon: 'none' })
       return
@@ -50,15 +49,25 @@ Page({
       return
     }
 
-    this.setData({ loading: true, error: null })
+    this.setData({ loading: true, error: null, loadingStage: '正在查询路线位置...' })
+
+    // 分步 loading 动画（改善等待体验）
+    this._stageTimer1 = setTimeout(() => {
+      if (this.data.loading) this.setData({ loadingStage: '获取天气数据中...' })
+    }, 3000)
+
+    this._stageTimer2 = setTimeout(() => {
+      if (this.data.loading) this.setData({ loadingStage: 'AI 正在生成建议...' })
+    }, 7000)
 
     wx.cloud.callFunction({
       name: 'getAdvice',
       data: { route: route.trim(), date, level, days },
       success: (res) => {
+        clearTimeout(this._stageTimer1)
+        clearTimeout(this._stageTimer2)
         const result = res.result
         if (result.needsConfirm) {
-          // 编辑距离匹配，需用户确认
           wx.showModal({
             title: '路线确认',
             content: result.message,
@@ -80,6 +89,8 @@ Page({
         }
       },
       fail: (err) => {
+        clearTimeout(this._stageTimer1)
+        clearTimeout(this._stageTimer2)
         console.error('云函数调用失败:', err)
         this.setData({ loading: false, error: '网络错误，请重试' })
       },
@@ -87,11 +98,14 @@ Page({
   },
 
   navigateToResult(result) {
-    // 传结果到 result 页（大数据用全局变量或缓存）
     const app = getApp()
     app.globalData.adviceResult = result
-
     this.setData({ loading: false })
     wx.navigateTo({ url: '/pages/result/result' })
+  },
+
+  onUnload() {
+    clearTimeout(this._stageTimer1)
+    clearTimeout(this._stageTimer2)
   },
 })

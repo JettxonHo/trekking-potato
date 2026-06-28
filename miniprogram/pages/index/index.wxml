@@ -4,7 +4,7 @@
     <text class="subtitle">徒步行前建议助手</text>
   </view>
 
-  <view class="form">
+  <view class="form" wx:if="{{!loading}}">
     <view class="form-item">
       <text class="label">路线名</text>
       <input class="input" placeholder="如：武功山、四姑娘山二峰" value="{{route}}" bindinput="onRouteInput" />
@@ -30,7 +30,14 @@
     </view>
   </view>
 
-  <button class="submit-btn" type="primary" loading="{{loading}}" bindtap="onSubmit">
+  <!-- 分步 loading（表单隐藏，显示进度） -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">{{loadingStage}}</text>
+    <text class="loading-hint">预计需要 10-20 秒</text>
+  </view>
+
+  <button wx:if="{{!loading}}" class="submit-btn" type="primary" bindtap="onSubmit">
     获取行前建议
   </button>
 
