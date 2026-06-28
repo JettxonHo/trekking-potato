@@ -20,7 +20,7 @@ const { buildMessages, buildDegradedResponse } = require('./prompt')
 
 // GLM API 配置
 const GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
-const GLM_MODEL = 'glm-4.5'  // GLM-4-Flash 实测 schema 通过率 0/10，升级 GLM-4.5
+const GLM_MODEL = 'glm-4.7'
 const GLM_TIMEOUT = 30000 // 单次 GLM 调用超时
 
 /**
@@ -206,6 +206,7 @@ exports.main = async (event, context) => {
 
   let advice
   let degraded = false
+  let degradedReason = ''
 
   try {
     const messages = buildMessages({
@@ -216,27 +217,35 @@ exports.main = async (event, context) => {
       weather,
       gearRules,
       sunEvents,
-      microclimate: weather ? { humidity: null, windMs: weather.days[0]?.windMs, dewPointSpread: null } : null,
+      microclimate: weather ? { humidity: null, windMs: weather.days[0] && weather.days[0].windMs, dewPointSpread: null } : null,
     })
 
+    console.log('[getAdvice] 调用 GLM-4.7, prompt messages:', messages.length)
     advice = await callGLM(messages)
+    console.log('[getAdvice] GLM 返回成功, keys:', Object.keys(advice).join(','))
 
     // Schema 校验
     const validation = validateAndFill(advice)
     if (!validation.valid) {
-      console.warn('Schema 校验失败:', validation.errors.join(', '))
+      console.warn('[getAdvice] Schema 校验失败:', validation.errors.join(', '))
+      console.warn('[getAdvice] GLM 原始返回:', JSON.stringify(advice).substring(0, 500))
       degraded = true
+      degradedReason = 'Schema校验失败: ' + validation.errors.join(', ')
     }
     advice = validation.advice
   } catch (e) {
-    console.error('GLM 调用失败:', e.message)
+    console.error('[getAdvice] GLM 调用失败:', e.message)
     degraded = true
+    degradedReason = 'GLM调用异常: ' + e.message
   }
 
   // 7. 降级处理
   if (degraded) {
     const degradedResponse = buildDegradedResponse(weather, sunEvents, meta)
     degradedResponse.data.meta.elapsed = Date.now() - startTime
+    degradedResponse.data.meta.degradedReason = degradedReason
+    // 在 notes 里也加入失败原因，让用户在真机上能看到
+    degradedResponse.data.notes = ['AI 生成失败：' + degradedReason, '请查阅专业路书或咨询有经验的驴友']
     return degradedResponse
   }
 

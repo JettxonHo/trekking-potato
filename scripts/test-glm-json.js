@@ -7,7 +7,7 @@ const GLM_KEY = process.env.GLM_KEY
 if (!GLM_KEY) { console.error('错误: 请先设置 GLM_KEY'); process.exit(1) }
 
 const API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
-const MODEL = 'glm-4.5'
+const MODEL = 'glm-4.7'
 
 const systemPrompt = '你是徒步建议助手。必须返回JSON对象，包含字段：weatherWindow(含days数组)、gear(含essential/recommended/optional三个数组)、risks(数组)、notes(数组)、photoTiming、microclimate、disclaimer。致命风险必须在risks中。'
 const userPrompt = '路线：武功山\n日期：2026-07-05\n水平：中级\n天数：1\n天气：7月5日 22-29C 降水60% 风速4m/s\n海拔：1918m\n装备规则：夏季中海拔单日 必备防雨外套\n请生成路书建议JSON。'
