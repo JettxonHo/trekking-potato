@@ -1,95 +1,114 @@
+var app = getApp()
+
 Page({
   data: {
     loading: true,
+    hasData: false,
     degraded: false,
     elevation: null,
-    weather: null,
-    gear: { essential: [], recommended: [], optional: [] },
+    weatherDays: [],
+    weatherCaveat: '',
+    gearEssential: [],
+    gearRecommended: [],
+    gearOptional: [],
     risks: [],
     notes: [],
     photoTiming: null,
     microclimate: null,
     disclaimer: '',
-    meta: null,
   },
 
-  onLoad: function () {
+  onReady: function () {
+    this.loadData()
+  },
+
+  loadData: function () {
     var result = null
 
-    // 优先从 globalData 读取
     try {
-      var app = getApp()
       result = app.globalData.adviceResult
-    } catch (e) {
-      console.error('读取 globalData 失败:', e)
-    }
+    } catch (e) {}
 
-    // 如果 globalData 没有，从 storage 读取（备份方案）
     if (!result) {
       try {
         result = wx.getStorageSync('adviceResult')
-      } catch (e) {
-        console.error('读取 storage 失败:', e)
-      }
+      } catch (e) {}
     }
 
     if (!result) {
-      this.setData({ loading: false })
+      this.setData({ loading: false, hasData: false })
       return
     }
 
-    // 安全提取数据
     var d = result.data || result
-    var meta = (d.meta && typeof d.meta === 'object') ? d.meta : {}
-
-    var weather = null
-    if (d.weatherWindow && typeof d.weatherWindow === 'object') {
-      weather = {
-        days: Array.isArray(d.weatherWindow.days) ? d.weatherWindow.days : [],
-        source: d.weatherWindow.source || '',
-        elevationCaveat: d.weatherWindow.elevationCaveat || '',
-        precipNote: d.weatherWindow.precipNote || '',
-      }
-    }
-
-    var gear = { essential: [], recommended: [], optional: [] }
-    if (d.gear && typeof d.gear === 'object') {
-      gear.essential = Array.isArray(d.gear.essential) ? d.gear.essential : []
-      gear.recommended = Array.isArray(d.gear.recommended) ? d.gear.recommended : []
-      gear.optional = Array.isArray(d.gear.optional) ? d.gear.optional : []
-    }
-
-    var risks = Array.isArray(d.risks) ? d.risks : []
-    var notes = Array.isArray(d.notes) ? d.notes : []
-
-    var photoTiming = null
-    if (d.photoTiming && typeof d.photoTiming === 'object') {
-      photoTiming = {
-        sunrise: d.photoTiming.sunrise || '—',
-        sunset: d.photoTiming.sunset || '—',
-        goldenHour: d.photoTiming.goldenHour || '—',
-        blueHour: d.photoTiming.blueHour || '—',
-        terrainCaveat: d.photoTiming.terrainCaveat || '',
-      }
-    }
-
-    // 用 setTimeout 确保 setData 在下一个 tick 执行（避免时序问题）
     var that = this
-    setTimeout(function () {
-      that.setData({
-        loading: false,
-        degraded: result.degraded === true || d.degraded === true,
-        elevation: (typeof meta.elevation === 'number') ? meta.elevation : null,
-        weather: weather,
-        gear: gear,
-        risks: risks,
-        notes: notes,
-        photoTiming: photoTiming,
-        microclimate: (d.microclimate && typeof d.microclimate === 'object') ? d.microclimate : null,
-        disclaimer: (typeof d.disclaimer === 'string') ? d.disclaimer : '',
-        meta: meta,
-      })
-    }, 50)
+
+    // 逐个字段安全设置，避免一次性传大对象
+    var updates = {
+      loading: false,
+      hasData: true,
+      degraded: result.degraded === true || d.degraded === true,
+      elevation: null,
+      weatherDays: [],
+      weatherCaveat: '',
+      gearEssential: [],
+      gearRecommended: [],
+      gearOptional: [],
+      risks: [],
+      notes: [],
+      photoTiming: null,
+      microclimate: null,
+      disclaimer: '',
+    }
+
+    // 安全提取 meta
+    if (d.meta && typeof d.meta === 'object' && typeof d.meta.elevation === 'number') {
+      updates.elevation = d.meta.elevation
+    }
+
+    // 天气
+    if (d.weatherWindow && typeof d.weatherWindow === 'object') {
+      if (Array.isArray(d.weatherWindow.days)) {
+        updates.weatherDays = d.weatherWindow.days
+      }
+      if (d.weatherWindow.elevationCaveat) {
+        updates.weatherCaveat = d.weatherWindow.elevationCaveat
+      }
+    }
+
+    // 装备
+    if (d.gear && typeof d.gear === 'object') {
+      updates.gearEssential = Array.isArray(d.gear.essential) ? d.gear.essential : []
+      updates.gearRecommended = Array.isArray(d.gear.recommended) ? d.gear.recommended : []
+      updates.gearOptional = Array.isArray(d.gear.optional) ? d.gear.optional : []
+    }
+
+    // 风险
+    if (Array.isArray(d.risks)) {
+      updates.risks = d.risks
+    }
+
+    // 注意事项
+    if (Array.isArray(d.notes)) {
+      updates.notes = d.notes
+    }
+
+    // 出片时机
+    if (d.photoTiming && typeof d.photoTiming === 'object') {
+      updates.photoTiming = d.photoTiming
+    }
+
+    // 微气候
+    if (d.microclimate && typeof d.microclimate === 'object') {
+      updates.microclimate = d.microclimate
+    }
+
+    // 免责声明
+    if (typeof d.disclaimer === 'string') {
+      updates.disclaimer = d.disclaimer
+    }
+
+    this.setData(updates)
   },
 
   onRetry: function () {

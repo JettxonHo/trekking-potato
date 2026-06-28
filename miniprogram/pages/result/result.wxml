@@ -1,119 +1,109 @@
 <view class="container">
-  <!-- 降级红色横幅 -->
-  <view wx:if="{{degraded}}" class="degraded-banner">
-    <text>⚠️ AI 生成失败，以下为基础参考数据</text>
-    <text class="degraded-hint">请查阅专业路书或咨询有经验的驴友</text>
+  <view wx:if="{{loading}}" class="loading-box">
+    <text>加载中...</text>
   </view>
 
-  <!-- 海拔标注 -->
-  <view wx:if="{{elevation}}" class="elevation-bar">
-    <text>📍 本数据基于海拔 {{elevation}}m</text>
-  </view>
-
-  <block wx:if="{{loading}}">
+  <block wx:elif="{{!hasData}}">
     <view class="loading-box">
-      <text>正在生成建议...</text>
+      <text>无数据</text>
     </view>
   </block>
 
   <block wx:else>
+    <!-- 降级红色横幅 -->
+    <view wx:if="{{degraded}}" class="degraded-banner">
+      <text>⚠️ AI 生成失败，以下为基础参考数据</text>
+    </view>
+
+    <!-- 海拔标注 -->
+    <view wx:if="{{elevation}}" class="elevation-bar">
+      <text>📍 本数据基于海拔 {{elevation}}m</text>
+    </view>
+
     <!-- 天气窗口 -->
-    <view wx:if="{{weather}}" class="card">
-      <view class="card-title">🌤 天气窗口</view>
-      <view wx:if="{{weather.elevationCaveat}}" class="caveat">{{weather.elevationCaveat}}</view>
-      <view wx:for="{{weather.days}}" wx:key="date" class="weather-day">
+    <view wx:if="{{weatherDays.length > 0}}" class="card">
+      <view class="card-title">天气窗口</view>
+      <view wx:if="{{weatherCaveat}}" class="caveat">{{weatherCaveat}}</view>
+      <view wx:for="{{weatherDays}}" wx:key="date" class="weather-day">
         <text class="day-date">{{item.date}}</text>
-        <text class="day-temp">{{item.tempMin}}°~{{item.tempMax}}°C</text>
+        <text class="day-temp">{{item.tempMin}}~{{item.tempMax}}C</text>
         <text class="day-precip">降水{{item.precipProb}}%</text>
         <text class="day-wind">风{{item.windMs}}m/s</text>
-        <text wx:if="{{item.confidence === '参考'}}" class="day-conf">⚠️参考</text>
       </view>
-      <view wx:if="{{weather.precipNote}}" class="caveat">{{weather.precipNote}}</view>
     </view>
 
     <!-- 装备清单 -->
-    <view wx:if="{{gear}}" class="card">
-      <view class="card-title">🎒 装备清单</view>
-      <view wx:if="{{gear.essential.length > 0}}" class="gear-section">
+    <view class="card">
+      <view class="card-title">装备清单</view>
+      <view wx:if="{{gearEssential.length > 0}}">
         <text class="gear-label essential">必备</text>
-        <view wx:for="{{gear.essential}}" wx:key="item" class="gear-item">
+        <view wx:for="{{gearEssential}}" wx:key="item" class="gear-item">
           <text class="gear-name">{{item.item}}</text>
           <text class="gear-reason">{{item.reason}}</text>
         </view>
       </view>
-      <view wx:if="{{gear.recommended.length > 0}}" class="gear-section">
+      <view wx:if="{{gearRecommended.length > 0}}">
         <text class="gear-label">推荐</text>
-        <view wx:for="{{gear.recommended}}" wx:key="item" class="gear-item">
+        <view wx:for="{{gearRecommended}}" wx:key="item" class="gear-item">
           <text class="gear-name">{{item.item}}</text>
           <text class="gear-reason">{{item.reason}}</text>
         </view>
       </view>
-      <view wx:if="{{gear.optional.length > 0}}" class="gear-section">
+      <view wx:if="{{gearOptional.length > 0}}">
         <text class="gear-label optional">可选</text>
-        <view wx:for="{{gear.optional}}" wx:key="item" class="gear-item">
+        <view wx:for="{{gearOptional}}" wx:key="item" class="gear-item">
           <text class="gear-name">{{item.item}}</text>
           <text class="gear-reason">{{item.reason}}</text>
         </view>
       </view>
-      <view wx:if="{{gear.essential.length === 0 && gear.recommended.length === 0}}" class="empty-hint">
+      <view wx:if="{{gearEssential.length === 0 && gearRecommended.length === 0}}" class="empty-hint">
         AI 建议生成失败，装备清单为空
       </view>
     </view>
 
     <!-- 风险提示 -->
     <view class="card">
-      <view class="card-title">⚠️ 风险提示</view>
-      <block wx:if="{{risks.length > 0}}">
-        <view wx:for="{{risks}}" wx:key="risk" class="risk-item {{item.level === '致命' ? 'fatal' : ''}}">
-          <text class="risk-level {{item.level === '致命' ? 'fatal' : ''}}">{{item.level}}</text>
-          <text class="risk-name">{{item.risk}}</text>
-          <text class="risk-advice">{{item.advice}}</text>
-        </view>
-      </block>
-      <view wx:elif="{{degraded}}" class="risk-degraded">
-        <text>AI 不可用，请查专业路书确认风险</text>
+      <view class="card-title">风险提示</view>
+      <view wx:for="{{risks}}" wx:key="risk" class="risk-item {{item.level === '致命' ? 'fatal' : ''}}">
+        <text class="risk-level {{item.level === '致命' ? 'fatal-tag' : ''}}">{{item.level}}</text>
+        <text class="risk-name">{{item.risk}}</text>
+        <text class="risk-advice">{{item.advice}}</text>
       </view>
-      <view wx:else class="empty-hint">暂无风险提示</view>
+      <view wx:if="{{risks.length === 0 && degraded}}" class="risk-degraded">
+        AI 不可用，请查专业路书确认风险
+      </view>
+      <view wx:if="{{risks.length === 0 && !degraded}}" class="empty-hint">暂无风险提示</view>
     </view>
 
     <!-- 出片时机 -->
     <view wx:if="{{photoTiming}}" class="card">
-      <view class="card-title">📷 出片时机</view>
-      <view class="photo-row"><text>日出</text><text>{{photoTiming.sunrise || '—'}}</text></view>
-      <view class="photo-row"><text>日落</text><text>{{photoTiming.sunset || '—'}}</text></view>
-      <view class="photo-row"><text>黄金时刻</text><text>{{photoTiming.goldenHour || '—'}}</text></view>
-      <view class="photo-row"><text>蓝调时刻</text><text>{{photoTiming.blueHour || '—'}}</text></view>
+      <view class="card-title">出片时机</view>
+      <view class="info-row"><text>日出</text><text>{{photoTiming.sunrise || '—'}}</text></view>
+      <view class="info-row"><text>日落</text><text>{{photoTiming.sunset || '—'}}</text></view>
+      <view class="info-row"><text>黄金时刻</text><text>{{photoTiming.goldenHour || '—'}}</text></view>
+      <view class="info-row"><text>蓝调时刻</text><text>{{photoTiming.blueHour || '—'}}</text></view>
       <view wx:if="{{photoTiming.terrainCaveat}}" class="caveat">{{photoTiming.terrainCaveat}}</view>
     </view>
 
-    <!-- 微气候原始数据 -->
+    <!-- 微气候 -->
     <view wx:if="{{microclimate}}" class="card">
-      <view class="card-title">📊 微气候原始数据</view>
-      <view class="micro-row"><text>湿度</text><text>{{microclimate.humidity || '—'}}</text></view>
-      <view class="micro-row"><text>风速</text><text>{{microclimate.windMs || '—'}} m/s</text></view>
-      <view class="micro-row"><text>露点差</text><text>{{microclimate.dewPointSpread || '—'}}</text></view>
-      <view class="caveat">供自行判断云海可能性，不输出云海概率结论</view>
+      <view class="card-title">微气候原始数据</view>
+      <view class="info-row"><text>湿度</text><text>{{microclimate.humidity || '—'}}</text></view>
+      <view class="info-row"><text>风速</text><text>{{microclimate.windMs || '—'}} m/s</text></view>
+      <view class="info-row"><text>露点差</text><text>{{microclimate.dewPointSpread || '—'}}</text></view>
     </view>
 
     <!-- 注意事项 -->
     <view wx:if="{{notes.length > 0}}" class="card">
-      <view class="card-title">📋 注意事项</view>
+      <view class="card-title">注意事项</view>
       <view wx:for="{{notes}}" wx:key="*this" class="note-item">
         <text>{{item}}</text>
       </view>
     </view>
 
     <!-- 免责声明 -->
-    <view class="disclaimer-box">
+    <view wx:if="{{disclaimer}}" class="disclaimer-box">
       <text>{{disclaimer}}</text>
-    </view>
-
-    <!-- 数据来源 -->
-    <view wx:if="{{meta}}" class="meta-box">
-      <text>生成时间：{{meta.generatedAt}}</text>
-      <text>天气来源：{{meta.weatherSource}}</text>
-      <text>模型：{{meta.llmModel}}</text>
-      <text wx:if="{{meta.elapsed}}">耗时：{{meta.elapsed}}ms</text>
     </view>
 
     <button class="retry-btn" bindtap="onRetry">返回重新查询</button>
