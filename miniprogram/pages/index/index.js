@@ -17,7 +17,7 @@ Page({
     const y = today.getFullYear()
     const m = String(today.getMonth() + 1).padStart(2, '0')
     const d = String(today.getDate()).padStart(2, '0')
-    this.setData({ minDate: `${y}-${m}-${d}` })
+    this.setData({ minDate: y + '-' + m + '-' + d })
   },
 
   onRouteInput(e) {
@@ -38,9 +38,13 @@ Page({
   },
 
   onSubmit() {
-    const { route, date, level, days } = this.data
+    var that = this
+    var route = this.data.route
+    var date = this.data.date
+    var level = this.data.level
+    var days = this.data.days
 
-    if (!route.trim()) {
+    if (!route || !route.trim()) {
       wx.showToast({ title: '请输入路线名', icon: 'none' })
       return
     }
@@ -51,57 +55,68 @@ Page({
 
     this.setData({ loading: true, error: null, loadingStage: '正在查询路线位置...' })
 
-    // 分步 loading 动画（改善等待体验）
-    this._stageTimer1 = setTimeout(() => {
-      if (this.data.loading) this.setData({ loadingStage: '获取天气数据中...' })
+    this._stageTimer1 = setTimeout(function () {
+      if (that.data.loading) that.setData({ loadingStage: '获取天气数据中...' })
     }, 3000)
 
-    this._stageTimer2 = setTimeout(() => {
-      if (this.data.loading) this.setData({ loadingStage: 'AI 正在生成建议...' })
+    this._stageTimer2 = setTimeout(function () {
+      if (that.data.loading) that.setData({ loadingStage: 'AI 正在生成建议...' })
     }, 7000)
 
     wx.cloud.callFunction({
       name: 'getAdvice',
-      data: { route: route.trim(), date, level, days },
-      success: (res) => {
-        clearTimeout(this._stageTimer1)
-        clearTimeout(this._stageTimer2)
-        const result = res.result
-        if (result.needsConfirm) {
+      data: { route: route.trim(), date: date, level: level, days: days },
+      success: function (res) {
+        clearTimeout(that._stageTimer1)
+        clearTimeout(that._stageTimer2)
+        var result = res.result
+
+        if (result && result.needsConfirm) {
           wx.showModal({
             title: '路线确认',
-            content: result.message,
+            content: result.message || '是否确认此路线？',
             confirmText: '确认',
             cancelText: '重新输入',
-            success: (modal) => {
+            success: function (modal) {
               if (modal.confirm && result.data) {
-                this.setData({ loading: false })
-                this.navigateToResult(result)
+                that.setData({ loading: false })
+                that.navigateToResult(result)
               } else {
-                this.setData({ loading: false })
+                that.setData({ loading: false })
               }
             },
           })
-        } else if (result.ok) {
-          this.navigateToResult(result)
+        } else if (result && result.ok) {
+          that.navigateToResult(result)
         } else {
-          this.setData({ loading: false, error: result.message || '获取建议失败' })
+          that.setData({ loading: false, error: (result && result.message) || '获取建议失败' })
         }
       },
-      fail: (err) => {
-        clearTimeout(this._stageTimer1)
-        clearTimeout(this._stageTimer2)
+      fail: function (err) {
+        clearTimeout(that._stageTimer1)
+        clearTimeout(that._stageTimer2)
         console.error('云函数调用失败:', err)
-        this.setData({ loading: false, error: '网络错误，请重试' })
+        that.setData({ loading: false, error: '网络错误，请重试' })
       },
     })
   },
 
-  navigateToResult(result) {
-    const app = getApp()
-    app.globalData.adviceResult = result
+  navigateToResult: function (result) {
+    var that = this
     this.setData({ loading: false })
-    wx.navigateTo({ url: '/pages/result/result' })
+
+    // 用 globalData 传递（保留），但同时存到 wx.setStorageSync 作为备份
+    var app = getApp()
+    app.globalData.adviceResult = result
+    try {
+      wx.setStorageSync('adviceResult', result)
+    } catch (e) {
+      console.error('存储失败:', e)
+    }
+
+    wx.navigateTo({
+      url: '/pages/result/result',
+    })
   },
 
   onUnload() {
