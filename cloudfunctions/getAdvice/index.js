@@ -20,8 +20,8 @@ const { buildMessages, buildDegradedResponse } = require('./prompt')
 
 // GLM API 配置
 const GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
-const GLM_MODEL = 'glm-4-flash'
-const GLM_TIMEOUT = 20000 // 单次 GLM 调用超时
+const GLM_MODEL = 'glm-4.5'  // GLM-4-Flash 实测 schema 通过率 0/10，升级 GLM-4.5
+const GLM_TIMEOUT = 30000 // 单次 GLM 调用超时
 
 /**
  * HTTPS POST 封装（调 GLM）

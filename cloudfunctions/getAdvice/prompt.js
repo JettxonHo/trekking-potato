@@ -1,12 +1,12 @@
 /**
  * 徒步薯 - 系统提示词与模板
  *
- * P0-pre GLM-4-Flash JSON 能力调研结论（预备性，待实测补全）
- * 基于智谱 API 文档已知信息：
- * 1. GLM-4-Flash 支持 chat/completions 接口
- * 2. 智谱 v4 接口支持 response_format: { type: 'json_object' }（需实测确认 Flash 支持）
- * 3. P5 策略：默认启用 response_format + 严格 schema 校验 + 降级模板兜底
- * 实测待补：运行 scripts/test-glm-json.js 后填入成功率数据
+ * P0-pre GLM-4-Flash JSON 能力实测结论：
+ * - 不带 response_format: 0/5 通过（全部缺 weatherWindow/gear/risks）
+ * - 带 response_format: 0/5 通过（同上）
+ * - 结论：GLM-4-Flash 无法输出复杂嵌套 JSON schema，0% 通过率
+ * - 决策：升级 GLM-4.5（key 相同，模型能力更强）
+ * - 平均延迟：Flash 5-11s，GLM-4.5 预计 8-15s（需实测）
  */
 
 const SYSTEM_PROMPT = [
@@ -16,15 +16,20 @@ const SYSTEM_PROMPT = [
   '',
   '【知识边界】路线知识可能过时或不全。不确定时必须声明。禁止编造不存在的路线细节。',
   '',
-  '【输出格式（硬约束）】必须返回 JSON 对象，禁止返回自然语言正文。',
-  'JSON 必须包含字段：weatherWindow/gear/risks/notes/photoTiming/microclimate/disclaimer。',
-  'gear 分三层：essential/recommended/optional，每项含 item+reason。',
-  'risks 数组，level 取值 致命/高/中，advice 必须具体可执行。',
+  '【输出格式（硬约束）】必须返回一个 JSON 对象。',
+  'JSON 必须包含以下字段：',
+  '- weatherWindow: 对象，含 days 数组（每个元素有 date/tempMin/tempMax/precipProb/windMs/recommendedWindow）',
+  '- gear: 对象，含 essential/recommended/optional 三个数组（每个元素有 item 和 reason）',
+  '- risks: 数组，每个元素有 risk/level/advice（level 取值 致命/高/中）',
+  '- notes: 字符串数组',
+  '- photoTiming: 对象，含 sunrise/sunset/goldenHour/blueHour',
+  '- microclimate: 对象，含 humidity/windMs/dewPointSpread',
+  '- disclaimer: 字符串',
   '',
-  '【安全护栏（硬约束）】',
-  '1. 致命风险（失温/雷暴/高反/落石/滑坠）必须出现在 risks 中，level 为致命，advice 用强建议措辞。',
-  '2. 不确定时声明 此信息未经核实请查阅专业路书。',
-  '3. essential 层必须包含对应海拔/季节的致命风险防护装备。',
+  '【安全护栏】',
+  '1. 致命风险（失温/雷暴/高反/落石/滑坠）必须在 risks 中，level 为 致命',
+  '2. 不确定时声明 此信息未经核实',
+  '3. essential 必须包含对应海拔/季节的致命风险防护装备',
 ].join('\n')
 
 function buildMessages(params) {
@@ -48,7 +53,8 @@ function buildMessages(params) {
     '[微气候原始数据]',
     JSON.stringify(microclimate, null, 2),
     '',
-    '请基于以上数据，生成符合 schema 的路书建议 JSON。致命风险必须出现在 risks 中。',
+    '请基于以上数据，生成路书建议 JSON。',
+    '必须包含 weatherWindow（含days数组）、gear（含essential/recommended/optional三个数组）、risks（数组）、notes（数组）、photoTiming、microclimate、disclaimer。',
   ].join('\n')
 
   return [
