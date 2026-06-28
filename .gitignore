@@ -1,0 +1,13 @@
+node_modules/
+miniprogram_npm/
+.env
+.env.local
+*.log
+.DS_Store
+project.private.config.json
+__.wxss
+__.wxs
+__.wxss.map
+dist/
+.vscode/
+.idea/
