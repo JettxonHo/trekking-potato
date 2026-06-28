@@ -4,23 +4,37 @@
     <text class="subtitle">徒步行前建议助手</text>
   </view>
 
-  <button class="test-btn" type="primary" loading="{{loading}}" bindtap="onTestCall">
-    测试云函数（武功山 mock）
+  <view class="form">
+    <view class="form-item">
+      <text class="label">路线名</text>
+      <input class="input" placeholder="如：武功山、四姑娘山二峰" value="{{route}}" bindinput="onRouteInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">出发日期</text>
+      <picker mode="date" start="{{minDate}}" value="{{date}}" bindchange="onDateChange">
+        <view class="picker {{date ? '' : 'placeholder'}}">{{date || '请选择日期'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">天数</text>
+      <input class="input" type="number" placeholder="1-7天" value="{{days}}" bindinput="onDaysChange" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">徒步水平</text>
+      <picker mode="selector" range="{{levels}}" value="{{levelIndex}}" bindchange="onLevelChange">
+        <view class="picker">{{levels[levelIndex]}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <button class="submit-btn" type="primary" loading="{{loading}}" bindtap="onSubmit">
+    获取行前建议
   </button>
 
-  <block wx:if="{{error}}">
-    <view class="error-box">
-      <text>{{error}}</text>
-    </view>
-  </block>
-
-  <block wx:if="{{result}}">
-    <view class="result-box">
-      <text class="result-label">云函数返回：</text>
-      <text class="result-json">{{result.ok ? '成功' : '失败'}}</text>
-      <text wx:if="{{result.data && result.data.meta}}" class="result-meta">
-        海拔：{{result.data.meta.elevation}}m
-      </text>
-    </view>
-  </block>
+  <view wx:if="{{error}}" class="error-box">
+    <text>{{error}}</text>
+  </view>
 </view>
