@@ -1,10 +1,8 @@
-<!-- 表单视图 -->
-<view class="container" wx:if="{{!showResult && !loading}}">
+<view class="container" wx:if="{{!showResult}}">
   <view class="header">
     <text class="title">徒步薯</text>
     <text class="subtitle">徒步行前建议助手</text>
   </view>
-
   <view class="form">
     <view class="form-item">
       <text class="label">路线名</text>
@@ -13,12 +11,12 @@
     <view class="form-item">
       <text class="label">出发日期</text>
       <picker mode="date" start="{{minDate}}" value="{{date}}" bindchange="onDateChange">
-        <view class="picker {{date ? '' : 'placeholder'}}">{{date || '请选择日期'}}</view>
+        <view class="picker">{{date || '请选择日期'}}</view>
       </picker>
     </view>
     <view class="form-item">
       <text class="label">天数</text>
-      <input class="input" type="number" placeholder="1-7" value="{{days}}" bindinput="onDaysChange" />
+      <input class="input" type="number" value="{{days}}" bindinput="onDaysChange" />
     </view>
     <view class="form-item">
       <text class="label">徒步水平</text>
@@ -27,96 +25,10 @@
       </picker>
     </view>
   </view>
-
   <button class="submit-btn" type="primary" bindtap="onSubmit">获取行前建议</button>
-  <view wx:if="{{error}}" class="error-box"><text>{{error}}</text></view>
 </view>
 
-<!-- loading 视图 -->
-<view class="container" wx:if="{{loading}}">
-  <view class="loading-container">
-    <view class="loading-spinner"></view>
-    <text class="loading-text">{{loadingStage}}</text>
-    <text class="loading-hint">预计需要 30-50 秒</text>
-  </view>
-</view>
-
-<!-- 结果视图（同页显示，不跳转） -->
-<view class="container result-container" wx:if="{{showResult}}">
-  <!-- 降级横幅 -->
-  <view wx:if="{{degraded}}" class="degraded-banner">
-    <text>⚠️ AI 生成失败，以下为基础参考</text>
-  </view>
-
-  <view wx:if="{{elevation}}" class="elevation-bar">
-    <text>📍 海拔 {{elevation}}m</text>
-  </view>
-
-  <!-- 天气 -->
-  <view wx:if="{{weatherDays.length > 0}}" class="card">
-    <view class="card-title">🌤 天气窗口</view>
-    <view wx:if="{{weatherCaveat}}" class="caveat">{{weatherCaveat}}</view>
-    <view wx:for="{{weatherDays}}" wx:key="date" class="weather-day">
-      <text class="day-date">{{item.date}}</text>
-      <text class="day-temp">{{item.tempMin}}~{{item.tempMax}}C</text>
-      <text class="day-precip">降水{{item.precipProb}}%</text>
-      <text class="day-wind">{{item.windMs}}m/s</text>
-    </view>
-  </view>
-
-  <!-- 装备 -->
-  <view class="card">
-    <view class="card-title">🎒 装备清单</view>
-    <view wx:if="{{gearEssential.length > 0}}">
-      <text class="gear-label essential">必备</text>
-      <view wx:for="{{gearEssential}}" wx:key="item" class="gear-item">
-        <text class="gear-name">{{item.item}}</text><text class="gear-reason">{{item.reason}}</text>
-      </view>
-    </view>
-    <view wx:if="{{gearRecommended.length > 0}}">
-      <text class="gear-label">推荐</text>
-      <view wx:for="{{gearRecommended}}" wx:key="item" class="gear-item">
-        <text class="gear-name">{{item.item}}</text><text class="gear-reason">{{item.reason}}</text>
-      </view>
-    </view>
-    <view wx:if="{{gearOptional.length > 0}}">
-      <text class="gear-label optional">可选</text>
-      <view wx:for="{{gearOptional}}" wx:key="item" class="gear-item">
-        <text class="gear-name">{{item.item}}</text><text class="gear-reason">{{item.reason}}</text>
-      </view>
-    </view>
-    <view wx:if="{{gearEssential.length === 0 && gearRecommended.length === 0}}" class="empty-hint">装备清单为空</view>
-  </view>
-
-  <!-- 风险 -->
-  <view class="card">
-    <view class="card-title">⚠️ 风险提示</view>
-    <view wx:for="{{risks}}" wx:key="risk" class="risk-item {{item.level === '致命' ? 'fatal' : ''}}">
-      <text class="risk-level {{item.level === '致命' ? 'fatal-tag' : ''}}">{{item.level}}</text>
-      <text class="risk-name">{{item.risk}}</text>
-      <text class="risk-advice">{{item.advice}}</text>
-    </view>
-    <view wx:if="{{risks.length === 0 && degraded}}" class="risk-degraded">AI 不可用，请查专业路书</view>
-    <view wx:if="{{risks.length === 0 && !degraded}}" class="empty-hint">暂无风险提示</view>
-  </view>
-
-  <!-- 出片时机 -->
-  <view wx:if="{{photoTiming}}" class="card">
-    <view class="card-title">📷 出片时机</view>
-    <view class="info-row"><text>日出</text><text>{{photoTiming.sunrise || '—'}}</text></view>
-    <view class="info-row"><text>日落</text><text>{{photoTiming.sunset || '—'}}</text></view>
-    <view class="info-row"><text>黄金时刻</text><text>{{photoTiming.goldenHour || '—'}}</text></view>
-    <view class="info-row"><text>蓝调时刻</text><text>{{photoTiming.blueHour || '—'}}</text></view>
-  </view>
-
-  <!-- 注意事项 -->
-  <view wx:if="{{notes.length > 0}}" class="card">
-    <view class="card-title">📋 注意事项</view>
-    <view wx:for="{{notes}}" wx:key="*this" class="note-item"><text>{{item}}</text></view>
-  </view>
-
-  <!-- 免责声明 -->
-  <view wx:if="{{disclaimer}}" class="disclaimer-box"><text>{{disclaimer}}</text></view>
-
-  <button class="retry-btn" bindtap="onBack">返回重新查询</button>
+<view class="container" wx:if="{{showResult}}">
+  <text>测试结果：{{testResult}}</text>
+  <button bindtap="onBack">返回</button>
 </view>

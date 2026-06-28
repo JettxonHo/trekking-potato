@@ -8,6 +8,5 @@
     "navigationBarTitleText": "徒步薯",
     "navigationBarTextStyle": "white"
   },
-  "sitemapLocation": "sitemap.json",
-  "cloud": true
+  "sitemapLocation": "sitemap.json"
 }
