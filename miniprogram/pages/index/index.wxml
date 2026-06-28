@@ -1,0 +1,26 @@
+<view class="container">
+  <view class="header">
+    <text class="title">徒步薯</text>
+    <text class="subtitle">徒步行前建议助手</text>
+  </view>
+
+  <button class="test-btn" type="primary" loading="{{loading}}" bindtap="onTestCall">
+    测试云函数（武功山 mock）
+  </button>
+
+  <block wx:if="{{error}}">
+    <view class="error-box">
+      <text>{{error}}</text>
+    </view>
+  </block>
+
+  <block wx:if="{{result}}">
+    <view class="result-box">
+      <text class="result-label">云函数返回：</text>
+      <text class="result-json">{{result.ok ? '成功' : '失败'}}</text>
+      <text wx:if="{{result.data && result.data.meta}}" class="result-meta">
+        海拔：{{result.data.meta.elevation}}m
+      </text>
+    </view>
+  </block>
+</view>
