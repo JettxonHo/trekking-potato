@@ -255,7 +255,7 @@ export default class Index extends Component {
               </View>
             )}
             {(!gear.essential || gear.essential.length === 0) && (!gear.recommended || gear.recommended.length === 0) && (
-              <Text className="empty-hint">装备清单为空</Text>
+              adviceLoading ? <Text className="loading-placeholder">AI 正在生成装备清单...</Text> : <Text className="empty-hint">装备清单为空</Text>
             )}
           </View>
 
@@ -270,7 +270,7 @@ export default class Index extends Component {
             )) : degraded ? (
               <Text className="risk-degraded">AI 不可用，请查专业路书</Text>
             ) : (
-              <Text className="empty-hint">暂无风险提示</Text>
+              adviceLoading ? <Text className="loading-placeholder">AI 正在分析风险...</Text> : <Text className="empty-hint">暂无风险提示</Text>
             )}
           </View>
 
