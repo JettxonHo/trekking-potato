@@ -22,10 +22,13 @@ const { buildMessages, buildDegradedResponse } = require('./prompt')
 
 // GLM API 配置
 const GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
-const GLM_MODEL = 'glm-4.7'
-// GLM-4.7 带 response_format 实测延迟 27-44s，需留足超时余量
-// 云函数总超时 60s，geo+weather 约 5s，故 GLM 单次超时设 50s
-const GLM_TIMEOUT = 50000 // 单次 GLM 调用超时
+// 双模型策略：先 4.7（质量高但慢），超时降级 Flash（快 5-8s）
+// 实测：云端 4.7 可能 50s+ 不返回，Flash 5-8s 但 JSON schema 支持弱
+// 方案：4.7 超时 15s → Flash 超时 12s → 本地规则兜底，总超时 30s 内必返回
+const GLM_MODEL_PRIMARY = 'glm-4.7'
+const GLM_MODEL_FALLBACK = 'glm-4-flash'
+const GLM_TIMEOUT_PRIMARY = 15000   // 4.7 给 15s，拿不到就降级
+const GLM_TIMEOUT_FALLBACK = 12000  // Flash 给 12s
 
 /**
  * HTTPS POST 封装（调 GLM）
@@ -53,49 +56,56 @@ function httpsPost(url, body, headers, timeout) {
 }
 
 /**
- * 调用 GLM-4-Flash 生成建议
+ * 单次 GLM 调用（指定模型+超时）
  */
-async function callGLM(messages) {
+async function callGLMOnce(messages, model, timeout) {
   const GLM_KEY = process.env.GLM_KEY
   if (!GLM_KEY) throw new Error('GLM_KEY 未配置')
 
   const body = {
-    model: GLM_MODEL,
+    model: model,
     messages,
     temperature: 0.3,
   }
 
-  // P0-pre 调研结论：如果 Flash 支持 response_format 则启用
-  // 预备性启用，实测后如不支持则移除
   body.response_format = { type: 'json_object' }
 
   const res = await httpsPost(
     GLM_API_URL,
     body,
     { 'Authorization': `Bearer ${GLM_KEY}` },
-    GLM_TIMEOUT,
+    timeout,
   )
 
-  if (res.status !== 200) {
-    // 如果 response_format 不被支持，去掉重试一次
-    if (res.data.includes('response_format') || res.status === 400) {
-      const retryBody = { ...body }
-      delete retryBody.response_format
-      const retryRes = await httpsPost(
-        GLM_API_URL,
-        retryBody,
-        { 'Authorization': `Bearer ${GLM_KEY}` },
-        GLM_TIMEOUT,
-      )
-      if (retryRes.status !== 200) {
-        throw new Error('GLM 返回 ' + retryRes.status + ': ' + retryRes.data.substring(0, 200))
-      }
-      return parseGLMContent(retryRes.data)
-    }
-    throw new Error('GLM 返回 ' + res.status + ': ' + res.data.substring(0, 200))
+ if (res.status !== 200) {
+    throw new Error(model + ' 返回 ' + res.status + ': ' + res.data.substring(0, 150))
   }
 
   return parseGLMContent(res.data)
+}
+
+/**
+ * 双模型回退：4.7(15s) → Flash(12s) → 抛异常触发降级
+ * 保证 30s 内必返回结果或明确失败
+ */
+async function callGLM(messages) {
+  // 第一次：GLM-4.7（质量优，超时 15s）
+  try {
+    const result = await callGLMOnce(messages, GLM_MODEL_PRIMARY, GLM_TIMEOUT_PRIMARY)
+    console.log('[getAdvice] GLM-4.7 成功')
+    return { advice: result, model: GLM_MODEL_PRIMARY }
+  } catch (e) {
+    console.warn('[getAdvice] GLM-4.7 失败(' + e.message + ')，降级 Flash')
+  }
+  // 第二次：GLM-4-Flash（快，超时 12s）
+  try {
+    const result = await callGLMOnce(messages, GLM_MODEL_FALLBACK, GLM_TIMEOUT_FALLBACK)
+    console.log('[getAdvice] GLM-Flash 成功')
+    return { advice: result, model: GLM_MODEL_FALLBACK }
+  } catch (e) {
+    console.warn('[getAdvice] GLM-Flash 失败(' + e.message + ')，走降级')
+    throw e
+  }
 }
 
 /**
@@ -125,7 +135,7 @@ function validateAndFill(advice) {
   const errors = []
 
   // 核心字段校验（缺失或类型错 → 触发降级）
-  if (!advice.weatherWindow) errors.push('weatherWindow 缺失')
+  // weatherWindow 由后端注入（GLM 不再生成），不校验
   if (!advice.gear) {
     errors.push('gear 缺失')
   } else {
@@ -147,7 +157,35 @@ function validateAndFill(advice) {
 }
 
 /**
- * 云函数主入口
+ * 规则兜底：双模型都失败时，用本地 gearRules 构建确定性建议（不依赖 LLM）
+ * 保证用户至少看到基于海拔/季节的装备和风险清单，而非空降级
+ */
+function buildRuleBasedAdvice(gearRules, weather) {
+  // 把 gearRules.essential/recommended/optional 转成 advice 格式
+  // gearRules 的 item 已含 reason，直接用
+  const risks = []
+  if (gearRules.fatalRisks && gearRules.fatalRisks.length > 0) {
+    for (const riskName of gearRules.fatalRisks) {
+      risks.push({ risk: riskName + '风险', level: '致命', advice: '本风险由海拔/季节规则判定，请查阅专业路书获取具体应对措施' })
+    }
+  }
+  return {
+    gear: {
+      essential: gearRules.essential || [],
+      recommended: gearRules.recommended || [],
+      optional: gearRules.optional || [],
+    },
+    risks: risks,
+    notes: ['本建议由本地规则引擎生成（AI 双模型均不可用），仅含基于海拔/季节的通用装备与风险。请结合实际路况判断。'],
+    microclimate: { humidity: null, windMs: weather && weather.days && weather.days[0] ? weather.days[0].windMs : null, dewPointSpread: null },
+    disclaimer: 'AI 模型暂时不可用，以下为基于海拔和季节的确定性规则建议。装备清单完整，风险提示基于规则。出行前请核实官方信息。户外有风险，责任自负。',
+    degraded: true,  // 标记降级（前端显示横幅），但内容不为空
+    degradedReason: 'AI 双模型超时，使用本地规则兜底',
+  }
+}
+
+/**
+* 云函数主入口
  */
 exports.main = async (event, context) => {
   const startTime = Date.now()
@@ -227,7 +265,7 @@ exports.main = async (event, context) => {
  const meta = {
     generatedAt: new Date().toISOString(),
     weatherSource: 'Open-Meteo',
-    llmModel: GLM_MODEL,
+    llmModel: GLM_MODEL_PRIMARY,
     elevation: loc.elevation,
     coords: { lat: loc.lat, lon: loc.lon },
     location: loc.location,
@@ -251,7 +289,9 @@ exports.main = async (event, context) => {
     })
 
     console.log('[getAdvice] 调用 GLM-4.7, prompt messages:', messages.length)
-    advice = await callGLM(messages)
+    const glmResult = await callGLM(messages)
+    advice = glmResult.advice
+    meta.llmModel = glmResult.model
     console.log('[getAdvice] GLM 返回成功, keys:', Object.keys(advice).join(','))
 
     // Schema 校验
@@ -271,11 +311,15 @@ exports.main = async (event, context) => {
 
   // 7. 降级处理
   if (degraded) {
+    // 双模型都失败时，用本地规则兜底（装备/风险非空，比空降级更有用）
+    const ruleAdvice = buildRuleBasedAdvice(gearRules, weather)
     const degradedResponse = buildDegradedResponse(weather, sunEvents, meta)
+    degradedResponse.data.gear = ruleAdvice.gear
+    degradedResponse.data.risks = ruleAdvice.risks
+    degradedResponse.data.notes = ruleAdvice.notes
+    degradedResponse.data.degradedReason = ruleAdvice.degradedReason
     degradedResponse.data.meta.elapsed = Date.now() - startTime
     degradedResponse.data.meta.degradedReason = degradedReason
-    // 在 notes 里也加入失败原因，让用户在真机上能看到
-    degradedResponse.data.notes = ['AI 生成失败：' + degradedReason, '请查阅专业路书或咨询有经验的驴友']
     return degradedResponse
   }
 
@@ -314,7 +358,7 @@ async function handleAdvice(event, startTime) {
   const meta = {
     generatedAt: new Date().toISOString(),
     weatherSource: 'Open-Meteo',
-    llmModel: GLM_MODEL,
+    llmModel: GLM_MODEL_PRIMARY,
     elevation,
     coords: baseData && baseData.coords ? baseData.coords : null,
     location: baseData && baseData.location ? baseData.location : locationName,
@@ -338,7 +382,9 @@ async function handleAdvice(event, startTime) {
     })
 
     console.log('[getAdvice:advice] 调用 GLM-4.7')
-    advice = await callGLM(messages)
+    const glmResult = await callGLM(messages)
+    advice = glmResult.advice
+    meta.llmModel = glmResult.model
     console.log('[getAdvice:advice] GLM 返回成功, keys:', Object.keys(advice).join(','))
 
     const validation = validateAndFill(advice)
@@ -355,10 +401,14 @@ async function handleAdvice(event, startTime) {
   }
 
   if (degraded) {
+    const ruleAdvice = buildRuleBasedAdvice(gearRules || {}, weather)
     const degradedResponse = buildDegradedResponse(weather, sunEvents, meta)
+    degradedResponse.data.gear = ruleAdvice.gear
+    degradedResponse.data.risks = ruleAdvice.risks
+    degradedResponse.data.notes = ruleAdvice.notes
+    degradedResponse.data.degradedReason = ruleAdvice.degradedReason
     degradedResponse.data.meta.elapsed = Date.now() - startTime
     degradedResponse.data.meta.degradedReason = degradedReason
-    degradedResponse.data.notes = ['AI 生成失败：' + degradedReason, '请查阅专业路书或咨询有经验的驴友']
     return degradedResponse
   }
 
