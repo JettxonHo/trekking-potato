@@ -4,20 +4,21 @@ import Taro from '@tarojs/taro'
 import './index.css'
 
 export default class Index extends Component {
-  state = {
-    route: '',
-    date: '',
-    level: '中级',
-    days: 1,
-    levels: ['初级', '中级', '高级'],
-    levelIndex: 1,
-    minDate: '',
-    loading: false,
-    loadingStage: '',
-    error: null,
-    showResult: false,
-    result: null
-  }
+ state = {
+   route: '',
+   date: '',
+   level: '中级',
+   days: 1,
+   levels: ['初级', '中级', '高级'],
+   levelIndex: 1,
+   minDate: '',
+   loading: false,
+   loadingStage: '',
+   error: null,
+   showResult: false,
+    result: null,
+    adviceLoading: false
+ }
 
   componentDidMount() {
     const d = new Date()
@@ -37,46 +38,103 @@ export default class Index extends Component {
     if (!route.trim()) { Taro.showToast({ title: '请输入路线名', icon: 'none' }); return }
     if (!date) { Taro.showToast({ title: '请选择出发日期', icon: 'none' }); return }
 
-    this.setState({ loading: true, error: null, showResult: false, loadingStage: '正在查询路线位置...' })
+    this._unmounted = false
+    this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, loadingStage: '正在查询路线位置...' })
 
-    this._t1 = setTimeout(() => { if (this.state.loading) this.setState({ loadingStage: '获取天气数据中...' }) }, 3000)
-    this._t2 = setTimeout(() => { if (this.state.loading) this.setState({ loadingStage: 'AI 正在生成建议...' }) }, 7000)
-
+    // ===== 分步加载 P5.3 =====
+    // 第一阶段：geo + weather + sun（~3-5s，秒回天气）
     Taro.cloud.callFunction({
       name: 'getAdvice',
-      data: { route: route.trim(), date, level, days },
-      timeout: 60000,
+      data: { route: route.trim(), date, level, days, mode: 'base' },
       success: (res) => {
-        clearTimeout(this._t1); clearTimeout(this._t2)
+        if (this._unmounted) return
+        const result = res.result
+        if (!result || !result.ok) {
+          this.setState({ loading: false, error: (result && result.message) || '路线查询失败' })
+          return
+        }
+        // 天气数据到手，立即渲染结果页（装备/风险栏留空待填充）
+        const base = result.data
+        this.setState({
+          loading: false,
+          showResult: true,
+          result: {
+            weatherWindow: base.weather,
+            photoTiming: base.sunEvents,
+            gear: { essential: [], recommended: [], optional: [] },
+            risks: [],
+            notes: [],
+            meta: { elevation: base.elevation, location: base.location, coords: base.coords },
+          },
+          adviceLoading: true,
+        })
+        // 第二阶段：GLM 建议（~30-40s，独立调用）
+        this._fetchAdvice({ route: route.trim(), date, level, days, baseData: base })
+      },
+      fail: (err) => {
+        if (this._unmounted) return
+        this.setState({ loading: false, error: '云函数调用失败，请检查 getAdvice 是否已部署' })
+        console.error('[徒步薯] base callFunction fail', err)
+      }
+    })
+  }
+
+  _fetchAdvice(params) {
+    Taro.cloud.callFunction({
+      name: 'getAdvice',
+      data: { ...params, mode: 'advice' },
+      success: (res) => {
+        if (this._unmounted) return
         const result = res.result
         if (result && result.ok) {
-          this.setState({ loading: false, showResult: true, result: result.data || result })
+          // 用 GLM 结果增量更新（天气保留 base 的，装备/风险/注意事项用 GLM 的）
+          const d = result.data
+          this.setState((prev) => ({
+            adviceLoading: false,
+            result: {
+              ...prev.result,
+              gear: d.gear || prev.result.gear,
+              risks: d.risks || [],
+              notes: d.notes || [],
+              degraded: d.degraded === true,
+              photoTiming: d.photoTiming || prev.result.photoTiming,
+              disclaimer: d.disclaimer,
+              meta: { ...prev.result.meta, ...d.meta },
+            },
+          }))
         } else {
-          this.setState({ loading: false, error: (result && result.message) || '获取建议失败' })
+          this.setState({ adviceLoading: false, error: 'AI 建议生成失败' })
         }
       },
       fail: (err) => {
-        clearTimeout(this._t1); clearTimeout(this._t2)
-        const isTimeout = err && (err.errMsg || '').includes('timeout')
-        this.setState({ loading: false, error: isTimeout ? '生成超时，请重试（GLM 需 30-50 秒）' : '云函数调用失败，请检查是否已部署' })
-        console.error('[徒步薯] callFunction fail', err)
+        if (this._unmounted) return
+        // GLM 超时不影响已展示的天气数据
+        this.setState((prev) => ({
+          adviceLoading: false,
+          result: {
+            ...prev.result,
+            degraded: true,
+            notes: ['AI 建议生成超时，以下为天气基础数据。请重试或查阅专业路书。'],
+          },
+        }))
+        console.error('[徒步薯] advice callFunction fail', err)
       }
     })
   }
 
   onBack = () => this.setState({ showResult: false })
 
-  componentWillUnmount() { clearTimeout(this._t1); clearTimeout(this._t2) }
+  componentWillUnmount() { this._unmounted = true }
 
-    render() {
-    const { route, date, level, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result } = this.state
+  render() {
+    const { route, date, level, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading } = this.state
 
     if (loading) {
       return (
         <View className="container loading-screen">
           <View className="spinner" />
-          <Text className="loading-text">{loadingStage}</Text>
-          <Text className="loading-hint">预计需要 30-50 秒</Text>
+        <Text className="loading-text">{loadingStage}</Text>
+          <Text className="loading-hint">正在获取天气数据...</Text>
         </View>
       )
     }
@@ -94,6 +152,13 @@ export default class Index extends Component {
 
       return (
         <View className="container result-container">
+          {adviceLoading && (
+            <View className="advice-loading-bar">
+              <View className="spinner-small" />
+              <Text>AI 正在生成装备建议和风险分析（约需 30-50 秒）...</Text>
+            </View>
+          )}
+
           {degraded && (
             <View className="degraded-banner">
               <Text>AI 生成失败，以下为基础参考</Text>

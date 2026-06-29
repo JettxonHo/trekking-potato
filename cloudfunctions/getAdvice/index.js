@@ -1,14 +1,16 @@
 /**
  * 徒步薯 - 核心云函数 getAdvice（P5 咽喉切片）
  *
- * 流程：resolveLocation → Promise.all([fetchWeather, calcSunEvents]) → callGLM → schema 校验 → 降级
+ * 流程（分步加载 P5.3）：
+ *   mode='base': resolveLocation → Promise.all([fetchWeather, calcSunEvents]) → 返回（~3-5s）
+ *   mode='advice': 接收 base 数据 → callGLM → schema 校验 → 降级（~30-40s，独立超时窗口）
+ *   无 mode（兼容）: 全链路一次跑完
  *
  * 关键设计：
  * - Promise.all 并行天气+天文（省2-5s）
  * - JSON schema 校验（核心字段缺失→降级，非核心→默认值填充）
  * - 降级不隐藏（degraded:true + 风险栏空）
- * - 超时25s
- * - 分步加载支持（先返回 geo+weather，GLM 结果增量更新）
+ * - 分步加载（base 秒回天气，advice 独立跑 GLM，规避 SDK 20s 硬超时）
  */
 
 const https = require('https')
@@ -149,13 +151,18 @@ function validateAndFill(advice) {
  */
 exports.main = async (event, context) => {
   const startTime = Date.now()
-  const { route, date, level, days } = event
+  const { route, date, level, days, mode } = event
 
   // 1. 输入校验
   if (!route || !date || !level) {
     return { ok: false, error: 'missing_params', message: '缺少必要参数（route/date/level）' }
   }
   const tripDays = days || 1
+
+  // ========== 分步加载：mode='advice' 时跳过 geo/weather，直接用前端传来的数据跑 GLM ==========
+  if (mode === 'advice') {
+    return await handleAdvice(event, startTime)
+  }
 
   // 2. 地理编码（路线 → 经纬度+海拔）
   const locResult = await resolveLocation(route)
@@ -193,10 +200,31 @@ exports.main = async (event, context) => {
     Promise.resolve(calcSunEvents(wgs84.lat, wgs84.lng, date)),
   ])
 
-  const weather = weatherResult.ok ? weatherResult.data : null
+ const weather = weatherResult.ok ? weatherResult.data : null
 
-  // 6. 调 GLM 生成建议
-  const meta = {
+ // ========== 分步加载：mode='base' 时到此为止，秒回天气数据 ==========
+ if (mode === 'base') {
+   return {
+     ok: true,
+     phase: 'base',
+     data: {
+       route: loc.name,
+       date,
+       level,
+       days: tripDays,
+       elevation: loc.elevation,
+       location: loc.location,
+       coords: { lat: loc.lat, lon: loc.lon },
+       weather,
+       sunEvents,
+       gearRules,
+       meta: { elapsed: Date.now() - startTime, source: 'base' },
+     },
+   }
+ }
+
+ // 6. 调 GLM 生成建议
+ const meta = {
     generatedAt: new Date().toISOString(),
     weatherSource: 'Open-Meteo',
     llmModel: GLM_MODEL,
@@ -263,6 +291,91 @@ exports.main = async (event, context) => {
     degraded: false,
     data: {
       ...advice,
+      meta,
+    },
+  }
+}
+
+/**
+ * 分步加载第二阶段：接收 base 数据，只跑 GLM
+ * 前端调 getAdvice({mode:'advice', baseData, route, date, level, days})
+ */
+async function handleAdvice(event, startTime) {
+  const { route, date, level, days, baseData } = event
+  const tripDays = days || 1
+
+  // 从 baseData 恢复上下文（避免重复查 geo/weather）
+  const weather = baseData && baseData.weather ? baseData.weather : null
+  const sunEvents = baseData && baseData.sunEvents ? baseData.sunEvents : null
+  const gearRules = baseData && baseData.gearRules ? baseData.gearRules : null
+  const elevation = baseData && baseData.elevation ? baseData.elevation : null
+  const locationName = baseData && baseData.route ? baseData.route : route
+
+  const meta = {
+    generatedAt: new Date().toISOString(),
+    weatherSource: 'Open-Meteo',
+    llmModel: GLM_MODEL,
+    elevation,
+    coords: baseData && baseData.coords ? baseData.coords : null,
+    location: baseData && baseData.location ? baseData.location : locationName,
+    elapsed: 0,
+  }
+
+  let advice
+  let degraded = false
+  let degradedReason = ''
+
+  try {
+    const messages = buildMessages({
+      route: locationName,
+      date,
+      level,
+      days: tripDays,
+      weather,
+      gearRules,
+      sunEvents,
+      microclimate: weather ? { humidity: null, windMs: weather.days && weather.days[0] && weather.days[0].windMs, dewPointSpread: null } : null,
+    })
+
+    console.log('[getAdvice:advice] 调用 GLM-4.7')
+    advice = await callGLM(messages)
+    console.log('[getAdvice:advice] GLM 返回成功, keys:', Object.keys(advice).join(','))
+
+    const validation = validateAndFill(advice)
+    if (!validation.valid) {
+      console.warn('[getAdvice:advice] Schema 校验失败:', validation.errors.join(', '))
+      degraded = true
+      degradedReason = 'Schema校验失败: ' + validation.errors.join(', ')
+    }
+    advice = validation.advice
+  } catch (e) {
+    console.error('[getAdvice:advice] GLM 调用失败:', e.message)
+    degraded = true
+    degradedReason = 'GLM调用异常: ' + e.message
+  }
+
+  if (degraded) {
+    const degradedResponse = buildDegradedResponse(weather, sunEvents, meta)
+    degradedResponse.data.meta.elapsed = Date.now() - startTime
+    degradedResponse.data.meta.degradedReason = degradedReason
+    degradedResponse.data.notes = ['AI 生成失败：' + degradedReason, '请查阅专业路书或咨询有经验的驴友']
+    return degradedResponse
+  }
+
+  // photoTiming 用 suncalc 确定性计算覆盖 LLM 复述
+  if (sunEvents) {
+    advice.photoTiming = Object.assign({}, advice.photoTiming, sunEvents)
+  }
+  meta.elapsed = Date.now() - startTime
+
+  return {
+    ok: true,
+    phase: 'advice',
+    degraded: false,
+    data: {
+      ...advice,
+      weather,   // 回传天气（前端需要合并）
+      sunEvents,
       meta,
     },
   }
