@@ -252,6 +252,10 @@ exports.main = async (event, context) => {
   }
 
   // 8. 正常返回
+  // photoTiming 用 suncalc 确定性计算覆盖 LLM 复述（时刻更准，且保证含 terrainCaveat）
+  if (sunEvents) {
+    advice.photoTiming = Object.assign({}, advice.photoTiming, sunEvents)
+  }
   meta.elapsed = Date.now() - startTime
 
   return {

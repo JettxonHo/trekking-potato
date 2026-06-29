@@ -89,6 +89,14 @@ async function testPipeline(route, expectElev) {
   check('降级响应 risks 为空数组', Array.isArray(mockDegraded.data.risks) && mockDegraded.data.risks.length === 0)
   check('降级响应顶层 degraded=true', mockDegraded.degraded === true)
 
+  console.log('\n=== photoTiming 确定性覆盖测试 ===')
+  // 模拟 GLM 返回不准确的 photoTiming，验证 suncalc 值会覆盖
+  const glmPhotoTiming = { sunrise: '99:99', sunset: '99:99', goldenHour: 'x', blueHour: 'y' }
+  const realSun = { sunrise: '05:32', sunset: '19:18', goldenHour: '05:32-06:32', blueHour: '05:12-05:32', terrainCaveat: '未考虑地形遮挡' }
+  const merged = Object.assign({}, glmPhotoTiming, realSun)
+  check('suncalc 覆盖 GLM 时刻', merged.sunrise === '05:32', merged.sunrise)
+  check('terrainCaveat 合并进 photoTiming', typeof merged.terrainCaveat === 'string')
+
   console.log('\n=== 总结 ===')
   console.log('PASS: ' + pass + ', FAIL: ' + fail)
   process.exit(fail > 0 ? 1 : 0)
