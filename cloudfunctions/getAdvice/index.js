@@ -15,6 +15,7 @@
 
 const https = require('https')
 const { resolveLocation, gcj02ToWgs84 } = require('./geocode')
+const { fetchElevation } = require('./geocode')
 const { fetchWeather } = require('./weather')
 const { calcSunEvents } = require('./sun-events')
 const { getGearRules } = require('./gear-rules')
@@ -184,12 +185,32 @@ exports.main = async (event, context) => {
     return await handleAdvice(event, startTime)
   }
 
-  // 2. 地理编码（路线 → 经纬度+海拔）
-  const locResult = await resolveLocation(route)
-  if (!locResult.ok) {
-    return { ok: false, error: 'location_failed', message: locResult.message || '未找到位置' }
+  // 2. 地理编码：手动坐标优先，否则走 resolveLocation
+  let loc
+  if (event.manualLat && event.manualLon) {
+    // 用户手动输入坐标兜底（搜不到路线名时）
+    let elev = event.manualElevation
+    // 海拔没填的话查 Open-Meteo elevation API
+    if (!elev || elev <= 0) {
+      try {
+        elev = await fetchElevation(parseFloat(event.manualLat), parseFloat(event.manualLon))
+      } catch (e) { elev = null }
+    }
+    loc = {
+      name: route,
+      lat: parseFloat(event.manualLat),
+      lon: parseFloat(event.manualLon),
+      elevation: elev ? Math.round(elev) : null,
+      location: '手动输入坐标',
+      type: 'trek',
+    }
+  } else {
+    const locResult = await resolveLocation(route)
+    if (!locResult.ok) {
+      return { ok: false, error: 'location_failed', message: locResult.message || '未找到位置' }
+    }
+    loc = locResult.data
   }
-  const loc = locResult.data
 
   // 如果需要用户确认（编辑距离匹配），返回确认请求
   if (loc.needsConfirm && loc.matchType === 'editDistance') {

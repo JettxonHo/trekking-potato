@@ -17,7 +17,11 @@ export default class Index extends Component {
    error: null,
    showResult: false,
     result: null,
-    adviceLoading: false
+    adviceLoading: false,
+    showManualCoords: false,
+    manualLat: '',
+    manualLon: '',
+    manualElev: ''
  }
 
   componentDidMount() {
@@ -43,25 +47,41 @@ export default class Index extends Component {
     const { route, date, level, days } = this.state
     if (!route.trim()) { Taro.showToast({ title: '请输入路线名', icon: 'none' }); return }
     if (!date) { Taro.showToast({ title: '请选择出发日期', icon: 'none' }); return }
-
-    // 提交时校验天数（1-7）
     const tripDays = Math.max(1, Math.min(7, parseInt(days) || 1))
-    this._unmounted = false
-    this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, loadingStage: '正在查询路线位置...' })
+    this._submitBase({ route: route.trim(), date, level, days: tripDays })
+  }
 
-    // ===== 分步加载 P5.3 =====
-    // 第一阶段：geo + weather + sun（~3-5s，秒回天气）
+  onManualSubmit = () => {
+    const { route, date, level, days, manualLat, manualLon, manualElev } = this.state
+    const lat = parseFloat(manualLat)
+    const lon = parseFloat(manualLon)
+    if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      Taro.showToast({ title: '经纬度格式错误', icon: 'none' }); return
+    }
+    const tripDays = Math.max(1, Math.min(7, parseInt(days) || 1))
+    const elev = parseFloat(manualElev) || 0
+    this._submitBase({
+      route: route.trim() || '手动坐标',
+      date, level, days: tripDays,
+      manualLat: lat, manualLon: lon,
+      manualElevation: elev > 0 ? elev : undefined,
+    })
+  }
+
+  _submitBase(params) {
+    this._unmounted = false
+    this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, showManualCoords: false, loadingStage: '正在查询路线位置...' })
     Taro.cloud.callFunction({
       name: 'getAdvice',
-      data: { route: route.trim(), date, level, days: tripDays, mode: 'base' },
+      data: { ...params, mode: 'base' },
       success: (res) => {
         if (this._unmounted) return
         const result = res.result
         if (!result || !result.ok) {
-          this.setState({ loading: false, error: (result && result.message) || '路线查询失败' })
+          const isLocationFail = result && result.error === 'location_failed'
+          this.setState({ loading: false, error: (result && result.message) || '路线查询失败', showManualCoords: isLocationFail })
           return
         }
-        // 天气数据到手，立即渲染结果页（装备/风险栏留空待填充）
         const base = result.data
         this.setState({
           loading: false,
@@ -76,8 +96,7 @@ export default class Index extends Component {
           },
           adviceLoading: true,
         })
-        // 第二阶段：GLM 建议（~30-40s，独立调用）
-        this._fetchAdvice({ route: route.trim(), date, level, days: tripDays, baseData: base })
+        this._fetchAdvice({ ...params, baseData: base })
       },
       fail: (err) => {
         if (this._unmounted) return
@@ -135,7 +154,7 @@ export default class Index extends Component {
   componentWillUnmount() { this._unmounted = true }
 
   render() {
-    const { route, date, level, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading } = this.state
+    const { route, date, level, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev } = this.state
 
     if (loading) {
       return (
@@ -300,6 +319,18 @@ export default class Index extends Component {
         <Button type="primary" onClick={this.onSubmit} className="submit-btn">获取行前建议</Button>
 
         {error && <View className="error-box"><Text>{error}</Text></View>}
+
+        {showManualCoords && (
+          <View className="manual-coords-box">
+            <Text className="manual-hint">搜不到路线？输入起点坐标（高德地图长按获取）</Text>
+            <View className="coord-row">
+              <Input className="coord-input" type="digit" placeholder="纬度" value={manualLat} onInput={(e) => this.setState({ manualLat: e.detail.value })} />
+              <Input className="coord-input" type="digit" placeholder="经度" value={manualLon} onInput={(e) => this.setState({ manualLon: e.detail.value })} />
+            </View>
+            <Input className="coord-input-wide" type="number" placeholder="海拔（选填，不填自动查询）" value={manualElev} onInput={(e) => this.setState({ manualElev: e.detail.value })} />
+            <Button type="primary" onClick={this.onManualSubmit} className="manual-submit-btn">用手动坐标查询</Button>
+          </View>
+        )}
       </View>
     )
   }

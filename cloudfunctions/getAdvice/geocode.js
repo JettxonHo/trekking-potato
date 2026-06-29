@@ -195,4 +195,4 @@ async function resolveLocation(route) {
   }
 }
 
-module.exports = { resolveLocation, gcj02ToWgs84 }
+module.exports = { resolveLocation, gcj02ToWgs84, fetchElevation }
