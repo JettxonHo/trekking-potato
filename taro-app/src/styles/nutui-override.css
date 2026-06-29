@@ -1,0 +1,33 @@
+/* ============================================
+ * NutUI 主题覆盖 — 把京东红改成苹果灰/哑光黑
+ * ============================================ */
+
+/* ---- Button：哑光黑底 + 点击皮一下 ---- */
+.nut-button { border: none !important; border-radius: 16rpx !important; font-weight: 600 !important; letter-spacing: 1rpx !important; transition: all 0.2s cubic-bezier(0.25,1,0.5,1) !important; }
+.nut-button::after { border: none !important; }
+.nut-button:active { transform: scale(0.97) rotate(-1deg) !important; }
+.nut-button-primary { background: #1a1a1a !important; color: #fff !important; border: none !important; }
+.nut-button-primary:active { background: #333 !important; }
+.nut-button-default { background: #fff !important; color: #1d1d1f !important; border: none !important; box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.03) !important; }
+.nut-button-default:active { background: #f5f5f7 !important; }
+
+/* ---- Tag：药丸风格 ---- */
+.nut-tag { border-radius: 8rpx !important; font-weight: 600 !important; letter-spacing: 0.5rpx !important; padding: 4rpx 16rpx !important; }
+.nut-tag-danger { background: #ff3b30 !important; color: #fff !important; }
+
+/* ---- Cell：iOS 设置页风格 ---- */
+.nut-cell { padding: 32rpx 36rpx !important; min-height: 100rpx !important; background: #fff !important; border-radius: 0 !important; align-items: center !important; }
+.nut-cell::after { border-bottom: 1rpx solid #f0f0f2 !important; left: 36rpx !important; right: 36rpx !important; }
+.nut-cell-group { background: #fff !important; border-radius: 24rpx !important; overflow: hidden !important; box-shadow: 0 4rpx 48rpx rgba(0,0,0,0.04) !important; }
+.nut-cell-title { font-size: 30rpx !important; color: #1d1d1f !important; font-weight: 500 !important; width: 160rpx !important; flex-shrink: 0 !important; }
+.nut-cell-value { font-size: 30rpx !important; color: #1d1d1f !important; }
+.nut-cell-description { font-size: 24rpx !important; color: #86868b !important; }
+
+/* ---- Popup：底部弹出 + 圆角顶部 ---- */
+.nut-popup { border-radius: 32rpx 32rpx 0 0 !important; box-shadow: 0 -8rpx 64rpx rgba(0,0,0,0.08) !important; }
+.nut-popup-bottom { border-radius: 32rpx 32rpx 0 0 !important; }
+.nut-overlay { background: rgba(0,0,0,0.3) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+/* ---- Skeleton：懒洋洋呼吸 ---- */
+.nut-skeleton { background: linear-gradient(90deg, #f5f5f7 25%, #ececee 37%, #f5f5f7 63%) !important; background-size: 400% 100% !important; animation: skeleton-lazy 2.5s ease-in-out infinite !important; border-radius: 12rpx !important; }
+@keyframes skeleton-lazy { 0% { background-position: 100% 50%; } 50% { background-position: 0 50%; } 100% { background-position: 100% 50%; } }

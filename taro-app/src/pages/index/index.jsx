@@ -1,7 +1,9 @@
 import { Component } from 'react'
-import { View, Text, Input, Picker, Button } from '@tarojs/components'
+import { View, Text, Input, Picker } from '@tarojs/components'
+import { Button, Cell, CellGroup, Tag, Skeleton, Popup } from '@nutui/nutui-react-taro'
 import Taro from '@tarojs/taro'
 import './index.css'
+import '../../styles/nutui-override.css'
 
 const FUNNY_MESSAGES = [
   '薯仔正在向老天借晴天...',
@@ -49,9 +51,9 @@ export default class Index extends Component {
   onLevelChange = (e) => this.setState({ levelIndex: e.detail.value, level: this.state.levels[e.detail.value] })
   onDaysChange = (e) => {
     const raw = e.detail.value
-    if (raw === '') { this.setState({ days: '', daysRaw: '' }); return }
+    if (raw === '') { this.setState({ days: '' }); return }
     const num = parseInt(raw)
-    if (!isNaN(num)) this.setState({ days: num, daysRaw: raw })
+    if (!isNaN(num)) this.setState({ days: num })
   }
 
   onSubmit = () => {
@@ -71,6 +73,7 @@ export default class Index extends Component {
     }
     const tripDays = Math.max(1, Math.min(7, parseInt(days) || 1))
     const elev = parseFloat(manualElev) || 0
+    this.setState({ showManualCoords: false })
     this._submitBase({
       route: route.trim() || '手动坐标',
       date, level, days: tripDays,
@@ -195,12 +198,17 @@ export default class Index extends Component {
     const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
     const funnyMsg = this.state.funnyMsg
 
-    // ===== Loading 视图 =====
+    // ===== Loading 视图（Skeleton 骨架屏 + 薯仔） =====
     if (loading) {
       return (
         <View className="container loading-screen">
           <Text className="loading-potato">🥔</Text>
           <Text className="loading-text">{loadingStage}</Text>
+          <View className="skeleton-card">
+            <Skeleton rows={2} animated block />
+            <View className="skeleton-gap" />
+            <Skeleton rows={3} animated block />
+          </View>
         </View>
       )
     }
@@ -217,7 +225,7 @@ export default class Index extends Component {
       const photo = d.photoTiming || {}
 
       return (
-        <View className="container" style="padding-top: 40rpx; padding-bottom: 120rpx;">
+        <View className="container" style="padding-top:40rpx;padding-bottom:120rpx;">
           {degraded && (
             <View className="degraded-banner">
               <Text>薯仔脑子暂时短路了，以下为基础参考 🥔</Text>
@@ -232,7 +240,7 @@ export default class Index extends Component {
           )}
 
           {funnyMsg && adviceLoading && (
-            <Text className="loading-funny" style="display:block; text-align:center; margin-bottom:20rpx;">{funnyMsg}</Text>
+            <Text className="loading-funny" style="display:block;text-align:center;margin-bottom:20rpx;">{funnyMsg}</Text>
           )}
 
           {meta.elevation && (
@@ -263,12 +271,14 @@ export default class Index extends Component {
             <Text className="card-quirky-icon">🎒</Text>
             <Text className="card-title">装备清单</Text>
             {adviceLoading ? (
-              <Text className="loading-placeholder">薯仔正在生成装备清单...</Text>
+              <View className="skeleton-inline">
+                <Skeleton rows={4} animated block />
+              </View>
             ) : (
               <>
                 {gear.essential && gear.essential.length > 0 && (
                   <View className="gear-section">
-                    <Text className="gear-label essential-label">必备</Text>
+                    <Tag type="danger" className="gear-label-tag">必备</Tag>
                     {gear.essential.map((g, i) => (
                       <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
                     ))}
@@ -276,7 +286,7 @@ export default class Index extends Component {
                 )}
                 {gear.recommended && gear.recommended.length > 0 && (
                   <View className="gear-section">
-                    <Text className="gear-label recommended-label">推荐</Text>
+                    <Tag className="gear-label-tag gear-tag-dark">推荐</Tag>
                     {gear.recommended.map((g, i) => (
                       <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
                     ))}
@@ -284,7 +294,7 @@ export default class Index extends Component {
                 )}
                 {gear.optional && gear.optional.length > 0 && (
                   <View className="gear-section">
-                    <Text className="gear-label optional-label">可选</Text>
+                    <Tag className="gear-label-tag gear-tag-gray">可选</Tag>
                     {gear.optional.map((g, i) => (
                       <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
                     ))}
@@ -301,13 +311,15 @@ export default class Index extends Component {
             <Text className="card-quirky-icon">⚠️</Text>
             <Text className="card-title">风险提示</Text>
             {adviceLoading ? (
-              <Text className="loading-placeholder">薯仔正在分析风险...</Text>
+              <View className="skeleton-inline">
+                <Skeleton rows={3} animated block />
+              </View>
             ) : risks.length > 0 ? (
               risks.map((r, i) => {
-                const tagClass = r.level === '致命' ? 'fatal-tag' : r.level === '高' ? 'warning-tag' : 'normal-tag'
+                const tagType = r.level === '致命' ? 'danger' : 'warning'
                 return (
                   <View key={i} className={`risk-item ${r.level === '致命' ? 'fatal fatal-enter' : ''}`}>
-                    <Text className={`risk-tag ${tagClass}`}>{r.level}</Text>
+                    <Tag type={tagType} className="risk-level-tag">{r.level}</Tag>
                     <Text className="risk-name">{r.risk}</Text>
                     <Text className="risk-advice">{r.advice}</Text>
                   </View>
@@ -325,10 +337,12 @@ export default class Index extends Component {
               <Text className="card-quirky-icon">📷</Text>
               <Text className="card-title">出片时机</Text>
               {photo.terrainCaveat && <Text className="caveat">{photo.terrainCaveat}</Text>}
-              <View className="info-row"><Text>日出</Text><Text>{photo.sunrise || '—'}</Text></View>
-              <View className="info-row"><Text>日落</Text><Text>{photo.sunset || '—'}</Text></View>
-              <View className="info-row"><Text>黄金时刻</Text><Text>{photo.goldenHour || '—'}</Text></View>
-              <View className="info-row"><Text>蓝调时刻</Text><Text>{photo.blueHour || '—'}</Text></View>
+              <CellGroup className="photo-info-group">
+                <Cell title="日出" value={photo.sunrise || '—'} className="photo-cell" />
+                <Cell title="日落" value={photo.sunset || '—'} className="photo-cell" />
+                <Cell title="黄金时刻" value={photo.goldenHour || '—'} className="photo-cell" />
+                <Cell title="蓝调时刻" value={photo.blueHour || '—'} className="photo-cell" />
+              </CellGroup>
             </View>
           )}
 
@@ -345,7 +359,7 @@ export default class Index extends Component {
             </View>
           )}
 
-          <Button onClick={this.onBack} className="retry-btn">返回重新查询</Button>
+          <Button block className="retry-btn" onClick={this.onBack}>返回重新查询</Button>
         </View>
       )
     }
@@ -358,44 +372,41 @@ export default class Index extends Component {
           <Text className="subtitle">徒步行前建议助手</Text>
         </View>
 
-        <View className="form-card">
-          <View className="form-item">
-            <Text className="label">路线名</Text>
-            <Input className="input" placeholder="如：武功山" placeholderClass="placeholder" value={route} onInput={this.onRouteInput} />
-          </View>
-          <View className="form-item">
-            <Text className="label">出发日期</Text>
+        <CellGroup className="form-card">
+          <Cell title="路线名" className="form-cell">
+            <Input className="form-input" placeholder="如：武功山" placeholderClass="placeholder" value={route} onInput={this.onRouteInput} />
+          </Cell>
+          <Cell title="出发日期" className="form-cell" onClick={() => {}}>
             <Picker mode="date" start={minDate} value={date} onChange={this.onDateChange}>
-              <Text className={`picker ${date ? '' : 'placeholder'}`}>{date || '请选择日期'}</Text>
+              <Text className={`form-value ${date ? '' : 'placeholder'}`}>{date || '请选择日期'}</Text>
             </Picker>
-          </View>
-          <View className="form-item">
-            <Text className="label">天数</Text>
-            <Input className="input" type="number" placeholder="1-7" placeholderClass="placeholder" value={days === '' ? '' : String(days)} onInput={this.onDaysChange} />
-          </View>
-          <View className="form-item">
-            <Text className="label">徒步水平</Text>
+          </Cell>
+          <Cell title="天数" className="form-cell">
+            <Input className="form-input" type="number" placeholder="1-7" placeholderClass="placeholder" value={days === '' ? '' : String(days)} onInput={this.onDaysChange} />
+          </Cell>
+          <Cell title="徒步水平" className="form-cell" onClick={() => {}}>
             <Picker mode="selector" range={levels} value={levelIndex} onChange={this.onLevelChange}>
-              <Text className="picker">{levels[levelIndex]}</Text>
+              <Text className="form-value">{levels[levelIndex]}</Text>
             </Picker>
-          </View>
-        </View>
+          </Cell>
+        </CellGroup>
 
-        <Button onClick={this.onSubmit} className="submit-btn">获取行前建议</Button>
+        <Button block type="primary" className="submit-btn" onClick={this.onSubmit}>获取行前建议</Button>
 
         {error && <View className="error-box"><Text>{error}</Text></View>}
 
-        {showManualCoords && (
-          <View className="manual-coords-box">
-            <Text className="manual-hint">搜不到路线？输入起点坐标（高德地图长按获取）🥔</Text>
+        <Popup visible={showManualCoords} position="bottom" round onClose={() => this.setState({ showManualCoords: false })} className="manual-popup">
+          <View className="manual-popup-content">
+            <Text className="manual-popup-title">搜不到路线？输入起点坐标 🥔</Text>
+            <Text className="manual-hint">在高德地图长按路线起点即可复制坐标</Text>
             <View className="coord-row">
               <Input className="coord-input" type="digit" placeholder="纬度 如 27.45" placeholderClass="placeholder" value={manualLat} onInput={(e) => this.setState({ manualLat: e.detail.value })} />
               <Input className="coord-input" type="digit" placeholder="经度 如 114.17" placeholderClass="placeholder" value={manualLon} onInput={(e) => this.setState({ manualLon: e.detail.value })} />
             </View>
             <Input className="coord-input-wide" type="number" placeholder="海拔（选填，不填自动查询）" placeholderClass="placeholder" value={manualElev} onInput={(e) => this.setState({ manualElev: e.detail.value })} />
-            <Button onClick={this.onManualSubmit} className="manual-submit-btn">用手动坐标查询</Button>
+            <Button block type="primary" className="manual-submit-btn" onClick={this.onManualSubmit}>用手动坐标查询</Button>
           </View>
-        )}
+        </Popup>
       </View>
     )
   }

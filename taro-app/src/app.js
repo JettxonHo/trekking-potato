@@ -1,4 +1,6 @@
 import { Component } from 'react'
+import { ConfigProvider } from '@nutui/nutui-react-taro'
+import '@nutui/nutui-react-taro/dist/style.css'
 import Taro from '@tarojs/taro'
 import './app.css'
 
@@ -17,6 +19,10 @@ export default class App extends Component {
     }
   }
   render() {
-    return this.props.children
+    return (
+      <ConfigProvider>
+        {this.props.children}
+      </ConfigProvider>
+    )
   }
 }
