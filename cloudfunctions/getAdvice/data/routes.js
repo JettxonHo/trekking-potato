@@ -141,6 +141,33 @@ const BUILTIN_ROUTES = [
     location: '广东省揭阳市',
     note: '粤东高峰',
   },
+  {
+    name: '哈巴雪山',
+    aliases: ['哈巴', '哈巴雪峰'],
+    lat: 27.3680,
+    lon: 100.0820,
+    elevation: 5396,
+    location: '云南省迪庆州香格里拉市',
+    note: '入门级5000m+技术攀登，需冰爪结组',
+  },
+  {
+    name: '冈仁波齐',
+    aliases: ['冈仁波齐峰', '冈仁波齐神山', '岗仁波齐'],
+    lat: 31.0690,
+    lon: 81.3120,
+    elevation: 6638,
+    location: '西藏阿里地区普兰县',
+    note: '神山转山，宗教意义，非攀登路线',
+  },
+  {
+    name: '雪宝顶',
+    aliases: ['雪宝顶峰', '雪宝山'],
+    lat: 32.6900,
+    lon: 103.8000,
+    elevation: 5440,
+    location: '四川省阿坝州松潘县',
+    note: '岷山主峰，技术型攀登',
+  },
 ]
 
 /**
@@ -171,15 +198,19 @@ function matchBuiltinRoute(query) {
   }
 
   // 3. 编辑距离匹配（<=2，需用户确认防假阳性）
+  // 仅对长度>=4的查询启用（短名如"雪宝顶"3字编辑距离1会误匹配"船底顶"）
   let bestMatch = null
   let bestDist = 3
   for (const route of BUILTIN_ROUTES) {
+    // 短查询（<4字）跳过编辑距离，直接走高德 POI，避免假阳性
+    if (query.length < 4) break
     const dist = editDistance(query, route.name)
     if (dist < bestDist) {
       bestDist = dist
       bestMatch = route
     }
     for (const alias of route.aliases) {
+      if (alias.length < 4) continue
       const d = editDistance(query, alias)
       if (d < bestDist) {
         bestDist = d
