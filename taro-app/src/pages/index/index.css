@@ -357,3 +357,7 @@
 .potato-easter-egg { position: absolute; bottom: 48rpx; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
 .potato-doodle { font-size: 28rpx; color: #1a1a1a; opacity: 0.12; letter-spacing: 2rpx; }
 .potato-doodle-hint { font-size: 20rpx; color: #aeaeb2; opacity: 0.5; letter-spacing: 1rpx; }
+
+/* ---- 出片时机（纯 View/Text 替代 NutUI Cell） ---- */
+.photo-info { width: 100%; }
+.info-value { color: #1d1d1f !important; font-weight: 600 !important; }

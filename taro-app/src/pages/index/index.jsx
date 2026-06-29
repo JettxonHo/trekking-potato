@@ -352,12 +352,13 @@ export default class Index extends Component {
               <Text className="card-quirky-icon">📷</Text>
               <Text className="card-title">出片时机</Text>
               {photo.terrainCaveat && <Text className="caveat">{photo.terrainCaveat}</Text>}
-              <CellGroup className="photo-info-group">
-                <Cell title="日出" value={photo.sunrise || '数据计算中'} className="photo-cell" />
-                <Cell title="日落" value={photo.sunset || '数据计算中'} className="photo-cell" />
-                <Cell title="黄金时刻" value={photo.goldenHour || '数据计算中'} className="photo-cell" />
-                <Cell title="蓝调时刻" value={photo.blueHour || '数据计算中'} className="photo-cell" />
-              </CellGroup>
+              {weather.dateOutOfRange && <Text className="caveat">⚠ 天文时刻为当下参考值，出发前2-3天请重新查询</Text>}
+              <View className="photo-info">
+                <View className="info-row"><Text>日出</Text><Text className="info-value">{photo.sunrise || '—'}</Text></View>
+                <View className="info-row"><Text>日落</Text><Text className="info-value">{photo.sunset || '—'}</Text></View>
+                <View className="info-row"><Text>黄金时刻</Text><Text className="info-value">{photo.goldenHour || '—'}</Text></View>
+                <View className="info-row"><Text>蓝调时刻</Text><Text className="info-value">{photo.blueHour || '—'}</Text></View>
+              </View>
             </View>
           )}
 
