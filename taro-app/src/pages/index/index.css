@@ -67,10 +67,14 @@
  * 表单视图
  * ============================================ */
 
-.form-screen { display: flex; flex-direction: column; min-height: 100vh; padding-top: 160rpx; }
-.header { display: flex; flex-direction: column; align-items: center; margin-bottom: 80rpx; }
-.title { font-size: 64rpx; font-weight: 800; color: #1d1d1f; letter-spacing: 4rpx; }
-.subtitle { font-size: 26rpx; color: #86868b; margin-top: 12rpx; letter-spacing: 2rpx; }
+.form-screen { display: flex; flex-direction: column; min-height: 100vh; padding-top: 80rpx; padding-bottom: 60rpx; }
+.header { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 48rpx; }
+.title { font-size: 52rpx; font-weight: 800; color: #1d1d1f; letter-spacing: 2rpx; }
+.subtitle { font-size: 26rpx; color: #86868b; margin-top: 8rpx; letter-spacing: 1rpx; }
+
+/* 表单项辅助说明 */
+.form-cell-desc { font-size: 22rpx; color: #aeaeb2; letter-spacing: 0.5rpx; }
+.form-cell-suffix { font-size: 22rpx; color: #aeaeb2; margin-left: 8rpx; }
 
 /* 表单卡片：浅灰背景 + 弥散阴影 + 无边框 */
 .form-card {

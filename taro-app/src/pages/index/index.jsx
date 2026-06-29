@@ -333,21 +333,32 @@ export default class Index extends Component {
             )}
           </View>
 
-          {photo.sunrise && (
+          {(photo.sunrise || photo.sunset || photo.goldenHour) && (
             <View className="card">
               <Text className="card-quirky-icon">📷</Text>
               <Text className="card-title">出片时机</Text>
               {photo.terrainCaveat && <Text className="caveat">{photo.terrainCaveat}</Text>}
               <CellGroup className="photo-info-group">
-                <Cell title="日出" value={photo.sunrise || '—'} className="photo-cell" />
-                <Cell title="日落" value={photo.sunset || '—'} className="photo-cell" />
-                <Cell title="黄金时刻" value={photo.goldenHour || '—'} className="photo-cell" />
-                <Cell title="蓝调时刻" value={photo.blueHour || '—'} className="photo-cell" />
+                <Cell title="日出" value={photo.sunrise || '数据计算中'} className="photo-cell" />
+                <Cell title="日落" value={photo.sunset || '数据计算中'} className="photo-cell" />
+                <Cell title="黄金时刻" value={photo.goldenHour || '数据计算中'} className="photo-cell" />
+                <Cell title="蓝调时刻" value={photo.blueHour || '数据计算中'} className="photo-cell" />
               </CellGroup>
             </View>
           )}
 
-          {notes.length > 0 && (
+          <View className="card">
+            <Text className="card-title">注意事项</Text>
+            {adviceLoading ? (
+              <View className="skeleton-inline">
+                <Skeleton rows={3} animated block />
+              </View>
+            ) : notes.length > 0 ? (
+              notes.map((n, i) => <Text key={i} className="note-item">{n}</Text>)
+            ) : (
+              <Text className="empty-hint">暂无注意事项</Text>
+            )}
+          </View>
             <View className="card">
               <Text className="card-title">注意事项</Text>
               {notes.map((n, i) => <Text key={i} className="note-item">{n}</Text>)}
@@ -369,8 +380,8 @@ export default class Index extends Component {
     return (
       <View className="container form-screen">
         <View className="header">
-          <Text className="title">徒步薯 🥔</Text>
-          <Text className="subtitle">徒步行前建议助手</Text>
+         <Text className="title">徒步薯 🥔</Text>
+         <Text className="subtitle">徒步行前建议助手</Text>
         </View>
 
         <CellGroup className="form-card">
@@ -382,10 +393,11 @@ export default class Index extends Component {
               <Text className={`form-value ${date ? '' : 'placeholder'}`}>{date || '请选择日期'}</Text>
             </Picker>
           </Cell>
-          <Cell title="天数" className="form-cell">
-            <Input className="form-input" type="number" placeholder="1-7" placeholderClass="placeholder" value={days === '' ? '' : String(days)} onInput={this.onDaysChange} />
+         <Cell title="天数" className="form-cell">
+            <Input className="form-input" type="number" placeholder="如：1" placeholderClass="placeholder" value={days === '' ? '' : String(days)} onInput={this.onDaysChange} />
+            <Text className="form-cell-suffix">天</Text>
           </Cell>
-          <Cell title="徒步水平" className="form-cell" onClick={() => {}}>
+          <Cell title="徒步水平" description="徒步经验等级" className="form-cell" onClick={() => {}}>
             <Picker mode="selector" range={levels} value={levelIndex} onChange={this.onLevelChange}>
               <Text className="form-value">{levels[levelIndex]}</Text>
             </Picker>
