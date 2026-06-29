@@ -22,7 +22,8 @@ export default class Index extends Component {
     date: '',
     level: '中级',
     days: 1,
-    levels: ['初级', '中级', '高级'],
+    levels: ['小白', '中级', '老手'],
+    levelCaptions: ['适合无经验者，路线以平路为主', '有一定经验，单日 10-20km 含爬升', '强驴专属，地形复杂，需强户外自理能力'],
     levelIndex: 1,
     minDate: '',
     loading: false,
@@ -36,6 +37,7 @@ export default class Index extends Component {
     manualLon: '',
     manualElev: '',
     funnyMsg: '',
+    daysBounce: false,
   }
 
   componentDidMount() {
@@ -49,11 +51,20 @@ export default class Index extends Component {
   onRouteInput = (e) => this.setState({ route: e.detail.value })
   onDateChange = (e) => this.setState({ date: e.detail.value })
   onLevelChange = (e) => this.setState({ levelIndex: e.detail.value, level: this.state.levels[e.detail.value] })
-  onDaysChange = (e) => {
-    const raw = e.detail.value
-    if (raw === '') { this.setState({ days: '' }); return }
-    const num = parseInt(raw)
-    if (!isNaN(num)) this.setState({ days: num })
+  onDaysDec = () => {
+    const cur = parseInt(this.state.days) || 1
+    const next = Math.max(1, cur - 1)
+    this.setState({ days: next, daysBounce: true })
+    setTimeout(() => this.setState({ daysBounce: false }), 400)
+  }
+  onDaysInc = () => {
+    const cur = parseInt(this.state.days) || 1
+    const next = Math.min(7, cur + 1)
+    this.setState({ days: next, daysBounce: true })
+    setTimeout(() => this.setState({ daysBounce: false }), 400)
+  }
+  onLevelSelect = (idx) => {
+    this.setState({ levelIndex: idx, level: this.state.levels[idx] })
   }
 
   onSubmit = () => {
@@ -152,6 +163,7 @@ export default class Index extends Component {
           this.setState((prev) => ({
             adviceLoading: false,
             funnyMsg: '',
+    daysBounce: false,
             result: {
               ...prev.result,
               gear: d.gear || prev.result.gear,
@@ -164,7 +176,8 @@ export default class Index extends Component {
             },
           }))
         } else {
-          this.setState({ adviceLoading: false, funnyMsg: '', error: 'AI 建议生成失败' })
+          this.setState({ adviceLoading: false, funnyMsg: '',
+    daysBounce: false, error: 'AI 建议生成失败' })
         }
       },
       fail: (err) => {
@@ -174,6 +187,7 @@ export default class Index extends Component {
         this.setState((prev) => ({
           adviceLoading: false,
           funnyMsg: '',
+    daysBounce: false,
           result: {
             ...prev.result,
             degraded: true,
@@ -359,11 +373,6 @@ export default class Index extends Component {
               <Text className="empty-hint">暂无注意事项</Text>
             )}
           </View>
-            <View className="card">
-              <Text className="card-title">注意事项</Text>
-              {notes.map((n, i) => <Text key={i} className="note-item">{n}</Text>)}
-            </View>
-          )}
 
           {d.disclaimer && (
             <View className="disclaimer-box">
@@ -377,39 +386,73 @@ export default class Index extends Component {
     }
 
     // ===== 表单视图 =====
+    const { levelCaptions, daysBounce } = this.state
     return (
       <View className="container form-screen">
-        <View className="header">
-         <Text className="title">徒步薯</Text>
-         <View className="header-row">
-           <Text className="subtitle">徒步行前建议助手</Text>
-           <Text className="potato-doodle">[ ◻︎♡ ]</Text>
-         </View>
+        <View className="form-header">
+          <Text className="form-title">徒步薯</Text>
+          <Text className="form-subtitle">徒步行前建议助手</Text>
         </View>
 
-        <CellGroup className="form-card">
-          <Cell title="路线名" className="form-cell">
-            <Input className="form-input" placeholder="如：武功山" placeholderClass="placeholder" value={route} onInput={this.onRouteInput} />
-          </Cell>
-          <Cell title="出发日期" className="form-cell" isLink onClick={() => {}}>
+        <View className="form-fields">
+          {/* A. 目的地 — 顶部微型标签 + 左对齐输入 */}
+          <View className="field-group">
+            <Text className="field-label">WHERE · 目的地</Text>
+            <Input className="field-input" placeholder="如：武功山" placeholderClass="field-placeholder" value={route} onInput={this.onRouteInput} />
+          </View>
+
+          {/* A. 出发日期 — 顶部标签 + Picker */}
+          <View className="field-group">
+            <Text className="field-label">WHEN · 出发日期</Text>
             <Picker mode="date" start={minDate} value={date} onChange={this.onDateChange}>
-              <Text className={`form-value ${date ? '' : 'placeholder'}`}>{date || '请选择日期'}</Text>
+              <Text className={`field-value ${date ? '' : 'field-placeholder'}`}>{date || '请选择日期'}</Text>
             </Picker>
-          </Cell>
-         <Cell title="天数" className="form-cell">
-            <Input className="form-input" type="number" placeholder="如：1" placeholderClass="placeholder" value={days === '' ? '' : String(days)} onInput={this.onDaysChange} />
-            <Text className="form-cell-suffix">天</Text>
-          </Cell>
-          <Cell title="徒步水平" description="徒步经验等级" className="form-cell" isLink onClick={() => {}}>
-            <Picker mode="selector" range={levels} value={levelIndex} onChange={this.onLevelChange}>
-              <Text className="form-value">{levels[levelIndex]}</Text>
-            </Picker>
-          </Cell>
-        </CellGroup>
+          </View>
+
+          {/* B. 天数步进器 — 紧凑型 - 1天 + */}
+          <View className="field-group">
+            <Text className="field-label">DURATION · 徒步天数</Text>
+            <View className="stepper">
+              <View className={`stepper-btn quirky-active ${parseInt(days) <= 1 ? 'stepper-btn-disabled' : ''}`} onClick={parseInt(days) <= 1 ? undefined : this.onDaysDec}>
+                <Text className="stepper-btn-text">-</Text>
+              </View>
+              <View className="stepper-display">
+                <Text className={`stepper-num ${daysBounce ? 'stepper-bounce' : ''}`}>{days === '' ? '1' : days}</Text>
+                <Text className="stepper-unit">天</Text>
+              </View>
+              <View className={`stepper-btn quirky-active ${parseInt(days) >= 7 ? 'stepper-btn-disabled' : ''}`} onClick={parseInt(days) >= 7 ? undefined : this.onDaysInc}>
+                <Text className="stepper-btn-text">+</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* C. 能力等级 — 分段选择器 + 动态辅助文案 */}
+          <View className="field-group">
+            <Text className="field-label">LEVEL · 徒步水平</Text>
+            <View className="segmented">
+              {levels.map((lv, i) => (
+                <View
+                  key={i}
+                  className={`segmented-item ${levelIndex === i ? 'segmented-active' : ''} quirky-active`}
+                  onClick={() => this.onLevelSelect(i)}
+                >
+                  <Text className="segmented-text">{lv}</Text>
+                </View>
+              ))}
+            </View>
+            <Text className="field-caption">{levelCaptions[levelIndex]}</Text>
+          </View>
+        </View>
 
         <Button block type="primary" className="submit-btn quirky-active" onClick={this.onSubmit}>获取行前建议</Button>
 
         {error && <View className="error-box"><Text>{error}</Text></View>}
+
+        {/* 趣味底部彩蛋 — 简笔画薯仔系鞋带 */}
+        <View className="potato-easter-egg">
+          <Text className="potato-doodle">╭( ・ㅂ・)و</Text>
+          <Text className="potato-doodle-hint">系好鞋带再出发</Text>
+        </View>
 
         <Popup visible={showManualCoords} position="bottom" round onClose={() => this.setState({ showManualCoords: false })} className="manual-popup">
           <View className="manual-popup-content">
