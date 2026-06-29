@@ -77,9 +77,9 @@
 .manual-coords-box { background: #fff8e8; border: 1rpx solid #f0d878; border-radius: 16rpx; padding: 24rpx; margin-top: 20rpx; }
 .manual-hint { font-size: 24rpx; color: #8a6d1b; display: block; margin-bottom: 16rpx; }
 .coord-row { display: flex; justify-content: space-between; margin-bottom: 12rpx; }
-.coord-input { flex: 1; margin-right: 12rpx; background: #fff; border: 1rpx solid #e2d8b8; border-radius: 8rpx; padding: 12rpx; font-size: 28rpx; }
+.coord-input { flex: 1; margin-right: 12rpx; background: #fff; border: 1rpx solid #e2d8b8; border-radius: 8rpx; padding: 20rpx 12rpx; font-size: 28rpx; min-height: 72rpx; line-height: 40rpx; }
 .coord-input:last-child { margin-right: 0; }
-.coord-input-wide { background: #fff; border: 1rpx solid #e2d8b8; border-radius: 8rpx; padding: 12rpx; font-size: 28rpx; margin-bottom: 16rpx; }
+.coord-input-wide { background: #fff; border: 1rpx solid #e2d8b8; border-radius: 8rpx; padding: 20rpx 12rpx; font-size: 28rpx; margin-bottom: 16rpx; min-height: 72rpx; line-height: 40rpx; }
 .manual-submit-btn { width: 100%; }
 
 .advice-loading-bar { display: flex; align-items: center; background: #e8f3ed; border: 1rpx solid #c7e3d3; border-radius: 12rpx; padding: 16rpx 20rpx; margin-bottom: 20rpx; }
