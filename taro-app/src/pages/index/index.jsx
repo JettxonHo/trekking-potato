@@ -31,13 +31,21 @@ export default class Index extends Component {
   onRouteInput = (e) => this.setState({ route: e.detail.value })
   onDateChange = (e) => this.setState({ date: e.detail.value })
   onLevelChange = (e) => this.setState({ levelIndex: e.detail.value, level: this.state.levels[e.detail.value] })
-  onDaysChange = (e) => this.setState({ days: Math.max(1, Math.min(7, parseInt(e.detail.value) || 1)) })
+  onDaysChange = (e) => {
+    // 不实时 clamp，允许用户正常输入数字（实时 clamp 会吞掉输入中间态）
+    const raw = e.detail.value
+    if (raw === '') { this.setState({ days: '', daysRaw: '' }); return }
+    const num = parseInt(raw)
+    if (!isNaN(num)) this.setState({ days: num, daysRaw: raw })
+  }
 
   onSubmit = () => {
     const { route, date, level, days } = this.state
     if (!route.trim()) { Taro.showToast({ title: '请输入路线名', icon: 'none' }); return }
     if (!date) { Taro.showToast({ title: '请选择出发日期', icon: 'none' }); return }
 
+    // 提交时校验天数（1-7）
+    const tripDays = Math.max(1, Math.min(7, parseInt(days) || 1))
     this._unmounted = false
     this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, loadingStage: '正在查询路线位置...' })
 
@@ -45,7 +53,7 @@ export default class Index extends Component {
     // 第一阶段：geo + weather + sun（~3-5s，秒回天气）
     Taro.cloud.callFunction({
       name: 'getAdvice',
-      data: { route: route.trim(), date, level, days, mode: 'base' },
+      data: { route: route.trim(), date, level, days: tripDays, mode: 'base' },
       success: (res) => {
         if (this._unmounted) return
         const result = res.result
@@ -69,7 +77,7 @@ export default class Index extends Component {
           adviceLoading: true,
         })
         // 第二阶段：GLM 建议（~30-40s，独立调用）
-        this._fetchAdvice({ route: route.trim(), date, level, days, baseData: base })
+        this._fetchAdvice({ route: route.trim(), date, level, days: tripDays, baseData: base })
       },
       fail: (err) => {
         if (this._unmounted) return
@@ -277,7 +285,7 @@ export default class Index extends Component {
           </View>
           <View className="form-item">
             <Text className="label">天数</Text>
-            <Input className="input" type="number" value={String(days)} onInput={this.onDaysChange} />
+            <Input className="input" type="number" placeholder="1-7" value={days === '' ? '' : String(days)} onInput={this.onDaysChange} />
           </View>
           <View className="form-item">
             <Text className="label">徒步水平</Text>
