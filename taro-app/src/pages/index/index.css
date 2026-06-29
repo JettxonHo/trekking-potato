@@ -71,6 +71,8 @@
 .header { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 48rpx; }
 .title { font-size: 52rpx; font-weight: 800; color: #1d1d1f; letter-spacing: 2rpx; }
 .subtitle { font-size: 26rpx; color: #86868b; margin-top: 8rpx; letter-spacing: 1rpx; }
+.header-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.potato-doodle { font-size: 28rpx; color: #1a1a1a; opacity: 0.15; letter-spacing: 2rpx; font-family: monospace; }
 
 /* 表单项辅助说明 */
 .form-cell-desc { font-size: 22rpx; color: #aeaeb2; letter-spacing: 0.5rpx; }
@@ -84,6 +86,8 @@
 }
 .form-item { display: flex; align-items: center; padding: 36rpx 36rpx; min-height: 104rpx; position: relative; }
 .form-item::after { content: ''; position: absolute; bottom: 0; left: 36rpx; right: 36rpx; height: 1rpx; background: rgba(0,0,0,0.03); }
+.form-cell { transition: all 0.4s cubic-bezier(0.25,1,0.5,1); }
+.form-cell:active { background: rgba(0,0,0,0.015); transform: scale(0.99); transition: all 0.15s; }
 .form-item:last-child::after { display: none; }
 .label { width: 160rpx; font-size: 30rpx; color: #1d1d1f; font-weight: 600; letter-spacing: 1rpx; }
 .input { flex: 1; font-size: 30rpx; color: #1d1d1f; }

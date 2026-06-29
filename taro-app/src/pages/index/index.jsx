@@ -380,15 +380,18 @@ export default class Index extends Component {
     return (
       <View className="container form-screen">
         <View className="header">
-         <Text className="title">徒步薯 🥔</Text>
-         <Text className="subtitle">徒步行前建议助手</Text>
+         <Text className="title">徒步薯</Text>
+         <View className="header-row">
+           <Text className="subtitle">徒步行前建议助手</Text>
+           <Text className="potato-doodle">[ ◻︎♡ ]</Text>
+         </View>
         </View>
 
         <CellGroup className="form-card">
           <Cell title="路线名" className="form-cell">
             <Input className="form-input" placeholder="如：武功山" placeholderClass="placeholder" value={route} onInput={this.onRouteInput} />
           </Cell>
-          <Cell title="出发日期" className="form-cell" onClick={() => {}}>
+          <Cell title="出发日期" className="form-cell" isLink onClick={() => {}}>
             <Picker mode="date" start={minDate} value={date} onChange={this.onDateChange}>
               <Text className={`form-value ${date ? '' : 'placeholder'}`}>{date || '请选择日期'}</Text>
             </Picker>
@@ -397,20 +400,20 @@ export default class Index extends Component {
             <Input className="form-input" type="number" placeholder="如：1" placeholderClass="placeholder" value={days === '' ? '' : String(days)} onInput={this.onDaysChange} />
             <Text className="form-cell-suffix">天</Text>
           </Cell>
-          <Cell title="徒步水平" description="徒步经验等级" className="form-cell" onClick={() => {}}>
+          <Cell title="徒步水平" description="徒步经验等级" className="form-cell" isLink onClick={() => {}}>
             <Picker mode="selector" range={levels} value={levelIndex} onChange={this.onLevelChange}>
               <Text className="form-value">{levels[levelIndex]}</Text>
             </Picker>
           </Cell>
         </CellGroup>
 
-        <Button block type="primary" className="submit-btn" onClick={this.onSubmit}>获取行前建议</Button>
+        <Button block type="primary" className="submit-btn quirky-active" onClick={this.onSubmit}>获取行前建议</Button>
 
         {error && <View className="error-box"><Text>{error}</Text></View>}
 
         <Popup visible={showManualCoords} position="bottom" round onClose={() => this.setState({ showManualCoords: false })} className="manual-popup">
           <View className="manual-popup-content">
-            <Text className="manual-popup-title">搜不到路线？输入起点坐标 🥔</Text>
+            <Text className="manual-popup-title">搜不到路线？输入起点坐标</Text>
             <Text className="manual-hint">在高德地图长按路线起点即可复制坐标</Text>
             <View className="coord-row">
               <Input className="coord-input" type="digit" placeholder="纬度 如 27.45" placeholderClass="placeholder" value={manualLat} onInput={(e) => this.setState({ manualLat: e.detail.value })} />
