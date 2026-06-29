@@ -281,8 +281,10 @@ export default class Index extends Component {
             <Text className="card-quirky-icon">🎒</Text>
             <Text className="card-title">装备清单</Text>
             {adviceLoading ? (
-              <View className="skeleton-inline">
-                <Skeleton rows={4} animated block />
+              <View className="skeleton-lines">
+                <View className="sk-line sk-40" />
+                <View className="sk-line sk-85" />
+                <View className="sk-line sk-60" />
               </View>
             ) : (
               <>
@@ -322,8 +324,9 @@ export default class Index extends Component {
             <Text className="card-quirky-icon" style="right:60rpx;opacity:0.2;">(•̀_•́)</Text>
             <Text className="card-title">风险提示</Text>
             {adviceLoading ? (
-              <View className="skeleton-inline">
-                <Skeleton rows={3} animated block />
+              <View className="skeleton-lines">
+                <View className="sk-line sk-70" />
+                <View className="sk-line sk-50" />
               </View>
             ) : risks.length > 0 ? (
               risks.map((r, i) => {
@@ -361,8 +364,9 @@ export default class Index extends Component {
           <View className="card">
             <Text className="card-title">注意事项</Text>
             {adviceLoading ? (
-              <View className="skeleton-inline">
-                <Skeleton rows={3} animated block />
+              <View className="skeleton-lines">
+                <View className="sk-line sk-60" />
+                <View className="sk-line sk-80" />
               </View>
             ) : notes.length > 0 ? (
               notes.map((n, i) => <Text key={i} className="note-item">{n}</Text>)

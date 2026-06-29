@@ -374,3 +374,33 @@
 /* ---- 出片时机（纯 View/Text 替代 NutUI Cell） ---- */
 .photo-info { width: 100%; }
 .info-value { color: #1d1d1f !important; font-weight: 600 !important; }
+
+/* ============================================
+ * 自定义骨架线（Notion 风微型骨架屏）
+ * ============================================ */
+.skeleton-lines { width: 100%; }
+.sk-line {
+  height: 24rpx;
+  background: #e5e5ea;
+  border-radius: 6rpx;
+  margin-bottom: 20rpx;
+  animation: sk-pulse 2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+.sk-line:last-child { margin-bottom: 0; }
+
+/* 高度变体 */
+.sk-line:nth-child(2) { height: 20rpx; }
+.sk-line:nth-child(3) { height: 20rpx; }
+
+/* 宽度变体 */
+.sk-40 { width: 40%; }
+.sk-50 { width: 50%; }
+.sk-60 { width: 60%; }
+.sk-70 { width: 70%; }
+.sk-80 { width: 80%; }
+.sk-85 { width: 85%; }
+
+@keyframes sk-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.82; }
+}
