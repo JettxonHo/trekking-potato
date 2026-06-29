@@ -24,11 +24,13 @@ const { buildMessages, buildDegradedResponse } = require('./prompt')
 const GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
 // 双模型策略：先 4.7（质量高但慢），超时降级 Flash（快 5-8s）
 // 实测：云端 4.7 可能 50s+ 不返回，Flash 5-8s 但 JSON schema 支持弱
-// 方案：4.7 超时 15s → Flash 超时 12s → 本地规则兜底，总超时 30s 内必返回
+// 方案：4.7 超时 8s → Flash 超时 6s → 本地规则兜底，总超时 16s 内必返回
+// 诊断结论：DNS/TCP/TLS 正常（<60ms），智谱服务端对云函数 IP 限流，挂着不响应
+// 不再给 15s+12s 等待，缩短到 8s+6s，让用户更快拿到规则兜底结果
 const GLM_MODEL_PRIMARY = 'glm-4.7'
 const GLM_MODEL_FALLBACK = 'glm-4-flash'
-const GLM_TIMEOUT_PRIMARY = 15000   // 4.7 给 15s，拿不到就降级
-const GLM_TIMEOUT_FALLBACK = 12000  // Flash 给 12s
+const GLM_TIMEOUT_PRIMARY = 8000    // 4.7 给 8s（实测云端不响应，8s 足够判断）
+const GLM_TIMEOUT_FALLBACK = 6000   // Flash 给 6s
 
 /**
  * HTTPS POST 封装（调 GLM）
