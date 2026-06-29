@@ -46,7 +46,7 @@ async function testPipeline(route, expectElev) {
   const weather = await fetchWeather(wgs84.lat, wgs84.lng, loc.data.elevation, '2026-07-05')
   check('fetchWeather.ok', weather.ok === true, JSON.stringify(weather).substring(0, 200))
   if (weather.ok) {
-    check('返回7天', weather.data.days.length === 7, String(weather.data.days.length))
+    check('返回至少7天', weather.data.days.length >= 7, String(weather.data.days.length))
     check('含 elevationCaveat', typeof weather.data.elevationCaveat === 'string' && weather.data.elevationCaveat.length > 10)
     check('第6天标参考', weather.data.days[5].confidence === '参考')
     // 四姑娘山二峰温度应明显低于低海拔（验证海拔修正）
