@@ -37,19 +37,41 @@ function httpsPost(url, body, headers, timeout) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(body)
     const u = new URL(url)
+    const t0 = Date.now()
     const req = https.request({
       method: 'POST',
       hostname: u.hostname,
       path: u.pathname,
-      headers: { ...headers, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) },
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(data),
+        'User-Agent': 'TrekkingPotato/1.0',
+        'Accept': 'application/json',
+      },
       timeout,
     }, (res) => {
       let d = ''
       res.on('data', (chunk) => { d += chunk })
       res.on('end', () => resolve({ status: res.statusCode, data: d }))
     })
-    req.on('error', reject)
-    req.on('timeout', () => { req.destroy(); reject(new Error('GLM 请求超时')) })
+    // socket 连接建立时记录（区分 DNS/连接阶段卡住 vs 服务端不响应）
+    req.on('socket', (socket) => {
+      socket.on('connect', () => {
+        console.log('[GLM] TCP连接建立 ' + (Date.now() - t0) + 'ms')
+      })
+      socket.on('secureConnect', () => {
+        console.log('[GLM] TLS握手完成 ' + (Date.now() - t0) + 'ms')
+      })
+      socket.on('lookup', (err, address) => {
+        console.log('[GLM] DNS解析 ' + (err ? '失败:' + err.message : address) + ' ' + (Date.now() - t0) + 'ms')
+      })
+    })
+    req.on('error', (e) => reject(new Error('GLM网络错误: ' + e.message)))
+    req.on('timeout', () => {
+      req.destroy()
+      reject(new Error('GLM 请求超时(' + timeout + 'ms, 已连接:' + (req.socket && req.socket.connecting === false ? '是' : '否') + ')'))
+    })
     req.write(data)
     req.end()
   })
