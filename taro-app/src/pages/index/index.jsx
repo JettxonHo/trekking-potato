@@ -183,14 +183,16 @@ export default class Index extends Component {
             <View className="card">
               <Text className="card-title">🌤 天气窗口</Text>
               {weather.elevationCaveat && <Text className="caveat">{weather.elevationCaveat}</Text>}
+              {weather.dateOutOfRange && <Text className="caveat">⚠ {weather.dateRangeNote}</Text>}
               {weather.days.map((day, i) => (
                 <View key={i} className="weather-day">
                   <Text className="day-date">{day.date}</Text>
                   <Text className="day-temp">{day.tempMin}~{day.tempMax}°C</Text>
                   <Text className="day-precip">降水{day.precipProb}%</Text>
                   <Text className="day-wind">{day.windMs}m/s</Text>
+                  {day.confidence === '参考' && <Text className="day-confidence">参考</Text>}
                 </View>
-              ))}
+             ))}
             </View>
           )}
 
