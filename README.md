@@ -26,7 +26,7 @@
 1. cd taro-app && npm install && npm run build:weapp
 2. 微信开发者工具打开 `taro-app/` 目录（加载 dist/）
 2. 配置 AppID + 云开发环境
-3. 云函数环境变量配置：`GLM_KEY`、`AMAP_KEY`（不在代码中硬编码）
+3. 云函数环境变量配置：`LLM_KEY`、`AMAP_KEY`（不在代码中硬编码）
 4. 云函数部署：右键 cloudfunctions/getAdvice → 上传并部署
 
 ## 分支策略
