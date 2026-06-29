@@ -1,2 +1,2 @@
 page { background: #f7f8f5; }
-* { box-sizing: border-box; }
+view, text, input, picker, button, scroll-view { box-sizing: border-box; }
