@@ -96,6 +96,15 @@ export default class Index extends Component {
           },
           adviceLoading: true,
         })
+        // AI 加载步骤动画：每 1.8 秒切换提示文案
+        this._adviceSteps = ['AI 正在分析天气窗口...', 'AI 正在匹配装备清单...', 'AI 正在评估风险等级...', 'AI 正在生成行前建议...']
+        this._adviceStepIdx = 0
+        this._adviceStepTimer = setInterval(() => {
+          if (this._unmounted || !this.state.adviceLoading) { clearInterval(this._adviceStepTimer); return }
+          this._adviceStepIdx = (this._adviceStepIdx + 1) % this._adviceSteps.length
+          this.setState({ adviceStage: this._adviceSteps[this._adviceStepIdx] })
+        }, 1800)
+        this.setState({ adviceStage: this._adviceSteps[0] })
         this._fetchAdvice({ ...params, baseData: base })
       },
       fail: (err) => {
@@ -112,6 +121,7 @@ export default class Index extends Component {
       data: { ...params, mode: 'advice' },
       success: (res) => {
         if (this._unmounted) return
+        if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
         const result = res.result
         if (result && result.ok) {
           // 用 GLM 结果增量更新（天气保留 base 的，装备/风险/注意事项用 GLM 的）
@@ -130,11 +140,13 @@ export default class Index extends Component {
             },
           }))
         } else {
+          if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
           this.setState({ adviceLoading: false, error: 'AI 建议生成失败' })
         }
       },
       fail: (err) => {
         if (this._unmounted) return
+        if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
         // GLM 超时不影响已展示的天气数据
         this.setState((prev) => ({
           adviceLoading: false,
@@ -151,10 +163,11 @@ export default class Index extends Component {
 
   onBack = () => this.setState({ showResult: false })
 
-  componentWillUnmount() { this._unmounted = true }
+  componentWillUnmount() { this._unmounted = true; if (this._adviceStepTimer) clearInterval(this._adviceStepTimer) }
 
   render() {
-    const { route, date, level, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev } = this.state
+   const { route, date, level, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev } = this.state
+    const adviceStage = this.state.adviceStage || 'AI 正在生成建议...'
 
     if (loading) {
       return (
@@ -182,7 +195,7 @@ export default class Index extends Component {
           {adviceLoading && (
             <View className="advice-loading-bar">
               <View className="spinner-small" />
-              <Text>AI 正在生成装备建议和风险分析（约需 30-50 秒）...</Text>
+              <Text>{adviceStage}</Text>
             </View>
           )}
 
