@@ -45,6 +45,7 @@ export default class Index extends Component {
     Taro.cloud.callFunction({
       name: 'getAdvice',
       data: { route: route.trim(), date, level, days },
+      timeout: 60000,
       success: (res) => {
         clearTimeout(this._t1); clearTimeout(this._t2)
         const result = res.result
@@ -56,7 +57,9 @@ export default class Index extends Component {
       },
       fail: (err) => {
         clearTimeout(this._t1); clearTimeout(this._t2)
-        this.setState({ loading: false, error: '网络错误，请重试' })
+        const isTimeout = err && (err.errMsg || '').includes('timeout')
+        this.setState({ loading: false, error: isTimeout ? '生成超时，请重试（GLM 需 30-50 秒）' : '云函数调用失败，请检查是否已部署' })
+        console.error('[徒步薯] callFunction fail', err)
       }
     })
   }
@@ -65,7 +68,7 @@ export default class Index extends Component {
 
   componentWillUnmount() { clearTimeout(this._t1); clearTimeout(this._t2) }
 
-  render() {
+    render() {
     const { route, date, level, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result } = this.state
 
     if (loading) {
