@@ -247,14 +247,10 @@ export default class Index extends Component {
           )}
 
           {adviceLoading && (
-            <View className="advice-loading-bar">
-              <View className="spinner-small" />
-              <Text>{adviceStage}</Text>
+            <View className="status-bar">
+              <Text className="status-text">{adviceStage}</Text>
+              <Text className="quirky-potato-char">( º﹃º )</Text>
             </View>
-          )}
-
-          {funnyMsg && adviceLoading && (
-            <Text className="loading-funny" style="display:block;text-align:center;margin-bottom:20rpx;">{funnyMsg}</Text>
           )}
 
           {meta.elevation && (
