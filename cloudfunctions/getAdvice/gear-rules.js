@@ -60,7 +60,8 @@ function getGearRules(params) {
   }
 
   // 极高海拔 -> 滑坠/技术装备
-  if (elevationBand === 'extreme') {
+  // 5000m+ 视为技术攀登，需冰爪/结组绳（四姑娘山二峰 5276m 是典型 case，spec 要求必入）
+  if (elevationBand === 'extreme' || elevation >= 5000) {
     fatalRisks.push({ name: '滑坠', gear: ['冰爪', '结组绳', '头盔', '安全带'] })
   }
 

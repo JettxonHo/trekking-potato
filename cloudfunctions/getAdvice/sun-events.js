@@ -35,21 +35,26 @@ function calcSunEvents(lat, lon, dateStr) {
     }
   }
 
-  const times = SunCalc.getTimes(date, lat, lon)
+ const times = SunCalc.getTimes(date, lat, lon)
 
-  // 黄金时刻：日出后1小时 + 日落前1小时
-  const sunrise = times.sunrise
-  const sunset = times.sunset
-  const goldenMorningEnd = new Date(sunrise.getTime() + 60 * 60 * 1000)
-  const goldenEveningStart = new Date(sunset.getTime() - 60 * 60 * 1000)
+ // 黄金时刻：日出后1小时 + 日落前1小时
+ const sunrise = times.sunrise
+ const sunset = times.sunset
+ const goldenMorningEnd = new Date(sunrise.getTime() + 60 * 60 * 1000)
+ const goldenEveningStart = new Date(sunset.getTime() - 60 * 60 * 1000)
 
-  // 蓝调时刻：日出前20分钟 + 日落后20分钟
-  const blueMorningStart = new Date(sunrise.getTime() - 20 * 60 * 1000)
-  const blueEveningEnd = new Date(sunset.getTime() + 20 * 60 * 1000)
+ // 蓝调时刻：日出前20分钟 + 日落后20分钟
+ const blueMorningStart = new Date(sunrise.getTime() - 20 * 60 * 1000)
+ const blueEveningEnd = new Date(sunset.getTime() + 20 * 60 * 1000)
 
+  // 中国统一用 UTC+8 显示时间（云函数服务器时区不可靠，不能依赖 toTimeString）
   function fmt(d) {
     if (!d || isNaN(d.getTime())) return null
-    return d.toTimeString().substring(0, 5)
+    // 取 UTC 分量后加 8 小时，再格式化，避免依赖服务器本地时区
+    let h = d.getUTCHours() + 8
+    const m = d.getUTCMinutes()
+    h = ((h % 24) + 24) % 24 // 处理跨日（如日出在 UTC 前一天 23:xx）
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0')
   }
 
   return {

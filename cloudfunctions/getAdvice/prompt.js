@@ -1,12 +1,13 @@
 /**
  * 徒步薯 - 系统提示词与模板
  *
- * P0-pre GLM-4-Flash JSON 能力实测结论：
- * - 不带 response_format: 0/5 通过（全部缺 weatherWindow/gear/risks）
- * - 带 response_format: 0/5 通过（同上）
- * - 结论：GLM-4-Flash 无法输出复杂嵌套 JSON schema，0% 通过率
- * - 决策：升级 GLM-4.5（key 相同，模型能力更强）
- * - 平均延迟：Flash 5-11s，GLM-4.5 预计 8-15s（需实测）
+ * P0-pre GLM JSON 能力实测结论（基于真实测试，非文档推测）：
+ * - GLM-4-Flash: 0/10 通过（无/有 response_format 均全部缺 weatherWindow/gear/risks），不可用
+ * - GLM-4.5: 授权头格式错误 + 速率限制 429，不可用
+ * - GLM-4.7 带 response_format: 3/3 成功（25719-44432ms），延迟极高但 schema 完整
+ * - GLM-4.7 不带 response_format: 2/3 成功（1 次解析失败）
+ * - 决策：使用 glm-4.7 + response_format:json_object（已验证稳定输出）
+ * - 超时余量：实测峰值 44s，GLM_TIMEOUT 设 50s，云函数总超时 60s
  */
 
 const SYSTEM_PROMPT = [
