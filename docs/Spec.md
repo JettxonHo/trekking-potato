@@ -92,10 +92,10 @@
 
 | 层 | 选型 | 理由 |
 |----|------|------|
-| 前端 | 微信小程序原生（WXML/WXSS/JS） | 目标平台，原生性能最优 |
+| 前端 | Taro 4 + React 18（编译为微信小程序） | 原生 WXSS 引擎反复 LifeCycle.load 崩溃，Taro 编译产物零 undefined；用户决策方案 A |
 | 后端 | 微信云开发（云函数 Node.js） | 零运维、原生集成微信登录、自用免费额度 |
 | 数据库 | 云开发云数据库（NoSQL） | MVP 不强需，预留用于未来历史记录 |
-| LLM | 智谱 GLM-4-Flash（默认） | 免费、中文质量好、国内访问稳；质量不够可升 GLM-4 |
+| LLM | 智谱 GLM-4.7（含 response_format） | Flash 0/10 schema 通过率不可用，4.5 限流，4.7 带 response_format 3/3 通过；用户有 coding plan |
 | 天气 | Open-Meteo Forecast API | 免费、无需 key、任意经纬度 7-16 天预报 |
 | 地理编码 | 高德地理编码 API（主）+ 内置热门路线表（兜底） | 高德个人免费 5000次/日、精确 POI、原生 GCJ-02 合规；内置表应对接口失败 |
 | 天文时刻 | sun-event / Astral 库（离线计算） | 日出日落、黄金/蓝调时刻，确定性天文公式，零 API 成本 |
@@ -107,7 +107,8 @@
 
 ```
 # 开发
-# 微信开发者工具打开项目目录，自动编译预览
+# cd taro-app && npm install && npm run build:weapp
+# 微信开发者工具打开 taro-app/ 目录，加载 dist/
 # 真机预览：开发者工具 → 预览 → 扫码
 
 # 云函数部署
@@ -115,6 +116,7 @@
 
 # 本地调试云函数
 # 开发者工具 → 云开发 → 本地调试
+# 命令行验证非-GLM 链路：node scripts/e2e-local.js（真实 Open-Meteo，无需 key）
 ```
 
 ## 3. 项目结构
