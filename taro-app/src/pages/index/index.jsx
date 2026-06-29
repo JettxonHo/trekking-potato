@@ -1,28 +1,40 @@
 import { Component } from 'react'
-import { View, Text, Input, Picker, Button, ScrollView } from '@tarojs/components'
+import { View, Text, Input, Picker, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import './index.css'
 
+const FUNNY_MESSAGES = [
+  '薯仔正在向老天借晴天...',
+  '薯仔正在把雨水塞进云里...',
+  '薯仔正在疯狂敲木鱼求平安...',
+  '薯仔正在数山上的石头有几颗...',
+  '薯仔正在帮蚂蚁搬家...',
+  '薯仔正在和风谈判...',
+  '薯仔正在读《户外生存手册》第38页...',
+  '薯仔正在给太阳充电...',
+]
+
 export default class Index extends Component {
- state = {
-   route: '',
-   date: '',
-   level: '中级',
-   days: 1,
-   levels: ['初级', '中级', '高级'],
-   levelIndex: 1,
-   minDate: '',
-   loading: false,
-   loadingStage: '',
-   error: null,
-   showResult: false,
+  state = {
+    route: '',
+    date: '',
+    level: '中级',
+    days: 1,
+    levels: ['初级', '中级', '高级'],
+    levelIndex: 1,
+    minDate: '',
+    loading: false,
+    loadingStage: '',
+    error: null,
+    showResult: false,
     result: null,
     adviceLoading: false,
     showManualCoords: false,
     manualLat: '',
     manualLon: '',
-    manualElev: ''
- }
+    manualElev: '',
+    funnyMsg: '',
+  }
 
   componentDidMount() {
     const d = new Date()
@@ -36,7 +48,6 @@ export default class Index extends Component {
   onDateChange = (e) => this.setState({ date: e.detail.value })
   onLevelChange = (e) => this.setState({ levelIndex: e.detail.value, level: this.state.levels[e.detail.value] })
   onDaysChange = (e) => {
-    // 不实时 clamp，允许用户正常输入数字（实时 clamp 会吞掉输入中间态）
     const raw = e.detail.value
     if (raw === '') { this.setState({ days: '', daysRaw: '' }); return }
     const num = parseInt(raw)
@@ -68,9 +79,18 @@ export default class Index extends Component {
     })
   }
 
+  _startFunnyRotation() {
+    this._funnyTimer = setInterval(() => {
+      if (this._unmounted || !this.state.adviceLoading) { clearInterval(this._funnyTimer); return }
+      const msg = FUNNY_MESSAGES[Math.floor(Math.random() * FUNNY_MESSAGES.length)]
+      this.setState({ funnyMsg: msg })
+    }, 2000)
+    this.setState({ funnyMsg: FUNNY_MESSAGES[0] })
+  }
+
   _submitBase(params) {
     this._unmounted = false
-    this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, showManualCoords: false, loadingStage: '正在查询路线位置...' })
+    this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, showManualCoords: false, loadingStage: '薯仔正在查询路线位置...' })
     Taro.cloud.callFunction({
       name: 'getAdvice',
       data: { ...params, mode: 'base' },
@@ -96,7 +116,6 @@ export default class Index extends Component {
           },
           adviceLoading: true,
         })
-        // AI 加载步骤动画：每 1.8 秒切换提示文案
         this._adviceSteps = ['薯仔正在分析天气窗口...', '薯仔正在匹配装备清单...', '薯仔正在评估风险等级...', '薯仔正在生成行前建议...']
         this._adviceStepIdx = 0
         this._adviceStepTimer = setInterval(() => {
@@ -105,6 +124,7 @@ export default class Index extends Component {
           this.setState({ adviceStage: this._adviceSteps[this._adviceStepIdx] })
         }, 1800)
         this.setState({ adviceStage: this._adviceSteps[0] })
+        this._startFunnyRotation()
         this._fetchAdvice({ ...params, baseData: base })
       },
       fail: (err) => {
@@ -122,12 +142,13 @@ export default class Index extends Component {
       success: (res) => {
         if (this._unmounted) return
         if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
+        if (this._funnyTimer) clearInterval(this._funnyTimer)
         const result = res.result
         if (result && result.ok) {
-          // 用 GLM 结果增量更新（天气保留 base 的，装备/风险/注意事项用 GLM 的）
           const d = result.data
           this.setState((prev) => ({
             adviceLoading: false,
+            funnyMsg: '',
             result: {
               ...prev.result,
               gear: d.gear || prev.result.gear,
@@ -140,20 +161,20 @@ export default class Index extends Component {
             },
           }))
         } else {
-          if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
-          this.setState({ adviceLoading: false, error: 'AI 建议生成失败' })
+          this.setState({ adviceLoading: false, funnyMsg: '', error: 'AI 建议生成失败' })
         }
       },
       fail: (err) => {
         if (this._unmounted) return
         if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
-        // GLM 超时不影响已展示的天气数据
+        if (this._funnyTimer) clearInterval(this._funnyTimer)
         this.setState((prev) => ({
           adviceLoading: false,
+          funnyMsg: '',
           result: {
             ...prev.result,
             degraded: true,
-            notes: ['AI 建议生成超时，以下为天气基础数据。请重试或查阅专业路书。'],
+            notes: ['AI 建议超时，以下为天气基础数据。请重试或查阅专业路书。'],
           },
         }))
         console.error('[徒步薯] advice callFunction fail', err)
@@ -163,22 +184,28 @@ export default class Index extends Component {
 
   onBack = () => this.setState({ showResult: false })
 
-  componentWillUnmount() { this._unmounted = true; if (this._adviceStepTimer) clearInterval(this._adviceStepTimer) }
+  componentWillUnmount() {
+    this._unmounted = true
+    if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
+    if (this._funnyTimer) clearInterval(this._funnyTimer)
+  }
 
   render() {
-   const { route, date, level, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev } = this.state
+    const { route, date, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev } = this.state
     const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
+    const funnyMsg = this.state.funnyMsg
 
+    // ===== Loading 视图 =====
     if (loading) {
       return (
         <View className="container loading-screen">
-          <View className="spinner" />
-        <Text className="loading-text">{loadingStage}</Text>
-          <Text className="loading-hint">正在获取天气数据...</Text>
+          <Text className="loading-potato">🥔</Text>
+          <Text className="loading-text">{loadingStage}</Text>
         </View>
       )
     }
 
+    // ===== 结果视图 =====
     if (showResult && result) {
       const d = result
       const degraded = d.degraded === true
@@ -188,10 +215,15 @@ export default class Index extends Component {
       const risks = d.risks || []
       const notes = d.notes || []
       const photo = d.photoTiming || {}
-      const micro = d.microclimate || {}
 
       return (
-        <View className="container result-container">
+        <View className="container" style="padding-top: 40rpx; padding-bottom: 120rpx;">
+          {degraded && (
+            <View className="degraded-banner">
+              <Text>薯仔脑子暂时短路了，以下为基础参考 🥔</Text>
+            </View>
+          )}
+
           {adviceLoading && (
             <View className="advice-loading-bar">
               <View className="spinner-small" />
@@ -199,21 +231,20 @@ export default class Index extends Component {
             </View>
           )}
 
-          {degraded && (
-            <View className="degraded-banner">
-              <Text>AI 生成失败，以下为基础参考</Text>
-            </View>
+          {funnyMsg && adviceLoading && (
+            <Text className="loading-funny" style="display:block; text-align:center; margin-bottom:20rpx;">{funnyMsg}</Text>
           )}
 
           {meta.elevation && (
-            <View className="elevation-bar">
-              <Text>📍 海拔 {meta.elevation}m</Text>
+            <View className="elevation-pill">
+              <Text>📍 {meta.elevation}m · {meta.location}</Text>
             </View>
           )}
 
           {weather.days && weather.days.length > 0 && (
             <View className="card">
-              <Text className="card-title">🌤 天气窗口</Text>
+              <Text className="card-quirky-icon">{weather.days[0] && weather.days[0].precipProb > 80 ? '🌧' : '☀️'}</Text>
+              <Text className="card-title">天气窗口</Text>
               {weather.elevationCaveat && <Text className="caveat">{weather.elevationCaveat}</Text>}
               {weather.dateOutOfRange && <Text className="caveat">⚠ {weather.dateRangeNote}</Text>}
               {weather.days.map((day, i) => (
@@ -224,59 +255,76 @@ export default class Index extends Component {
                   <Text className="day-wind">{day.windMs}m/s</Text>
                   {day.confidence === '参考' && <Text className="day-confidence">参考</Text>}
                 </View>
-             ))}
+              ))}
             </View>
           )}
 
           <View className="card">
-            <Text className="card-title">🎒 装备清单</Text>
-            {gear.essential && gear.essential.length > 0 && (
-              <View className="gear-section">
-                <Text className="gear-label essential-label">必备</Text>
-                {gear.essential.map((g, i) => (
-                  <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
-                ))}
-              </View>
-            )}
-            {gear.recommended && gear.recommended.length > 0 && (
-              <View className="gear-section">
-                <Text className="gear-label">推荐</Text>
-                {gear.recommended.map((g, i) => (
-                  <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
-                ))}
-              </View>
-            )}
-            {gear.optional && gear.optional.length > 0 && (
-              <View className="gear-section">
-                <Text className="gear-label optional-label">可选</Text>
-                {gear.optional.map((g, i) => (
-                  <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
-                ))}
-              </View>
-            )}
-            {(!gear.essential || gear.essential.length === 0) && (!gear.recommended || gear.recommended.length === 0) && (
-              adviceLoading ? <Text className="loading-placeholder">薯仔正在生成装备清单...</Text> : <Text className="empty-hint">装备清单为空</Text>
+            <Text className="card-quirky-icon">🎒</Text>
+            <Text className="card-title">装备清单</Text>
+            {adviceLoading ? (
+              <Text className="loading-placeholder">薯仔正在生成装备清单...</Text>
+            ) : (
+              <>
+                {gear.essential && gear.essential.length > 0 && (
+                  <View className="gear-section">
+                    <Text className="gear-label essential-label">必备</Text>
+                    {gear.essential.map((g, i) => (
+                      <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
+                    ))}
+                  </View>
+                )}
+                {gear.recommended && gear.recommended.length > 0 && (
+                  <View className="gear-section">
+                    <Text className="gear-label recommended-label">推荐</Text>
+                    {gear.recommended.map((g, i) => (
+                      <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
+                    ))}
+                  </View>
+                )}
+                {gear.optional && gear.optional.length > 0 && (
+                  <View className="gear-section">
+                    <Text className="gear-label optional-label">可选</Text>
+                    {gear.optional.map((g, i) => (
+                      <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
+                    ))}
+                  </View>
+                )}
+                {(!gear.essential || gear.essential.length === 0) && (!gear.recommended || gear.recommended.length === 0) && (
+                  <Text className="empty-hint">装备清单为空</Text>
+                )}
+              </>
             )}
           </View>
 
           <View className="card">
-            <Text className="card-title">⚠️ 风险提示</Text>
-            {risks.length > 0 ? risks.map((r, i) => (
-              <View key={i} className={`risk-item ${r.level === '致命' ? 'fatal' : ''}`}>
-                <Text className={`risk-level ${r.level === '致命' ? 'fatal-tag' : ''}`}>{r.level}</Text>
-                <Text className="risk-name">{r.risk}</Text>
-                <Text className="risk-advice">{r.advice}</Text>
-              </View>
-            )) : degraded ? (
-              <Text className="risk-degraded">AI 不可用，请查专业路书</Text>
+            <Text className="card-quirky-icon">⚠️</Text>
+            <Text className="card-title">风险提示</Text>
+            {adviceLoading ? (
+              <Text className="loading-placeholder">薯仔正在分析风险...</Text>
+            ) : risks.length > 0 ? (
+              risks.map((r, i) => {
+                const tagClass = r.level === '致命' ? 'fatal-tag' : r.level === '高' ? 'warning-tag' : 'normal-tag'
+                return (
+                  <View key={i} className={`risk-item ${r.level === '致命' ? 'fatal fatal-enter' : ''}`}>
+                    <Text className={`risk-tag ${tagClass}`}>{r.level}</Text>
+                    <Text className="risk-name">{r.risk}</Text>
+                    <Text className="risk-advice">{r.advice}</Text>
+                  </View>
+                )
+              })
+            ) : degraded ? (
+              <Text className="risk-advice" style="color:#ff3b30;">AI 不可用，请查专业路书</Text>
             ) : (
-              adviceLoading ? <Text className="loading-placeholder">薯仔正在分析风险...</Text> : <Text className="empty-hint">暂无风险提示</Text>
+              <Text className="empty-hint">暂无风险提示</Text>
             )}
           </View>
 
           {photo.sunrise && (
             <View className="card">
-              <Text className="card-title">📷 出片时机</Text>
+              <Text className="card-quirky-icon">📷</Text>
+              <Text className="card-title">出片时机</Text>
+              {photo.terrainCaveat && <Text className="caveat">{photo.terrainCaveat}</Text>}
               <View className="info-row"><Text>日出</Text><Text>{photo.sunrise || '—'}</Text></View>
               <View className="info-row"><Text>日落</Text><Text>{photo.sunset || '—'}</Text></View>
               <View className="info-row"><Text>黄金时刻</Text><Text>{photo.goldenHour || '—'}</Text></View>
@@ -286,30 +334,34 @@ export default class Index extends Component {
 
           {notes.length > 0 && (
             <View className="card">
-              <Text className="card-title">📋 注意事项</Text>
+              <Text className="card-title">注意事项</Text>
               {notes.map((n, i) => <Text key={i} className="note-item">{n}</Text>)}
             </View>
           )}
 
-          {d.disclaimer && <View className="disclaimer-box"><Text className="disclaimer-text">{d.disclaimer}</Text></View>}
+          {d.disclaimer && (
+            <View className="disclaimer-box">
+              <Text className="disclaimer-text">{d.disclaimer}</Text>
+            </View>
+          )}
 
           <Button onClick={this.onBack} className="retry-btn">返回重新查询</Button>
         </View>
       )
     }
 
-    // 表单视图
+    // ===== 表单视图 =====
     return (
       <View className="container form-screen">
         <View className="header">
-          <Text className="title">徒步薯</Text>
+          <Text className="title">徒步薯 🥔</Text>
           <Text className="subtitle">徒步行前建议助手</Text>
         </View>
 
-        <View className="form">
+        <View className="form-card">
           <View className="form-item">
             <Text className="label">路线名</Text>
-            <Input className="input" placeholder="如：武功山" value={route} onInput={this.onRouteInput} />
+            <Input className="input" placeholder="如：武功山" placeholderClass="placeholder" value={route} onInput={this.onRouteInput} />
           </View>
           <View className="form-item">
             <Text className="label">出发日期</Text>
@@ -319,7 +371,7 @@ export default class Index extends Component {
           </View>
           <View className="form-item">
             <Text className="label">天数</Text>
-            <Input className="input" type="number" placeholder="1-7" value={days === '' ? '' : String(days)} onInput={this.onDaysChange} />
+            <Input className="input" type="number" placeholder="1-7" placeholderClass="placeholder" value={days === '' ? '' : String(days)} onInput={this.onDaysChange} />
           </View>
           <View className="form-item">
             <Text className="label">徒步水平</Text>
@@ -329,19 +381,19 @@ export default class Index extends Component {
           </View>
         </View>
 
-        <Button type="primary" onClick={this.onSubmit} className="submit-btn">获取行前建议</Button>
+        <Button onClick={this.onSubmit} className="submit-btn">获取行前建议</Button>
 
         {error && <View className="error-box"><Text>{error}</Text></View>}
 
         {showManualCoords && (
           <View className="manual-coords-box">
-            <Text className="manual-hint">搜不到路线？输入起点坐标（高德地图长按获取）</Text>
+            <Text className="manual-hint">搜不到路线？输入起点坐标（高德地图长按获取）🥔</Text>
             <View className="coord-row">
-              <Input className="coord-input" type="digit" placeholder="纬度 如 27.45" value={manualLat} onInput={(e) => this.setState({ manualLat: e.detail.value })} />
-              <Input className="coord-input" type="digit" placeholder="经度 如 114.17" value={manualLon} onInput={(e) => this.setState({ manualLon: e.detail.value })} />
+              <Input className="coord-input" type="digit" placeholder="纬度 如 27.45" placeholderClass="placeholder" value={manualLat} onInput={(e) => this.setState({ manualLat: e.detail.value })} />
+              <Input className="coord-input" type="digit" placeholder="经度 如 114.17" placeholderClass="placeholder" value={manualLon} onInput={(e) => this.setState({ manualLon: e.detail.value })} />
             </View>
-            <Input className="coord-input-wide" type="number" placeholder="海拔（选填，不填自动查询）" value={manualElev} onInput={(e) => this.setState({ manualElev: e.detail.value })} />
-            <Button type="primary" onClick={this.onManualSubmit} className="manual-submit-btn">用手动坐标查询</Button>
+            <Input className="coord-input-wide" type="number" placeholder="海拔（选填，不填自动查询）" placeholderClass="placeholder" value={manualElev} onInput={(e) => this.setState({ manualElev: e.detail.value })} />
+            <Button onClick={this.onManualSubmit} className="manual-submit-btn">用手动坐标查询</Button>
           </View>
         )}
       </View>

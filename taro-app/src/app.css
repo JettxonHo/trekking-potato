@@ -1,2 +1,26 @@
-page { background: #f7f8f5; }
+page {
+  background: #f5f5f7;
+  --potato-yellow: #FFD15C;
+  --brand-black: #1a1a1a;
+  --brand-gray: #f5f5f7;
+  --text-primary: #1d1d1f;
+  --text-secondary: #86868b;
+  --text-tertiary: #aeaeb2;
+  --bg-page: #f5f5f7;
+  --bg-card: #ffffff;
+  --bg-tag: #f5f5f7;
+  --color-danger: #ff3b30;
+  --color-warning: #ff9500;
+  --color-success: #34c759;
+  --radius-sm: 16rpx;
+  --radius-md: 24rpx;
+  --radius-lg: 32rpx;
+  --shadow-card: 0 4rpx 48rpx rgba(0,0,0,0.04);
+  --shadow-elevated: 0 8rpx 64rpx rgba(0,0,0,0.06);
+  --ease-smooth: cubic-bezier(0.25,1,0.5,1);
+  --ease-elastic: cubic-bezier(0.68,-0.6,0.32,1.6);
+  --ease-wobble: cubic-bezier(0.36,0.07,0.19,0.97);
+  --duration-fast: 0.2s;
+  --duration-base: 0.4s;
+}
 view, text, input, picker, button, scroll-view { box-sizing: border-box; }

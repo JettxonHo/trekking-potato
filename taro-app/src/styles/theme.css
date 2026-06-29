@@ -1,0 +1,45 @@
+/* ============================================
+ * 徒步薯 Design System — Apple/Gemini 底色 + 薯仔搞怪彩蛋
+ * ============================================ */
+
+/* ---- 品牌色系 ---- */
+--potato-yellow: #FFD15C;     /* 薯仔黄，仅用于搞怪吸睛元素 */
+--brand-black: #1a1a1a;       /* 哑光黑主色 */
+--brand-gray: #f5f5f7;        /* 苹果灰背景 */
+
+/* ---- 文字色阶 ---- */
+--text-primary: #1d1d1f;      /* 标题黑 */
+--text-secondary: #86868b;    /* 副文本灰 */
+--text-tertiary: #aeaeb2;     /* 辅助浅灰 */
+
+/* ---- 背景色 ---- */
+--bg-page: #f5f5f7;
+--bg-card: #ffffff;
+--bg-tag: #f5f5f7;
+
+/* ---- 功能色 ---- */
+--color-danger: #ff3b30;      /* iOS 红，致命风险 */
+--color-warning: #ff9500;     /* iOS 橙，中等风险 */
+--color-success: #34c759;     /* iOS 绿，安全/推荐 */
+--color-caveat: #86868b;      /* 警示灰 */
+
+/* ---- 圆角 ---- */
+--radius-xs: 8rpx;
+--radius-sm: 16rpx;           /* Tag / 小按钮 */
+--radius-md: 24rpx;           /* Card / Cell */
+--radius-lg: 32rpx;           /* 大卡片 / Popup */
+
+/* ---- 阴影（极弥散、低调） ---- */
+--shadow-card: 0 4rpx 48rpx rgba(0, 0, 0, 0.04);
+--shadow-elevated: 0 8rpx 64rpx rgba(0, 0, 0, 0.06);
+--shadow-pressed: 0 2rpx 16rpx rgba(0, 0, 0, 0.03);
+
+/* ---- 动效曲线 ---- */
+--ease-smooth: cubic-bezier(0.25, 1, 0.5, 1);          /* Apple 标准平滑 */
+--ease-elastic: cubic-bezier(0.68, -0.6, 0.32, 1.6);   /* 果冻弹回（搞怪） */
+--ease-wobble: cubic-bezier(0.36, 0.07, 0.19, 0.97);   /* 摇头抖动 */
+
+/* ---- 过渡时长 ---- */
+--duration-fast: 0.2s;
+--duration-base: 0.4s;
+--duration-slow: 0.5s;

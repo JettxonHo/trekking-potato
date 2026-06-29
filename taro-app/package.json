@@ -7,6 +7,7 @@
     "build:weapp": "taro build --type weapp"
   },
   "dependencies": {
+    "@nutui/nutui-react-taro": "^3.0.20",
     "@tarojs/components": "4.0.9",
     "@tarojs/helper": "4.0.9",
     "@tarojs/plugin-framework-react": "4.0.9",
