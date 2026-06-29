@@ -22,6 +22,7 @@ const BUILTIN_ROUTES = [
     lon: 102.9065,
     elevation: 5276,
     location: '四川省阿坝州小金县',
+    type: 'climb',
     note: '技术型攀登，需冰爪结组，高反风险',
   },
   {
@@ -58,6 +59,7 @@ const BUILTIN_ROUTES = [
     lon: 101.8820,
     elevation: 7556,
     location: '四川省甘孜州',
+    type: 'climb',
     note: '极高海拔，需充分高海拔适应',
   },
   {
@@ -148,6 +150,7 @@ const BUILTIN_ROUTES = [
     lon: 100.0820,
     elevation: 5396,
     location: '云南省迪庆州香格里拉市',
+    type: 'climb',
     note: '入门级5000m+技术攀登，需冰爪结组',
   },
   {
@@ -157,6 +160,7 @@ const BUILTIN_ROUTES = [
     lon: 81.3120,
     elevation: 6638,
     location: '西藏阿里地区普兰县',
+    type: 'trek',
     note: '神山转山，宗教意义，非攀登路线',
   },
   {
@@ -166,6 +170,7 @@ const BUILTIN_ROUTES = [
     lon: 103.8000,
     elevation: 5440,
     location: '四川省阿坝州松潘县',
+    type: 'climb',
     note: '岷山主峰，技术型攀登',
   },
 ]

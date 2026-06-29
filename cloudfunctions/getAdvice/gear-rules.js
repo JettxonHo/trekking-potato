@@ -41,11 +41,11 @@ function getLatitudeBand(lat) {
 
 /**
  * 获取装备规则（作为 LLM grounding）
- * @param {Object} params - { month, elevation, days, lat }
+ * @param {Object} params - { month, elevation, days, lat, routeType }
  * @returns {Object} { season, elevationBand, latitudeBand, fatalRisks, essentialGear, notes }
  */
 function getGearRules(params) {
-  const { month, elevation, days, lat } = params
+  const { month, elevation, days, lat, routeType } = params
 
   const season = getSeason(month)
   const elevationBand = getElevationBand(elevation)
@@ -61,7 +61,8 @@ function getGearRules(params) {
 
   // 极高海拔 -> 滑坠/技术装备
   // 5000m+ 视为技术攀登，需冰爪/结组绳（四姑娘山二峰 5276m 是典型 case，spec 要求必入）
-  if (elevationBand === 'extreme' || elevation >= 5000) {
+  // 但转山路线（routeType='trek'）不攀登，不需要冰爪/结组绳/安全带（冈仁波齐是转山不是攀登）
+  if ((elevationBand === 'extreme' || elevation >= 5000) && routeType !== 'trek') {
     fatalRisks.push({ name: '滑坠', gear: ['冰爪', '结组绳', '头盔', '安全带'] })
   }
 
@@ -134,6 +135,12 @@ function getGearRules(params) {
     { item: '相机', reason: '记录风景' },
   ]
 
+  // 转山路线加防风保暖（高海拔徒步而非攀登，保暖优先于技术装备）
+  if (routeType === 'trek' && (elevationBand === 'high' || elevationBand === 'extreme')) {
+    recommendedGear.push({ item: '防风保暖羽绒服', reason: '高海拔转山保暖' })
+    recommendedGear.push({ item: '保温壶', reason: '高海拔保温' })
+  }
+
   if (season === 'summer') {
     optionalGear.push({ item: '防蚊液', reason: '夏季蚊虫' })
   }
@@ -153,6 +160,7 @@ function getGearRules(params) {
     elevation,
     latitudeBand,
     days,
+    routeType: routeType || 'climb',
     fatalRisks: fatalRisks.map((r) => r.name),
     essential: essentialGear,
     recommended: recommendedGear,

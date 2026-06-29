@@ -212,6 +212,7 @@ exports.main = async (event, context) => {
     elevation: loc.elevation,
     days: tripDays,
     lat: loc.lat,
+    routeType: loc.type || 'trek',
   })
 
   // 5. 并行查询天气+天文（Promise.all）
