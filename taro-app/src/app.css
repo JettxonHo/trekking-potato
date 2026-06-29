@@ -1,26 +1,33 @@
 page {
-  background: #f5f5f7;
-  --potato-yellow: #FFD15C;
-  --brand-black: #1a1a1a;
-  --brand-gray: #f5f5f7;
+  /* ===== Notion 杂志级色彩体系 ===== */
+  --brand-color: #1a1a1a;
+  --brand-color-light: #f5f5f7;
   --text-primary: #1d1d1f;
   --text-secondary: #86868b;
   --text-tertiary: #aeaeb2;
-  --bg-page: #f5f5f7;
-  --bg-card: #ffffff;
-  --bg-tag: #f5f5f7;
-  --color-danger: #ff3b30;
-  --color-warning: #ff9500;
-  --color-success: #34c759;
-  --radius-sm: 16rpx;
-  --radius-md: 24rpx;
-  --radius-lg: 32rpx;
-  --shadow-card: 0 4rpx 48rpx rgba(0,0,0,0.04);
-  --shadow-elevated: 0 8rpx 64rpx rgba(0,0,0,0.06);
-  --ease-smooth: cubic-bezier(0.25,1,0.5,1);
-  --ease-elastic: cubic-bezier(0.68,-0.6,0.32,1.6);
-  --ease-wobble: cubic-bezier(0.36,0.07,0.19,0.97);
-  --duration-fast: 0.2s;
+  --bg-page: #ffffff;
+  --bg-card: #f5f5f7;
+
+  /* ===== 严谨圆角（更内敛） ===== */
+  --radius-sm: 8rpx;
+  --radius-md: 16rpx;
+  --radius-lg: 28rpx;
+
+  /* ===== 极弥散低保真阴影 ===== */
+  --shadow-card: 0 4rpx 48rpx rgba(0, 0, 0, 0.02);
+  --shadow-elevated: 0 12rpx 64rpx rgba(0, 0, 0, 0.05);
+  --shadow-pressed: 0 2rpx 16rpx rgba(0, 0, 0, 0.015);
+
+  /* ===== Figma 级物理阻尼动效 ===== */
+  --elastic-curve: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  --transition-elastic: all 0.5s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  --transition-smooth: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-wobble: cubic-bezier(0.36, 0.07, 0.19, 0.97);
+
+  --duration-fast: 0.15s;
   --duration-base: 0.4s;
+  --duration-slow: 0.5s;
+
+  background: #ffffff;
 }
 view, text, input, picker, button, scroll-view { box-sizing: border-box; }

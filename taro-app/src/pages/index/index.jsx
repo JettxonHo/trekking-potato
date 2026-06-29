@@ -202,7 +202,7 @@ export default class Index extends Component {
     if (loading) {
       return (
         <View className="container loading-screen">
-          <Text className="loading-potato">🥔</Text>
+          <Text className="potato-face">(•_•)</Text>
           <Text className="loading-text">{loadingStage}</Text>
           <View className="skeleton-card">
             <Skeleton rows={2} animated block />
@@ -309,6 +309,7 @@ export default class Index extends Component {
 
           <View className="card">
             <Text className="card-quirky-icon">⚠️</Text>
+            <Text className="card-quirky-icon" style="right:60rpx;opacity:0.2;">(•̀_•́)</Text>
             <Text className="card-title">风险提示</Text>
             {adviceLoading ? (
               <View className="skeleton-inline">

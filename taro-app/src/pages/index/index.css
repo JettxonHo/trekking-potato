@@ -1,186 +1,301 @@
 /* ============================================
- * 徒步薯 — Apple/Gemini 极简 + 薯仔搞怪彩蛋
+ * 徒步薯 — Notion 杂志底色 + 薯仔搞怪 + 果冻弹性
+ * 纯白背景 / 浅灰卡片 / 哑光黑文字 / 物理回弹
  * ============================================ */
 
-/* ---- 全局布局 ---- */
-.container { padding: 0 40rpx; min-height: 100vh; background: #f5f5f7; }
+/* ---- 全局 ---- */
+.container { padding: 0 40rpx; min-height: 100vh; background: #ffffff; }
 
-/* ---- 表单视图 ---- */
-.form-screen { display: flex; flex-direction: column; min-height: 100vh; padding-top: 140rpx; }
+/* ============================================
+ * 动画关键帧
+ * ============================================ */
 
+/* 卡片阶梯淡入（fade-in-up + elastic 回弹） */
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(40rpx) scale(0.96); }
+  60% { opacity: 1; transform: translateY(-4rpx) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 薯仔简笔画上下颠簸 */
+@keyframes potato-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6rpx); }
+}
+
+/* 薯仔 Loading 果冻弹跳 */
+@keyframes potato-jelly {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  30% { transform: scale(1.15) rotate(-4deg); }
+  60% { transform: scale(0.92) rotate(3deg); }
+}
+
+/* 致命风险摇头（Wobble） */
+@keyframes wobble {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-8rpx); }
+  40% { transform: translateX(8rpx); }
+  60% { transform: translateX(-4rpx); }
+  80% { transform: translateX(4rpx); }
+  100% { transform: translateX(0); }
+}
+
+/* 骨架屏慢呼吸 */
+@keyframes skeleton-breath {
+  0% { background-position: 100% 50%; }
+  50% { background-position: 0 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* 转圈 */
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ============================================
+ * 物理弹性交互（Figma Elastic）
+ * ============================================ */
+
+/* Q 弹点击：缩放 + 倾斜 + elastic 复位 */
+.quirky-active {
+  transition: transform 0.5s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+}
+.quirky-active:active {
+  transform: scale(0.95) rotate(-1deg);
+  transition: transform 0.15s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+}
+
+/* ============================================
+ * 表单视图
+ * ============================================ */
+
+.form-screen { display: flex; flex-direction: column; min-height: 100vh; padding-top: 160rpx; }
 .header { display: flex; flex-direction: column; align-items: center; margin-bottom: 80rpx; }
-.title { font-size: 64rpx; font-weight: 800; color: #1d1d1f; letter-spacing: 2rpx; }
-.subtitle { font-size: 26rpx; color: #86868b; margin-top: 12rpx; letter-spacing: 1rpx; }
+.title { font-size: 64rpx; font-weight: 800; color: #1d1d1f; letter-spacing: 4rpx; }
+.subtitle { font-size: 26rpx; color: #86868b; margin-top: 12rpx; letter-spacing: 2rpx; }
 
-/* ---- 表单卡片（iOS 设置页风格） ---- */
-.form-card { background: #fff; border-radius: 24rpx; box-shadow: 0 4rpx 48rpx rgba(0,0,0,0.04); margin-bottom: 48rpx; overflow: hidden; }
-.form-item { display: flex; align-items: center; padding: 32rpx 36rpx; min-height: 100rpx; position: relative; }
-.form-item::after { content: ''; position: absolute; bottom: 0; left: 36rpx; right: 36rpx; height: 1rpx; background: #f0f0f2; }
+/* 表单卡片：浅灰背景 + 弥散阴影 + 无边框 */
+.form-card {
+  background: #f5f5f7; border-radius: 28rpx;
+  box-shadow: 0 4rpx 48rpx rgba(0,0,0,0.02);
+  margin-bottom: 48rpx; overflow: hidden;
+}
+.form-item { display: flex; align-items: center; padding: 36rpx 36rpx; min-height: 104rpx; position: relative; }
+.form-item::after { content: ''; position: absolute; bottom: 0; left: 36rpx; right: 36rpx; height: 1rpx; background: rgba(0,0,0,0.03); }
 .form-item:last-child::after { display: none; }
-.label { width: 160rpx; font-size: 30rpx; color: #1d1d1f; font-weight: 500; letter-spacing: 0.5rpx; }
+.label { width: 160rpx; font-size: 30rpx; color: #1d1d1f; font-weight: 600; letter-spacing: 1rpx; }
 .input { flex: 1; font-size: 30rpx; color: #1d1d1f; }
 .picker { flex: 1; font-size: 30rpx; color: #1d1d1f; }
 .placeholder { color: #aeaeb2; }
 
-/* ---- 按钮（哑光黑 + 点击皮一下） ---- */
-.submit-btn {
-  width: 100%; height: 96rpx; line-height: 96rpx;
-  background: #1a1a1a; color: #fff; border: none; border-radius: 16rpx;
-  font-size: 32rpx; font-weight: 600; letter-spacing: 1rpx;
-  transition: all 0.2s cubic-bezier(0.25,1,0.5,1);
-}
-.submit-btn::after { border: none; }
-.submit-btn:active { transform: scale(0.97) rotate(-1deg); transition: all 0.15s; background: #333; }
+/* ============================================
+ * 按钮（哑光黑 + Q弹点击）
+ * ============================================ */
 
-/* ---- 错误提示 ---- */
-.error-box { background: #fff; border-radius: 16rpx; padding: 24rpx 32rpx; margin-top: 24rpx; box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.03); }
+.submit-btn {
+  width: 100% !important; height: 96rpx !important; line-height: 96rpx !important;
+  background: #1a1a1a !important; color: #fff !important; border: none !important;
+  border-radius: 16rpx !important; font-size: 32rpx !important; font-weight: 700 !important;
+  letter-spacing: 2rpx !important; margin-top: 48rpx !important;
+  transition: all 0.5s cubic-bezier(0.68, -0.6, 0.32, 1.6) !important;
+}
+.submit-btn::after { border: none !important; }
+.submit-btn:active {
+  transform: scale(0.95) rotate(-1deg);
+  transition: transform 0.15s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  background: #333 !important;
+}
+
+.retry-btn {
+  width: 100% !important; height: 88rpx !important; line-height: 88rpx !important;
+  background: #f5f5f7 !important; color: #1d1d1f !important; border: none !important;
+  border-radius: 16rpx !important; font-size: 30rpx !important; font-weight: 600 !important;
+  margin-top: 16rpx !important; margin-bottom: 60rpx !important;
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.015) !important;
+  transition: all 0.5s cubic-bezier(0.68, -0.6, 0.32, 1.6) !important;
+}
+.retry-btn::after { border: none !important; }
+.retry-btn:active { transform: scale(0.95); }
+
+.manual-submit-btn {
+  width: 100% !important; height: 88rpx !important; line-height: 88rpx !important;
+  background: #1a1a1a !important; color: #fff !important; border: none !important;
+  border-radius: 16rpx !important; font-size: 30rpx !important; font-weight: 600 !important;
+  transition: all 0.5s cubic-bezier(0.68, -0.6, 0.32, 1.6) !important;
+}
+.manual-submit-btn::after { border: none !important; }
+.manual-submit-btn:active { transform: scale(0.95) rotate(-1deg); }
+
+/* ============================================
+ * 错误提示
+ * ============================================ */
+
+.error-box { background: #f5f5f7; border-radius: 16rpx; padding: 24rpx 32rpx; margin-top: 24rpx; box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.015); }
 .error-box text { color: #ff3b30; font-size: 26rpx; line-height: 1.6; }
 
-/* ---- Loading 视图（骨架屏 + 懒洋洋闪烁） ---- */
-.loading-screen { display: flex; flex-direction: column; align-items: center; padding-top: 280rpx; }
-.loading-potato { font-size: 80rpx; margin-bottom: 32rpx; animation: potato-bounce 1.5s var(--ease-elastic, cubic-bezier(0.68,-0.6,0.32,1.6)) infinite; }
-@keyframes potato-bounce { 0%,100% { transform: scale(1) rotate(0deg); } 30% { transform: scale(1.15) rotate(-3deg); } 60% { transform: scale(0.95) rotate(2deg); } }
-.loading-text { font-size: 34rpx; color: #1d1d1f; font-weight: 700; letter-spacing: 1rpx; }
-.loading-funny { font-size: 24rpx; color: #86868b; margin-top: 16rpx; letter-spacing: 0.5rpx; }
+/* ============================================
+ * Loading 视图（骨架屏 + 薯仔简笔画）
+ * ============================================ */
 
-/* ---- advice 加载横幅（脉动呼吸） ---- */
+.loading-screen { display: flex; flex-direction: column; align-items: center; padding-top: 260rpx; }
+
+/* 薯仔简笔画区（纯文本字符表情 + bobbing） */
+.potato-face { font-size: 48rpx; color: #1a1a1a; margin-bottom: 16rpx; animation: potato-jelly 1.5s cubic-bezier(0.68,-0.6,0.32,1.6) infinite; letter-spacing: 4rpx; }
+
+.loading-text { font-size: 34rpx; color: #1d1d1f; font-weight: 700; letter-spacing: 2rpx; }
+.loading-funny { font-size: 24rpx; color: #86868b; margin-top: 16rpx; letter-spacing: 1rpx; }
+
+.skeleton-card { width: 100%; margin-top: 48rpx; }
+.skeleton-gap { height: 24rpx; }
+.skeleton-inline { width: 100%; }
+
+/* ============================================
+ * advice 加载横幅（脉动呼吸）
+ * ============================================ */
+
 .advice-loading-bar {
   display: flex; align-items: center; gap: 12rpx;
-  background: #fff; border-radius: 20rpx; padding: 20rpx 28rpx; margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.03);
-  animation: advice-pulse 2s ease-in-out infinite;
+  background: #f5f5f7; border-radius: 16rpx; padding: 20rpx 28rpx; margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.015);
+  animation: advice-pulse 2.5s ease-in-out infinite;
 }
-@keyframes advice-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
-.advice-loading-bar text { font-size: 26rpx; color: #1d1d1f; font-weight: 500; }
+@keyframes advice-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.advice-loading-bar text { font-size: 26rpx; color: #1d1d1f; font-weight: 500; letter-spacing: 0.5rpx; }
 
-/* ---- 转圈 spinner（轻量旋转） ---- */
-.spinner { width: 48rpx; height: 48rpx; border: 4rpx solid #f0f0f2; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
-.spinner-small { width: 28rpx; height: 28rpx; border: 3rpx solid #f0f0f2; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spinner { width: 48rpx; height: 48rpx; border: 4rpx solid #f5f5f7; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+.spinner-small { width: 28rpx; height: 28rpx; border: 3rpx solid #f5f5f7; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
 
-/* ---- 降级横幅（iOS 红 + 摇头） ---- */
+/* ============================================
+ * 降级横幅（iOS 红 + 摇头）
+ * ============================================ */
+
 .degraded-banner {
   background: #ff3b30; border-radius: 16rpx; padding: 20rpx 28rpx; margin-bottom: 24rpx;
-  animation: wobble 0.6s cubic-bezier(0.36,0.07,0.19,0.97);
+  animation: wobble 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
-@keyframes wobble { 0% { transform: translateX(0); } 20% { transform: translateX(-8rpx); } 40% { transform: translateX(8rpx); } 60% { transform: translateX(-4rpx); } 80% { transform: translateX(4rpx); } 100% { transform: translateX(0); } }
 .degraded-banner text { color: #fff; font-size: 26rpx; font-weight: 600; letter-spacing: 0.5rpx; }
 
-/* ---- 海拔胶囊标签 ---- */
-.elevation-pill { display: inline-flex; align-items: center; gap: 6rpx; background: #f5f5f7; border-radius: 100rpx; padding: 8rpx 20rpx; margin-bottom: 24rpx; }
-.elevation-pill text { font-size: 24rpx; color: #1d1d1f; font-weight: 500; }
+/* ============================================
+ * 海拔胶囊标签
+ * ============================================ */
 
-/* ---- 卡片（白底 + 弥散阴影 + 无边框） ---- */
-.card { background: #fff; border-radius: 24rpx; padding: 36rpx; margin-bottom: 24rpx; box-shadow: 0 4rpx 48rpx rgba(0,0,0,0.04); position: relative; }
-.card-title { font-size: 30rpx; font-weight: 700; color: #1d1d1f; display: block; margin-bottom: 24rpx; letter-spacing: 0.5rpx; }
-.card-quirky-icon { position: absolute; top: 24rpx; right: 28rpx; font-size: 28rpx; opacity: 0.35; }
+.elevation-pill { display: inline-flex; align-items: center; gap: 6rpx; background: #f5f5f7; border-radius: 8rpx; padding: 8rpx 20rpx; margin-bottom: 24rpx; }
+.elevation-pill text { font-size: 24rpx; color: #1d1d1f; font-weight: 500; letter-spacing: 0.5rpx; }
 
-/* ---- 警示（仅文字色降级，无背景） ---- */
-.caveat { font-size: 22rpx; color: #86868b; display: block; margin: 0 0 20rpx; line-height: 1.6; }
+/* ============================================
+ * 卡片（浅灰底 + 极弥散阴影 + 无边框 + 阶梯淡入）
+ * ============================================ */
 
-/* ---- 天气窗口 ---- */
+.card {
+  background: #f5f5f7; border-radius: 28rpx; padding: 36rpx; margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 48rpx rgba(0,0,0,0.02);
+  position: relative;
+  opacity: 0;
+  animation: fade-in-up 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+/* 阶梯延迟（每张卡片依次淡入） */
+.card:nth-child(1) { animation-delay: 0ms; }
+.card:nth-child(2) { animation-delay: 80ms; }
+.card:nth-child(3) { animation-delay: 160ms; }
+.card:nth-child(4) { animation-delay: 240ms; }
+.card:nth-child(5) { animation-delay: 320ms; }
+.card:nth-child(6) { animation-delay: 400ms; }
+
+.card-title { font-size: 30rpx; font-weight: 700; color: #1d1d1f; display: block; margin-bottom: 24rpx; letter-spacing: 2rpx; }
+
+/* 搞怪角落 icon（32rpx，极克制） */
+.card-quirky-icon { position: absolute; top: 24rpx; right: 28rpx; font-size: 28rpx; opacity: 0.3; }
+
+/* 警示（仅文字色降级，无背景） */
+.caveat { font-size: 22rpx; color: #86868b; display: block; margin: 0 0 20rpx; line-height: 1.6; letter-spacing: 0.5rpx; }
+
+/* ============================================
+ * 天气窗口
+ * ============================================ */
+
 .weather-day { display: flex; align-items: center; padding: 16rpx 0; position: relative; }
-.weather-day::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1rpx; background: #f5f5f7; }
+.weather-day::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1rpx; background: rgba(0,0,0,0.03); }
 .weather-day:last-child::after { display: none; }
-.day-date { width: 160rpx; font-size: 26rpx; color: #86868b; }
+.day-date { width: 160rpx; font-size: 26rpx; color: #86868b; letter-spacing: 0.5rpx; }
 .day-temp { width: 180rpx; font-size: 28rpx; color: #1d1d1f; font-weight: 700; }
 .day-precip { width: 120rpx; font-size: 24rpx; color: #86868b; }
 .day-wind { flex: 1; font-size: 24rpx; color: #86868b; }
-.day-confidence { font-size: 18rpx; color: #ff9500; background: #fff5e6; padding: 2rpx 10rpx; border-radius: 6rpx; }
+.day-confidence { font-size: 18rpx; color: #ff9500; background: rgba(255,149,0,0.08); padding: 2rpx 10rpx; border-radius: 8rpx; letter-spacing: 0.5rpx; }
 
-/* ---- 装备清单 ---- */
+/* ============================================
+ * 装备清单
+ * ============================================ */
+
 .gear-section { margin-bottom: 24rpx; }
 .gear-section:last-child { margin-bottom: 0; }
-.gear-label { display: inline-block; font-size: 22rpx; font-weight: 600; padding: 4rpx 16rpx; border-radius: 8rpx; margin-bottom: 16rpx; letter-spacing: 0.5rpx; }
-.essential-label { background: #ff3b30; color: #fff; }
-.recommended-label { background: #1a1a1a; color: #fff; }
-.optional-label { background: #f5f5f7; color: #86868b; }
 .gear-item { display: flex; flex-direction: column; padding: 12rpx 0; }
 .gear-name { font-size: 28rpx; color: #1d1d1f; font-weight: 500; }
 .gear-reason { font-size: 24rpx; color: #86868b; margin-top: 4rpx; line-height: 1.5; }
 
-/* ---- 风险提示 ---- */
+/* ============================================
+ * 风险提示
+ * ============================================ */
+
 .risk-item { padding: 20rpx 0; position: relative; }
-.risk-item::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1rpx; background: #f5f5f7; }
+.risk-item::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1rpx; background: rgba(0,0,0,0.03); }
 .risk-item:last-child::after { display: none; }
-.risk-item.fatal { background: #fff5f5; border-radius: 16rpx; padding: 20rpx; margin: 8rpx -12rpx; }
+.risk-item.fatal { background: rgba(255, 59, 48, 0.04); border-radius: 16rpx; padding: 20rpx; margin: 8rpx -12rpx; }
 .risk-item.fatal::after { display: none; }
-.risk-item.fatal-enter { animation: wobble 0.5s cubic-bezier(0.36,0.07,0.19,0.97); }
-.risk-tag { display: inline-block; font-size: 20rpx; font-weight: 600; padding: 4rpx 12rpx; border-radius: 6rpx; margin-right: 12rpx; letter-spacing: 0.5rpx; }
-.fatal-tag { background: #ff3b30; color: #fff; }
-.warning-tag { background: #ff9500; color: #fff; }
-.normal-tag { background: #f5f5f7; color: #86868b; }
-.risk-name { font-size: 28rpx; font-weight: 600; color: #1d1d1f; }
+.risk-item.fatal-enter { animation: wobble 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+.risk-name { font-size: 28rpx; font-weight: 600; color: #1d1d1f; letter-spacing: 0.5rpx; }
 .risk-advice { font-size: 24rpx; color: #86868b; display: block; margin-top: 8rpx; line-height: 1.6; }
 
-/* ---- 出片时机 ---- */
+/* ============================================
+ * 出片时机
+ * ============================================ */
+
 .info-row { display: flex; justify-content: space-between; padding: 12rpx 0; }
-.info-row text { font-size: 26rpx; color: #86868b; }
+.info-row text { font-size: 26rpx; color: #86868b; letter-spacing: 0.5rpx; }
 .info-row text:last-child { color: #1d1d1f; font-weight: 500; }
 
-/* ---- 注意事项 ---- */
-.note-item { font-size: 26rpx; color: #86868b; display: block; padding: 8rpx 0; line-height: 1.6; }
+/* ============================================
+ * 注意事项
+ * ============================================ */
 
-/* ---- 占位/空状态 ---- */
+.note-item { font-size: 26rpx; color: #86868b; display: block; padding: 8rpx 0; line-height: 1.6; letter-spacing: 0.5rpx; }
+
+/* ============================================
+ * 占位 / 空状态
+ * ============================================ */
+
 .loading-placeholder { font-size: 24rpx; color: #86868b; padding: 16rpx 0; }
 .empty-hint { font-size: 24rpx; color: #aeaeb2; }
 
-/* ---- 免责声明 ---- */
-.disclaimer-box { padding: 24rpx 0; margin-top: 16rpx; }
-.disclaimer-text { font-size: 22rpx; color: #aeaeb2; line-height: 1.6; text-align: center; display: block; }
-
-/* ---- 返回按钮 ---- */
-.retry-btn {
-  width: 100%; height: 88rpx; line-height: 88rpx;
-  background: #fff; color: #1d1d1f; border: none; border-radius: 16rpx;
-  font-size: 30rpx; font-weight: 600; margin-top: 16rpx; margin-bottom: 60rpx;
-  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.03);
-  transition: all 0.2s cubic-bezier(0.25,1,0.5,1);
-}
-.retry-btn::after { border: none; }
-.retry-btn:active { transform: scale(0.97); background: #f5f5f7; }
-
-/* ---- 手动坐标面板 ---- */
-.manual-coords-box { background: #fff; border-radius: 24rpx; padding: 32rpx; margin-top: 24rpx; box-shadow: 0 4rpx 48rpx rgba(0,0,0,0.04); }
-.manual-hint { font-size: 24rpx; color: #86868b; display: block; margin-bottom: 20rpx; line-height: 1.5; }
-.coord-row { display: flex; gap: 16rpx; margin-bottom: 16rpx; }
-.coord-input { flex: 1; background: #f5f5f7; border: none; border-radius: 12rpx; padding: 24rpx 20rpx; font-size: 28rpx; min-height: 80rpx; line-height: 40rpx; }
-.coord-input-wide { width: 100%; background: #f5f5f7; border: none; border-radius: 12rpx; padding: 24rpx 20rpx; font-size: 28rpx; margin-bottom: 20rpx; min-height: 80rpx; line-height: 40rpx; }
-.manual-submit-btn { width: 100%; height: 88rpx; line-height: 88rpx; background: #1a1a1a; color: #fff; border: none; border-radius: 16rpx; font-size: 30rpx; font-weight: 600; transition: all 0.2s; }
-.manual-submit-btn::after { border: none; }
-.manual-submit-btn:active { transform: scale(0.97) rotate(-1deg); }
-
 /* ============================================
- * NutUI 组件适配样式
+ * 免责声明
  * ============================================ */
 
-/* ---- 表单输入（NutUI Cell 内） ---- */
+.disclaimer-box { padding: 24rpx 0; margin-top: 16rpx; }
+.disclaimer-text { font-size: 22rpx; color: #aeaeb2; line-height: 1.6; text-align: center; display: block; letter-spacing: 0.5rpx; }
+
+/* ============================================
+ * 手动坐标 Popup 面板
+ * ============================================ */
+
+.manual-popup { padding: 0 !important; }
+.manual-popup-content { padding: 48rpx 40rpx 40rpx; }
+.manual-popup-title { font-size: 32rpx; font-weight: 700; color: #1d1d1f; display: block; margin-bottom: 8rpx; letter-spacing: 2rpx; }
+.manual-hint { font-size: 24rpx; color: #86868b; display: block; margin-bottom: 24rpx; line-height: 1.5; letter-spacing: 0.5rpx; }
+.coord-row { display: flex; gap: 16rpx; margin-bottom: 16rpx; }
+.coord-input { flex: 1; background: #f5f5f7; border: none; border-radius: 16rpx; padding: 24rpx 20rpx; font-size: 28rpx; min-height: 80rpx; line-height: 40rpx; }
+.coord-input-wide { width: 100%; background: #f5f5f7; border: none; border-radius: 16rpx; padding: 24rpx 20rpx; font-size: 28rpx; margin-bottom: 20rpx; min-height: 80rpx; line-height: 40rpx; }
+
+/* ============================================
+ * NutUI 组件适配
+ * ============================================ */
+
 .form-input { flex: 1; font-size: 30rpx; color: #1d1d1f; }
 .form-value { font-size: 30rpx; color: #1d1d1f; }
 .form-value.placeholder { color: #aeaeb2; }
 
-/* ---- 按钮额外定制（在 nutui-override 基础上加） ---- */
-.submit-btn { margin-top: 48rpx !important; height: 96rpx !important; font-size: 32rpx !important; }
-.retry-btn { margin-top: 16rpx !important; margin-bottom: 60rpx !important; height: 88rpx !important; font-size: 30rpx !important; }
-.manual-submit-btn { margin-top: 8rpx !important; height: 88rpx !important; }
-
-/* ---- NutUI Tag 定制 ---- */
 .gear-label-tag { display: inline-block !important; margin-bottom: 16rpx !important; font-size: 22rpx !important; }
 .gear-tag-dark { background: #1a1a1a !important; color: #fff !important; }
 .gear-tag-gray { background: #f5f5f7 !important; color: #86868b !important; }
 .risk-level-tag { margin-right: 12rpx !important; font-size: 20rpx !important; }
 
-/* ---- 出片时机 CellGroup ---- */
 .photo-info-group { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
 .photo-info-group .nut-cell { background: transparent !important; padding: 12rpx 0 !important; min-height: auto !important; }
 .photo-info-group .nut-cell::after { display: none !important; }
-
-/* ---- 骨架屏容器 ---- */
-.skeleton-card { width: 100%; margin-top: 48rpx; }
-.skeleton-gap { height: 24rpx; }
-.skeleton-inline { width: 100%; }
-
-/* ---- Popup 手动坐标面板 ---- */
-.manual-popup { padding: 0 !important; }
-.manual-popup-content { padding: 40rpx; }
-.manual-popup-title { font-size: 32rpx; font-weight: 700; color: #1d1d1f; display: block; margin-bottom: 8rpx; letter-spacing: 0.5rpx; }
