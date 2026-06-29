@@ -97,7 +97,7 @@ export default class Index extends Component {
           adviceLoading: true,
         })
         // AI 加载步骤动画：每 1.8 秒切换提示文案
-        this._adviceSteps = ['AI 正在分析天气窗口...', 'AI 正在匹配装备清单...', 'AI 正在评估风险等级...', 'AI 正在生成行前建议...']
+        this._adviceSteps = ['薯仔正在分析天气窗口...', '薯仔正在匹配装备清单...', '薯仔正在评估风险等级...', '薯仔正在生成行前建议...']
         this._adviceStepIdx = 0
         this._adviceStepTimer = setInterval(() => {
           if (this._unmounted || !this.state.adviceLoading) { clearInterval(this._adviceStepTimer); return }
@@ -167,7 +167,7 @@ export default class Index extends Component {
 
   render() {
    const { route, date, level, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev } = this.state
-    const adviceStage = this.state.adviceStage || 'AI 正在生成建议...'
+    const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
 
     if (loading) {
       return (
@@ -255,7 +255,7 @@ export default class Index extends Component {
               </View>
             )}
             {(!gear.essential || gear.essential.length === 0) && (!gear.recommended || gear.recommended.length === 0) && (
-              adviceLoading ? <Text className="loading-placeholder">AI 正在生成装备清单...</Text> : <Text className="empty-hint">装备清单为空</Text>
+              adviceLoading ? <Text className="loading-placeholder">薯仔正在生成装备清单...</Text> : <Text className="empty-hint">装备清单为空</Text>
             )}
           </View>
 
@@ -270,7 +270,7 @@ export default class Index extends Component {
             )) : degraded ? (
               <Text className="risk-degraded">AI 不可用，请查专业路书</Text>
             ) : (
-              adviceLoading ? <Text className="loading-placeholder">AI 正在分析风险...</Text> : <Text className="empty-hint">暂无风险提示</Text>
+              adviceLoading ? <Text className="loading-placeholder">薯仔正在分析风险...</Text> : <Text className="empty-hint">暂无风险提示</Text>
             )}
           </View>
 
