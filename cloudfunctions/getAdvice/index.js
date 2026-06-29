@@ -3,7 +3,7 @@
  *
  * 流程（分步加载 P5.3）：
  *   mode='base': resolveLocation → Promise.all([fetchWeather, calcSunEvents]) → 返回（~3-5s）
- *   mode='advice': 接收 base 数据 → callGLM → schema 校验 → 降级（~30-40s，独立超时窗口）
+ *   mode='advice': 接收 base 数据 → callLLM → schema 校验 → 降级（~30-40s，独立超时窗口）
  *   无 mode（兼容）: 全链路一次跑完
  *
  * 关键设计：
@@ -20,17 +20,12 @@ const { calcSunEvents } = require('./sun-events')
 const { getGearRules } = require('./gear-rules')
 const { buildMessages, buildDegradedResponse } = require('./prompt')
 
-// GLM API 配置
-const GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
-// 双模型策略：先 4.7（质量高但慢），超时降级 Flash（快 5-8s）
-// 实测：云端 4.7 可能 50s+ 不返回，Flash 5-8s 但 JSON schema 支持弱
-// 方案：4.7 超时 8s → Flash 超时 6s → 本地规则兜底，总超时 16s 内必返回
-// 诊断结论：DNS/TCP/TLS 正常（<60ms），智谱服务端对云函数 IP 限流，挂着不响应
-// 不再给 15s+12s 等待，缩短到 8s+6s，让用户更快拿到规则兜底结果
-const GLM_MODEL_PRIMARY = 'glm-4.7'
-const GLM_MODEL_FALLBACK = 'glm-4-flash'
-const GLM_TIMEOUT_PRIMARY = 8000    // 4.7 给 8s（实测云端不响应，8s 足够判断）
-const GLM_TIMEOUT_FALLBACK = 6000   // Flash 给 6s
+// LLM API 配置（DeepSeek，OpenAI 兼容格式）
+// 切换原因：智谱 GLM 对微信云函数 IP 服务端限流（DNS/TCP/TLS 正常但服务端挂着不响应）
+// DeepSeek 国内服务器 + OpenAI 兼容格式，response_format 支持 JSON 输出
+const LLM_API_URL = 'https://api.deepseek.com/v1/chat/completions'
+const LLM_MODEL = 'deepseek-chat'
+const LLM_TIMEOUT = 20000  // DeepSeek 响应较快，给 20s（云函数总超时 60s，留足余量）
 
 /**
  * HTTPS POST 封装（调 GLM）
@@ -80,14 +75,14 @@ function httpsPost(url, body, headers, timeout) {
 }
 
 /**
- * 单次 GLM 调用（指定模型+超时）
+ * 调用 DeepSeek 生成建议
  */
-async function callGLMOnce(messages, model, timeout) {
-  const GLM_KEY = process.env.GLM_KEY
-  if (!GLM_KEY) throw new Error('GLM_KEY 未配置')
+async function callLLM(messages) {
+  const LLM_KEY = process.env.LLM_KEY
+  if (!LLM_KEY) throw new Error('LLM_KEY 未配置（请在云函数环境变量配置 LLM_KEY）')
 
   const body = {
-    model: model,
+    model: LLM_MODEL,
     messages,
     temperature: 0.3,
   }
@@ -95,47 +90,23 @@ async function callGLMOnce(messages, model, timeout) {
   body.response_format = { type: 'json_object' }
 
   const res = await httpsPost(
-    GLM_API_URL,
+    LLM_API_URL,
     body,
-    { 'Authorization': `Bearer ${GLM_KEY}` },
-    timeout,
+    { 'Authorization': `Bearer ${LLM_KEY}` },
+    LLM_TIMEOUT,
   )
 
- if (res.status !== 200) {
-    throw new Error(model + ' 返回 ' + res.status + ': ' + res.data.substring(0, 150))
+  if (res.status !== 200) {
+    throw new Error('DeepSeek 返回 ' + res.status + ': ' + res.data.substring(0, 150))
   }
 
-  return parseGLMContent(res.data)
+  return parseLLMContent(res.data)
 }
 
 /**
- * 双模型回退：4.7(15s) → Flash(12s) → 抛异常触发降级
- * 保证 30s 内必返回结果或明确失败
+ * 解析 DeepSeek 返回内容（提取 JSON）
  */
-async function callGLM(messages) {
-  // 第一次：GLM-4.7（质量优，超时 15s）
-  try {
-    const result = await callGLMOnce(messages, GLM_MODEL_PRIMARY, GLM_TIMEOUT_PRIMARY)
-    console.log('[getAdvice] GLM-4.7 成功')
-    return { advice: result, model: GLM_MODEL_PRIMARY }
-  } catch (e) {
-    console.warn('[getAdvice] GLM-4.7 失败(' + e.message + ')，降级 Flash')
-  }
-  // 第二次：GLM-4-Flash（快，超时 12s）
-  try {
-    const result = await callGLMOnce(messages, GLM_MODEL_FALLBACK, GLM_TIMEOUT_FALLBACK)
-    console.log('[getAdvice] GLM-Flash 成功')
-    return { advice: result, model: GLM_MODEL_FALLBACK }
-  } catch (e) {
-    console.warn('[getAdvice] GLM-Flash 失败(' + e.message + ')，走降级')
-    throw e
-  }
-}
-
-/**
- * 解析 GLM 返回内容（提取 JSON）
- */
-function parseGLMContent(rawData) {
+function parseLLMContent(rawData) {
   const parsed = JSON.parse(rawData)
   const content = parsed.choices[0].message.content
 
@@ -148,7 +119,7 @@ function parseGLMContent(rawData) {
     if (match) {
       return JSON.parse(match[1])
     }
-    throw new Error('GLM 返回非 JSON: ' + content.substring(0, 100))
+    throw new Error('DeepSeek 返回非 JSON: ' + content.substring(0, 100))
   }
 }
 
@@ -289,7 +260,7 @@ exports.main = async (event, context) => {
  const meta = {
     generatedAt: new Date().toISOString(),
     weatherSource: 'Open-Meteo',
-    llmModel: GLM_MODEL_PRIMARY,
+    llmModel: LLM_MODEL,
     elevation: loc.elevation,
     coords: { lat: loc.lat, lon: loc.lon },
     location: loc.location,
@@ -312,11 +283,10 @@ exports.main = async (event, context) => {
       microclimate: weather ? { humidity: null, windMs: weather.days[0] && weather.days[0].windMs, dewPointSpread: null } : null,
     })
 
-    console.log('[getAdvice] 调用 GLM-4.7, prompt messages:', messages.length)
-    const glmResult = await callGLM(messages)
-    advice = glmResult.advice
-    meta.llmModel = glmResult.model
-    console.log('[getAdvice] GLM 返回成功, keys:', Object.keys(advice).join(','))
+    console.log('[getAdvice] 调用 DeepSeek, prompt messages:', messages.length)
+    advice = await callLLM(messages)
+    meta.llmModel = LLM_MODEL
+    console.log('[getAdvice] DeepSeek 返回成功, keys:', Object.keys(advice).join(','))
 
     // Schema 校验
     const validation = validateAndFill(advice)
@@ -328,7 +298,7 @@ exports.main = async (event, context) => {
     }
     advice = validation.advice
   } catch (e) {
-    console.error('[getAdvice] GLM 调用失败:', e.message)
+    console.error('[getAdvice] DeepSeek 调用失败:', e.message)
     degraded = true
     degradedReason = 'GLM调用异常: ' + e.message
   }
@@ -382,7 +352,7 @@ async function handleAdvice(event, startTime) {
   const meta = {
     generatedAt: new Date().toISOString(),
     weatherSource: 'Open-Meteo',
-    llmModel: GLM_MODEL_PRIMARY,
+    llmModel: LLM_MODEL,
     elevation,
     coords: baseData && baseData.coords ? baseData.coords : null,
     location: baseData && baseData.location ? baseData.location : locationName,
@@ -405,11 +375,10 @@ async function handleAdvice(event, startTime) {
       microclimate: weather ? { humidity: null, windMs: weather.days && weather.days[0] && weather.days[0].windMs, dewPointSpread: null } : null,
     })
 
-    console.log('[getAdvice:advice] 调用 GLM-4.7')
-    const glmResult = await callGLM(messages)
-    advice = glmResult.advice
-    meta.llmModel = glmResult.model
-    console.log('[getAdvice:advice] GLM 返回成功, keys:', Object.keys(advice).join(','))
+    console.log('[getAdvice:advice] 调用 DeepSeek')
+    advice = await callLLM(messages)
+    meta.llmModel = LLM_MODEL
+    console.log('[getAdvice:advice] DeepSeek 返回成功, keys:', Object.keys(advice).join(','))
 
     const validation = validateAndFill(advice)
     if (!validation.valid) {
@@ -419,7 +388,7 @@ async function handleAdvice(event, startTime) {
     }
     advice = validation.advice
   } catch (e) {
-    console.error('[getAdvice:advice] GLM 调用失败:', e.message)
+    console.error('[getAdvice:advice] DeepSeek 调用失败:', e.message)
     degraded = true
     degradedReason = 'GLM调用异常: ' + e.message
   }
