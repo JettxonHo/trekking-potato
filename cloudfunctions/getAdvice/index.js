@@ -21,7 +21,9 @@ const { buildMessages, buildDegradedResponse } = require('./prompt')
 // GLM API 配置
 const GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
 const GLM_MODEL = 'glm-4.7'
-const GLM_TIMEOUT = 30000 // 单次 GLM 调用超时
+// GLM-4.7 带 response_format 实测延迟 27-44s，需留足超时余量
+// 云函数总超时 60s，geo+weather 约 5s，故 GLM 单次超时设 50s
+const GLM_TIMEOUT = 50000 // 单次 GLM 调用超时
 
 /**
  * HTTPS POST 封装（调 GLM）

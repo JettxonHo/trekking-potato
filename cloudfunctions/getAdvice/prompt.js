@@ -76,6 +76,7 @@ function buildDegradedResponse(weather, sunEvents, meta) {
       microclimate: null,
       disclaimer: 'AI 生成失败，以下为基础参考数据。出行前务必查阅专业路书和官方气象信息。户外活动有风险，责任自负。',
       meta: Object.assign({}, meta, { degraded: true, degradedReason: 'LLM 输出校验失败或超时' }),
+      degraded: true,
     },
   }
 }
