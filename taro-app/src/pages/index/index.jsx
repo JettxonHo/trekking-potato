@@ -324,8 +324,8 @@ export default class Index extends Component {
           <View className="manual-coords-box">
             <Text className="manual-hint">搜不到路线？输入起点坐标（高德地图长按获取）</Text>
             <View className="coord-row">
-              <Input className="coord-input" type="digit" placeholder="纬度" value={manualLat} onInput={(e) => this.setState({ manualLat: e.detail.value })} />
-              <Input className="coord-input" type="digit" placeholder="经度" value={manualLon} onInput={(e) => this.setState({ manualLon: e.detail.value })} />
+              <Input className="coord-input" type="digit" placeholder="纬度 如 27.45" value={manualLat} onInput={(e) => this.setState({ manualLat: e.detail.value })} />
+              <Input className="coord-input" type="digit" placeholder="经度 如 114.17" value={manualLon} onInput={(e) => this.setState({ manualLon: e.detail.value })} />
             </View>
             <Input className="coord-input-wide" type="number" placeholder="海拔（选填，不填自动查询）" value={manualElev} onInput={(e) => this.setState({ manualElev: e.detail.value })} />
             <Button type="primary" onClick={this.onManualSubmit} className="manual-submit-btn">用手动坐标查询</Button>
