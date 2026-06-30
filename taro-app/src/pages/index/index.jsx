@@ -350,7 +350,7 @@ export default class Index extends Component {
              risks.map((r, i) => {
                return (
                  <View key={i} className={`risk-item ${r.level === '致命' ? 'fatal fatal-enter' : ''}`}>
-                    <Text className={`risk-level-badge ${r.level === '致命' ? 'risk-level-fatal' : 'risk-level-high'}`}>{r.level}</Text>
+                    <Tag type={r.level === '致命' ? 'danger' : 'warning'} className="risk-level-tag">{r.level}</Tag>
                    <Text className="risk-name">{r.risk}</Text>
                    <Text className="risk-advice">{r.advice}</Text>
                  </View>

@@ -343,20 +343,7 @@
   color: #1a1a1a;
   border: 1px solid #1a1a1a;
 }
-/* 风险等级标签 — 弃用 NutUI Tag，纯 Text 自控（字号 40rpx ≈ 原 2 倍） */
-.risk-level-badge {
-  display: inline-block;
-  margin-bottom: 12rpx;
-  font-size: 40rpx;
-  font-weight: 700;
-  letter-spacing: 2rpx;
-  padding: 6rpx 24rpx;
-  border-radius: 10rpx;
-  line-height: 1.2;
-  box-sizing: border-box;
-}
-.risk-level-fatal { background: #1a1a1a; color: #ffffff; }
-.risk-level-high { background: #e5e5ea; color: #3a3a3c; }
+.risk-level-tag { margin-right: 12rpx !important; font-size: 20rpx !important; }
 
 .photo-info-group { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
 .photo-info-group .nut-cell { background: transparent !important; padding: 12rpx 0 !important; min-height: auto !important; }
