@@ -326,7 +326,29 @@
  * ============================================ */
 
 /* ---- 表单头部（左对齐杂志风） ---- */
-.form-header { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 56rpx; }
+.form-header { display: flex; flex-direction: row; align-items: center; gap: 20rpx; margin-bottom: 56rpx; }
+.form-header-text { display: flex; flex-direction: column; align-items: flex-start; }
+
+/* ---- Logo 智能去底 + 果冻交互 ---- */
+.header-logo {
+  width: 72rpx; height: 72rpx; flex-shrink: 0;
+  mix-blend-mode: multiply;
+  transition: transform 0.5s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+}
+.header-logo:active {
+  transform: scale(0.9) rotate(-8deg);
+  transition: transform 0.1s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  mix-blend-mode: multiply;
+}
+
+/* ---- Logo 加载中慢呼吸 ---- */
+.header-logo-loading {
+  animation: logoPulse 2.2s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1) translateY(0); opacity: 0.9; }
+  50% { transform: scale(1.04, 0.96) translateY(4rpx); opacity: 0.6; }
+}
 .form-title { font-size: 56rpx; font-weight: 800; color: #1d1d1f; letter-spacing: 3rpx; }
 .form-subtitle { font-size: 26rpx; color: #86868b; margin-top: 8rpx; letter-spacing: 1rpx; }
 
