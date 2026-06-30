@@ -8,6 +8,9 @@
 
 const https = require('https')
 const { matchBuiltinRoute } = require('./data/routes')
+const cloud = require('wx-server-sdk')
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+const ugcDb = cloud.database()
 
 // GCJ-02 -> WGS84 坐标转换（红队击穿点：必须转换，否则海拔查询偏差100-300m）
 // 算法来源：公开的 GCJ-02 解密算法
@@ -141,6 +144,32 @@ async function resolveLocation(route) {
         matchType: builtin.matchType,
       },
     }
+  }
+
+  // 1.5 UGC 共创路线库查询（其他用户手动输入并沉淀的路线）
+  try {
+    const ugcRes = await ugcDb.collection('routes').limit(500).get()
+    const ugcRoutes = ugcRes.data || []
+    for (const r of ugcRoutes) {
+      // 名称精确匹配或别名匹配
+      if (r.name === route) {
+        return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc' } }
+      }
+      if (r.aliases && Array.isArray(r.aliases)) {
+        for (const a of r.aliases) {
+          if (a && a === route) {
+            return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc' } }
+          }
+        }
+      }
+      // 包含匹配（如"黑排角"命中"黑排角海岸线"）
+      if (r.name && r.name.indexOf(route) >= 0) {
+        return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc' } }
+      }
+    }
+  } catch (e) {
+    // UGC 查询失败不阻塞，继续走高德 POI
+    console.warn('[geocode] UGC 路线库查询失败:', e.message)
   }
 
   // 2. 高德 POI 搜索

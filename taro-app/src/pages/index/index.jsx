@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { View, Text, Input, Picker, Image } from '@tarojs/components'
+import { View, Text, Input, Picker, Image, ScrollView, PageContainer } from '@tarojs/components'
 import LogoIcon from '../../assets/new_logo.png'
 import { Button, Cell, CellGroup, Tag, Skeleton, Popup } from '@nutui/nutui-react-taro'
 import Taro from '@tarojs/taro'
@@ -112,6 +112,18 @@ export default class Index extends Component {
       date, level, days: tripDays,
       manualLat: lat, manualLon: lon,
       manualElevation: elev > 0 ? elev : undefined,
+    })
+    // UGC 路线共创：手动坐标查询成功后，静默落库供后续用户搜索
+    Taro.cloud.callFunction({
+      name: 'history',
+      data: {
+        mode: 'saveRoute',
+        route: route.trim() || '手动坐标',
+        lat, lon,
+        elevation: elev > 0 ? elev : undefined,
+        location: 'UGC',
+      },
+      fail: () => {},
     })
   }
 
@@ -567,27 +579,32 @@ export default class Index extends Component {
           </View>
         </Popup>
 
-        <Popup visible={showHistory} position="bottom" round onClose={() => this.setState({ showHistory: false })} className="history-popup">
-          <View className="manual-popup-content">
+        {showHistory && (
+          <PageContainer show={true} position="bottom" round={true} overlay={true} closeOnSlideDown={true} onAfterLeave={() => this.setState({ showHistory: false })} customStyle="height: 70vh;">
+            <View className="history-sheet" catchMove>
+              <View className="history-drag-bar" />
             <Text className="manual-popup-title">历史查询</Text>
-            {historyLoading ? (
-              <Text className="history-empty">薯仔正在翻账本...</Text>
-            ) : historyList.length === 0 ? (
-              <Text className="history-empty">还没有记录，去查一次路线吧</Text>
-            ) : (
-              historyList.map((item, i) => (
-                <View key={i} className="history-item quirky-active" onClick={() => this.onRestoreHistory(item)}>
-                  <View className="history-item-main">
-                    <Text className="history-route">{item.route}</Text>
-                    <Text className="history-meta">{item.date} · {item.days}天 · {item.level}</Text>
-                    {item.elevation && <Text className="history-meta">📍 {item.elevation}m</Text>}
-                  </View>
-                  <Text className="history-summary">{item.summary || ''}</Text>
-                </View>
-              ))
-            )}
-          </View>
-        </Popup>
+              <ScrollView scrollY={true} className="history-scroll" catchMove={true} enhanced={true} showScrollbar={false}>
+                {historyLoading ? (
+                  <Text className="history-empty">薯仔正在翻账本...</Text>
+                ) : historyList.length === 0 ? (
+                  <Text className="history-empty">还没有记录，去查一次路线吧</Text>
+                ) : (
+                  historyList.map((item, i) => (
+                    <View key={i} className="history-item quirky-active" onClick={() => this.onRestoreHistory(item)}>
+                      <View className="history-item-main">
+                        <Text className="history-route">{item.route}</Text>
+                        <Text className="history-meta">{item.date} · {item.days}天 · {item.level}</Text>
+                        {item.elevation && <Text className="history-meta">📍 {item.elevation}m</Text>}
+                      </View>
+                      <Text className="history-summary">{item.summary || ''}</Text>
+                    </View>
+                  ))
+                )}
+              </ScrollView>
+            </View>
+          </PageContainer>
+        )}
       </View>
     )
   }

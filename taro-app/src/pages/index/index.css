@@ -445,7 +445,10 @@
   color: #86868b;
   letter-spacing: 2rpx;
 }
-.history-popup { padding: 0 !important; }
+/* 历史记录 PageContainer 半屏弹窗 */
+.history-sheet { padding: 24rpx 40rpx 40rpx; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; }
+.history-drag-bar { width: 64rpx; height: 8rpx; background: #e5e5ea; border-radius: 4rpx; margin: 0 auto 24rpx; }
+.history-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .history-empty {
   display: block;
   text-align: center;
