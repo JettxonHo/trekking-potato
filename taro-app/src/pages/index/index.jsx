@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import { View, Text, Input, Picker, Image } from '@tarojs/components'
-import LogoIcon from '../../assets/logo.png'
+import LogoIcon from '../../assets/new_logo.png'
 import { Button, Cell, CellGroup, Tag, Skeleton, Popup } from '@nutui/nutui-react-taro'
 import Taro from '@tarojs/taro'
 import './index.css'
@@ -392,11 +392,9 @@ export default class Index extends Component {
     return (
       <View className="container form-screen">
         <View className="form-header">
-          <Image src={LogoIcon} className={`header-logo ${loading ? 'header-logo-loading' : ''}`} mode="aspectFit" />
-          <View className="form-header-text">
-            <Text className="form-title">徒步薯</Text>
-            <Text className="form-subtitle">徒步行前建议助手</Text>
-          </View>
+          <Image src={LogoIcon} className={`brand-logo-top ${loading ? 'header-logo-loading' : ''}`} mode="aspectFit" />
+          <Text className="form-title">徒步薯</Text>
+          <Text className="form-subtitle">徒步行前建议助手</Text>
         </View>
 
         <View className="form-fields">
