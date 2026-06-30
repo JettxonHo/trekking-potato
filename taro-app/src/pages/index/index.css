@@ -313,34 +313,35 @@
 .form-value { font-size: 30rpx; color: #1d1d1f; }
 .form-value.placeholder { color: #aeaeb2; }
 
-/* 装备清单分类标签 — 黑白正负形反转设计（户外弱光强辨识） */
-.gear-label-tag {
-  display: inline-block !important;
-  margin-bottom: 16rpx !important;
-  font-size: 26rpx !important;
-  font-weight: 600 !important;
-  letter-spacing: 2rpx !important;
-  padding: 4rpx 12rpx !important;
-  border-radius: 8rpx !important;
-  line-height: 1.5 !important;
+/* 装备清单分类标签 — 纯 Text 组件，完全自控布局（弃用 NutUI Tag 避免内部高度冲突） */
+.gear-tag {
+  display: inline-block;
+  margin-bottom: 16rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 10rpx;
+  line-height: 1;
+  box-sizing: border-box;
+  vertical-align: middle;
+  text-align: center;
 }
-/* 必备：纯黑底白字（最高视觉锚点） */
+/* 必备：纯黑底白字 */
 .gear-tag-essential {
-  background: #1a1a1a !important;
-  color: #ffffff !important;
-  border: none !important;
+  background: #1a1a1a;
+  color: #ffffff;
 }
-/* 推荐：中灰底暗字（温和过渡） */
+/* 推荐：中灰底暗字 */
 .gear-tag-recommended {
-  background: #e5e5ea !important;
-  color: #3a3a3c !important;
-  border: none !important;
+  background: #e5e5ea;
+  color: #3a3a3c;
 }
-/* 可选：透明底黑框黑字（镂空留白，强辨识度） */
+/* 可选：透明底黑框黑字 */
 .gear-tag-optional {
-  background: transparent !important;
-  color: #1a1a1a !important;
-  border: 1px solid #1a1a1a !important;
+  background: transparent;
+  color: #1a1a1a;
+  border: 1px solid #1a1a1a;
 }
 .risk-level-tag { margin-right: 12rpx !important; font-size: 20rpx !important; }
 
