@@ -107,8 +107,8 @@
 }
 .submit-btn::after { border: none !important; }
 .submit-btn:active {
-  transform: scale(0.95) rotate(-1deg);
-  transition: transform 0.15s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  transform: scale(0.96);
+  transition: transform 0.12s cubic-bezier(0.68, -0.6, 0.32, 1.6);
   background: #333 !important;
 }
 
@@ -340,7 +340,7 @@
   mix-blend-mode: multiply;
 }
 .form-title { font-size: 46rpx; font-weight: 600; color: #1a1a1a; letter-spacing: 10rpx; padding-left: 10rpx; margin-top: 36rpx; }
-.form-subtitle { font-size: 26rpx; color: #86868b; margin-top: 16rpx; letter-spacing: 4rpx; }
+.form-subtitle { font-size: 24rpx; color: #86868b; margin-top: 16rpx; letter-spacing: 4rpx; }
 
 /* ---- Logo 加载中慢呼吸 ---- */
 .header-logo-loading {

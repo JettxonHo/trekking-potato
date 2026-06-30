@@ -394,7 +394,7 @@ export default class Index extends Component {
         <View className="form-header">
           <Image src={LogoIcon} className={`brand-logo-top ${loading ? 'header-logo-loading' : ''}`} mode="aspectFit" />
           <Text className="form-title">徒步薯</Text>
-          <Text className="form-subtitle">徒步行前建议助手</Text>
+          <Text className="form-subtitle">大自然没给你带说明书，我带了</Text>
         </View>
 
         <View className="form-fields">
@@ -447,7 +447,7 @@ export default class Index extends Component {
           </View>
         </View>
 
-        <Button block type="primary" className="submit-btn quirky-active" onClick={this.onSubmit}>获取行前建议</Button>
+        <Button block type="primary" className="submit-btn quirky-active" onClick={this.onSubmit}>叽里咕噜地看看带点啥</Button>
 
         {error && <View className="error-box"><Text>{error}</Text></View>}
 
