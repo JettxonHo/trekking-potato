@@ -347,15 +347,14 @@ export default class Index extends Component {
                 <View className="sk-line sk-50" />
               </View>
             ) : risks.length > 0 ? (
-              risks.map((r, i) => {
-                const tagType = r.level === '致命' ? 'danger' : 'warning'
-                return (
-                  <View key={i} className={`risk-item ${r.level === '致命' ? 'fatal fatal-enter' : ''}`}>
-                    <Tag type={tagType} className="risk-level-tag">{r.level}</Tag>
-                    <Text className="risk-name">{r.risk}</Text>
-                    <Text className="risk-advice">{r.advice}</Text>
-                  </View>
-                )
+             risks.map((r, i) => {
+               return (
+                 <View key={i} className={`risk-item ${r.level === '致命' ? 'fatal fatal-enter' : ''}`}>
+                    <Text className={`risk-level-badge ${r.level === '致命' ? 'risk-level-fatal' : 'risk-level-high'}`}>{r.level}</Text>
+                   <Text className="risk-name">{r.risk}</Text>
+                   <Text className="risk-advice">{r.advice}</Text>
+                 </View>
+               )
               })
             ) : degraded ? (
               <Text className="risk-advice" style="color:#ff3b30;">AI 不可用，请查专业路书</Text>
