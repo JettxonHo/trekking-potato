@@ -307,24 +307,24 @@ export default class Index extends Component {
             ) : (
               <>
                 {gear.essential && gear.essential.length > 0 && (
-                  <View className="gear-section">
-                    <Tag type="danger" className="gear-label-tag">必备</Tag>
+                 <View className="gear-section">
+                    <Tag className="gear-label-tag gear-tag-essential">必备</Tag>
                     {gear.essential.map((g, i) => (
                       <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
                     ))}
                   </View>
                 )}
                 {gear.recommended && gear.recommended.length > 0 && (
-                  <View className="gear-section">
-                    <Tag className="gear-label-tag gear-tag-dark">推荐</Tag>
+                 <View className="gear-section">
+                    <Tag className="gear-label-tag gear-tag-recommended">推荐</Tag>
                     {gear.recommended.map((g, i) => (
                       <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
                     ))}
                   </View>
                 )}
                 {gear.optional && gear.optional.length > 0 && (
-                  <View className="gear-section">
-                    <Tag className="gear-label-tag gear-tag-gray">可选</Tag>
+                 <View className="gear-section">
+                    <Tag className="gear-label-tag gear-tag-optional">可选</Tag>
                     {gear.optional.map((g, i) => (
                       <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
                     ))}
