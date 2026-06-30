@@ -51,6 +51,24 @@ export default class Index extends Component {
 
   onRouteInput = (e) => this.setState({ route: e.detail.value })
   onDateChange = (e) => this.setState({ date: e.detail.value })
+
+  // 安全构造日期（规避 iOS Safari new Date('YYYY-MM-DD') 返回 NaN）
+  // 输出格式：MM.DD 周几
+  formatWeatherDate(dateStr) {
+    const parts = String(dateStr || '').split('-')
+    if (parts.length !== 3) return dateStr || ''
+    const year = parseInt(parts[0], 10)
+    const month = parseInt(parts[1], 10)
+    const day = parseInt(parts[2], 10)
+    if (isNaN(month) || isNaN(day)) return dateStr
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    const d = new Date(year, month - 1, day)
+    if (isNaN(d.getTime())) return dateStr
+    const mm = String(month).padStart(2, '0')
+    const dd = String(day).padStart(2, '0')
+    return mm + '.' + dd + ' ' + weekdays[d.getDay()]
+  }
+
   onLevelChange = (e) => this.setState({ levelIndex: e.detail.value, level: this.state.levels[e.detail.value] })
   onDaysDec = () => {
     const cur = parseInt(this.state.days) || 1
@@ -266,13 +284,12 @@ export default class Index extends Component {
               <Text className="card-title">天气窗口</Text>
               {weather.elevationCaveat && <Text className="caveat">{weather.elevationCaveat}</Text>}
               {weather.dateOutOfRange && <Text className="caveat">⚠ {weather.dateRangeNote}</Text>}
-              {weather.days.map((day, i) => (
-                <View key={i} className="weather-day">
-                  <Text className="day-date">{day.date}</Text>
+             {weather.days.map((day, i) => (
+                <View key={i} className={`weather-day ${i >= 5 ? 'weather-day-dim' : ''}`}>
+                  <Text className="day-date">{this.formatWeatherDate(day.date)}</Text>
                   <Text className="day-temp">{day.tempMin}~{day.tempMax}°C</Text>
                   <Text className="day-precip">降水{day.precipProb}%</Text>
                   <Text className="day-wind">{day.windMs}m/s</Text>
-                  {day.confidence === '参考' && <Text className="day-confidence">参考</Text>}
                 </View>
               ))}
             </View>
@@ -349,9 +366,9 @@ export default class Index extends Component {
 
           {(photo.sunrise || photo.sunset || photo.goldenHour) && (
             <View className="card">
-              <Text className="card-quirky-icon">📷</Text>
-              <Text className="card-title">出片时机</Text>
-              {photo.terrainCaveat && <Text className="caveat">{photo.terrainCaveat}</Text>}
+            <Text className="card-quirky-icon">📷</Text>
+            <Text className="card-title">晨昏光影时刻</Text>
+            {photo.terrainCaveat && <Text className="caveat">{photo.terrainCaveat}</Text>}
               {weather.dateOutOfRange && <Text className="caveat">⚠ 天文时刻为当下参考值，出发前2-3天请重新查询</Text>}
               <View className="photo-info">
                 <View className="info-row"><Text>日出</Text><Text className="info-value">{photo.sunrise || '—'}</Text></View>

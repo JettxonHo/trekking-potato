@@ -4,11 +4,14 @@
  * 重要：
  * - 传 elevation 参数请求该海拔天气（非网格点海拔）
  * - 标准递减率线性修正，逆温层场景不准（elevationCaveat）
- * - 第5天后标注置信度递减
- * - precipProb 在中国区域标注来源
- */
+* - 第5天后标注置信度递减
+* - precipProb 在中国区域标注来源
+*/
 
 const https = require('https')
+
+// 预报天数硬上限（10天窗口，避免首屏信息过载 + 远期预报不可靠）
+const MAX_DAYS = 10
 
 /**
  * HTTPS GET 封装
@@ -47,14 +50,14 @@ async function fetchWeather(lat, lon, elevation, dateStr) {
   let forecastDays = 7
   let dateOutOfRange = false
   let dateRangeNote = ''
-  if (daysAhead >= 0 && daysAhead <= 15) {
-    // 出发日在预报范围内，覆盖到出发日 + 旅行天数（至少7天窗口）
-    forecastDays = Math.min(16, Math.max(7, daysAhead + 7))
-  } else if (daysAhead > 15) {
-    // 超出 Open-Meteo 免费版16天预报上限
+  if (daysAhead >= 0 && daysAhead <= 9) {
+    // 出发日在10天窗口内，覆盖到出发日 + 余量（至少7天）
+    forecastDays = Math.min(MAX_DAYS, Math.max(7, daysAhead + 7))
+  } else if (daysAhead > 9) {
+    // 超出10天预报上限
     dateOutOfRange = true
-    dateRangeNote = '出发日期(' + dateStr + ')距今天' + daysAhead + '天，超出 Open-Meteo 16天预报范围，以下为当前可用预报，出发前请再次查询'
-    forecastDays = 16
+    dateRangeNote = '出发日期(' + dateStr + ')距今天' + daysAhead + '天，超出10天预报范围，以下为当前可用预报，出发前请再次查询'
+    forecastDays = MAX_DAYS
   }
 
   const params = new URLSearchParams({
@@ -76,13 +79,14 @@ async function fetchWeather(lat, lon, elevation, dateStr) {
   const daily = result.daily
   const days = []
 
-  for (let i = 0; i < daily.time.length && i < forecastDays; i++) {
+  for (let i = 0; i < daily.time.length && i < forecastDays && i < MAX_DAYS; i++) {
     // 置信度：5天后降级，超出10天标参考
     const confidence = i >= 5 ? '参考' : '正常'
     days.push({
       date: daily.time[i],
-      tempMin: daily.temperature_2m_min[i],
-      tempMax: daily.temperature_2m_max[i],
+      // 温度防重合：最低温 floor、最高温 ceil，规避 round 导致的零温差 UI Bug
+      tempMin: Math.floor(daily.temperature_2m_min[i]),
+      tempMax: Math.ceil(daily.temperature_2m_max[i]),
       precipProb: daily.precipitation_probability_max ? (daily.precipitation_probability_max[i] || 0) : 0,
       windMs: daily.wind_speed_10m_max ? (daily.wind_speed_10m_max[i] || 0) : 0,
       confidence,

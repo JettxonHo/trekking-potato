@@ -28,14 +28,24 @@ const SYSTEM_PROMPT = [
   '3. essential 必须包含对应海拔/季节的致命风险防护装备',
 ].join('\n')
 
+// LEVEL 动态约束（JS 层拼接单一指令段，不堆条件分支，防大模型注意力分散/幻觉）
+const LEVEL_DIRECTIVES = {
+  '小白': '【用户能力约束·当前等级=新手】预估用时按新手标准放宽20-30%。essential必须追加：手机离线地图、充电宝、应急联系方式。所有risks的advice必须使用极强警示语，明确标注"新手务必"四字。禁止推荐任何技术攀登装备（冰镐/结组绳/安全带等）。',
+  '中级': '【用户能力约束·当前等级=中级】用户有徒步经验，单日10-20km含爬升。预估用时按常规标准。推荐登山杖、护膝等基础装备。risks的advice使用标准警示语。',
+  '老手': '【用户能力约束·当前等级=强驴】用户具备强户外自理能力。预估用时按强驴标准收紧。侧重极端气象应对。海拔/地形需要时可推荐高级技术装备（冰镐、结组绳、安全带，仅限高海拔技术攀登）。risks的advice可使用专业术语，无需过度解释。',
+}
+
 function buildMessages(params) {
   const { route, date, level, days, weather, gearRules, sunEvents, microclimate } = params
+  // 根据等级取唯一约束段（兜底中级，避免未匹配时无约束）
+  const levelDirective = LEVEL_DIRECTIVES[level] || LEVEL_DIRECTIVES['中级']
   const userContent = [
    '[行程信息]',
    '路线：' + route,
    '出发日期：' + date,
-   '徒步水平：' + level,
    '天数：' + days,
+   '',
+   levelDirective,
    '',
    '[天气数据（来自 Open-Meteo，已按海拔修正）]',
    JSON.stringify(weather, null, 2),

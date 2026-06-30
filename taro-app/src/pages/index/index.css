@@ -235,6 +235,7 @@
 .weather-day { display: flex; align-items: center; padding: 16rpx 0; position: relative; }
 .weather-day::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1rpx; background: rgba(0,0,0,0.03); }
 .weather-day:last-child::after { display: none; }
+.weather-day-dim { opacity: 0.45; }
 .day-date { width: 160rpx; font-size: 26rpx; color: #86868b; letter-spacing: 0.5rpx; }
 .day-temp { width: 180rpx; font-size: 28rpx; color: #1d1d1f; font-weight: 700; }
 .day-precip { width: 120rpx; font-size: 24rpx; color: #86868b; }
