@@ -120,8 +120,8 @@ export default class Index extends Component {
         mode: 'saveRoute',
         route: route.trim() || '手动坐标',
         lat, lon,
-        elevation: elev > 0 ? elev : undefined,
-        location: 'UGC',
+       elevation: elev > 0 ? elev : undefined,
+       location: route.trim() || 'UGC',
       },
       fail: () => {},
     })

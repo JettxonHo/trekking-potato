@@ -63,7 +63,7 @@ async function fetchWeather(lat, lon, elevation, dateStr) {
   const params = new URLSearchParams({
     latitude: lat.toString(),
     longitude: lon.toString(),
-    elevation: elevation.toString(),
+    elevation: (elevation != null ? elevation : 0).toString(),
     daily: 'temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max',
     timezone: 'Asia/Shanghai',
     forecast_days: forecastDays.toString(),

@@ -200,8 +200,8 @@ exports.main = async (event, context) => {
       name: route,
       lat: parseFloat(event.manualLat),
       lon: parseFloat(event.manualLon),
-      elevation: elev ? Math.round(elev) : null,
-      location: '手动输入坐标',
+      elevation: elev != null ? Math.round(elev) : null,
+      location: route,
       type: 'trek',
     }
   } else {
