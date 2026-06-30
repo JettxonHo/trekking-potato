@@ -343,7 +343,7 @@
   color: #1a1a1a;
   border: 1px solid #1a1a1a;
 }
-.risk-level-tag { margin-right: 12rpx !important; font-size: 20rpx !important; }
+.risk-level-tag { margin-right: 12rpx !important; font-size: 30rpx !important; }
 
 .photo-info-group { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
 .photo-info-group .nut-cell { background: transparent !important; padding: 12rpx 0 !important; min-height: auto !important; }
