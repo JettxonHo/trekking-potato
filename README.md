@@ -12,7 +12,7 @@
 ## 技术栈
 - 前端：Taro 4 + React 18（编译为微信小程序）
 - 后端：微信云开发（云函数 Node.js）
-- LLM：智谱 GLM-4.7（含 response_format）
+- LLM：DeepSeek V4-flash含 response_format）
 - 天气：Open-Meteo（含 elevation）
 - 地理编码：高德 POI 搜索 + 内置路线表
 - 天文：suncalc（纯 JS 离线计算）
