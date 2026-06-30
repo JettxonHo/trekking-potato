@@ -33,7 +33,7 @@ const wg2 = matchBuiltinRoute('武功山金顶')
 assert('武功山金顶 别名匹配', wg2 && wg2.name === '武功山', wg2 ? wg2.matchType : 'null')
 
 const wd = matchBuiltinRoute('武当山')
-assert('武当山 不匹配武功山(或需确认)', !wd || wd.needsConfirm === true, wd ? 'matched:' + wd.name : 'null')
+assert('武当山 精确匹配(已有独立条目)', wd && wd.name === '武当山' && !wd.needsConfirm, wd ? 'matched:' + wd.name : 'null')
 
 const notfound = matchBuiltinRoute('不存在的xyz山')
 assert('不存在的山 返回null', notfound === null)
