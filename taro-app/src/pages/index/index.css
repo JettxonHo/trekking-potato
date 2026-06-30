@@ -343,7 +343,25 @@
   color: #1a1a1a;
   border: 1px solid #1a1a1a;
 }
-.risk-level-tag { margin-right: 12rpx !important; font-size: 30rpx !important; }
+/* 风险等级胶囊 — 纯 Text 自控，flex 绝对居中，保留红橙警示色 */
+.risk-level-capsule {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40rpx;
+  padding: 0 16rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  font-weight: 800;
+  letter-spacing: 4rpx;
+  margin-right: 12rpx;
+  margin-bottom: 8rpx;
+  box-sizing: border-box;
+}
+/* 致命：红色背景 + 白字（NutUI danger 同色系） */
+.capsule-fatal { background: #ff0f23; color: #ffffff; }
+/* 高：橙色背景 + 白字（NutUI warning 同色系） */
+.capsule-high { background: #ff9500; color: #ffffff; }
 
 .photo-info-group { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
 .photo-info-group .nut-cell { background: transparent !important; padding: 12rpx 0 !important; min-height: auto !important; }
