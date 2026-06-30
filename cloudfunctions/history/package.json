@@ -1,0 +1,9 @@
+{
+  "name": "history",
+  "version": "1.0.0",
+  "description": "徒步薯 - 历史记录持久化（openId 自动隔离）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

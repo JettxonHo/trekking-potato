@@ -39,6 +39,9 @@ export default class Index extends Component {
     manualElev: '',
     funnyMsg: '',
     daysBounce: false,
+    showHistory: false,
+    historyList: [],
+    historyLoading: false,
   }
 
   componentDidMount() {
@@ -193,7 +196,12 @@ export default class Index extends Component {
               disclaimer: d.disclaimer,
               meta: { ...prev.result.meta, ...d.meta },
             },
-          }))
+         }))
+          this._saveHistory(params, {
+            risks: d.risks || [],
+            degraded: d.degraded === true,
+            meta: { ...((this.state.result && this.state.result.meta) || {}), ...d.meta },
+          })
         } else {
           this.setState({ adviceLoading: false, funnyMsg: '',
     daysBounce: false, error: 'AI 建议生成失败' })
@@ -220,6 +228,77 @@ export default class Index extends Component {
 
   onBack = () => this.setState({ showResult: false })
 
+  // ===== 历史记录 =====
+  // 防写风暴：hash 对比，相同参数不重复写库
+  _saveHistory(params, resultData) {
+    const hash = params.route + params.date + params.days + params.level
+    if (this._lastHistoryHash === hash) return
+    this._lastHistoryHash = hash
+
+    const risks = resultData.risks || []
+    const summary = risks.length > 0
+      ? risks[0].risk + (risks.length > 1 ? ' 等' + risks.length + '项风险' : '')
+      : (resultData.degraded ? 'AI 降级·基础参考' : '无重大风险')
+
+    Taro.cloud.callFunction({
+      name: 'history',
+      data: {
+        mode: 'save',
+        route: params.route,
+        date: params.date,
+        days: params.days,
+        level: params.level,
+        elevation: resultData.meta && resultData.meta.elevation,
+        location: resultData.meta && resultData.meta.location,
+        coords: resultData.meta && resultData.meta.coords,
+        summary,
+        degraded: resultData.degraded === true,
+      },
+      fail: () => {},  // 静默失败，不阻塞用户
+    })
+  }
+
+  // 日期过期校验（防呆：回填历史时若日期已过，重置为今日）
+  _isDateExpired(dateStr) {
+    if (!dateStr) return true
+    const parts = String(dateStr).split('-')
+    if (parts.length !== 3) return true
+    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return d.getTime() < today.getTime()
+  }
+
+  onHistoryTap = () => {
+    this.setState({ showHistory: true, historyLoading: true, historyList: [] })
+    Taro.cloud.callFunction({
+      name: 'history',
+      data: { mode: 'list', limit: 20 },
+      success: (res) => {
+        if (this._unmounted) return
+        const result = res.result
+        this.setState({ historyLoading: false, historyList: (result && result.ok && result.data) || [] })
+      },
+      fail: () => {
+        if (this._unmounted) return
+        this.setState({ historyLoading: false })
+      }
+    })
+  }
+
+  onRestoreHistory = (record) => {
+    // 日期过期校验：历史日期 < 今日 → 重置为今日
+    const restoreDate = this._isDateExpired(record.date) ? this.state.minDate : record.date
+    this.setState({
+      route: record.route || '',
+      date: restoreDate,
+      days: record.days || 1,
+      level: record.level || '中级',
+      levelIndex: ['小白', '中级', '老手'].indexOf(record.level || '中级'),
+      showHistory: false,
+    })
+  }
+
   componentWillUnmount() {
     this._unmounted = true
     if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
@@ -227,7 +306,7 @@ export default class Index extends Component {
   }
 
   render() {
-    const { route, date, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev } = this.state
+    const { route, date, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev, showHistory, historyList, historyLoading } = this.state
     const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
     const funnyMsg = this.state.funnyMsg
 
@@ -465,6 +544,8 @@ export default class Index extends Component {
 
         <Button block type="primary" className="submit-btn quirky-active" onClick={this.onSubmit}>叽里咕噜地看看带点啥</Button>
 
+        <Text className="history-entry quirky-active" onClick={this.onHistoryTap}>历史查询</Text>
+
         {error && <View className="error-box"><Text>{error}</Text></View>}
 
         {/* 趣味底部彩蛋 — 简笔画薯仔系鞋带 */}
@@ -482,7 +563,29 @@ export default class Index extends Component {
               <Input className="coord-input" type="digit" placeholder="经度 如 114.17" placeholderClass="placeholder" value={manualLon} onInput={(e) => this.setState({ manualLon: e.detail.value })} />
             </View>
             <Input className="coord-input-wide" type="number" placeholder="海拔（选填，不填自动查询）" placeholderClass="placeholder" value={manualElev} onInput={(e) => this.setState({ manualElev: e.detail.value })} />
-            <Button block type="primary" className="manual-submit-btn" onClick={this.onManualSubmit}>用手动坐标查询</Button>
+          <Button block type="primary" className="manual-submit-btn" onClick={this.onManualSubmit}>用手动坐标查询</Button>
+          </View>
+        </Popup>
+
+        <Popup visible={showHistory} position="bottom" round onClose={() => this.setState({ showHistory: false })} className="history-popup">
+          <View className="manual-popup-content">
+            <Text className="manual-popup-title">历史查询</Text>
+            {historyLoading ? (
+              <Text className="history-empty">薯仔正在翻账本...</Text>
+            ) : historyList.length === 0 ? (
+              <Text className="history-empty">还没有记录，去查一次路线吧</Text>
+            ) : (
+              historyList.map((item, i) => (
+                <View key={i} className="history-item quirky-active" onClick={() => this.onRestoreHistory(item)}>
+                  <View className="history-item-main">
+                    <Text className="history-route">{item.route}</Text>
+                    <Text className="history-meta">{item.date} · {item.days}天 · {item.level}</Text>
+                    {item.elevation && <Text className="history-meta">📍 {item.elevation}m</Text>}
+                  </View>
+                  <Text className="history-summary">{item.summary || ''}</Text>
+                </View>
+              ))
+            )}
           </View>
         </Popup>
       </View>

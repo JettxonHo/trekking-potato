@@ -435,6 +435,33 @@
 
 /* ---- 底部薯仔彩蛋 ---- */
 .potato-easter-egg { position: absolute; bottom: 48rpx; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
+
+/* 历史记录入口 + 弹窗 */
+.history-entry {
+  display: block;
+  text-align: center;
+  margin-top: 24rpx;
+  font-size: 26rpx;
+  color: #86868b;
+  letter-spacing: 2rpx;
+}
+.history-popup { padding: 0 !important; }
+.history-empty {
+  display: block;
+  text-align: center;
+  padding: 60rpx 0;
+  font-size: 26rpx;
+  color: #aeaeb2;
+}
+.history-item {
+  padding: 24rpx 0;
+ border-bottom: 1rpx solid rgba(0,0,0,0.04);
+}
+.history-item:last-child { border-bottom: none; }
+.history-item-main { display: flex; flex-direction: column; gap: 4rpx; }
+.history-route { font-size: 30rpx; font-weight: 600; color: #1d1d1f; letter-spacing: 0.5rpx; }
+.history-meta { font-size: 24rpx; color: #86868b; }
+.history-summary { display: block; margin-top: 8rpx; font-size: 24rpx; color: #aeaeb2; line-height: 1.5; }
 .potato-doodle { font-size: 28rpx; color: #1a1a1a; opacity: 0.12; letter-spacing: 2rpx; }
 .potato-doodle-hint { font-size: 20rpx; color: #aeaeb2; opacity: 0.5; letter-spacing: 1rpx; }
 
