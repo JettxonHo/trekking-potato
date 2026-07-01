@@ -1,62 +1,85 @@
-# 徒步薯 (trekking-potato)
+# 徒步薯 (Trekking Potato)
 
-垂直于徒步领域的 AI 建议工具（微信小程序）。
+徒步行前建议工具（微信小程序）。输入路线名 + 出发日期 + 徒步天数 + 能力等级，AI 生成结构化建议：天气窗口、装备清单、风险提示、晨昏光影时刻。
 
-用户输入路线/日期/天数/徒步水平，Agent 输出结构化建议（路书格式）。
+> 大自然没给你带说明书，薯仔带了。
 
 ## 文档
 - [Spec](docs/Spec.md) — 产品需求与技术规范
 - [Plan](docs/Plan.md) — 技术实现计划
-- [Tasks](docs/Tasks.md) — 任务清单（goal 模式输入）
+- [Tasks](docs/Tasks.md) — 任务清单
 
 ## 技术栈
-- 前端：Taro 4 + React 18（编译为微信小程序）
-- 后端：微信云开发（云函数 Node.js）
-- LLM：DeepSeek V4-flash含 response_format）
-- 天气：Open-Meteo（含 elevation）
-- 地理编码：高德 POI 搜索 + 内置路线表
-- 天文：suncalc（纯 JS 离线计算）
+- **前端**：Taro 4 + React 18 + NutUI（编译为微信小程序）
+- **后端**：微信云开发（云函数 Node.js）
+- **LLM**：DeepSeek（OpenAI 兼容格式，response_format: json_object）
+- **天气**：Open-Meteo Forecast API（免费，含海拔修正）
+- **地理编码**：175 条内置路线 + UGC 共创库 + 高德 POI 搜索 + 手动坐标兜底
+- **天文**：suncalc（纯 JS 离线计算，手动 UTC+8）
+- **数据库**：微信云数据库（MongoDB，openId 自动隔离）
+
+## 核心架构
+
+### 两阶段加载（规避微信云函数 20s 硬超时）
+```
+阶段1 base（3-5s）: resolveLocation → Promise.all[weather, sun] → 前端立即渲染天气
+阶段2 advice（5-10s）: baseData → DeepSeek LLM → Schema 校验 → 增量更新装备/风险
+```
+
+### 三级降级链
+- LLM 正常 → 使用 AI 生成结果
+- LLM 超时 → 规则引擎兜底（gear-rules.js，季节×海拔×天数×纬度四维矩阵）
+- 规则引擎缺失 → 空降级标红（`degraded: true` + 风险栏标注"AI 不可用"）
+
+### LEVEL 动态注入（防 LLM 幻觉）
+JS 层根据能力等级拼接唯一约束段，不在 prompt 里堆 if-else 条件分支。
+
+### UGC 路线共创（地理围栏去重）
+用户手动输入坐标后自动落库。Haversine 距离 <1km 判定同一目的地（追加 alias），>5km 同名异地自动追加地区后缀。
+
+## 云函数
+| 函数 | 功能 |
+|------|------|
+| `getAdvice` | 核心建议引擎（两阶段加载 + 三级降级 + LLM 生成） |
+| `history` | 历史记录持久化（openId 隔离）+ UGC 路线共创（地理围栏去重） |
+
+### 环境变量（云函数控制台配置，不硬编码）
+| 变量 | 说明 |
+|------|------|
+| `LLM_KEY` | DeepSeek API Key |
+| `AMAP_KEY` | 高德地图 API Key |
+
+### 数据库集合（微信控制台手动创建）
+| 集合 | 权限 | 说明 |
+|------|------|------|
+| `history` | 仅创建者可读写 | 查询历史记录 |
+| `routes` | 所有用户可读，仅创建者可写 | UGC 共创路线库 |
+
+## 本地启动
+```bash
+cd taro-app && npm install && npm run build:weapp
+```
+1. 微信开发者工具打开 `taro-app/`（加载 `dist/`）
+2. 配置 AppID + 云开发环境
+3. 云函数环境变量：`LLM_KEY`、`AMAP_KEY`
+4. 部署云函数：右键 `cloudfunctions/getAdvice` 和 `cloudfunctions/history` → 上传并部署
+5. 基础库建议设为 **3.10.3**（非灰度版本）
 
 ## 测试
 - 单元测试：`node scripts/unit-test.js`（27/27，无网络依赖）
-- 本地 e2e：`node scripts/e2e-local.js`（47/47，真实 Open-Meteo，验证 geo→weather→sun→gear 全链路）
-- 已知局限（均诚实标注，非隐藏）：逆温层温度偏差（elevationCaveat）、地形遮挡日出延迟（terrainCaveat）、5天后置信度递减
+- 路线匹配、装备规则、坐标转换、边界海拔等
 
-## 本地启动
-1. cd taro-app && npm install && npm run build:weapp
-2. 微信开发者工具打开 `taro-app/` 目录（加载 dist/）
-2. 配置 AppID + 云开发环境
-3. 云函数环境变量配置：`LLM_KEY`、`AMAP_KEY`（不在代码中硬编码）
-4. 云函数部署：右键 cloudfunctions/getAdvice → 上传并部署
-
-## 分支策略
-- `main` 线上可用版本
-- `dev` 日常开发
-- `feat/*` `fix/*` 功能/修复分支
+## 防御性设计
+- GCJ-02 → WGS84 坐标转换（高德 POI 偏移 100-600m，不转换会导致海拔查到隔壁山谷）
+- 温度 `floor(min)` / `ceil(max)`（规避 round 导致的零温差 Bug）
+- 海拔 0 falsy 防御（`elev != null` 替代 `elev ?`）
+- iOS Date 安全构造（`split('-')` + `new Date(y, m-1, d)`）
+- 编辑距离匹配仅对 ≥4 字查询启用（防"雪宝顶"匹配"船底顶"）
 
 ## 凭据安全
 所有 API key 只存云函数环境变量，代码零硬编码。
-提交前自检：`git diff --cached | grep -i "key\|token\|secret"` 无命中。
 
-## P8.2 建议质量验证记录（2026-06-29）
+## 版本
+当前：**v0.10.0**（175 条内置路线 + UGC 共创 + 历史持久化 + 天气精简 + LEVEL 动态注入）
 
-真机测试通过，以下为 review 结果：
-
-### 武功山（1918m, 夏季低海拔南方）
-- 天气：7天降水100%，13-18°C，标注 elevationCaveat（逆温层）+ precipNote（GFS验证度低）
-- 装备：防雨冲锋衣（针对降水100%）、避免金属装备（雷暴）、备用袜子（雨天湿脚）— 针对性好
-- 风险：雷暴（致命，含具体避险方法）、失温（高）、滑坠（中）、迷路（中）— 分级合理
-- 遗漏型错误：无
-
-### 四姑娘山二峰（5276m, 夏季高海拔）
-- 装备：冰爪、结组绳、头盔、安全带、乙酰唑胺、急救毯、保暖中层 — 技术装备齐全
-- 风险：高反（致命，建议下撤）、滑坠（致命，技术装备）、失温（致命）、雷暴（致命）、落石（高）— 覆盖全面
-- 海拔修正：温度 2.7°C~-7.3°C，明显低于网格点 — 海拔修正生效
-- 遗漏型错误：无（致命装备齐全）
-
-### 数据局限诚实标注清单
-- elevationCaveat（逆温层温度偏差）✓ 前端渲染
-- terrainCaveat（地形遮挡日出延迟）✓ 前端渲染
-- confidence（5天后标"参考"）✓ 前端渲染
-- dateOutOfRange（超出16天预报）✓ 前端渲染
-- precipNote（GFS中国区域验证度低）✓ 数据含字段
+Tags：`v0.1-spec` → `v0.10.0`（Conventional Commits + 语义化 Tag）
