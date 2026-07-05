@@ -31,9 +31,9 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
 
-  if (mode === 'save') {
-    return await saveRecord(event)
-  }
+ if (mode === 'save') {
+    return await saveRecord(event, openid)
+ }
   if (mode === 'list') {
     return await listRecords(event, openid)
   }
@@ -54,17 +54,26 @@ exports.main = async (event, context) => {
  * 保存一条历史记录
  * 字段白名单：route, date, days, level, elevation, location, summary, degraded
  */
-async function saveRecord(event) {
+async function saveRecord(event, openid) {
+  // 手动注入 _openid，不依赖 SDK 隐式行为（防御性：SDK 可能不注入）
+  const safeRoute = typeof event.route === 'string' ? event.route.trim().substring(0, 50) : '未知路线'
+  const safeLevel = typeof event.level === 'string' ? event.level.substring(0, 20) : '中级'
+  const safeCoords = event.coords && typeof event.coords === 'object' && typeof event.coords.lat === 'number' && typeof event.coords.lon === 'number'
+    ? { lat: event.coords.lat, lon: event.coords.lon }
+    : null
+  const safeElev = typeof event.elevation === 'number' && isFinite(event.elevation) ? event.elevation : null
+
   const record = {
-    route: String(event.route || '未知路线').substring(0, 50),
+    _openid: openid || '',
+    route: safeRoute.substring(0, 50),
     date: String(event.date || ''),
     days: Math.max(1, Math.min(7, parseInt(event.days) || 1)),
-    level: String(event.level || '中级'),
-    elevation: event.elevation || null,
+    level: safeLevel,
+    elevation: safeElev,
     location: String(event.location || '').substring(0, 60),
     summary: String(event.summary || '').substring(0, MAX_SUMMARY),
     degraded: event.degraded === true,
-    coords: event.coords || null,
+    coords: safeCoords,
     createdAt: db.serverDate(),
   }
 
@@ -148,13 +157,14 @@ function haversine(lat1, lon1, lat2, lon2) {
  * 防线 B（5km 重名异地）：同名但距离 > 5km → 自动追加地区后缀
  */
 async function saveRoute(event) {
-  const name = String(event.route || '').trim().substring(0, 50)
+  const name = typeof event.route === 'string' ? event.route.trim().substring(0, 50) : ''
   const lat = parseFloat(event.lat)
   const lon = parseFloat(event.lon)
-  const elevation = event.elevation || null
+  const elevation = typeof event.elevation === 'number' && isFinite(event.elevation) ? event.elevation : null
   const location = String(event.location || '').substring(0, 60)
 
-  if (!name || isNaN(lat) || isNaN(lon)) {
+  // 严格校验：NaN / Infinity / 部分解析（'100abc'）/ 超范围 全部拒绝
+  if (!name || !isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
     return { ok: false, error: 'invalid_params', message: '路线名或坐标缺失' }
   }
 
@@ -214,7 +224,7 @@ async function saveRoute(event) {
       lon,
       elevation,
       location,
-      aliases: [name !== finalName ? name : ''],
+      aliases: name !== finalName ? [name] : [],
       createdBy: 'UGC',
       createdAt: db.serverDate(),
     }
