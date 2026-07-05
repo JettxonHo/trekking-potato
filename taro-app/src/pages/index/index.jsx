@@ -17,6 +17,10 @@ const FUNNY_MESSAGES = [
   '薯仔正在给太阳充电...',
 ]
 
+// 结果缓存：用户退出后重进直接恢复，避免重复消耗 LLM token
+const CACHE_KEY = 'trekking_last_result'
+const CACHE_TTL = 30 * 60 * 1000 // 30 分钟：天气预报在此窗口内变化极小
+
 export default class Index extends Component {
   state = {
     route: '',
@@ -49,7 +53,28 @@ export default class Index extends Component {
     const y = d.getFullYear()
     const m = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
-    this.setState({ minDate: `${y}-${m}-${day}` })
+    const todayStr = `${y}-${m}-${day}`
+    this.setState({ minDate: todayStr })
+
+    // 恢复缓存：30 分钟内的上次查询直接回显，省一次 LLM 调用
+    try {
+      const cached = Taro.getStorageSync(CACHE_KEY)
+      if (cached && cached.cachedAt && (Date.now() - cached.cachedAt < CACHE_TTL) && cached.result && cached.form) {
+        // 缓存的日期若已过期（跨天场景），回填为今天
+        const restoreDate = this._isDateExpired(cached.form.date) ? todayStr : cached.form.date
+        this.setState({
+          route: cached.form.route || '',
+          date: restoreDate,
+          days: cached.form.days || 1,
+          level: cached.form.level || '中级',
+          levelIndex: cached.form.levelIndex != null ? cached.form.levelIndex : 1,
+          showResult: true,
+          result: cached.result,
+        })
+      }
+    } catch (e) {
+      console.warn('[徒步薯] 缓存恢复失败', e)
+    }
   }
 
   onRouteInput = (e) => this.setState({ route: e.detail.value })
@@ -162,8 +187,8 @@ export default class Index extends Component {
             notes: [],
             meta: { elevation: base.elevation, location: base.location, coords: base.coords },
           },
-          adviceLoading: true,
-        })
+         adviceLoading: true,
+        }, () => this._saveCache())
         this._adviceSteps = ['薯仔正在分析天气窗口...', '薯仔正在匹配装备清单...', '薯仔正在评估风险等级...', '薯仔正在生成行前建议...']
         this._adviceStepIdx = 0
         this._adviceStepTimer = setInterval(() => {
@@ -206,10 +231,10 @@ export default class Index extends Component {
               degraded: d.degraded === true,
               photoTiming: d.photoTiming || prev.result.photoTiming,
               disclaimer: d.disclaimer,
-              meta: { ...prev.result.meta, ...d.meta },
-            },
-         }))
-          this._saveHistory(params, {
+             meta: { ...prev.result.meta, ...d.meta },
+           },
+         }), () => this._saveCache())
+         this._saveHistory(params, {
             risks: d.risks || [],
             degraded: d.degraded === true,
             meta: { ...((this.state.result && this.state.result.meta) || {}), ...d.meta },
@@ -230,15 +255,30 @@ export default class Index extends Component {
           result: {
             ...prev.result,
             degraded: true,
-            notes: ['AI 建议超时，以下为天气基础数据。请重试或查阅专业路书。'],
-          },
-        }))
-        console.error('[徒步薯] advice callFunction fail', err)
+           notes: ['AI 建议超时，以下为天气基础数据。请重试或查阅专业路书。'],
+         },
+        }), () => this._saveCache())
+       console.error('[徒步薯] advice callFunction fail', err)
       }
     })
   }
 
   onBack = () => this.setState({ showResult: false })
+
+  // ===== 结果缓存 =====
+  _saveCache() {
+    const { route, date, days, level, levelIndex, result } = this.state
+    if (!result) return
+    try {
+      Taro.setStorageSync(CACHE_KEY, {
+        form: { route, date, days, level, levelIndex },
+        result,
+        cachedAt: Date.now(),
+      })
+    } catch (e) {
+      console.warn('[徒步薯] 缓存保存失败', e)
+    }
+  }
 
   // ===== 历史记录 =====
   // 防写风暴：hash 对比，相同参数不重复写库

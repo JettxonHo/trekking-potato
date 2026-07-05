@@ -27,14 +27,18 @@ const MAX_SUMMARY = 120
 exports.main = async (event, context) => {
   const { mode } = event
 
+  // 云函数以管理员权限运行，安全规则不生效，必须手动用 openid 过滤
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
+
   if (mode === 'save') {
     return await saveRecord(event)
   }
   if (mode === 'list') {
-    return await listRecords(event)
+    return await listRecords(event, openid)
   }
   if (mode === 'delete') {
-    return await deleteRecord(event)
+    return await deleteRecord(event, openid)
   }
   if (mode === 'saveRoute') {
     return await saveRoute(event)
@@ -75,13 +79,17 @@ async function saveRecord(event) {
 
 /**
  * 查询当前用户最近 20 条历史记录
- * openId 隔离由微信安全规则自动处理（集合权限设为"仅创建者可读写"）
+ * openId 隔离：云函数绕过安全规则，必须手动 where({ _openid }) 过滤
  */
-async function listRecords(event) {
+async function listRecords(event, openid) {
+  if (!openid) {
+    return { ok: false, error: 'no_auth', message: '无法获取用户身份' }
+  }
   const limit = Math.min(20, Math.max(1, parseInt(event.limit) || 20))
 
   try {
     const res = await db.collection('history')
+      .where({ _openid: openid })
       .orderBy('createdAt', 'desc')
       .limit(limit)
       .get()
@@ -93,14 +101,22 @@ async function listRecords(event) {
 }
 
 /**
- * 删除指定记录（仅能删自己的，安全规则兜底）
+ * 删除指定记录（仅能删自己的，openid 校验兜底）
  */
-async function deleteRecord(event) {
+async function deleteRecord(event, openid) {
   const id = String(event.id || '')
   if (!id) {
     return { ok: false, error: 'missing_id', message: '缺少记录 id' }
   }
+  if (!openid) {
+    return { ok: false, error: 'no_auth', message: '无法获取用户身份' }
+  }
   try {
+    // 校验所有权：先查再删，防越权
+    const doc = await db.collection('history').doc(id).get()
+    if (!doc.data || doc.data._openid !== openid) {
+      return { ok: false, error: 'not_owner', message: '只能删除自己的记录' }
+    }
     await db.collection('history').doc(id).remove()
     return { ok: true }
   } catch (e) {
