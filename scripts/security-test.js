@@ -191,18 +191,22 @@ async function runAttacks() {
   console.log('\n\x1b[33m[攻击4] 篡改参数 — 注入攻击\x1b[0m')
   seed()
   currentOpenid = 'user_A'
-  await test('save 注入 __proto__ 字段不应污染原型', async () => {
+  await test('save 注入额外字段不应写入数据库记录', async () => {
+    mockData.history = []
+    currentOpenid = 'user_A'
     var malicious = {
       mode: 'save',
-      route: '测试',
+      route: '白名单测试',
       date: '2026-07-01',
-      __proto__: { admin: true },
-      constructor: { prototype: { poisoned: true } },
+      admin: true,
+      poisoned: true,
     }
     var res = await handler.main(malicious, {})
-    expect(res.ok === true, 'save 应成功（白名单过滤后）')
-    expect(({}).admin !== true, '原型被污染了!')
-    expect(({}).poisoned !== true, '原型被污染了!')
+    expect(res.ok === true, 'save 应成功')
+    var saved = mockData.history.find(function (r) { return r.route === '白名单测试' })
+    expect(saved, '记录应已写入')
+    expect(saved.admin === undefined, '白名单外字段 admin 被写入了数据库!')
+    expect(saved.poisoned === undefined, '白名单外字段 poisoned 被写入了数据库!')
   })
 
   await test('save 超长 route 应被截断至 50 字符', async () => {

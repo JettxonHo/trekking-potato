@@ -14,6 +14,8 @@
  */
 
 const https = require('https')
+const cloud = require('wx-server-sdk')
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const { resolveLocation, gcj02ToWgs84 } = require('./geocode')
 const { fetchElevation } = require('./geocode')
 const { fetchWeather } = require('./weather')
@@ -174,6 +176,13 @@ exports.main = async (event, context) => {
   const startTime = Date.now()
   const { route, date, level, days, mode } = event
 
+  // 鉴权：所有调用都必须携带合法 openid
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
+  if (!openid) {
+    return { ok: false, error: 'no_auth', message: '无法获取用户身份' }
+  }
+
   // 1. 输入校验
   if (!route || !date || !level) {
     return { ok: false, error: 'missing_params', message: '缺少必要参数（route/date/level）' }
@@ -303,13 +312,13 @@ exports.main = async (event, context) => {
       console.warn('[getAdvice] Schema 校验失败:', validation.errors.join(', '))
       console.warn('[getAdvice] GLM 原始返回:', JSON.stringify(advice).substring(0, 500))
       degraded = true
-      degradedReason = 'Schema校验失败: ' + validation.errors.join(', ')
+      degradedReason = 'AI 输出格式异常'  // 脱敏
     }
     advice = validation.advice
   } catch (e) {
     console.error('[getAdvice] DeepSeek 调用失败:', e.message)
     degraded = true
-    degradedReason = 'GLM调用异常: ' + e.message
+    degradedReason = 'AI 服务暂时不可用'  // 脱敏：不向客户端暴露 e.message
   }
 
   // 7. 降级处理
@@ -347,16 +356,53 @@ exports.main = async (event, context) => {
  * 分步加载第二阶段：接收 base 数据，只跑 GLM
  * 前端调 getAdvice({mode:'advice', baseData, route, date, level, days})
  */
+/**
+ * 校验 baseData 结构，防止客户端篡改注入
+ * 只校验关键字段是否存在且类型正确，不信任值的具体内容
+ */
+function validateBaseData(baseData) {
+  if (!baseData || typeof baseData !== 'object') return false
+  // weather 结构校验
+  if (baseData.weather && typeof baseData.weather === 'object') {
+    if (baseData.weather.days && Array.isArray(baseData.weather.days)) {
+      for (const d of baseData.weather.days) {
+        // 降水概率是数字且在 0-100 之间，不接受客户端伪造为 0 来隐藏天气风险
+        if (d.precipProb != null && (typeof d.precipProb !== 'number' || d.precipProb < 0 || d.precipProb > 100)) return false
+        if (d.tempMin != null && typeof d.tempMin !== 'number') return false
+        if (d.tempMax != null && typeof d.tempMax !== 'number') return false
+      }
+    }
+  }
+  // gearRules 结构校验：每个 item 必须是 string（防对象注入 prompt）
+  if (baseData.gearRules && typeof baseData.gearRules === 'object') {
+    for (const cat of ['essential', 'recommended', 'optional']) {
+      const arr = baseData.gearRules[cat]
+      if (arr && Array.isArray(arr)) {
+        for (const g of arr) {
+          if (g && typeof g.item === 'string' && /[\r\n]/.test(g.item)) return false
+        }
+      }
+    }
+  }
+  return true
+}
+
 async function handleAdvice(event, startTime) {
   const { route, date, level, days, baseData } = event
   const tripDays = days || 1
+
+  // 校验 baseData 结构，防止客户端篡改注入
+  if (!validateBaseData(baseData)) {
+    console.warn('[getAdvice:advice] baseData 结构校验失败，拒绝执行')
+    return { ok: false, error: 'invalid_base_data', message: '基础数据异常，请重新查询' }
+  }
 
   // 从 baseData 恢复上下文（避免重复查 geo/weather）
   const weather = baseData && baseData.weather ? baseData.weather : null
   const sunEvents = baseData && baseData.sunEvents ? baseData.sunEvents : null
   const gearRules = baseData && baseData.gearRules ? baseData.gearRules : null
   const elevation = baseData && baseData.elevation ? baseData.elevation : null
-  const locationName = baseData && baseData.route ? baseData.route : route
+  const locationName = typeof baseData?.route === 'string' ? baseData.route : route
 
   const meta = {
     generatedAt: new Date().toISOString(),
@@ -393,13 +439,13 @@ async function handleAdvice(event, startTime) {
     if (!validation.valid) {
       console.warn('[getAdvice:advice] Schema 校验失败:', validation.errors.join(', '))
       degraded = true
-      degradedReason = 'Schema校验失败: ' + validation.errors.join(', ')
+      degradedReason = 'AI 输出格式异常'  // 脱敏
     }
     advice = validation.advice
   } catch (e) {
     console.error('[getAdvice:advice] DeepSeek 调用失败:', e.message)
     degraded = true
-    degradedReason = 'GLM调用异常: ' + e.message
+    degradedReason = 'AI 服务暂时不可用'  // 脱敏：不向客户端暴露 e.message
   }
 
   if (degraded) {

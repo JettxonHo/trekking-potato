@@ -118,35 +118,35 @@ async function testSaveRouteAttacks() {
   currentOpenid = 'attacker'
 
   // 1. lat 超出 [-90, 90] 范围
-  await probe('lat=999 应被拒绝（超出地球纬度范围）', 'FAIL', async () => {
+  await probe('lat=999 应被拒绝（超出地球纬度范围）', 'SAFE', async () => {
     var res = await handler.main({ mode: 'saveRoute', route: '黑客峰', lat: 999, lon: 100, elevation: 100, location: 'test' }, {})
     if (res.ok && res.action === 'created') return vulnerable('lat=999 被写入数据库，无范围校验', 'P2')
     return blocked('已拒绝')
   })
 
   // 2. lon 超出 [-180, 180]
-  await probe('lon=999 应被拒绝', 'FAIL', async () => {
+  await probe('lon=999 应被拒绝', 'SAFE', async () => {
     var res = await handler.main({ mode: 'saveRoute', route: '黑客谷', lat: 30, lon: 999, elevation: 100, location: 'test' }, {})
     if (res.ok && res.action === 'created') return vulnerable('lon=999 被写入数据库', 'P2')
     return blocked('已拒绝')
   })
 
   // 3. parseFloat('100abc') = 100 (部分解析)
-  await probe('lat="100abc" 不应被接受', 'FAIL', async () => {
+  await probe('lat="100abc" 不应被接受', 'SAFE', async () => {
     var res = await handler.main({ mode: 'saveRoute', route: '解析峰', lat: '100abc', lon: '100', elevation: 100, location: 'test' }, {})
     if (res.ok) return vulnerable('parseFloat("100abc")=100 被接受，字符串部分解析', 'P2')
     return blocked('已拒绝')
   })
 
   // 4. Infinity
-  await probe('lat=Infinity 不应被接受', 'FAIL', async () => {
+  await probe('lat=Infinity 不应被接受', 'SAFE', async () => {
     var res = await handler.main({ mode: 'saveRoute', route: '无限峰', lat: 'Infinity', lon: 'Infinity', elevation: 100, location: 'test' }, {})
     if (res.ok) return vulnerable('parseFloat("Infinity")=Infinity 通过了 isNaN 检查', 'P2')
     return blocked('已拒绝')
   })
 
   // 5. 空字符串别名污染
-  await probe('saveRoute 不应创建空字符串别名', 'FAIL', async () => {
+  await probe('saveRoute 不应创建空字符串别名', 'SAFE', async () => {
     mockData.routes = []
     var res = await handler.main({ mode: 'saveRoute', route: '清洁山', lat: 30.5, lon: 104.0, elevation: 500, location: '四川' }, {})
     if (res.ok && res.action === 'created') {
@@ -158,7 +158,7 @@ async function testSaveRouteAttacks() {
   })
 
   // 6. elevation 接受任意类型
-  await probe('elevation 应为数字或 null，不接受对象', 'FAIL', async () => {
+  await probe('elevation 应为数字或 null，不接受对象', 'SAFE', async () => {
     var res = await handler.main({ mode: 'saveRoute', route: '对象峰', lat: 30, lon: 104, elevation: { $gt: '' }, location: 'test' }, {})
     if (res.ok && res.action === 'created') {
       var doc = mockData.routes.find(function (r) { return r.name === '对象峰' })
@@ -176,7 +176,7 @@ async function testSaveRecordAttacks() {
   currentOpenid = 'attacker'
 
   // 7. coords 接受任意嵌套对象
-  await probe('coords 字段不应接受任意嵌套对象', 'FAIL', async () => {
+  await probe('coords 字段不应接受任意嵌套对象', 'SAFE', async () => {
     var res = await handler.main({ mode: 'save', route: '测试', date: '2026-07-01', coords: { nested: { deep: { injection: 'payload' } } } }, {})
     if (res.ok) {
       var doc = mockData.history.find(function (r) { return r.route === '测试' })
@@ -186,7 +186,7 @@ async function testSaveRecordAttacks() {
   })
 
   // 8. route 接受对象类型
-  await probe('route 字段不应将对象转为 "[object Object]"', 'FAIL', async () => {
+  await probe('route 字段不应将对象转为 "[object Object]"', 'SAFE', async () => {
     var res = await handler.main({ mode: 'save', route: { $where: '1==1' }, date: '2026-07-01' }, {})
     if (res.ok) {
       var doc = mockData.history[mockData.history.length - 1]
@@ -208,7 +208,7 @@ async function testSaveRecordAttacks() {
   })
 
   // 10. _openid 依赖（严格 mock 下 save 不注入 _openid）
-  await probe('saveRecord 应手动注入 _openid 而非依赖 SDK', 'FAIL', async () => {
+  await probe('saveRecord 应手动注入 _openid 而非依赖 SDK', 'SAFE', async () => {
     mockData.history = []
     currentOpenid = 'user_X'
     var saveRes = await handler.main({ mode: 'save', route: 'openid测试', date: '2026-07-01' }, {})

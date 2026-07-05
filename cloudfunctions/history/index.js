@@ -31,9 +31,14 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
 
- if (mode === 'save') {
+  // 统一鉴权：所有 mode 都要求合法 openid
+  if (!openid) {
+    return { ok: false, error: 'no_auth', message: '无法获取用户身份' }
+  }
+
+  if (mode === 'save') {
     return await saveRecord(event, openid)
- }
+  }
   if (mode === 'list') {
     return await listRecords(event, openid)
   }
@@ -41,10 +46,10 @@ exports.main = async (event, context) => {
     return await deleteRecord(event, openid)
   }
   if (mode === 'saveRoute') {
-    return await saveRoute(event)
+    return await saveRoute(event, openid)
   }
   if (mode === 'listRoutes') {
-    return await listRoutes(event)
+    return await listRoutes(event, openid)
   }
 
   return { ok: false, error: 'invalid_mode', message: '未知 mode: ' + mode }
@@ -156,15 +161,19 @@ function haversine(lat1, lon1, lat2, lon2) {
  *   - 若名称相同 → 直接复用，不新增
  * 防线 B（5km 重名异地）：同名但距离 > 5km → 自动追加地区后缀
  */
-async function saveRoute(event) {
+async function saveRoute(event, openid) {
   const name = typeof event.route === 'string' ? event.route.trim().substring(0, 50) : ''
-  const lat = parseFloat(event.lat)
-  const lon = parseFloat(event.lon)
+  // 严格数值校验：拒绝 parseFloat 部分解析（如 '45abc'=45），仅接受纯数字
+  const latStr = String(event.lat || '').trim()
+  const lonStr = String(event.lon || '').trim()
+  const isNumeric = (s) => /^-?\d+(\.\d+)?$/.test(s)
+  const lat = parseFloat(latStr)
+  const lon = parseFloat(lonStr)
   const elevation = typeof event.elevation === 'number' && isFinite(event.elevation) ? event.elevation : null
   const location = String(event.location || '').substring(0, 60)
 
-  // 严格校验：NaN / Infinity / 部分解析（'100abc'）/ 超范围 全部拒绝
-  if (!name || !isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+  // 严格校验：非纯数字 / NaN / Infinity / 超范围 全部拒绝
+  if (!name || !isNumeric(latStr) || !isNumeric(lonStr) || isNaN(lat) || isNaN(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
     return { ok: false, error: 'invalid_params', message: '路线名或坐标缺失' }
   }
 
@@ -226,6 +235,7 @@ async function saveRoute(event) {
       location,
       aliases: name !== finalName ? [name] : [],
       createdBy: 'UGC',
+      _openid: openid,
       createdAt: db.serverDate(),
     }
     const res = await db.collection('routes').add({ data: record })
@@ -240,7 +250,7 @@ async function saveRoute(event) {
  * 搜索 UGC 路线库（供 geocode.js 前置查询）
  * 返回名称匹配的路线，避免重复要求用户输入坐标
  */
-async function listRoutes(event) {
+async function listRoutes(event, openid) {
   const keyword = String(event.keyword || '').trim()
   if (!keyword) {
     return { ok: true, data: [] }
