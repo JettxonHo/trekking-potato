@@ -18,7 +18,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const { resolveLocation, gcj02ToWgs84 } = require('./geocode')
 const { fetchElevation } = require('./geocode')
-const { fetchWeather } = require('./weather')
+const { fetchWeather, isValidIsoDate, parseTripDaysInput } = require('./weather')
 const { calcSunEvents } = require('./sun-events')
 const { getGearRules } = require('./gear-rules')
 const { buildMessages, buildDegradedResponse } = require('./prompt')
@@ -187,11 +187,22 @@ exports.main = async (event, context) => {
   if (!route || !date || !level) {
     return { ok: false, error: 'missing_params', message: '缺少必要参数（route/date/level）' }
   }
-  const tripDays = days || 1
 
   // ========== 分步加载：mode='advice' 时跳过 geo/weather，直接用前端传来的数据跑 GLM ==========
   if (mode === 'advice') {
     return await handleAdvice(event, startTime)
+  }
+
+  // TP-P0-002：tripDays 严格归一化——未提供默认 1；提供时只接受数字 1–7 整数或单字符 "1"–"7"，
+  // 拒绝布尔、数组、对象及带空格/前导零/小数/指数/符号等字符串；不对任意类型做 Number() 强制转换
+  const tripDays = parseTripDaysInput(days)
+  if (tripDays === null) {
+    return { ok: false, error: 'invalid_trip_days', message: '行程天数必须为 1 至 7 天' }
+  }
+
+  // TP-P0-002：在地理编码和天气请求前验证出发日期格式（复用 weather.js 的校验函数）
+  if (!isValidIsoDate(date)) {
+    return { ok: false, error: 'invalid_date', message: '出发日期格式无效' }
   }
 
   // 2. 地理编码：手动坐标优先，否则走 resolveLocation
@@ -247,9 +258,19 @@ exports.main = async (event, context) => {
 
   // 5. 并行查询天气+天文（Promise.all）
   const [weatherResult, sunEvents] = await Promise.all([
-    fetchWeather(wgs84.lat, wgs84.lng, loc.elevation, date).catch((e) => ({ ok: false, error: e.message })),
+    fetchWeather(wgs84.lat, wgs84.lng, loc.elevation, date, tripDays).catch((e) => ({ ok: false, error: e.message })),
     Promise.resolve(calcSunEvents(wgs84.lat, wgs84.lng, date)),
   ])
+
+  // TP-P0-002：确定性契约错误必须原样传播，不得降级为 weather = null 后继续生成建议；
+  // 可附带请求窗口，但不暴露 Open-Meteo 原始 reason。网络超时等非契约错误保持既有降级行为。
+  const DETERMINISTIC_WEATHER_ERRORS = ['invalid_date', 'invalid_trip_days', 'out_of_range', 'weather_data_invalid']
+  if (!weatherResult.ok && DETERMINISTIC_WEATHER_ERRORS.includes(weatherResult.error)) {
+    const errorResponse = { ok: false, error: weatherResult.error, message: weatherResult.message }
+    if (weatherResult.requestedStartDate) errorResponse.requestedStartDate = weatherResult.requestedStartDate
+    if (weatherResult.requestedEndDate) errorResponse.requestedEndDate = weatherResult.requestedEndDate
+    return errorResponse
+  }
 
  const weather = weatherResult.ok ? weatherResult.data : null
 
