@@ -1,144 +1,603 @@
 # 当前活动任务
 
-- Task ID: `TP-P0-002`
-- Title: 使用 start_date/end_date 使天气窗口严格对应出发日期与行程天数
-- Status: `REVIEW`
-- Authorized mode: `IMPLEMENTATION`
+- Task ID: `TP-P0-003`
+- Title: 调查路线类型是否从路线数据贯穿解析、规则、建议与展示
+- Status: `READY`
+- Authorized mode: `INVESTIGATION`
 - Priority: `P0`
 - Controller-owned: `true`
-- Activation condition: 调查报告经主控验收为 `VERIFIED`，主控选择方案 A（增强版）并授权实施
-- Primary objective: 使用 Open-Meteo start_date/end_date 请求严格对应用户出发日期和行程天数的天气窗口；验证返回日期连续且完整，在完整窗口不可获得时返回确定性的 out_of_range，并添加固定时间的离线回归测试。
+- Activation condition: 本任务进入 `main`，并收到主控明确的开始调查指令
+- Primary objective: 确认 `climb`、`trek`、`tour` 等路线类型是否从路线数据源贯穿路线解析、地理编码、装备与安全规则、AI Prompt、云函数响应、前端状态和结果展示；确认技术攀登路线是否会静默退化为普通徒步，并形成最小修复方案和确定性测试设计。
 
 ## 背景
 
-调查阶段（已归档至 `docs/tasks/completed/TP-P0-002-investigation.md`）确认：
+主计划要求：
 
-1. 天气窗口锚定在"今天"而不是用户选择的出发日期；
-2. `tripDays` 从未进入天气层，返回天数与行程天数无确定性关系；
-3. 超出预报范围时仍以 `ok: true` 返回从今天开始的天气数组，构成静默日期错位；
-4. 过去日期被静默接受。
+1. 路线身份和路线类型属于关键安全事实；
+2. 路线类型必须由可信路线数据或确定性解析决定；
+3. `climb`、`trek`、`tour` 等类型必须贯穿整个系统；
+4. 技术攀登路线不得静默退化为普通徒步；
+5. LLM 不得自行决定或猜测路线类型；
+6. 路线类型必须能够影响确定性规则、建议边界和用户可见结果。
 
-主控决策：`APPROVED_FOR_IMPLEMENTATION`，采用方案 A（增强版）。
+当前实现疑似存在以下风险：
 
-## 核心契约
+- 部分解析路径可能固定返回 `type: "trek"`；
+- 手动坐标路径可能默认视为普通徒步；
+- 路线库中的 `type` 可能没有贯穿所有匹配方式；
+- 装备规则可能接收到错误或默认路线类型；
+- Prompt 和前端可能没有明确显示路线类型；
+- 攀登路线可能获得普通徒步装备和风险建议。
 
-```text
-weather.days[0].date === 用户选择的出发日期
-weather.days.length === tripDays
-weather.days 中的日期必须连续、完整并严格对应整个行程
-完整窗口不可获得时：
-  result.ok === false
-  result.error === "out_of_range"
-```
+上述均为待调查假设，不得在调查前当作既定事实。
 
-不得再根据固定的"10 天"或"16 天"常量判断 Open-Meteo 实际可用边界。Open-Meteo 的实时可用范围由服务端动态决定；以 API 错误响应和返回日期完整性为最终依据。
+## 必须回答的问题
+
+1. 路线库当前有哪些类型字段和值；
+2. `climb`、`trek`、`tour` 是否有明确、统一的枚举定义；
+3. 每个内置路线的类型来自哪里；
+4. 精确匹配、别名匹配、编辑距离匹配分别是否保留类型；
+5. 外部地理编码结果如何决定路线类型；
+6. 手动坐标路径如何决定路线类型；
+7. 无法确定类型时是否存在默认值；
+8. 默认值是否总是 `trek`；
+9. 用户确认模糊匹配时，类型是否随确认结果一起保留；
+10. 坐标转换前后是否携带路线类型；
+11. `getGearRules` 是否接收并使用路线类型；
+12. 装备和风险规则对 `climb / trek / tour` 是否存在确定性差异；
+13. 攀登路线是否会触发最低技术装备与滑坠等风险；
+14. 路线类型是否进入 Prompt；
+15. LLM 是否可能自行猜测或覆盖类型；
+16. base 阶段响应是否携带类型；
+17. advice 阶段是否保留可信类型；
+18. 前端状态是否保存路线类型；
+19. 前端结果是否向用户展示路线类型；
+20. 缓存和历史记录是否保存路线类型；
+21. 类型缺失或非法时当前如何处理；
+22. 类型是否可能在两阶段请求间丢失或被客户端改变；
+23. 哪些路线会被错误降级为普通徒步；
+24. 最小修复需要修改哪些文件；
+25. 应添加哪些确定性契约和回归测试。
+
+## 允许读取范围
+
+可读取但不得修改：
+
+- `cloudfunctions/getAdvice/data/routes.js`
+- `cloudfunctions/getAdvice/geocode.js`
+- `cloudfunctions/getAdvice/index.js`
+- `cloudfunctions/getAdvice/gear-rules.js`
+- `cloudfunctions/getAdvice/prompt.js`
+- `taro-app/src/pages/index/index.jsx`
+- `cloudfunctions/history/**`
+- `scripts/unit-test.js`
+- `scripts/e2e-local.js`
+- `scripts/redteam-audit.js`
+- 与路线类型、路线匹配、规则输入、缓存或历史记录直接相关的文件
+- 仓库内路线数据文档和已有测试
+
+如果读取额外文件，必须说明它与路线类型数据流的直接关系。
 
 ## 允许修改范围
 
-只允许修改：
+无。
 
-- `docs/tasks/ACTIVE_TASK.md`
-- `docs/tasks/completed/TP-P0-002-investigation.md`
-- `cloudfunctions/getAdvice/weather.js`
-- `cloudfunctions/getAdvice/index.js`
-- `scripts/weather-contract-test.js`
-- `scripts/unit-test.js`
+本任务为只读调查，不允许修改任何仓库文件。
 
-## 明确禁止修改
+不得：
 
-- `cloudfunctions/getAdvice/prompt.js`
-- `taro-app/src/pages/index/index.jsx`
-- `scripts/e2e-local.js`
-- `package.json`
-- `package-lock.json`
-- `docs/governance/**`
-- 其他产品代码
+- 修改路线库；
+- 修改 `geocode.js`；
+- 修改 `index.js`；
+- 修改装备规则；
+- 修改 Prompt；
+- 修改前端；
+- 添加测试；
+- 创建分支；
+- 创建提交；
+- 推送；
+- 创建 PR；
+- 修改依赖或 lock 文件；
+- 处理天气窗口；
+- 处理模糊确认交互闭环；
+- 重构路线数据模型；
+- 处理第二阶段可信上下文；
+- 开始其他任务。
 
-## 实施要求
+## 必须完成的代码证据
 
-### weather.js
+所有代码结论必须提供：
 
-1. 新增纯函数日期辅助：`isValidIsoDate`、`addIsoDays`、`diffIsoDays`、`getDateInTimeZone`，只接受真实存在的 `YYYY-MM-DD`，使用 UTC 日历运算，`getDateInTimeZone` 使用 `Intl.DateTimeFormat().formatToParts()`，产品时区固定 `Asia/Shanghai`；辅助函数可导出供离线测试使用。
-2. `fetchWeather` 签名扩展为 `fetchWeather(lat, lon, elevation, dateStr, tripDays, options)`，`options.now` 仅用于确定性测试。
-3. 严格验证日期与天数：非法日期返回 `invalid_date`；`tripDays` 必须为 1–7 整数，否则返回 `invalid_trip_days`；出发日期早于 `Asia/Shanghai` 今天时确定性拒绝；不得静默截断或修正非法值。
-4. 请求窗口：`startDate = dateStr`，`endDate = addIsoDays(startDate, tripDays - 1)`，并生成完整期望日期数组。
-5. Open-Meteo 请求保留 `latitude`、`longitude`、`elevation`、`daily`、`wind_speed_unit=ms`、`timezone=Asia/Shanghai`；删除 `forecast_days`，新增 `start_date`、`end_date`；不得同时发送 `forecast_days` 与 `start_date/end_date`。
-6. API 错误 reason 明确表示 `start_date` 或 `end_date` 超出允许范围时返回 `out_of_range`（附 `requestedStartDate`、`requestedEndDate`）；不得向客户端暴露原始 reason，不得从 reason 解析并硬编码预报边界，不得回退请求今天开始的天气。
-7. 构建 `days` 前严格验证：`daily.time` 必须是数组；长度不足（含部分覆盖）返回 `out_of_range`；日期缺失、乱序或起点错误返回 `weather_data_invalid`；不得使用 `slice` 掩盖错误起点。
-8. 循环严格基于 `tripDays`，最终必须满足 `days[0].date === startDate` 且 `days.length === tripDays`。
-9. `confidence` 使用相对今天的实际提前量：`leadDays = diffIsoDays(todayStr, daily.time[i])`，`leadDays >= 5` 为 `参考`，否则为 `正常`；不得继续使用 `i >= 5`。
-10. 成功结果保持既有字段兼容：`days`、`source`、`windUnit`、`fetchedAt`、`elevationUsed`、`elevationCaveat`、`precipNote`，可保留 `dateOutOfRange: false`、`dateRangeNote: ''`；成功结果不得出现 `dateOutOfRange: true` 并同时携带今天开始的天气数组。
+```text
+文件路径
+起止行号
+输入字段
+输出字段
+路线类型当前值
+是否保留类型
+是否存在默认值
+默认值来源
+下游使用方式
+证据结论
+```
 
-### index.js
+### 路线数据源
 
-1. 严格验证 `tripDays`：未提供默认 1；提供时必须能严格转换为 1–7 的整数；不接受 0、负数、小数、8 及以上、`"1abc"`、`NaN`；非法时返回 `invalid_trip_days`。
-2. 在地理编码和天气请求前验证 `date` 为真实 `YYYY-MM-DD`；非法时返回 `invalid_date`；复用 `weather.js` 导出的日期校验函数。
-3. 将 `tripDays` 传入 `fetchWeather`。
-4. `invalid_date`、`invalid_trip_days`、`out_of_range`、`weather_data_invalid` 必须原样传播为 `ok: false`，可附带 `requestedStartDate`、`requestedEndDate`，不得转换为 `weather = null` 后继续生成建议；不得暴露 Open-Meteo 原始 reason；普通网络超时等既有降级行为不扩大处理。
-5. 不修改 `buildMessages` 调用、`microclimate` 构造、降级规则、base response 成功结构和 advice 阶段。
+确认：
 
-### scripts/weather-contract-test.js
+- 路线对象的数据结构；
+- 类型字段名称；
+- 当前出现过的所有类型值；
+- 是否存在缺失类型的路线；
+- 是否存在非法或自由文本类型；
+- 别名是否与主路线共享同一类型；
+- 路线名称与路线类型的直接证据。
 
-保持离线、无第三方依赖、测试结束恢复 `https.get`、失败退出 1，保留原有风速单位契约测试，使用固定时间 `{ now: FIXED_NOW }`，覆盖请求日期范围、单日行程、未来三日行程、风速数值贯穿、API 范围错误、部分覆盖、错误起点、缺失中间日期、日期乱序、过去日期、非法日期、非法 `tripDays`、`confidence` 提前量语义和原风速契约。
+必须列出至少：
 
-### scripts/unit-test.js
+- 一个 `trek` 样本；
+- 一个 `climb` 样本；
+- 一个 `tour` 样本；
 
-保留原有 28 项测试，新增 Prompt 日期窗口契约测试：构造三日行程窗口，断言 Prompt 包含全部行程日期且不包含窗口外日期的天气摘要；不修改 `prompt.js`。
+如果仓库中不存在某类，必须明确报告，不得伪造。
 
-## 必须运行的命令
+### 路线匹配与解析
+
+确认：
+
+- 精确匹配返回对象；
+- 别名匹配返回对象；
+- 编辑距离匹配返回对象；
+- 外部地理编码返回对象；
+- 手动坐标构造对象；
+- 搜索失败后的兜底路径；
+- 类型在对象复制、展开、重建时是否丢失；
+- `needsConfirm` 响应是否携带类型。
+
+### 后端编排
+
+确认：
+
+- `loc.type` 的读取位置；
+- 调用 `getGearRules` 时传递的字段；
+- 是否存在 `loc.type || "trek"`；
+- 默认值在何种路径触发；
+- base response 是否包含类型；
+- advice 阶段如何获得类型；
+- 两阶段请求是否依赖客户端回传类型；
+- 降级建议是否使用类型。
+
+### 确定性规则
+
+确认：
+
+- `getGearRules` 的参数契约；
+- 路线类型允许值；
+- 非法或缺失值如何处理；
+- 不同类型是否实际改变：
+  - essential；
+  - recommended；
+  - optional；
+  - fatalRisks；
+  - ruleNotes；
+- `climb` 是否强制技术装备；
+- `climb` 是否触发滑坠或技术攀登风险；
+- `tour` 是否与 `trek` 存在明确区别；
+- LLM 是否可能遗漏规则层必须存在的类型安全项。
+
+### Prompt
+
+确认：
+
+- Prompt 是否接收路线类型；
+- 类型以哪个字段、文本或 JSON 进入；
+- 是否只传路线名称而不传类型；
+- LLM 是否被要求不得猜测路线类型；
+- `climb` 是否有专门约束；
+- 用户等级与路线类型约束是否可能冲突；
+- Prompt 输出是否包含或展示类型。
+
+### 前端、缓存与历史
+
+确认：
+
+- base response 中的类型是否进入前端；
+- React state 是否保存类型；
+- 结果页是否展示类型；
+- 用户是否能识别系统把攀登路线当成普通徒步；
+- 本地缓存是否保存类型；
+- 历史记录是否保存类型；
+- 恢复缓存或历史后类型是否仍存在；
+- 手动坐标提交是否允许用户指定类型；
+- 用户无法指定类型时系统采用什么默认。
+
+## 只读复现实验
+
+允许在 `/tmp` 中创建临时脚本，不得写入仓库。
+
+至少创建：
+
+```text
+/tmp/tp-p0-003-route-type-repro.js
+```
+
+脚本必须：
+
+- 使用 Node 内置模块；
+- 直接调用当前仓库可导出的路线匹配和规则函数；
+- 不访问真实网络；
+- 不修改任何仓库文件；
+- 输出结构化 JSON；
+- 清晰标记输入与输出类型。
+
+至少复现：
+
+1. 精确匹配一个普通徒步路线；
+2. 别名匹配；
+3. 编辑距离匹配；
+4. 一个 `climb` 路线；
+5. 一个 `tour` 路线；
+6. 缺失类型或非法类型传给 `getGearRules`；
+7. 同一海拔、月份、天数下分别传入：
+   - `trek`
+   - `climb`
+   - `tour`
+8. 比较三者的：
+   - essential；
+   - recommended；
+   - fatalRisks；
+   - ruleNotes。
+
+如果仓库不存在某个类型样本：
+
+- 不得伪造路线；
+- 可以直接调用规则函数进行类型差异实验；
+- 必须在报告中区分"真实路线样本"与"规则函数合成输入"。
+
+报告必须提供：
+
+- 临时脚本核心逻辑；
+- 运行命令；
+- 真实输出摘要；
+- 工作区仍然干净的证明。
+
+## 场景矩阵
+
+至少分析：
+
+| 场景                | 当前类型来源 | 下游实际类型 | 是否静默降级 |
+| ----------------- | ------ | ------ | ------ |
+| 内置 trek 精确匹配      |        |        |        |
+| 内置 climb 精确匹配     |        |        |        |
+| 内置 tour 精确匹配      |        |        |        |
+| 别名匹配              |        |        |        |
+| 编辑距离匹配            |        |        |        |
+| 外部地理编码            |        |        |        |
+| 手动坐标              |        |        |        |
+| 类型缺失              |        |        |        |
+| 类型非法              |        |        |        |
+| base → advice 两阶段 |        |        |        |
+| 缓存恢复              |        |        |        |
+| 历史记录恢复            |        |        |        |
+
+每项必须说明：
+
+- 输入路线；
+- 匹配路径；
+- 路线对象中的类型；
+- 规则层接收到的类型；
+- Prompt 接收到的类型；
+- 前端可见类型；
+- 是否可能造成安全建议错误。
+
+## 完整数据流
+
+必须绘制：
+
+```text
+Route dataset
+→ matchBuiltinRoute / aliases / edit distance
+→ resolveLocation / external geocoder / manual coordinates
+→ loc.type
+→ getGearRules(routeType)
+→ base response
+→ advice request
+→ buildMessages
+→ LLM output / degraded response
+→ frontend state
+→ result display
+→ local cache
+→ history
+```
+
+每一层必须标明：
+
+```text
+字段名称
+输入类型
+输出类型
+可信来源
+是否默认
+默认值
+是否允许客户端改变
+是否用户可见
+异常处理
+```
+
+## 影响判断
+
+分别分析：
+
+### 安全规则
+
+- `climb` 被当作 `trek` 时缺失哪些最低装备；
+- 是否影响滑坠、技术攀登或高风险提示；
+- 是否存在用户能力等级覆盖路线类型安全要求的风险。
+
+### AI 建议
+
+- Prompt 不带类型时 LLM 如何理解路线；
+- 路线名称是否可能误导模型；
+- 模型是否可能自行猜测为普通徒步；
+- 降级建议是否同样受错误类型影响。
+
+### 用户界面
+
+- 用户能否看到系统识别出的路线类型；
+- 用户能否发现错误识别；
+- 是否存在"攀登路线但页面没有任何类型提示"的静默风险。
+
+### 缓存和历史
+
+- 错误类型是否进入缓存；
+- TTL；
+- 历史记录是否永久保存错误语义；
+- 修复后是否需要迁移；
+- 旧缓存是否可自然过期。
+
+## 方案比较
+
+本轮不修改代码，但至少比较：
+
+### 方案 A：在路线解析边界建立严格类型契约
+
+分析：
+
+- 统一枚举；
+- 每条解析路径必须返回类型；
+- 类型缺失或非法时是否返回明确错误；
+- 手动坐标如何处理；
+- base response 是否显式携带类型；
+- 是否能够减少下游默认值。
+
+### 方案 B：允许未知类型并在下游默认 trek
+
+分析：
+
+- 实现成本；
+- 对现有查询成功率的影响；
+- 安全风险；
+- 用户可见性；
+- 是否会继续造成攀登路线静默降级。
+
+必须给出推荐方案。
+
+推荐方案必须满足：
+
+1. 路线类型来源可追溯；
+2. 枚举明确；
+3. 技术攀登不得默认成普通徒步；
+4. 类型缺失不得静默影响安全规则；
+5. 规则层必须获得可信类型；
+6. Prompt 不负责猜测类型；
+7. 前端能够显示或确认类型；
+8. 两阶段请求不得由客户端任意篡改类型；
+9. 可通过确定性测试验证。
+
+## 测试设计
+
+只设计测试，不新增测试。
+
+每项测试必须包含：
+
+```text
+测试名称
+输入路线或路线对象
+匹配路径
+期望 routeType
+期望规则输入
+期望 essential
+期望 fatalRisks
+期望 Prompt 片段
+期望 base response
+期望前端显示
+防止的回归
+建议测试文件
+```
+
+至少覆盖：
+
+1. trek 精确匹配；
+2. climb 精确匹配；
+3. tour 精确匹配；
+4. 别名匹配保持类型；
+5. 编辑距离匹配保持类型；
+6. 外部地理编码类型；
+7. 手动坐标类型；
+8. 类型缺失；
+9. 类型非法；
+10. climb 技术装备；
+11. climb 滑坠风险；
+12. tour 与 trek 差异；
+13. base response 类型；
+14. advice 阶段类型；
+15. Prompt 类型；
+16. 前端显示；
+17. 缓存恢复；
+18. 历史记录。
+
+## 预计修改文件
+
+只列出未来实施可能涉及的文件和目的，不得修改。
+
+必须区分：
+
+```text
+必须修改
+可能修改
+不应修改
+```
+
+不得把模糊匹配确认闭环、路线数据模型重构或第二阶段可信上下文混入本任务实施范围。
+
+## 基线验证
+
+调查开始前运行：
 
 ```bash
+git status --short
+git branch --show-current
+git log -1 --oneline
+./scripts/agent-context-check.sh
+
 node scripts/weather-contract-test.js
 node scripts/unit-test.js
 node scripts/e2e-local.js
 ```
 
-已知基线：`e2e-local` 只允许保持既有环境失败（缺少 `wx-server-sdk`），不得安装依赖。
+预期基线：
+
+```text
+weather-contract-test:
+PASS 86 / FAIL 0
+
+unit-test:
+PASS 32 / FAIL 0
+
+e2e-local:
+exit 1
+Cannot find module 'wx-server-sdk'
+```
+
+如实际结果不同，必须记录，不得修改代码让其通过。
 
 ## 验收标准
 
-1. `tripDays` 被后端严格归一化为 1–7 的整数；
-2. `fetchWeather` 接收 `date` 和 `tripDays`；
-3. 请求包含 `start_date`；
-4. 请求包含正确的 `end_date`；
-5. 请求不再包含 `forecast_days`；
-6. 返回第一日严格等于出发日；
-7. 返回长度严格等于 `tripDays`；
-8. 日期必须连续、无缺失、无乱序；
-9. 部分覆盖返回 `out_of_range`；
-10. API 明确范围错误返回 `out_of_range`；
-11. 完全超出范围不返回当前天气数组；
-12. 过去日期被确定性拒绝；
-13. Prompt 自动只收到行程窗口；
-14. `microclimate.windMs` 自动对应出发日；
-15. 前端自动只渲染 `tripDays` 天；
-16. 风速 `m/s` 契约保持通过；
-17. 新天气契约测试全部通过；
-18. 原单元测试通过；
-19. e2e 仅保留既有环境失败；
-20. PR 只包含授权文件；
-21. 最终状态为 `REVIEW`。
+1. 明确当前所有路线类型值；
+2. 明确每种匹配路径是否保留类型；
+3. 明确默认 `trek` 的所有触发路径；
+4. 明确 `climb` 是否可能静默降级；
+5. 明确不同类型是否实际改变规则结果；
+6. 明确 Prompt 是否收到类型；
+7. 明确 base 和 advice 阶段是否保留类型；
+8. 明确前端是否显示类型；
+9. 明确缓存和历史是否保存类型；
+10. 给出完整路线类型数据流；
+11. 给出最小修复方案；
+12. 给出确定性测试设计；
+13. 工作区保持完全干净；
+14. 不产生提交；
+15. 最终状态只能为 `READY_FOR_CONTROLLER_REVIEW`。
 
-## 禁止事项
+## 调查报告格式
 
-- 不得修改 Prompt 实现；
-- 不得修改前端；
-- 不得修改路线逻辑；
-- 不得修改风速单位契约；
-- 不得添加依赖；
-- 不得修改 lock 文件；
-- 不得修复 `wx-server-sdk` 环境；
-- 不得硬编码 Open-Meteo 实际可用结束日期；
-- 不得将 16 天当作永远可用的固定边界；
-- 不得修改 MASTER_PLAN 或治理协议；
-- 执行 Agent 不得将状态置为 `VERIFIED` 或 `DONE`。
+```text
+# TP-P0-003 调查报告
 
-## 交付状态
+## 状态
+READY_FOR_CONTROLLER_REVIEW
+或具体 BLOCKED 状态
 
-实施、测试与边界检查全部通过后，将 `Status` 更新为 `REVIEW`，保持 `Authorized mode: IMPLEMENTATION` 与 `Controller-owned: true`，等待主控代码审查。
+## 同步握手
+- Governance version：
+- Plan version：
+- Task ID：
+- Authorized mode：
+- MASTER_PLAN SHA-256：
+- ACTIVE_TASK SHA-256：
+- ACTIVE_TASK Git blob：
+- 当前分支：
+- 当前 HEAD：
+- 初始工作区：
+
+## 结论
+- 问题是否存在：
+- 严重程度：
+- 一句话根因：
+- 当前已存在的路线类型：
+- 是否存在 climb 静默降级：
+- 是否存在默认 trek：
+
+## 路线数据证据
+- 数据结构：
+- 类型字段：
+- trek 样本：
+- climb 样本：
+- tour 样本：
+- 缺失或非法类型：
+
+## 匹配与解析证据
+- 精确匹配：
+- 别名匹配：
+- 编辑距离匹配：
+- 外部地理编码：
+- 手动坐标：
+- needsConfirm：
+
+## 后端与规则证据
+- loc.type：
+- 默认值：
+- getGearRules：
+- 类型差异：
+- base response：
+- advice 阶段：
+- 降级路径：
+
+## Prompt 与前端
+- Prompt：
+- 前端 state：
+- 结果展示：
+- 缓存：
+- 历史：
+
+## 只读复现实验
+列出脚本、命令和真实输出。
+
+## 场景矩阵
+逐项给出当前行为和风险。
+
+## 完整数据流
+使用文本箭头描述。
+
+## 用户与安全影响
+
+## 根因
+
+## 方案比较
+### 方案 A
+### 方案 B
+### 推荐方案
+
+## 建议测试
+逐项列出输入、期望类型、规则断言、Prompt 和前端断言。
+
+## 预计修改文件
+区分必须修改、可能修改和不应修改。
+
+## 风险与未决问题
+
+## 命令执行结果
+列出真实退出码。
+
+## 额外读取文件
+列出路径和读取理由。
+
+## 最终工作区
+粘贴 git status --short 完整输出。
+```
 
 ## 下一任务
 
 无。
 
-执行 Agent 不得自行创建下一任务。
+执行 Agent 不得自行创建实施任务。调查完成后必须等待主控审查。
