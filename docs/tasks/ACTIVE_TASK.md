@@ -1,433 +1,144 @@
 # 当前活动任务
 
 - Task ID: `TP-P0-002`
-- Title: 调查天气窗口是否从出发日期开始并严格对应行程天数
-- Status: `READY`
-- Authorized mode: `INVESTIGATION`
+- Title: 使用 start_date/end_date 使天气窗口严格对应出发日期与行程天数
+- Status: `REVIEW`
+- Authorized mode: `IMPLEMENTATION`
 - Priority: `P0`
 - Controller-owned: `true`
-- Activation condition: 本任务进入 `main`，并收到主控明确的开始调查指令
-- Primary objective: 确认天气请求、后端归一化、AI Prompt 和前端展示是否真正使用用户选择的出发日期与行程天数；确认超出可用预报范围时是否错误展示当前天气，并形成最小修复方案和测试设计。
+- Activation condition: 调查报告经主控验收为 `VERIFIED`，主控选择方案 A（增强版）并授权实施
+- Primary objective: 使用 Open-Meteo start_date/end_date 请求严格对应用户出发日期和行程天数的天气窗口；验证返回日期连续且完整，在完整窗口不可获得时返回确定性的 out_of_range，并添加固定时间的离线回归测试。
 
 ## 背景
 
-主计划要求：
+调查阶段（已归档至 `docs/tasks/completed/TP-P0-002-investigation.md`）确认：
 
-1. 天气窗口必须从用户选择的出发日期开始；
-2. 返回天数必须严格对应用户选择的行程天数；
-3. 如果完整行程超出天气 API 的可用预报范围，系统不得用当前日期天气冒充出行日期天气；
-4. 超范围情况必须返回明确、可供前端处理的 `out_of_range` 状态。
+1. 天气窗口锚定在"今天"而不是用户选择的出发日期；
+2. `tripDays` 从未进入天气层，返回天数与行程天数无确定性关系；
+3. 超出预报范围时仍以 `ok: true` 返回从今天开始的天气数组，构成静默日期错位；
+4. 过去日期被静默接受。
 
-当前实现疑似只根据出发日扩大请求天数，但返回数组仍从 API 的第一天开始；前端和 Prompt 可能继续使用整个数组或第一天数据。
+主控决策：`APPROVED_FOR_IMPLEMENTATION`，采用方案 A（增强版）。
 
-本任务只调查、建立证据并设计修复方案，不授权修改产品代码。
+## 核心契约
 
-## 必须回答的问题
+```text
+weather.days[0].date === 用户选择的出发日期
+weather.days.length === tripDays
+weather.days 中的日期必须连续、完整并严格对应整个行程
+完整窗口不可获得时：
+  result.ok === false
+  result.error === "out_of_range"
+```
 
-1. 用户输入的 `date` 和 `tripDays` 在前端如何构造并发送；
-2. 云函数如何校验和归一化 `date`、`tripDays`；
-3. `fetchWeather` 如何计算 `daysAhead` 和 `forecastDays`；
-4. Open-Meteo 返回的 `daily.time` 从哪一天开始；
-5. 当前代码是否根据用户出发日定位对应数组索引；
-6. 当前代码是否按 `tripDays` 截取天气窗口；
-7. 选择未来日期时，结果中的第一天天气是否仍是当前日期；
-8. `tripDays=1/2/3/...` 时前端实际展示多少天；
-9. Prompt 收到的是整个天气数组还是行程窗口；
-10. `microclimate.windMs` 等首日派生字段使用的是当前日还是出发日；
-11. 超出预报范围时当前返回什么数据和状态；
-12. `dateOutOfRange` 是否仍携带并展示当前可用天气；
-13. 前端是否把超范围天气当作正常天气卡片展示；
-14. 过去日期、当天、预报范围边界和部分覆盖行程分别如何处理；
-15. 本地缓存或历史记录是否保存错误日期窗口；
-16. 最小正确修复应修改哪些文件；
-17. 应添加哪些日期契约与回归测试。
-
-## 允许读取范围
-
-可读取但不得修改：
-
-- `cloudfunctions/getAdvice/weather.js`
-- `cloudfunctions/getAdvice/index.js`
-- `cloudfunctions/getAdvice/prompt.js`
-- `taro-app/src/pages/index/index.jsx`
-- `scripts/weather-contract-test.js`
-- `scripts/unit-test.js`
-- `scripts/e2e-local.js`
-- 与日期、行程天数、天气窗口直接相关的数据验证、缓存或测试代码
-- Open-Meteo 官方 Forecast API 文档
-- Open-Meteo 官方 API 实际响应
-
-如果需要读取额外文件，必须说明它与日期窗口数据流的直接关系。
+不得再根据固定的"10 天"或"16 天"常量判断 Open-Meteo 实际可用边界。Open-Meteo 的实时可用范围由服务端动态决定；以 API 错误响应和返回日期完整性为最终依据。
 
 ## 允许修改范围
 
-无。
+只允许修改：
 
-本任务为只读调查，不允许修改任何仓库文件。
+- `docs/tasks/ACTIVE_TASK.md`
+- `docs/tasks/completed/TP-P0-002-investigation.md`
+- `cloudfunctions/getAdvice/weather.js`
+- `cloudfunctions/getAdvice/index.js`
+- `scripts/weather-contract-test.js`
+- `scripts/unit-test.js`
 
-不得：
+## 明确禁止修改
 
-- 修改 `weather.js`；
-- 修改日期计算；
-- 修改天气数组；
-- 修改 Prompt；
-- 修改前端；
-- 添加测试；
-- 创建提交；
-- 创建 PR；
-- 修改依赖或 lock 文件；
-- 处理路线类型；
-- 处理路线确认；
-- 处理安全规则；
-- 处理可信上下文；
-- 重构天气模块；
-- 开始其他 P0/P1 任务。
+- `cloudfunctions/getAdvice/prompt.js`
+- `taro-app/src/pages/index/index.jsx`
+- `scripts/e2e-local.js`
+- `package.json`
+- `package-lock.json`
+- `docs/governance/**`
+- 其他产品代码
 
-## 必须完成的代码证据
+## 实施要求
 
-必须指出并提供文件路径和行号：
+### weather.js
 
-### 输入层
+1. 新增纯函数日期辅助：`isValidIsoDate`、`addIsoDays`、`diffIsoDays`、`getDateInTimeZone`，只接受真实存在的 `YYYY-MM-DD`，使用 UTC 日历运算，`getDateInTimeZone` 使用 `Intl.DateTimeFormat().formatToParts()`，产品时区固定 `Asia/Shanghai`；辅助函数可导出供离线测试使用。
+2. `fetchWeather` 签名扩展为 `fetchWeather(lat, lon, elevation, dateStr, tripDays, options)`，`options.now` 仅用于确定性测试。
+3. 严格验证日期与天数：非法日期返回 `invalid_date`；`tripDays` 必须为 1–7 整数，否则返回 `invalid_trip_days`；出发日期早于 `Asia/Shanghai` 今天时确定性拒绝；不得静默截断或修正非法值。
+4. 请求窗口：`startDate = dateStr`，`endDate = addIsoDays(startDate, tripDays - 1)`，并生成完整期望日期数组。
+5. Open-Meteo 请求保留 `latitude`、`longitude`、`elevation`、`daily`、`wind_speed_unit=ms`、`timezone=Asia/Shanghai`；删除 `forecast_days`，新增 `start_date`、`end_date`；不得同时发送 `forecast_days` 与 `start_date/end_date`。
+6. API 错误 reason 明确表示 `start_date` 或 `end_date` 超出允许范围时返回 `out_of_range`（附 `requestedStartDate`、`requestedEndDate`）；不得向客户端暴露原始 reason，不得从 reason 解析并硬编码预报边界，不得回退请求今天开始的天气。
+7. 构建 `days` 前严格验证：`daily.time` 必须是数组；长度不足（含部分覆盖）返回 `out_of_range`；日期缺失、乱序或起点错误返回 `weather_data_invalid`；不得使用 `slice` 掩盖错误起点。
+8. 循环严格基于 `tripDays`，最终必须满足 `days[0].date === startDate` 且 `days.length === tripDays`。
+9. `confidence` 使用相对今天的实际提前量：`leadDays = diffIsoDays(todayStr, daily.time[i])`，`leadDays >= 5` 为 `参考`，否则为 `正常`；不得继续使用 `i >= 5`。
+10. 成功结果保持既有字段兼容：`days`、`source`、`windUnit`、`fetchedAt`、`elevationUsed`、`elevationCaveat`、`precipNote`，可保留 `dateOutOfRange: false`、`dateRangeNote: ''`；成功结果不得出现 `dateOutOfRange: true` 并同时携带今天开始的天气数组。
 
-- 出发日期输入的位置；
-- 行程天数输入的位置；
-- 提交参数的字段名称；
-- 日期格式及其校验规则；
-- 行程天数的边界规则。
+### index.js
 
-### 后端编排
+1. 严格验证 `tripDays`：未提供默认 1；提供时必须能严格转换为 1–7 的整数；不接受 0、负数、小数、8 及以上、`"1abc"`、`NaN`；非法时返回 `invalid_trip_days`。
+2. 在地理编码和天气请求前验证 `date` 为真实 `YYYY-MM-DD`；非法时返回 `invalid_date`；复用 `weather.js` 导出的日期校验函数。
+3. 将 `tripDays` 传入 `fetchWeather`。
+4. `invalid_date`、`invalid_trip_days`、`out_of_range`、`weather_data_invalid` 必须原样传播为 `ok: false`，可附带 `requestedStartDate`、`requestedEndDate`，不得转换为 `weather = null` 后继续生成建议；不得暴露 Open-Meteo 原始 reason；普通网络超时等既有降级行为不扩大处理。
+5. 不修改 `buildMessages` 调用、`microclimate` 构造、降级规则、base response 成功结构和 advice 阶段。
 
-- `date` 和 `tripDays` 的解析位置；
-- 调用 `fetchWeather` 的参数；
-- 返回基础天气数据的位置；
-- Prompt 使用天气数据的位置；
-- 首日天气派生字段的位置。
+### scripts/weather-contract-test.js
 
-### 天气模块
+保持离线、无第三方依赖、测试结束恢复 `https.get`、失败退出 1，保留原有风速单位契约测试，使用固定时间 `{ now: FIXED_NOW }`，覆盖请求日期范围、单日行程、未来三日行程、风速数值贯穿、API 范围错误、部分覆盖、错误起点、缺失中间日期、日期乱序、过去日期、非法日期、非法 `tripDays`、`confidence` 提前量语义和原风速契约。
 
-- 当前时间的生成位置；
-- `daysAhead` 的计算；
-- `forecastDays` 的计算；
-- API 请求参数；
-- `daily.time` 的处理方式；
-- 天气数组的构建循环；
-- 是否存在按出发日期切片；
-- 是否存在按行程天数切片；
-- 超范围状态的构造方式。
+### scripts/unit-test.js
 
-### 前端
+保留原有 28 项测试，新增 Prompt 日期窗口契约测试：构造三日行程窗口，断言 Prompt 包含全部行程日期且不包含窗口外日期的天气摘要；不修改 `prompt.js`。
 
-- `weatherWindow` 的接收和缓存；
-- 天气数组的渲染循环；
-- `dateOutOfRange` 的展示方式；
-- 是否仍展示超范围返回的天气卡片；
-- 是否显示天气日期，用户能否识别日期错位。
-
-### 测试
-
-确认现有测试是否覆盖：
-
-- 今天出发；
-- 未来第 N 天出发；
-- 多日行程；
-- 预报范围最后一天；
-- 行程部分超出范围；
-- 出发日期完全超出范围；
-- 过去日期；
-- 夏令时或时区边界；
-- Prompt 中的第一天天气；
-- 前端显示天数。
-
-## 官方 API 证据
-
-只允许引用 Open-Meteo 官方文档或官方 API 响应。
-
-必须确认：
-
-1. `forecast_days` 的语义；
-2. `past_days` 是否相关；
-3. `daily.time` 默认从哪一天开始；
-4. 可用预报范围和最大可请求天数；
-5. API 是否支持直接指定 `start_date` 和 `end_date`；
-6. 超出可用范围时 API 的行为；
-7. 时区参数如何影响 `daily.time`。
-
-报告必须记录：
-
-- 官方页面标题；
-- 实际访问地址；
-- 访问时间；
-- 支持结论的官方段落；
-- 不得只引用搜索摘要。
-
-## API 契约实验
-
-在网络允许时，至少执行以下实验，响应只能保存到 `/tmp`：
-
-1. 默认 `forecast_days` 请求；
-2. 显式 `start_date/end_date` 请求；
-3. 接近预报上限的日期请求；
-4. 超出可用预报范围的日期请求。
-
-每个实验必须记录：
-
-- 完整命令；
-- curl 退出码；
-- HTTP 或 API 错误；
-- `daily.time`；
-- 返回天数；
-- 请求日期与返回日期的关系。
-
-不得伪造实时结果。
-
-## 必须分析的场景
-
-至少分析以下场景：
-
-| 场景 | 预期调查重点 |
-|---|---|
-| 今天出发，1 天 | 是否只返回今天 |
-| 今天出发，3 天 | 是否只返回连续 3 天 |
-| 未来 2 天出发，1 天 | 第一天天气是否为出发日 |
-| 未来 2 天出发，3 天 | 是否从出发日连续返回 3 天 |
-| 预报范围最后一天出发，1 天 | 是否可完整覆盖 |
-| 预报范围最后一天出发，2 天 | 是否因行程不完整而 out_of_range |
-| 完全超出范围 | 是否仍返回当前天气 |
-| 过去日期 | 是否被输入层或后端拒绝 |
-
-不要假设预期实现，必须依据产品原则、官方能力和当前代码形成建议。
-
-## 完整数据流
-
-必须逐层绘制：
-
-```text
-Date picker / tripDays input
-→ frontend submit params
-→ cloud function validation
-→ fetchWeather(date)
-→ daysAhead / forecastDays
-→ Open-Meteo request
-→ daily.time and daily arrays
-→ weather.js normalization
-→ base response
-→ Prompt / microclimate
-→ frontend weatherWindow
-→ frontend rendered dates
-→ local cache/history
-
-```
-
-每个箭头必须说明：
-
-- 输入值；
-- 输出值；
-- 日期范围；
-- 天数；
-- 是否切片；
-- 是否存在错位；
-- 是否存在静默降级。
-
-## 最小修复方案设计
-
-本轮不修改代码，但至少比较：
-
-### 方案 A：API 请求直接使用 `start_date/end_date`
-
-分析：
-
-- 是否能直接请求完整行程窗口；
-- 超出可用范围时如何识别；
-- 是否减少本地索引错误；
-- 与 Open-Meteo 限制是否兼容。
-
-### 方案 B：请求较大窗口后在本地按日期切片
-
-分析：
-
-- 如何定位出发日索引；
-- 如何确保完整覆盖 `tripDays`；
-- 如何处理缺失日期；
-- 是否更容易出现时区与边界错误。
-
-必须给出推荐方案与理由。
-推荐方案必须满足：
-
-- 出发日是返回天气的第一天；
-- 返回天数严格等于 `tripDays`；
-- 完整行程无法覆盖时返回明确 `out_of_range`；
-- 不用当前天气冒充未来行程天气；
-- Prompt、首日派生字段和前端使用同一窗口；
-- 可通过确定性测试验证。
-
-## 测试设计
-
-只设计测试，不添加测试。
-每项测试必须包含：
-
-```text
-测试名称
-固定当前时间
-输入 date
-输入 tripDays
-Mock API daily.time
-预期返回状态
-预期返回日期
-预期返回天数
-Prompt 或前端关键断言
-防止的回归
-建议放置文件
-
-```
-
-必须覆盖前述全部边界场景。
-
-测试设计应考虑如何固定或注入当前时间，避免测试随运行日期漂移。
-
-## 基线验证
-
-调查开始前运行：
+## 必须运行的命令
 
 ```bash
-git status --short
-git branch --show-current
-git log -1 --oneline
-./scripts/agent-context-check.sh
-
 node scripts/weather-contract-test.js
 node scripts/unit-test.js
 node scripts/e2e-local.js
 ```
 
-预期已知基线：
+已知基线：`e2e-local` 只允许保持既有环境失败（缺少 `wx-server-sdk`），不得安装依赖。
 
-```text
-weather-contract-test:
-PASS 6 / FAIL 0
-
-unit-test:
-PASS 28 / FAIL 0
-
-e2e-local:
-exit 1
-Cannot find module 'wx-server-sdk'
-
-```
-
-如实际结果不同，必须记录，不能修改代码让其通过。
 ## 验收标准
 
-1. 明确判断日期窗口问题是否存在；
-2. 给出代码、官方文档和 API 响应三类证据；
-3. 明确当前第一天天气对应哪一天；
-4. 明确当前返回天数与 `tripDays` 的关系；
-5. 明确超范围时是否错误展示当前天气；
-6. 明确 Prompt、首日派生字段和前端的影响；
-7. 给出完整日期数据流；
-8. 给出推荐修复方案；
-9. 给出建议修改文件清单；
-10. 给出可重复、固定时间的测试设计；
-11. 工作区保持完全干净；
-12. 不产生提交；
-13. 状态只能为 `READY_FOR_CONTROLLER_REVIEW`。
+1. `tripDays` 被后端严格归一化为 1–7 的整数；
+2. `fetchWeather` 接收 `date` 和 `tripDays`；
+3. 请求包含 `start_date`；
+4. 请求包含正确的 `end_date`；
+5. 请求不再包含 `forecast_days`；
+6. 返回第一日严格等于出发日；
+7. 返回长度严格等于 `tripDays`；
+8. 日期必须连续、无缺失、无乱序；
+9. 部分覆盖返回 `out_of_range`；
+10. API 明确范围错误返回 `out_of_range`；
+11. 完全超出范围不返回当前天气数组；
+12. 过去日期被确定性拒绝；
+13. Prompt 自动只收到行程窗口；
+14. `microclimate.windMs` 自动对应出发日；
+15. 前端自动只渲染 `tripDays` 天；
+16. 风速 `m/s` 契约保持通过；
+17. 新天气契约测试全部通过；
+18. 原单元测试通过；
+19. e2e 仅保留既有环境失败；
+20. PR 只包含授权文件；
+21. 最终状态为 `REVIEW`。
 
-## 调查报告格式
+## 禁止事项
 
-```text
-# TP-P0-002 调查报告
+- 不得修改 Prompt 实现；
+- 不得修改前端；
+- 不得修改路线逻辑；
+- 不得修改风速单位契约；
+- 不得添加依赖；
+- 不得修改 lock 文件；
+- 不得修复 `wx-server-sdk` 环境；
+- 不得硬编码 Open-Meteo 实际可用结束日期；
+- 不得将 16 天当作永远可用的固定边界；
+- 不得修改 MASTER_PLAN 或治理协议；
+- 执行 Agent 不得将状态置为 `VERIFIED` 或 `DONE`。
 
-## 状态
-READY_FOR_CONTROLLER_REVIEW
-或具体 BLOCKED 状态
+## 交付状态
 
-## 同步握手
-- Governance version：
-- Plan version：
-- Task ID：
-- Authorized mode：
-- MASTER_PLAN SHA-256：
-- ACTIVE_TASK SHA-256：
-- ACTIVE_TASK Git blob：
-- 当前分支：
-- 当前 HEAD：
-- 初始工作区：
-
-## 结论
-- 问题是否存在：
-- 严重程度：
-- 一句话根因：
-- 当前第一天天气对应：
-- 当前返回天数规则：
-- 超范围当前行为：
-
-## 输入与校验证据
-- 前端日期：
-- 前端行程天数：
-- 提交参数：
-- 后端校验：
-
-## 天气模块证据
-- daysAhead：
-- forecastDays：
-- 请求参数：
-- daily.time：
-- 数组构建：
-- 出发日切片：
-- tripDays 切片：
-- 超范围处理：
-
-## 下游影响
-- base response：
-- Prompt：
-- microclimate：
-- frontend：
-- cache/history：
-
-## 官方文档证据
-- forecast_days：
-- start_date/end_date：
-- 可用范围：
-- timezone：
-- 官方来源：
-- 访问时间：
-
-## API 实验
-逐项列出命令、退出码、返回日期和错误。
-
-## 场景矩阵
-逐项给出当前行为与正确预期。
-
-## 完整数据流
-使用文本箭头描述。
-
-## 根因
-
-## 方案比较
-### 方案 A
-### 方案 B
-### 推荐方案
-
-## 建议测试
-逐项列出固定时间、输入、Mock、断言和防止的回归。
-
-## 预计修改文件
-只列路径与修改目的，不修改文件。
-
-## 风险与未决问题
-
-## 命令执行结果
-列出真实退出码。
-
-## 额外读取文件
-列出路径及读取理由。
-
-## 最终工作区
-粘贴 `git status --short` 的完整输出。
-
-```
+实施、测试与边界检查全部通过后，将 `Status` 更新为 `REVIEW`，保持 `Authorized mode: IMPLEMENTATION` 与 `Controller-owned: true`，等待主控代码审查。
 
 ## 下一任务
 
 无。
 
-执行 Agent 不得自行创建实施任务。调查完成后必须等待主控审查。
+执行 Agent 不得自行创建下一任务。

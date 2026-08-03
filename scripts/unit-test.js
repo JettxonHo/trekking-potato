@@ -95,6 +95,32 @@ const promptMessages = buildMessages({
 const promptUserContent = promptMessages[1].content
 assert('Prompt 包含 风4.5m/s', promptUserContent.includes('风4.5m/s'), promptUserContent.substring(0, 200))
 
+console.log('\n=== Prompt 日期窗口契约测试 ===')
+// TP-P0-002：Prompt 只消费传入的正确行程窗口（出发日起连续 tripDays 天），
+// 不得出现窗口外日期（如此前"从今天开始"的错误窗口日期）
+const windowMessages = buildMessages({
+  route: '武功山',
+  date: '2026-08-06',
+  level: '中级',
+  days: 3,
+  weather: {
+    days: [
+      { date: '2026-08-06', tempMin: 10, tempMax: 20, precipProb: 0, windMs: 3.1, confidence: '正常' },
+      { date: '2026-08-07', tempMin: 11, tempMax: 21, precipProb: 10, windMs: 4.2, confidence: '正常' },
+      { date: '2026-08-08', tempMin: 12, tempMax: 22, precipProb: 20, windMs: 5.3, confidence: '正常' },
+    ],
+    windUnit: 'm/s',
+  },
+  gearRules: { essential: [], recommended: [], optional: [] },
+  sunEvents: null,
+  microclimate: { humidity: null, windMs: 3.1, dewPointSpread: null },
+})
+const windowUserContent = windowMessages[1].content
+assert('Prompt 包含 2026-08-06（出发日）', windowUserContent.includes('2026-08-06'), windowUserContent.substring(0, 200))
+assert('Prompt 包含 2026-08-07', windowUserContent.includes('2026-08-07'), windowUserContent.substring(0, 200))
+assert('Prompt 包含 2026-08-08', windowUserContent.includes('2026-08-08'), windowUserContent.substring(0, 200))
+assert('Prompt 不包含窗口外日期 2026-08-04 的天气摘要', !windowUserContent.includes('2026-08-04'), 'Prompt 中出现窗口外日期')
+
 console.log('\n=== 总结 ===')
 console.log('PASS: ' + passed + ', FAIL: ' + failed)
 if (failed > 0) {
