@@ -76,6 +76,25 @@ const boundary5276 = getGearRules({ month: 8, elevation: 5276, days: 1, lat: 31 
 assert('5276m 按高海拔处理', boundary5276.elevationBand === 'high')
 assert('5276m 有边界备注', boundary5276.ruleNotes.some(n => n.includes('偏极高')))
 
+console.log('\n=== Prompt 单位契约测试 ===')
+// TP-P0-001：windMs 契约固定为 m/s 后，Prompt 中的单位文字必须与内部契约一致
+const { buildMessages } = require('../cloudfunctions/getAdvice/prompt')
+const promptMessages = buildMessages({
+  route: '武功山',
+  date: '2026-08-04',
+  level: '中级',
+  days: 1,
+  weather: {
+    days: [{ date: '2026-08-04', tempMin: 10, tempMax: 20, precipProb: 0, windMs: 4.5, confidence: '正常' }],
+    windUnit: 'm/s',
+  },
+  gearRules: { essential: [], recommended: [], optional: [] },
+  sunEvents: null,
+  microclimate: { humidity: null, windMs: 4.5, dewPointSpread: null },
+})
+const promptUserContent = promptMessages[1].content
+assert('Prompt 包含 风4.5m/s', promptUserContent.includes('风4.5m/s'), promptUserContent.substring(0, 200))
+
 console.log('\n=== 总结 ===')
 console.log('PASS: ' + passed + ', FAIL: ' + failed)
 if (failed > 0) {
