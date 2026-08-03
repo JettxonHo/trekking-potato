@@ -55,6 +55,10 @@ export default class Index extends Component {
     manualRouteType: '',
     routeTypeOptions: ['trek', 'climb', 'tour'],
     routeTypeLabels: ['徒步', '攀登', '游览'],
+    // TP-P0-003 REVIEW_FIX：手动可信上下文开关。
+    // true 表示当前表单的路线身份必须继续使用用户确认的坐标和路线类型，
+    // 而不是重新执行路线名解析
+    manualContextActive: false,
     // 后端返回 route_type_required 时暂存的已解析位置（预填手动坐标弹窗）
     pendingResolvedLocation: null,
     funnyMsg: '',
@@ -78,6 +82,16 @@ export default class Index extends Component {
       if (cached && cached.cachedAt && (Date.now() - cached.cachedAt < CACHE_TTL) && cached.result && cached.form) {
         // 缓存的日期若已过期（跨天场景），回填为今天
         const restoreDate = this._isDateExpired(cached.form.date) ? todayStr : cached.form.date
+        // TP-P0-003 REVIEW_FIX：只有缓存明确标记 manualContextActive === true
+        // 且类型、坐标均合法时才恢复手动上下文；旧缓存缺失该字段一律视为 false，
+        // 不得根据孤立字段推断为手动上下文
+        const cachedLat = parseFloat(cached.form.manualLat)
+        const cachedLon = parseFloat(cached.form.manualLon)
+        const restoreManualContext = cached.form.manualContextActive === true
+          && this.state.routeTypeOptions.indexOf(cached.form.manualRouteType) >= 0
+          && !isNaN(cachedLat) && !isNaN(cachedLon)
+          && cachedLat >= -90 && cachedLat <= 90
+          && cachedLon >= -180 && cachedLon <= 180
         this.setState({
           route: cached.form.route || '',
           date: restoreDate,
@@ -85,10 +99,11 @@ export default class Index extends Component {
           level: cached.form.level || '中级',
           levelIndex: cached.form.levelIndex != null ? cached.form.levelIndex : 1,
           // TP-P0-003：恢复手动坐标与路线类型上下文，缓存恢复后继续显示相同类型
-          manualRouteType: cached.form.manualRouteType || '',
-          manualLat: cached.form.manualLat || '',
-          manualLon: cached.form.manualLon || '',
-          manualElev: cached.form.manualElevation || '',
+          manualContextActive: restoreManualContext,
+          manualRouteType: restoreManualContext ? cached.form.manualRouteType : '',
+          manualLat: restoreManualContext ? String(cached.form.manualLat) : '',
+          manualLon: restoreManualContext ? String(cached.form.manualLon) : '',
+          manualElev: restoreManualContext ? (cached.form.manualElevation || '') : '',
           showResult: true,
           result: cached.result,
         })
@@ -100,9 +115,18 @@ export default class Index extends Component {
 
   onRouteInput = (e) => {
     const nextRoute = e.detail.value
-    // TP-P0-003：用户修改路线文本后清除旧的手动坐标与路线类型上下文，避免串用
-    if (this.state.pendingResolvedLocation || this.state.manualRouteType || this.state.manualLat || this.state.manualLon) {
-      this.setState({ route: nextRoute, pendingResolvedLocation: null, manualRouteType: '', manualLat: '', manualLon: '', manualElev: '' })
+    // TP-P0-003 REVIEW_FIX：用户修改路线文本后必须清除全部手动上下文，
+    // 包括 manualContextActive，避免旧坐标与路线类型被串用
+    if (this.state.manualContextActive || this.state.pendingResolvedLocation || this.state.manualRouteType || this.state.manualLat || this.state.manualLon) {
+      this.setState({
+        route: nextRoute,
+        manualContextActive: false,
+        pendingResolvedLocation: null,
+        manualRouteType: '',
+        manualLat: '',
+        manualLon: '',
+        manualElev: '',
+      })
       return
     }
     this.setState({ route: nextRoute })
@@ -144,10 +168,33 @@ export default class Index extends Component {
   }
 
   onSubmit = () => {
-    const { route, date, level, days } = this.state
+    const { route, date, level, days, manualContextActive, manualRouteType, manualLat, manualLon, manualElev, routeTypeOptions } = this.state
     if (!route.trim()) { Taro.showToast({ title: '请输入路线名', icon: 'none' }); return }
     if (!date) { Taro.showToast({ title: '请选择出发日期', icon: 'none' }); return }
     const tripDays = Math.max(1, Math.min(7, parseInt(days) || 1))
+    // TP-P0-003 REVIEW_FIX：手动可信上下文激活时，必须复用用户确认的坐标与路线类型，
+    // 不得重新只按路线名解析
+    if (manualContextActive) {
+      const lat = parseFloat(manualLat)
+      const lon = parseFloat(manualLon)
+      const elev = parseFloat(manualElev) || 0
+      const typeValid = routeTypeOptions.indexOf(manualRouteType) >= 0
+      const coordsValid = !isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180
+      if (!typeValid || !coordsValid) {
+        Taro.showToast({ title: '手动坐标或路线类型不完整，请确认后重新提交', icon: 'none' })
+        this.setState({ showManualCoords: true })
+        return
+      }
+      this._submitBase({
+        route: route.trim(),
+        date, level, days: tripDays,
+        manualLat: lat,
+        manualLon: lon,
+        manualElevation: elev > 0 ? elev : undefined,
+        routeType: manualRouteType,
+      })
+      return
+    }
     this._submitBase({ route: route.trim(), date, level, days: tripDays })
   }
 
@@ -171,7 +218,9 @@ export default class Index extends Component {
     }
     const tripDays = Math.max(1, Math.min(7, parseInt(days) || 1))
     const elev = parseFloat(manualElev) || 0
-    this.setState({ showManualCoords: false })
+    // TP-P0-003 REVIEW_FIX：手动弹窗成功发起查询即激活手动可信上下文，
+    // 后续普通提交复用该坐标与类型
+    this.setState({ showManualCoords: false, manualContextActive: true })
     this._submitBase({
       route: route.trim() || '手动坐标',
       date, level, days: tripDays,
@@ -220,6 +269,8 @@ export default class Index extends Component {
             this.setState({
               loading: false,
               showManualCoords: true,
+              // TP-P0-003 REVIEW_FIX：外部位置预填后激活手动可信上下文
+              manualContextActive: true,
               pendingResolvedLocation: {
                 name: pd.name,
                 lat: pd.lat,
@@ -337,13 +388,21 @@ export default class Index extends Component {
 
   // ===== 结果缓存 =====
   _saveCache() {
-    const { route, date, days, level, levelIndex, result, manualRouteType, manualLat, manualLon, manualElev } = this.state
+    const { route, date, days, level, levelIndex, result, manualContextActive, manualRouteType, manualLat, manualLon, manualElev } = this.state
     if (!result) return
     try {
       Taro.setStorageSync(CACHE_KEY, {
-        // TP-P0-003：缓存 result 已含路线类型与来源（meta），
-        // 手动坐标场景同时保存 routeType 与坐标，恢复后继续走手动坐标可信路径
-        form: { route, date, days, level, levelIndex, manualRouteType, manualLat, manualLon, manualElevation: manualElev },
+        // TP-P0-003 REVIEW_FIX：缓存显式保存 manualContextActive；
+        // 只有手动上下文激活时才保存有效的手动字段，
+        // 普通内置路线缓存不得携带遗留手动上下文
+        form: {
+          route, date, days, level, levelIndex,
+          manualContextActive,
+          manualRouteType: manualContextActive ? manualRouteType : '',
+          manualLat: manualContextActive ? manualLat : '',
+          manualLon: manualContextActive ? manualLon : '',
+          manualElevation: manualContextActive ? manualElev : '',
+        },
         result,
         cachedAt: Date.now(),
       })
@@ -355,7 +414,18 @@ export default class Index extends Component {
   // ===== 历史记录 =====
   // 防写风暴：hash 对比，相同参数不重复写库
   _saveHistory(params, resultData) {
-    const hash = params.route + params.date + params.days + params.level
+    // TP-P0-003 REVIEW_FIX：去重键加入路线类型、类型来源与坐标身份，
+    // 同一路线不同类型、同名不同坐标不得被去重
+    const hash = [
+      params.route,
+      params.date,
+      params.days,
+      params.level,
+      resultData.meta && resultData.meta.routeType,
+      resultData.meta && resultData.meta.routeTypeSource,
+      resultData.meta && resultData.meta.coords && resultData.meta.coords.lat,
+      resultData.meta && resultData.meta.coords && resultData.meta.coords.lon,
+    ].join('|')
     if (this._lastHistoryHash === hash) return
     this._lastHistoryHash = hash
 
@@ -416,9 +486,19 @@ export default class Index extends Component {
   onRestoreHistory = (record) => {
     // 日期过期校验：历史日期 < 今日 → 重置为今日
     const restoreDate = this._isDateExpired(record.date) ? this.state.minDate : record.date
-    // TP-P0-003：历史记录包含路线类型和坐标时一并恢复，
-    // 再次提交继续走手动坐标可信路径，不重新默认为 trek
-    const restoredType = this.state.routeTypeOptions.indexOf(record.routeType) >= 0 ? record.routeType : ''
+    // TP-P0-003 REVIEW_FIX：只有用户手动来源（routeTypeSource === 'user'）、
+    // 类型合法且坐标为有效数字的记录才恢复手动可信上下文；
+    // builtin/ugc/amap/unknown/缺失来源/旧记录必须清空手动上下文，
+    // 再次提交时按路线名重新解析，不得伪装为用户手动坐标来源
+    const coords = record.coords && typeof record.coords === 'object' ? record.coords : null
+    const coordsValid = !!coords
+      && typeof coords.lat === 'number' && typeof coords.lon === 'number'
+      && isFinite(coords.lat) && isFinite(coords.lon)
+      && coords.lat >= -90 && coords.lat <= 90
+      && coords.lon >= -180 && coords.lon <= 180
+    const isManualRecord = record.routeTypeSource === 'user'
+      && this.state.routeTypeOptions.indexOf(record.routeType) >= 0
+      && coordsValid
     this.setState({
       route: record.route || '',
       date: restoreDate,
@@ -426,11 +506,12 @@ export default class Index extends Component {
       level: record.level || '中级',
       levelIndex: ['小白', '中级', '老手'].indexOf(record.level || '中级'),
       showHistory: false,
-      manualRouteType: restoredType,
-      manualLat: record.coords && record.coords.lat != null ? String(record.coords.lat) : '',
-      manualLon: record.coords && record.coords.lon != null ? String(record.coords.lon) : '',
-      manualElev: record.elevation != null ? String(record.elevation) : '',
       pendingResolvedLocation: null,
+      manualContextActive: isManualRecord,
+      manualRouteType: isManualRecord ? record.routeType : '',
+      manualLat: isManualRecord ? String(coords.lat) : '',
+      manualLon: isManualRecord ? String(coords.lon) : '',
+      manualElev: isManualRecord && record.elevation != null ? String(record.elevation) : '',
     })
   }
 

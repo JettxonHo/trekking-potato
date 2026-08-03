@@ -171,6 +171,28 @@ function buildRuleBasedAdvice(gearRules, weather) {
 }
 
 /**
+ * TP-P0-003 REVIEW_FIX：区分地理解析失败中的内置数据完整性错误。
+ * invalid_route_type（内置路线类型数据异常）必须原样传播，
+ * 不得改写为 location_failed，也不得携带 needsRouteType 进入手动坐标兜底；
+ * not_found / amap_failed 等既有解析失败仍映射为 location_failed。
+ */
+function mapLocationResolutionFailure(locResult) {
+  if (locResult && locResult.error === 'invalid_route_type') {
+    return {
+      ok: false,
+      error: 'invalid_route_type',
+      message: locResult.message || '内置路线类型数据异常',
+    }
+  }
+
+  return {
+    ok: false,
+    error: 'location_failed',
+    message: (locResult && locResult.message) || '未找到位置',
+  }
+}
+
+/**
 * 云函数主入口
  */
 exports.main = async (event, context) => {
@@ -233,7 +255,8 @@ exports.main = async (event, context) => {
   } else {
     const locResult = await resolveLocation(route)
     if (!locResult.ok) {
-      return { ok: false, error: 'location_failed', message: locResult.message || '未找到位置' }
+      // TP-P0-003 REVIEW_FIX：内置类型数据异常保持 invalid_route_type，不被改写为 location_failed
+      return mapLocationResolutionFailure(locResult)
     }
     loc = locResult.data
   }
@@ -560,3 +583,6 @@ async function handleAdvice(event, startTime) {
     },
   }
 }
+
+// 测试专用导出：地理解析失败映射纯函数（TP-P0-003 REVIEW_FIX）
+exports._mapLocationResolutionFailure = mapLocationResolutionFailure

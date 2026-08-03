@@ -12,12 +12,16 @@
  * 5. getGearRules 对 trek/climb/tour/unknown/banana/undefined 的确定性行为
  * 6. buildMessages 显式路线类型、来源与硬约束
  * 7. advice 阶段 baseData 路线类型结构一致性（纯函数 validateRouteTypeContract）
+ * 8. REVIEW_FIX：地理解析失败映射纯函数（invalid_route_type 不被改写）
+ * 9. REVIEW_FIX：前端静态契约（手动可信上下文、缓存、历史恢复与去重键）
  *
  * 仅使用 Node 内置模块；wx-server-sdk 通过 require 缓存 mock，不安装依赖。
  * 用法: node scripts/route-type-contract-test.js
  */
 
-// ===== mock wx-server-sdk（必须在 require geocode.js 之前安装）=====
+// ===== mock wx-server-sdk（必须在 require geocode.js / index.js 之前安装）=====
+const fs = require('fs')
+const path = require('path')
 const Module = require('module')
 let ugcFixture = []
 const WX_MOCK_ID = 'mock-wx-server-sdk'
@@ -69,6 +73,8 @@ const { BUILTIN_ROUTES, matchBuiltinRoute } = require('../cloudfunctions/getAdvi
 const { resolveLocation } = require('../cloudfunctions/getAdvice/geocode')
 const { getGearRules } = require('../cloudfunctions/getAdvice/gear-rules')
 const { buildMessages, SYSTEM_PROMPT } = require('../cloudfunctions/getAdvice/prompt')
+// REVIEW_FIX：导入云函数入口的测试专用纯函数（wx-server-sdk 已 mock；suncalc 缺失时模块自带降级）
+const { _mapLocationResolutionFailure } = require('../cloudfunctions/getAdvice/index')
 const {
   ROUTE_TYPES,
   ROUTE_TYPE_SOURCES,
@@ -257,6 +263,77 @@ async function main() {
     assert('routeTypeSource 非法拒绝', validateRouteTypeContract({ ...goodBase, routeTypeSource: 'server' }).ok === false)
     assert('缺失 gearRules 拒绝', validateRouteTypeContract({ routeType: 'climb', routeTypeSource: 'builtin' }).ok === false)
     assert('baseData 为 null 拒绝', validateRouteTypeContract(null).ok === false)
+
+    console.log('\n=== 8. REVIEW_FIX：后端地理解析失败映射（纯函数）===')
+    const mapInvalid = _mapLocationResolutionFailure({ ok: false, error: 'invalid_route_type', message: '内置路线类型数据异常' })
+    assert('invalid_route_type 原样传播', mapInvalid.ok === false && mapInvalid.error === 'invalid_route_type', JSON.stringify(mapInvalid))
+    assert('invalid_route_type 不变为 location_failed', mapInvalid.error !== 'location_failed', JSON.stringify(mapInvalid))
+    assert('invalid_route_type 不携带 needsRouteType（不进入手动兜底）', !('needsRouteType' in mapInvalid), JSON.stringify(mapInvalid))
+    assert('invalid_route_type 保留错误 message', mapInvalid.message === '内置路线类型数据异常', String(mapInvalid.message))
+    const mapInvalidNoMsg = _mapLocationResolutionFailure({ ok: false, error: 'invalid_route_type' })
+    assert('invalid_route_type 缺失 message 时使用默认文案', mapInvalidNoMsg.message === '内置路线类型数据异常', String(mapInvalidNoMsg.message))
+    const mapNotFound = _mapLocationResolutionFailure({ ok: false, error: 'not_found', message: '未找到位置：某某山' })
+    assert('not_found 映射为 location_failed 且保留 message', mapNotFound.error === 'location_failed' && mapNotFound.message === '未找到位置：某某山', JSON.stringify(mapNotFound))
+    const mapAmapFailed = _mapLocationResolutionFailure({ ok: false, error: 'amap_failed', message: '高德 POI 搜索失败: timeout' })
+    assert('amap_failed 映射为 location_failed 且保留 message', mapAmapFailed.error === 'location_failed' && mapAmapFailed.message === '高德 POI 搜索失败: timeout', JSON.stringify(mapAmapFailed))
+
+    console.log('\n=== 9. REVIEW_FIX：前端静态契约（taro-app/src/pages/index/index.jsx）===')
+    const jsxRaw = fs.readFileSync(path.join(__dirname, '..', 'taro-app', 'src', 'pages', 'index', 'index.jsx'), 'utf8')
+    // 去除 JSX 注释、块注释与行注释，保证断言只针对执行代码，不因注释中出现关键字而通过
+    const jsx = jsxRaw
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|[^:'"a-zA-Z0-9])\/\/[^\n]*/g, '$1')
+
+    // 提取方法体（按花括号配对截取，模板插值的花括号成对出现不影响配对）
+    function extractBody(src, header) {
+      const m = header.exec(src)
+      if (!m) return ''
+      const from = m.index + m[0].length - 1
+      const braceStart = src.indexOf('{', from)
+      if (braceStart < 0) return ''
+      let depth = 0
+      for (let i = braceStart; i < src.length; i++) {
+        if (src[i] === '{') depth++
+        else if (src[i] === '}') {
+          depth--
+          if (depth === 0) return src.slice(braceStart, i + 1)
+        }
+      }
+      return ''
+    }
+
+    assert('state 初始化包含 manualContextActive: false', /manualContextActive:\s*false/.test(jsx))
+
+    const saveCacheBody = extractBody(jsx, /_saveCache\s*\(\)\s*\{/)
+    assert('_saveCache 保存 manualContextActive', saveCacheBody.includes('manualContextActive'), '_saveCache 方法体未找到或缺少字段')
+    assert('_saveCache 仅在手动上下文激活时保存有效手动字段', /manualContextActive\s*\?\s*manualRouteType\s*:\s*''/.test(saveCacheBody) && /manualContextActive\s*\?\s*manualLat\s*:\s*''/.test(saveCacheBody), saveCacheBody.substring(0, 200))
+
+    const cdmBody = extractBody(jsx, /componentDidMount\s*\(\)\s*\{/)
+    assert('缓存恢复检查 manualContextActive === true', /manualContextActive\s*===\s*true/.test(cdmBody), 'componentDidMount 方法体未找到或缺少检查')
+
+    const submitBody = extractBody(jsx, /onSubmit\s*=\s*\(\)\s*=>/)
+    assert('onSubmit 存在手动上下文分支', /if\s*\(\s*manualContextActive\s*\)/.test(submitBody), 'onSubmit 方法体未找到手动分支')
+    assert('onSubmit 手动分支向 _submitBase 传递 manualLat', /_submitBase\(\{[\s\S]*manualLat:\s*lat/.test(submitBody), submitBody.substring(0, 200))
+    assert('onSubmit 手动分支向 _submitBase 传递 manualLon', /_submitBase\(\{[\s\S]*manualLon:\s*lon/.test(submitBody), submitBody.substring(0, 200))
+    assert('onSubmit 手动分支传递 routeType: manualRouteType', /routeType:\s*manualRouteType/.test(submitBody), submitBody.substring(0, 200))
+
+    const manualSubmitBody = extractBody(jsx, /onManualSubmit\s*=\s*\(\)\s*=>/)
+    assert('onManualSubmit 激活 manualContextActive: true', /manualContextActive:\s*true/.test(manualSubmitBody), 'onManualSubmit 方法体未激活手动上下文')
+
+    const submitBaseBody = extractBody(jsx, /_submitBase\(params\)\s*\{/)
+    assert('手动坐标兜底仅由 location_failed 触发（invalid_route_type 不进入）', /error\s*===\s*'location_failed'/.test(submitBaseBody), submitBaseBody.substring(0, 200))
+
+    const restoreBody = extractBody(jsx, /onRestoreHistory\s*=\s*\(record\)\s*=>/)
+    assert("历史恢复检查 routeTypeSource === 'user'", /routeTypeSource\s*===\s*'user'/.test(restoreBody), 'onRestoreHistory 方法体未找到来源检查')
+    assert('非 user 来源清空 manualContextActive 与类型', /manualContextActive:\s*isManualRecord/.test(restoreBody) && /manualRouteType:\s*isManualRecord\s*\?[^:]*:\s*''/.test(restoreBody), restoreBody.substring(0, 300))
+    assert('非 user 来源清空手动坐标字段', /manualLat:\s*isManualRecord\s*\?[^:]*:\s*''/.test(restoreBody) && /manualLon:\s*isManualRecord\s*\?[^:]*:\s*''/.test(restoreBody), restoreBody.substring(0, 300))
+
+    const saveHistoryBody = extractBody(jsx, /_saveHistory\(params,\s*resultData\)\s*\{/)
+    assert('历史去重键包含 routeType', /meta\.routeType[^(]*[,}\]]/.test(saveHistoryBody) && /routeType/.test(saveHistoryBody), saveHistoryBody.substring(0, 200))
+    assert('历史去重键包含 routeTypeSource', /meta\.routeTypeSource/.test(saveHistoryBody), saveHistoryBody.substring(0, 200))
+    assert('历史去重键包含坐标 lat/lon', /coords\.lat/.test(saveHistoryBody) && /coords\.lon/.test(saveHistoryBody), saveHistoryBody.substring(0, 200))
+    assert('历史去重键使用稳定分隔符 join', /\.join\('\|'\)/.test(saveHistoryBody), saveHistoryBody.substring(0, 200))
   } finally {
     https.get = originalGet
     Module._resolveFilename = originalResolveFilename
