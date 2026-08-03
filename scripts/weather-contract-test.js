@@ -16,7 +16,7 @@
  */
 
 const https = require('https')
-const { fetchWeather } = require('../cloudfunctions/getAdvice/weather')
+const { fetchWeather, parseTripDaysInput } = require('../cloudfunctions/getAdvice/weather')
 
 const originalGet = https.get
 let capturedUrl = null
@@ -36,6 +36,17 @@ function assert(name, condition, detail) {
     console.log('  FAIL: ' + name + (detail ? ' -> ' + detail : ''))
     failed++
   }
+}
+
+/**
+ * 生成可读的输入描述（类型 + 值），用于类型契约测试命名，
+ * 避免 [1]、true、NaN 等失败时无法定位
+ */
+function describeValue(v) {
+  if (v === undefined) return 'undefined'
+  if (typeof v === 'string') return typeof v + ' ' + JSON.stringify(v)
+  if (typeof v === 'number') return 'number ' + String(v)
+  return typeof v + ' ' + JSON.stringify(v)
 }
 
 /**
@@ -138,12 +149,29 @@ async function main() {
     assert('附带 requestedStartDate/requestedEndDate', apiRange.requestedStartDate === '2026-08-20' && apiRange.requestedEndDate === '2026-08-20', JSON.stringify(apiRange))
     assert('不暴露 Open-Meteo 原始 reason', !JSON.stringify(apiRange).includes('allowed range'), JSON.stringify(apiRange))
 
+    console.log('\n=== 10.5b end_date 范围错误 → out_of_range ===')
+    installMock({ error: true, reason: "Parameter 'end_date' is out of allowed range" })
+    const endRange = await fetchWeather(31.23, 121.47, 100, '2026-08-06', 3, NOW_OPTS)
+    assert('ok === false', endRange.ok === false, JSON.stringify(endRange))
+    assert('error === out_of_range', endRange.error === 'out_of_range', JSON.stringify(endRange))
+    assert('requestedStartDate === 2026-08-06', endRange.requestedStartDate === '2026-08-06', JSON.stringify(endRange))
+    assert('requestedEndDate === 2026-08-08', endRange.requestedEndDate === '2026-08-08', JSON.stringify(endRange))
+    assert('不携带 data', endRange.data === undefined, JSON.stringify(endRange).substring(0, 200))
+    assert('不暴露 Open-Meteo 原始 reason', !JSON.stringify(endRange).includes('allowed range'), JSON.stringify(endRange))
+
     console.log('\n=== 10.6 部分覆盖 → out_of_range ===')
     installMock(dailyPayload(['2026-08-06', '2026-08-07']))
     const partial = await fetchWeather(31.23, 121.47, 100, '2026-08-06', 3, NOW_OPTS)
     assert('ok === false', partial.ok === false, JSON.stringify(partial))
     assert('error === out_of_range', partial.error === 'out_of_range', JSON.stringify(partial))
     assert('不携带 weather.days', partial.data === undefined, JSON.stringify(partial).substring(0, 200))
+
+    console.log('\n=== 10.6b 返回天数多于请求窗口 → weather_data_invalid ===')
+    installMock(dailyPayload(['2026-08-06', '2026-08-07', '2026-08-08', '2026-08-09']))
+    const extraDays = await fetchWeather(31.23, 121.47, 100, '2026-08-06', 3, NOW_OPTS)
+    assert('ok === false', extraDays.ok === false, JSON.stringify(extraDays))
+    assert('error === weather_data_invalid（锁定 daily.time.length !== tripDays 完整契约）', extraDays.error === 'weather_data_invalid', JSON.stringify(extraDays))
+    assert('不携带 data', extraDays.data === undefined, JSON.stringify(extraDays).substring(0, 200))
 
     console.log('\n=== 10.7 错误起点 → weather_data_invalid ===')
     installMock(dailyPayload(['2026-08-04', '2026-08-05', '2026-08-06']))
@@ -185,6 +213,43 @@ async function main() {
       const callsBefore = httpsGetCalls
       const r = await fetchWeather(31.23, 121.47, 100, '2026-08-06', bad, NOW_OPTS)
       assert('tripDays=' + JSON.stringify(bad) + ' 被拒绝（invalid_trip_days 且不请求网络）', r.ok === false && r.error === 'invalid_trip_days' && httpsGetCalls === callsBefore, JSON.stringify(r))
+    }
+
+    console.log('\n=== tripDays 云函数入口类型契约 ===')
+    // 5.1 合法输入
+    assert('parseTripDaysInput(undefined) === 1（默认）', parseTripDaysInput(undefined) === 1, '实际=' + String(parseTripDaysInput(undefined)))
+    assert('parseTripDaysInput(null) === 1（默认）', parseTripDaysInput(null) === 1, '实际=' + String(parseTripDaysInput(null)))
+    assert('parseTripDaysInput(1) === 1', parseTripDaysInput(1) === 1, '实际=' + String(parseTripDaysInput(1)))
+    assert('parseTripDaysInput(7) === 7', parseTripDaysInput(7) === 7, '实际=' + String(parseTripDaysInput(7)))
+    assert('parseTripDaysInput("1") === 1', parseTripDaysInput('1') === 1, '实际=' + String(parseTripDaysInput('1')))
+    assert('parseTripDaysInput("7") === 7', parseTripDaysInput('7') === 7, '实际=' + String(parseTripDaysInput('7')))
+    // 5.2 非法输入逐项拒绝
+    const invalidTripDayInputs = [
+      0,
+      -1,
+      1.5,
+      8,
+      NaN,
+      Infinity,
+      true,
+      false,
+      [],
+      [1],
+      {},
+      { value: 1 },
+      '',
+      ' ',
+      ' 1 ',
+      '01',
+      '1.0',
+      '1e0',
+      '0x1',
+      '+1',
+      '-1',
+      '1abc',
+    ]
+    for (const bad of invalidTripDayInputs) {
+      assert('拒绝 ' + describeValue(bad) + ' → null', parseTripDaysInput(bad) === null, '实际=' + String(parseTripDaysInput(bad)))
     }
 
     console.log('\n=== 10.13 confidence 按实际预报提前量 ===')

@@ -82,6 +82,29 @@ function getDateInTimeZone(now, timeZone) {
 }
 
 /**
+ * tripDays 云函数入口严格解析（TP-P0-002 REVIEW_FIX）
+ * 接受：undefined/null → 默认 1；数字 1–7 的整数；单字符十进制字符串 "1"–"7"。
+ * 拒绝：0、负数、小数、8 及以上、NaN、Infinity、布尔、数组、对象、空字符串、
+ * 带空格字符串、前导零、小数、指数、十六进制、带符号及非数字字符串，一律返回 null。
+ * 不对任意类型调用 Number(value) 强制转换，不 trim；非法时返回 null，由调用方报错。
+ */
+function parseTripDaysInput(value) {
+  if (value === undefined || value === null) return 1
+
+  if (typeof value === 'number') {
+    return Number.isInteger(value) && value >= 1 && value <= 7
+      ? value
+      : null
+  }
+
+  if (typeof value === 'string' && /^[1-7]$/.test(value)) {
+    return Number(value)
+  }
+
+  return null
+}
+
+/**
  * 查询 Open-Meteo 天气（严格行程窗口契约，TP-P0-002）
  * @param {number} lat - 纬度（WGS84）
  * @param {number} lon - 经度（WGS84）
@@ -221,4 +244,4 @@ async function fetchWeather(lat, lon, elevation, dateStr, tripDays, options) {
   }
 }
 
-module.exports = { fetchWeather, isValidIsoDate, addIsoDays, diffIsoDays, getDateInTimeZone }
+module.exports = { fetchWeather, isValidIsoDate, addIsoDays, diffIsoDays, getDateInTimeZone, parseTripDaysInput }

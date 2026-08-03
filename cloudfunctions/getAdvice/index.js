@@ -18,7 +18,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const { resolveLocation, gcj02ToWgs84 } = require('./geocode')
 const { fetchElevation } = require('./geocode')
-const { fetchWeather, isValidIsoDate } = require('./weather')
+const { fetchWeather, isValidIsoDate, parseTripDaysInput } = require('./weather')
 const { calcSunEvents } = require('./sun-events')
 const { getGearRules } = require('./gear-rules')
 const { buildMessages, buildDegradedResponse } = require('./prompt')
@@ -170,19 +170,6 @@ function buildRuleBasedAdvice(gearRules, weather) {
 }
 
 /**
- * tripDays 严格归一化（TP-P0-002）
- * 未提供（undefined/null）默认 1；提供时必须能严格转换为 1–7 的整数。
- * 拒绝 0、负数、小数、8 及以上、"1abc"、NaN 等非法输入；非法返回 null，由调用方报错。
- */
-function parseTripDays(days) {
-  if (days === undefined || days === null) return 1
-  const n = Number(days)
-  if (!Number.isInteger(n)) return null
-  if (n < 1 || n > 7) return null
-  return n
-}
-
-/**
 * 云函数主入口
  */
 exports.main = async (event, context) => {
@@ -206,9 +193,9 @@ exports.main = async (event, context) => {
     return await handleAdvice(event, startTime)
   }
 
-  // TP-P0-002：tripDays 严格归一化——未提供默认 1；提供时必须严格为 1–7 的整数，
-  // 拒绝 0、负数、小数、8 及以上、"1abc"、NaN，不静默截断或修正
-  const tripDays = parseTripDays(days)
+  // TP-P0-002：tripDays 严格归一化——未提供默认 1；提供时只接受数字 1–7 整数或单字符 "1"–"7"，
+  // 拒绝布尔、数组、对象及带空格/前导零/小数/指数/符号等字符串；不对任意类型做 Number() 强制转换
+  const tripDays = parseTripDaysInput(days)
   if (tripDays === null) {
     return { ok: false, error: 'invalid_trip_days', message: '行程天数必须为 1 至 7 天' }
   }
