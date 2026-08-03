@@ -65,6 +65,7 @@ async function fetchWeather(lat, lon, elevation, dateStr) {
     longitude: lon.toString(),
     elevation: (elevation != null ? elevation : 0).toString(),
     daily: 'temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max',
+    wind_speed_unit: 'ms',
     timezone: 'Asia/Shanghai',
     forecast_days: forecastDays.toString(),
   })
@@ -74,6 +75,13 @@ async function fetchWeather(lat, lon, elevation, dateStr) {
 
   if (!result.daily || !result.daily.time) {
     return { ok: false, error: 'weather_data_invalid', message: 'Open-Meteo 返回数据异常' }
+  }
+
+  // 风速单位契约：请求已固定 wind_speed_unit=ms，响应单位必须严格为 m/s。
+  // daily_units 缺失、单位字段缺失、km/h 或其他值一律确定性拒绝，防止单位漂移。
+  const windUnitMeta = result.daily_units && result.daily_units.wind_speed_10m_max
+  if (windUnitMeta !== 'm/s') {
+    return { ok: false, error: 'weather_data_invalid', message: 'Open-Meteo 风速单位异常' }
   }
 
   const daily = result.daily
@@ -98,6 +106,7 @@ async function fetchWeather(lat, lon, elevation, dateStr) {
     data: {
       days,
       source: 'Open-Meteo',
+      windUnit: 'm/s',
       fetchedAt: new Date().toISOString(),
       elevationUsed: elevation,
       elevationCaveat: 'Open-Meteo 用标准递减率线性修正，逆温层/辐射冷却场景温度可能反向偏差，山区微气候仅供参考',
