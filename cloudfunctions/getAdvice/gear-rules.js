@@ -1,14 +1,18 @@
 /**
  * 徒步薯 - 装备规则表（LLM grounding）
  *
- * 维度：季节 × 海拔 × 天数 × 纬度带
+ * 维度：季节 × 海拔 × 天数 × 纬度带 × 路线类型
  * - 季节：summer(夏) / transitional(过渡季) / winter(冬)，按温度区间
  * - 海拔：low(<1500m) / mid(1500-3500m) / high(3500-5500m) / extreme(>5500m)
  * - 天数：1-7（数字）
  * - 纬度带：south(南方湿润) / north(北方干燥)，按秦岭-淮河线粗分
+ * - 路线类型：trek / climb / tour（TP-P0-003 严格契约，缺失或非法直接拒绝）
  *
  * 致命风险硬约束：对应海拔/季节的致命风险装备必入清单
+ * climb 硬约束：路线类型本身确定性触发滑坠风险与核心技术装备，不受用户等级影响
  */
+
+const { isKnownRouteType } = require('./route-type')
 
 // 致命风险枚举
 const FATAL_RISKS = {
@@ -43,9 +47,19 @@ function getLatitudeBand(lat) {
  * 获取装备规则（作为 LLM grounding）
  * @param {Object} params - { month, elevation, days, lat, routeType }
  * @returns {Object} { season, elevationBand, latitudeBand, fatalRisks, essentialGear, notes }
+ * @throws {Error & {code: 'invalid_route_type'}} routeType 缺失、unknown 或非法时
  */
 function getGearRules(params) {
   const { month, elevation, days, lat, routeType } = params
+
+  // TP-P0-003：规则层只接受三个已知业务类型。
+  // 缺失、unknown 或非法值必须被调用层确定性识别，不得默认成 trek 或 climb，
+  // 也不得把任意“非 trek”当作 climb。
+  if (!isKnownRouteType(routeType)) {
+    const err = new Error('invalid_route_type: getGearRules 只接受 trek/climb/tour')
+    err.code = 'invalid_route_type'
+    throw err
+  }
 
   const season = getSeason(month)
   const elevationBand = getElevationBand(elevation)
@@ -59,11 +73,14 @@ function getGearRules(params) {
     fatalRisks.push(FATAL_RISKS.altitude)
   }
 
-  // 极高海拔 -> 滑坠/技术装备
-  // 5000m+ 视为技术攀登，需冰爪/结组绳（四姑娘山二峰 5276m 是典型 case，spec 要求必入）
-  // 但转山路线（routeType='trek'）不攀登，不需要冰爪/结组绳/安全带（冈仁波齐是转山不是攀登）
-  if ((elevationBand === 'extreme' || elevation >= 5000) && routeType !== 'trek') {
-    fatalRisks.push({ name: '滑坠', gear: ['冰爪', '结组绳', '头盔', '安全带'] })
+  // TP-P0-003：climb 确定性触发滑坠风险与核心技术装备（头盔/安全带/结组绳），
+  // 与用户等级无关；海拔 >= 5000m 再增加冰爪。低于 5000m 的 climb 不退化为普通徒步。
+  if (routeType === 'climb') {
+    const climbGear = ['头盔', '安全带', '结组绳']
+    if (elevation >= 5000) {
+      climbGear.push('冰爪')
+    }
+    fatalRisks.push({ name: '滑坠', gear: climbGear })
   }
 
   // 冬季/高海拔 -> 失温风险
@@ -135,9 +152,9 @@ function getGearRules(params) {
     { item: '相机', reason: '记录风景' },
   ]
 
-  // 转山路线加防风保暖（高海拔徒步而非攀登，保暖优先于技术装备）
-  if (routeType === 'trek' && (elevationBand === 'high' || elevationBand === 'extreme')) {
-    recommendedGear.push({ item: '防风保暖羽绒服', reason: '高海拔转山保暖' })
+  // 徒步/游览路线高海拔保暖（保暖优先于技术装备；tour 使用与 trek 相同的装备基线）
+  if ((routeType === 'trek' || routeType === 'tour') && (elevationBand === 'high' || elevationBand === 'extreme')) {
+    recommendedGear.push({ item: '防风保暖羽绒服', reason: '高海拔徒步保暖' })
     recommendedGear.push({ item: '保温壶', reason: '高海拔保温' })
   }
 
@@ -153,6 +170,10 @@ function getGearRules(params) {
   if (season === 'transitional' && month === 5) {
     ruleNotes.push('5月底按过渡季偏夏处理')
   }
+  // TP-P0-003：tour 使用 trek 基础风险与装备基线，但保持独立类型并附加说明
+  if (routeType === 'tour') {
+    ruleNotes.push('游览型路线仍需核验景区开放、交通方式和实际步行范围')
+  }
 
   return {
     season,
@@ -160,7 +181,8 @@ function getGearRules(params) {
     elevation,
     latitudeBand,
     days,
-    routeType: routeType || 'climb',
+    // TP-P0-003：原样返回输入的合法类型，不得重新默认或重写
+    routeType,
     fatalRisks: fatalRisks.map((r) => r.name),
     essential: essentialGear,
     recommended: recommendedGear,

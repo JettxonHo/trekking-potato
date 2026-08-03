@@ -2,8 +2,8 @@
 
 - Task ID: `TP-P0-003`
 - Title: 调查路线类型是否从路线数据贯穿解析、规则、建议与展示
-- Status: `READY`
-- Authorized mode: `INVESTIGATION`
+- Status: `REVIEW`
+- Authorized mode: `IMPLEMENTATION`
 - Priority: `P0`
 - Controller-owned: `true`
 - Activation condition: 本任务进入 `main`，并收到主控明确的开始调查指令

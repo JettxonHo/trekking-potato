@@ -8,6 +8,7 @@
 
 const https = require('https')
 const { matchBuiltinRoute } = require('./data/routes')
+const { isKnownRouteType } = require('./route-type')
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const ugcDb = cloud.database()
@@ -130,6 +131,10 @@ async function resolveLocation(route) {
   // 1. 内置表匹配
   const builtin = matchBuiltinRoute(route)
   if (builtin) {
+    // TP-P0-003：内置路线透传可信类型；类型数据异常时确定性拒绝，不得默认成 trek
+    if (!isKnownRouteType(builtin.type)) {
+      return { ok: false, error: 'invalid_route_type', message: '内置路线类型数据异常' }
+    }
     return {
       ok: true,
       data: {
@@ -142,29 +147,39 @@ async function resolveLocation(route) {
         note: builtin.note,
         needsConfirm: builtin.needsConfirm || false,
         matchType: builtin.matchType,
+        type: builtin.type,
+        typeSource: 'builtin',
       },
     }
   }
 
   // 1.5 UGC 共创路线库查询（其他用户手动输入并沉淀的路线）
+  // TP-P0-003：UGC 记录携带合法类型时透传；旧记录缺失或非法类型时归为 unknown，
+  // 由调用层要求用户明确选择，不得默认成 trek
+  const ugcTypeFields = (r) => {
+    if (isKnownRouteType(r && r.type)) {
+      return { type: r.type, typeSource: 'ugc' }
+    }
+    return { type: 'unknown', typeSource: 'unknown' }
+  }
   try {
     const ugcRes = await ugcDb.collection('routes').limit(500).get()
     const ugcRoutes = ugcRes.data || []
     for (const r of ugcRoutes) {
       // 名称精确匹配或别名匹配
       if (r.name === route) {
-        return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc' } }
+        return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc', ...ugcTypeFields(r) } }
       }
       if (r.aliases && Array.isArray(r.aliases)) {
         for (const a of r.aliases) {
           if (a && a === route) {
-            return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc' } }
+            return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc', ...ugcTypeFields(r) } }
           }
         }
       }
       // 包含匹配（如"黑排角"命中"黑排角海岸线"）
       if (r.name && r.name.indexOf(route) >= 0) {
-        return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc' } }
+        return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc', ...ugcTypeFields(r) } }
       }
     }
   } catch (e) {
@@ -206,6 +221,10 @@ async function resolveLocation(route) {
         source: '高德POI(海拔获取失败)',
         location: amapResult.location,
         needsConfirm: true,
+        matchType: 'amap',
+        // TP-P0-003：高德不能提供可信路线类型，要求用户明确选择
+        type: 'unknown',
+        typeSource: 'amap',
       },
     }
   }
@@ -220,6 +239,10 @@ async function resolveLocation(route) {
       source: '高德POI+Open-Meteo',
       location: amapResult.location,
       needsConfirm: false,
+      matchType: 'amap',
+      // TP-P0-003：高德不能提供可信路线类型，要求用户明确选择
+      type: 'unknown',
+      typeSource: 'amap',
     },
   }
 }

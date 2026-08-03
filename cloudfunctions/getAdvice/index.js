@@ -22,6 +22,7 @@ const { fetchWeather, isValidIsoDate, parseTripDaysInput } = require('./weather'
 const { calcSunEvents } = require('./sun-events')
 const { getGearRules } = require('./gear-rules')
 const { buildMessages, buildDegradedResponse } = require('./prompt')
+const { isKnownRouteType, validateRouteTypeContract } = require('./route-type')
 
 // LLM API 配置（DeepSeek，OpenAI 兼容格式）
 // 切换原因：智谱 GLM 对微信云函数 IP 服务端限流（DNS/TCP/TLS 正常但服务端挂着不响应）
@@ -170,6 +171,28 @@ function buildRuleBasedAdvice(gearRules, weather) {
 }
 
 /**
+ * TP-P0-003 REVIEW_FIX：区分地理解析失败中的内置数据完整性错误。
+ * invalid_route_type（内置路线类型数据异常）必须原样传播，
+ * 不得改写为 location_failed，也不得携带 needsRouteType 进入手动坐标兜底；
+ * not_found / amap_failed 等既有解析失败仍映射为 location_failed。
+ */
+function mapLocationResolutionFailure(locResult) {
+  if (locResult && locResult.error === 'invalid_route_type') {
+    return {
+      ok: false,
+      error: 'invalid_route_type',
+      message: locResult.message || '内置路线类型数据异常',
+    }
+  }
+
+  return {
+    ok: false,
+    error: 'location_failed',
+    message: (locResult && locResult.message) || '未找到位置',
+  }
+}
+
+/**
 * 云函数主入口
  */
 exports.main = async (event, context) => {
@@ -208,6 +231,10 @@ exports.main = async (event, context) => {
   // 2. 地理编码：手动坐标优先，否则走 resolveLocation
   let loc
   if (event.manualLat && event.manualLon) {
+    // TP-P0-003：手动坐标必须由用户明确选择路线类型，不得硬编码 trek
+    if (!isKnownRouteType(event.routeType)) {
+      return { ok: false, error: 'invalid_route_type', message: '请选择有效的路线类型' }
+    }
     // 用户手动输入坐标兜底（搜不到路线名时）
     let elev = event.manualElevation
     // 海拔没填的话查 Open-Meteo elevation API
@@ -222,23 +249,53 @@ exports.main = async (event, context) => {
       lon: parseFloat(event.manualLon),
       elevation: elev != null ? Math.round(elev) : null,
       location: route,
-      type: 'trek',
+      type: event.routeType,
+      typeSource: 'user',
     }
   } else {
     const locResult = await resolveLocation(route)
     if (!locResult.ok) {
-      return { ok: false, error: 'location_failed', message: locResult.message || '未找到位置' }
+      // TP-P0-003 REVIEW_FIX：内置类型数据异常保持 invalid_route_type，不被改写为 location_failed
+      return mapLocationResolutionFailure(locResult)
     }
     loc = locResult.data
   }
 
   // 如果需要用户确认（编辑距离匹配），返回确认请求
+  // TP-P0-003：候选携带路线类型与来源，供确认展示；确认交互闭环由 TP-P0-004 处理
   if (loc.needsConfirm && loc.matchType === 'editDistance') {
     return {
       ok: true,
       needsConfirm: true,
       message: `你输入的"${route}"可能是指"${loc.name}"（${loc.location}），请确认`,
-      data: { name: loc.name, lat: loc.lat, lon: loc.lon, elevation: loc.elevation },
+      data: {
+        name: loc.name,
+        lat: loc.lat,
+        lon: loc.lon,
+        elevation: loc.elevation,
+        routeType: loc.type,
+        routeTypeSource: loc.typeSource,
+        matchType: loc.matchType,
+      },
+    }
+  }
+
+  // TP-P0-003：类型未知（外部地理编码/旧 UGC 记录）不得进入规则层，
+  // 必须返回明确状态要求用户选择路线类型；不得默认成 trek 继续查询
+  if (!isKnownRouteType(loc.type)) {
+    return {
+      ok: false,
+      error: 'route_type_required',
+      message: '无法从可信数据确认路线类型，请选择路线类型后继续',
+      needsRouteType: true,
+      data: {
+        name: loc.name,
+        lat: loc.lat,
+        lon: loc.lon,
+        elevation: loc.elevation,
+        location: loc.location,
+        routeTypeOptions: ['trek', 'climb', 'tour'],
+      },
     }
   }
 
@@ -246,15 +303,24 @@ exports.main = async (event, context) => {
   const wgs84 = gcj02ToWgs84(loc.lon, loc.lat)
 
   // 4. 装备规则（grounding，本地计算，无网络）
+  // TP-P0-003：只传可信类型 loc.type，删除 `loc.type || 'trek'` 静默默认
   const dateObj = new Date(date + 'T12:00:00')
   const month = dateObj.getMonth() + 1
-  const gearRules = getGearRules({
-    month,
-    elevation: loc.elevation,
-    days: tripDays,
-    lat: loc.lat,
-    routeType: loc.type || 'trek',
-  })
+  let gearRules
+  try {
+    gearRules = getGearRules({
+      month,
+      elevation: loc.elevation,
+      days: tripDays,
+      lat: loc.lat,
+      routeType: loc.type,
+    })
+  } catch (e) {
+    if (e && e.code === 'invalid_route_type') {
+      return { ok: false, error: 'invalid_route_type', message: '路线类型无效，请重新选择' }
+    }
+    throw e
+  }
 
   // 5. 并行查询天气+天文（Promise.all）
   const [weatherResult, sunEvents] = await Promise.all([
@@ -287,6 +353,10 @@ exports.main = async (event, context) => {
        elevation: loc.elevation,
        location: loc.location,
        coords: { lat: loc.lat, lon: loc.lon },
+       // TP-P0-003：base response 显式携带可信路线类型与来源，
+       // 不能只依赖 gearRules.routeType
+       routeType: loc.type,
+       routeTypeSource: loc.typeSource,
        weather,
        sunEvents,
        gearRules,
@@ -320,6 +390,9 @@ exports.main = async (event, context) => {
       gearRules,
       sunEvents,
       microclimate: weather ? { humidity: null, windMs: weather.days[0] && weather.days[0].windMs, dewPointSpread: null } : null,
+      // TP-P0-003：Prompt 显式接收可信路线类型与来源
+      routeType: loc.type,
+      routeTypeSource: loc.typeSource,
     })
 
     console.log('[getAdvice] 调用 DeepSeek, prompt messages:', messages.length)
@@ -383,6 +456,14 @@ exports.main = async (event, context) => {
  */
 function validateBaseData(baseData) {
   if (!baseData || typeof baseData !== 'object') return false
+  // TP-P0-003：路线类型结构一致性校验
+  // - routeType 必须是已知类型（trek/climb/tour，不接受 unknown/非法值）；
+  // - routeTypeSource 必须是允许来源；
+  // - gearRules.routeType 必须与 routeType 一致；
+  // 任一不满足返回 invalid_base_data。
+  // 说明：这只能保证结构一致性，不能解决客户端同时篡改 routeType 与
+  // gearRules 的问题；完整服务端可信上下文仍属于 P1-1（queryId）。
+  if (!validateRouteTypeContract(baseData).ok) return false
   // weather 结构校验
   if (baseData.weather && typeof baseData.weather === 'object') {
     if (baseData.weather.days && Array.isArray(baseData.weather.days)) {
@@ -449,6 +530,9 @@ async function handleAdvice(event, startTime) {
       gearRules,
       sunEvents,
       microclimate: weather ? { humidity: null, windMs: weather.days && weather.days[0] && weather.days[0].windMs, dewPointSpread: null } : null,
+      // TP-P0-003：advice 阶段复用已通过结构校验的路线类型与来源
+      routeType: baseData.routeType,
+      routeTypeSource: baseData.routeTypeSource,
     })
 
     console.log('[getAdvice:advice] 调用 DeepSeek')
@@ -499,3 +583,6 @@ async function handleAdvice(event, startTime) {
     },
   }
 }
+
+// 测试专用导出：地理解析失败映射纯函数（TP-P0-003 REVIEW_FIX）
+exports._mapLocationResolutionFailure = mapLocationResolutionFailure
