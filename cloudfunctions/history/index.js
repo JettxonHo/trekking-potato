@@ -24,6 +24,11 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const MAX_SUMMARY = 120
 
+// TP-P0-003：路线类型契约枚举（与 cloudfunctions/getAdvice/route-type.js 保持一致；
+// 云函数按目录独立部署，不能跨函数目录 require）
+const VALID_ROUTE_TYPES = ['trek', 'climb', 'tour']
+const VALID_ROUTE_TYPE_SOURCES = ['builtin', 'ugc', 'amap', 'user', 'unknown']
+
 exports.main = async (event, context) => {
   const { mode } = event
 
@@ -57,7 +62,8 @@ exports.main = async (event, context) => {
 
 /**
  * 保存一条历史记录
- * 字段白名单：route, date, days, level, elevation, location, summary, degraded
+ * 字段白名单：route, date, days, level, elevation, location, summary, degraded,
+ * routeType, routeTypeSource（TP-P0-003）
  */
 async function saveRecord(event, openid) {
   // 手动注入 _openid，不依赖 SDK 隐式行为（防御性：SDK 可能不注入）
@@ -67,6 +73,9 @@ async function saveRecord(event, openid) {
     ? { lat: event.coords.lat, lon: event.coords.lon }
     : null
   const safeElev = typeof event.elevation === 'number' && isFinite(event.elevation) ? event.elevation : null
+  // TP-P0-003：路线类型只接受合法枚举值；缺失保持缺失，不得迁移为 trek
+  const safeRouteType = VALID_ROUTE_TYPES.indexOf(event.routeType) >= 0 ? event.routeType : null
+  const safeRouteTypeSource = VALID_ROUTE_TYPE_SOURCES.indexOf(event.routeTypeSource) >= 0 ? event.routeTypeSource : null
 
   const record = {
     _openid: openid || '',
@@ -79,6 +88,8 @@ async function saveRecord(event, openid) {
     summary: String(event.summary || '').substring(0, MAX_SUMMARY),
     degraded: event.degraded === true,
     coords: safeCoords,
+    routeType: safeRouteType,
+    routeTypeSource: safeRouteTypeSource,
     createdAt: db.serverDate(),
   }
 
@@ -171,6 +182,10 @@ async function saveRoute(event, openid) {
   const lon = parseFloat(lonStr)
   const elevation = typeof event.elevation === 'number' && isFinite(event.elevation) ? event.elevation : null
   const location = String(event.location || '').substring(0, 60)
+  // TP-P0-003：接受前端手动选择的合法路线类型写入新 UGC 记录；
+  // 缺失或非法时记为 null，由 geocode 视为 unknown 要求用户重新选择。
+  // 静默写入、距离去重、名称合并与审核状态行为不变（属 P1-2）。
+  const type = VALID_ROUTE_TYPES.indexOf(event.type) >= 0 ? event.type : null
 
   // 严格校验：非纯数字 / NaN / Infinity / 超范围 全部拒绝
   if (!name || !isNumeric(latStr) || !isNumeric(lonStr) || isNaN(lat) || isNaN(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
@@ -212,7 +227,7 @@ async function saveRoute(event, openid) {
           await db.collection('routes').doc(nearMatch._id).update({ data: { aliases } })
         }
       }
-      return { ok: true, action: 'merged', data: { name: nearMatch.name, lat: nearMatch.lat, lon: nearMatch.lon, elevation: nearMatch.elevation } }
+      return { ok: true, action: 'merged', data: { name: nearMatch.name, lat: nearMatch.lat, lon: nearMatch.lon, elevation: nearMatch.elevation, type: VALID_ROUTE_TYPES.indexOf(nearMatch.type) >= 0 ? nearMatch.type : null } }
     }
 
     // 防线 B：同名但异地（> 5km）→ 自动追加地区后缀
@@ -233,13 +248,15 @@ async function saveRoute(event, openid) {
       lon,
       elevation,
       location,
+      // TP-P0-003：UGC 记录携带用户明确选择的路线类型（可为 null）
+      type,
       aliases: name !== finalName ? [name] : [],
       createdBy: 'UGC',
       _openid: openid,
       createdAt: db.serverDate(),
     }
     const res = await db.collection('routes').add({ data: record })
-    return { ok: true, action: 'created', id: res._id, data: { name: finalName, lat, lon, elevation } }
+    return { ok: true, action: 'created', id: res._id, data: { name: finalName, lat, lon, elevation, type } }
   } catch (e) {
     console.error('[history:saveRoute] 失败:', e.message)
     return { ok: false, error: 'save_route_failed', message: '路线保存失败: ' + e.message }
