@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M3 Route domain`
-- Active task: `I07 / GitHub #16 / APPROVED`
-- Branch: `codex/i07-route-domain`
-- Base: `main` at `7d43b1d`
+- Active task: `M3-DATA-CONTRACTS / #50 I10a + #17–#21 source gates / READY_FOR_PLANNING_PR`
+- Branch: `codex/i08-i12-route-data-contracts`
+- Base: `main` at `ea3b869`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -16,9 +16,12 @@
 - I06 planning PR: `#46` — merged; latest-head `quality` passed
 - I06 implementation PR: `#47` — merged; GitHub #15 and M2 closed
 - I07 planning PR: `#48` — merged; GitHub #16 remains open for implementation
+- I07 implementation PR: `#49` — merged; GitHub #16 closed
 
-Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 implementation passed its
-second independent Sol Review and is approved for PR/CI; no I08–I13 work is authorized before merge.
+Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 is complete. The field-level
+audit blocks every full pilot variant; I10 is being split so its independently supported Wutai blocked
+record can establish the route-data test seam without inventing the small-route geometry. No route-data
+implementation is authorized until this contract change is independently reviewed and merged.
 
 ## Completed
 
@@ -98,6 +101,29 @@ second independent Sol Review and is approved for PR/CI; no I08–I13 work is au
 - Sol 的第二次 I07 实现 Review 直接检查了实际模块、测试与文档，并亲自重跑
   `test:route-domain`、lint、typecheck、root test、integration、WeChat build 和 diff check；
   全部通过。Review 结果为 `APPROVED`，当前仅等待实现 PR 的 latest-head CI 与合并。
+- I07 implementation PR #49 matched reviewed head `19c3fee`, passed latest-head GitHub `quality`,
+  and squash merged as `ea3b869`; GitHub #16 closed. The production search path remains unchanged
+  by design, and M3 proceeds to source-backed pilot records.
+- Parallel read-only source audits and Sol verification are consolidated in
+  `docs/research/pilot-route-source-audit.md`. The report found an official seven-day Siguniang
+  reference after the controller's initial search, but also confirmed that its D2–D6 geometry is not
+  sufficient for full stages and that official pages conflict on the second-peak elevation.
+- I08, I09, I10b, I11 and I12 are source-blocked with exact missing-field and unblock conditions.
+  The official Wutai 2026-07-31 title supports a narrowly scoped I10a blocked record as of the audit
+  date; unknown effective dates remain null and are not interpreted as a permanent ban.
+- TP-D023 resolves mixed-route metrics as complete journey geometry, with access mode shown
+  separately; endpoint or cableway height differences cannot substitute for cumulative ascent.
+- GitHub #19 is now a blocked parent with #50 I10a and #51 I10b. #17/#18/#20/#21 and #51 carry
+  `status:blocked` plus exact source gaps; #50 is contract-pending until this planning PR merges.
+- TP-D024 allows I14 to proceed later from I07's frozen stage/sample contract with synthetic offline
+  fixtures while real pilot data remains blocked. It does not authorize I13 or production route data.
+- The first independent source-gate contract Review returned `CHANGES_REQUESTED` for five document
+  consistency findings: stale I08-first wording, I10a status drift, an effective-date contradiction,
+  AMap tier drift and an incorrect Yulong publisher. All were corrected. Second Review returned
+  `APPROVED`; no human decision is required.
+- Sol reran the complete planning-branch quality matrix after the contract changes: lint passed with
+  0 errors and 10 existing warnings; typecheck, root test, 56/0 offline integration, WeChat build and
+  `git diff --check` all passed.
 
 ## Baseline evidence
 
@@ -132,16 +158,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: delivered the bounded I07 test-first implementation and one bounded review fix on
-  `codex/i07-route-domain`; Sol second Review is `APPROVED`.
-- Sol XHigh: owns I07 product/domain contract, task routing and independent Review.
-- I07 design/review agents: three alternatives and two independent contract Review rounds complete.
+- Terra XHigh: no active implementation assignment while the I10a/source-gate contract is under design.
+- Sol XHigh: owns I10 split, #17–#21 blocker contracts, scheduling and independent Review.
+- Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Commit the reviewed I07 implementation and create its focused PR.
-2. Confirm the PR head matches the reviewed commit and latest-head GitHub `quality` passes.
-3. Squash merge, close #16, update the M3 checkpoint, then freeze the first route-data contract.
+1. Create the pure planning PR from the reviewed branch and verify latest-head `quality`.
+2. Merge the contract PR, then activate I10a on the merged base.
+3. After I10a, freeze and execute I14 against synthetic fixtures while source acquisition continues.
 
 ## Blockers and risks
 
@@ -149,15 +174,21 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Node 24 随附的 npm 11 与 `@nutui/nutui-react-taro@3.0.20` 的不可解析可选依赖
   存在锁文件校验不兼容：npm 11 生成锁时省略该包、`npm ci` 又报缺失。I01 已按
   GitHub #10 的控制端决策固定 npm 10.9.2，并以 `engine-strict` 拒绝错误 npm。
-- Five route variants still require field-level A/B evidence during I08–I12.
+- Five full route variants still lack complete field-level A/B evidence. Exact gaps and acceptable
+  remediation are recorded in the research report and must not be filled from adjacent routes.
+- I09's seven-day identity is now official, but D2–D6 detail and the 5276m/5454m official conflict
+  remain unresolved. I12 is a 2017 event record and lacks current access evidence.
+- I10a can progress only with the narrow official-title claim; broader restriction scope requires the
+  missing official announcement body or poster.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I07 implementation
+## Forbidden actions during route-data contract design
 
-- Any file outside the I07 allowlist, dependency/lockfile change, or production runtime integration
-- Pilot route records I08–I12, stable search I13, weather/verdict/queryId/history/UI implementation
+- Any route data, test harness, runtime code, dependency or lockfile implementation
+- Stable search I13, weather/verdict/queryId/history/UI implementation
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Create the approved I07 implementation PR; no I08–I13 task may start before merge.
+Finish the source-gate planning PR and independent Review; then activate I10a. Do not write full pilot
+variants while their evidence gates remain blocked.

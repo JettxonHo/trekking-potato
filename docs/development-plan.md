@@ -1,14 +1,15 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M3 / I07 approved for PR`
+- Status: `ACTIVE — M3 source gate / I10a planning`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
 
 ```text
 I01 → I02 → I03 → I04 → I05a → I05b → I06
-I04 → I07 → I08..I12 → I13
-I07 + I08..I12 → I14 → I15 → I16
+I04 → I07 → I10a
+I10a → {I08, I09, I10b, I11, I12} → I13
+I07 → I14 → I15 → I16
 I15 + I16 → I17 → I18 → I19
 I04 + I17 → I20
 I13 + I16 + I20 → I21 → I22
@@ -16,7 +17,10 @@ I19 + I22 → I23
 I19 + I23 → I24 → I25
 ```
 
-默认串行。I08–I12 只有在 I07 schema 合并后，且使用隔离 worktree、数据文件不重叠时，最多两路并行。
+默认串行。I10a 先建立共享 route-data test seam 和可独立证明的大朝台 blocked
+记录。I08、I09、I10b、I11、I12 在来源证据齐全且使用隔离 worktree、数据文件不
+重叠时，最多两路并行。I14 只依赖已冻结的 I07 schema，可在 full 试点数据阻塞期使用
+合成变体和离线 fixture 独立实现；它不解锁 I13，也不改变任何真实路线事实。
 
 ## 2. Issue 清单
 
@@ -31,7 +35,7 @@ I19 + I23 → I24 → I25
 | I07 | #16 | 领域模型与旧数据适配 | Place/Route/Variant schema |
 | I08 | #17 | 武功山数据 | 可追溯 verified variant |
 | I09 | #18 | 四姑娘山二峰数据 | climb variant |
-| I10 | #19 | 五台山数据 | 小朝台 + blocked 大朝台 |
+| I10 | #19 parent; #50/#51 | 五台山数据 | I10a blocked 大朝台 + I10b 小朝台 |
 | I11 | #20 | 玉龙雪山数据 | 4680 tour variant |
 | I12 | #21 | 贡嘎数据 | 三日点到点 variant |
 | I13 | #22 | 稳定 ID 搜索解析 | 地点/路线/变体区分 |
@@ -121,13 +125,29 @@ I06 规划 PR #46 已合并为 `bf7ac83`，#15 在该真实 base 激活并交给
   测试策略列出的 namespace、引用、日程和采样数量负例均已直接覆盖。状态恢复为
   `READY_FOR_CONTROLLER_REVIEW`。Sol 第二次 Review 和完整本地矩阵均通过，结果为
   `APPROVED`；在实现 PR 合并前，I08–I12 仍不得启动。
+- I07 实现 PR #49 以 reviewed head `19c3fee` 通过 latest-head `quality`，squash merged 为
+  `ea3b869`，GitHub #16 已关闭。Source/Place/Route/full-or-blocked Variant schema 现已冻结；
+  I08–I12 必须先完成逐路线来源审阅与独立文件合同，再开始数据实现。
 
 ## 6. Issue 合同生成规则
 
 I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补齐文件 allowlist、精确验收、测试命令和当前基准提交。I05a/I05b 的冻结合同与真实基准已作为历史保存在 GitHub #41/#42；后续任务不得用本表的一句话目标直接分派。
 
-## 7. 合并顺序与里程碑门
+## 7. I08–I12 来源门
+
+- 字段级证据和直达来源以 `docs/research/pilot-route-source-audit.md` 为调研事实源。
+- I08、I09、I10b、I11、I12 均是 `BLOCKED: SOURCE_EVIDENCE_INCOMPLETE`；任何实现 Agent
+  不得仅凭 Issue 中的部分数值创建 full 变体。
+- I10a 是当前唯一 `SOURCE_EVIDENCE_READY / CONTRACT_PENDING` 的路线数据子任务；本规划
+  PR 合并后才可激活。实现只写大朝台 Route、
+  tier A Source 和 blocked Variant，引用但不升级现有 legacy Place，禁止 full 行程字段。
+  官方页未披露的生效/截止日
+  保留 `null`，并记录 `sourceCheckedAt=2026-08-06`。
+- I10a 合并后，Sol 可在新的合同 PR 中激活 I14；I14 不使用上述阻塞路线的
+  伪造数据。
+
+## 8. 合并顺序与里程碑门
 
 每个里程碑最后一个 PR 合并后更新 `GOAL.md` 和 `docs/current-status.md`。I05a 与 I05b
-已按串行顺序分别 Review/合并并关闭父 #14。M3 数据 schema 未冻结不得并行路线数据；
+已按串行顺序分别 Review/合并并关闭父 #14。M3 路线的字段来源合同未冻结不得并行该数据；
 M7 前不做重复全局 Review。

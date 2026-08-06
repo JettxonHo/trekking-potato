@@ -1,274 +1,91 @@
 # 当前活动任务
 
-- Task ID: `I07`
-- GitHub Issue: `#16` — `https://github.com/JettxonHo/trekking-potato/issues/16`
-- Title: 路线领域模型与旧数据适配任务合同
-- Status: `APPROVED`
+- Task ID: `M3-DATA-CONTRACTS`
+- GitHub Issues: `#17–#21`, I10 children `#50/#51`
+- Title: 五条试点路线来源与数据任务合同
+- Status: `READY_FOR_PLANNING_PR`
 - Mode: `REVIEW_ONLY`
-- Owner: Terra XHigh
+- Owner: Sol XHigh
 - Reviewer: Sol XHigh
-- Branch: `codex/i07-route-domain`
-- Base: `main` at `7d43b1d`
+- Branch: `codex/i08-i12-route-data-contracts`
+- Base: `main` at `ea3b869`
 - Goal: `TP-BETA-001`
 
-I07 的三方案设计和两轮独立合同 Review 已完成，最终结果为 `APPROVED`；规划 PR #48 已
-通过 latest-head `quality` 并合并。现在授权 Terra XHigh 严格按本合同实施，不能改变产品、
-schema、运行时边界、依赖策略或验收标准，也不能批准或合并自己的 PR。
+I07 已通过 PR #48/#49 合并，GitHub #16 关闭。当前只允许 Sol XHigh 和明确分配的
+来源 Agent 做只读来源审计、调研报告、数据文件拆分和任务合同设计；本文件不授权任何
+路线数据或测试代码实现。
 
 ## Objective
 
-实现 Source/Place/Route/RouteVariant 的最小深模块、旧 BUILTIN_ROUTES 诚实适配、字段/
-引用/来源校验和敏感契约测试，使 I08–I13 可以在冻结 schema 上独立开发，同时不提前
-写入五条试点数据或改变当前搜索行为。
+为武功山、四姑娘山二峰、五台山、玉龙雪山和贡嘎五个独立数据 Issue 冻结可执行合同：
+明确规范路线、Source claims、未知字段处理、数据/测试文件、共享测试 seam、合并顺序和
+并发边界。来源不能满足 A/B 时保持 Issue blocked，不得猜测数据或降低验证等级。
 
-## Required reading
+## Planning allowlist
 
-- `GOAL.md`
 - `docs/architecture.md`
 - `docs/testing-strategy.md`
 - `docs/development-plan.md`
-- GitHub #16
-
-## Frozen contract
-
-- 新增一个无 I/O 深模块，唯一生产接口为：
-
-  ```js
-  createRouteCatalog({
-    legacyRecords = [], sources = [], places = [], routes = [], variants = []
-  }) -> { sources, places, routes, variants, getById(id) }
-  ```
-
-  只额外导出 `RouteCatalogValidationError` 供测试识别。adapter、复制、索引和校验均为
-  私有实现，不增加 query/resolve/search 接口。
-- Source 字段固定为 `id/tier/kind/title/publisher/url/checkedAt/supports[]`；`tier` 为 A/B/C，
-  `supports[]` 记录 `{field, method:'direct'|'derived', note?}`。来源等级由 Sol 审阅，不建立
-  加权评分。
-- Place 固定含 `entityKind='place'`、`capability='place_only'`、显式 ID、名称/别名/地区/
-  kind、参考坐标和坐标系、`sourceStatus/sourceIds`。仅 legacy 可附加
-  `activityTypeHint/legacyCandidateId`；二者不是路线事实。
-- Route 固定含 `entityKind='route'`、显式 ID、placeId、名称/别名、routeType、summary 和
-  sourceIds。
-- RouteVariant 为两支判别 union：
-  - `recordStatus='verified' / capability='full'`：A/B、open/unknown、固定日程、连续 stages、
-    总距离/升降、独立路线最高点、1–3 个采样点、合法 stage 引用、accessMode 和来源。
-  - `recordStatus='blocked' / capability='blocked'`：tier A 权威来源、
-    `operationalStatus='blocked'`、
-    restriction 理由/范围/有效期/来源；不得要求或伪造 full 行程字段。
-- 新实体 ID 必须由数据文件显式提供并使用 `source:/place:/route:/variant:` 命名空间；不
-  使用数组下标、哈希或展示名生成。legacy 仅以冻结规范名生成内部
-  `place:legacy:<canonicalName>`，改显示名只能新增 alias；公共 I05 ID 保持
-  `builtin-route:<canonicalName>` 到 I13。
-- 全局 ID 唯一；route/place、variant/route、实体/source、stage/sample 引用必须存在。
-  full 必须满足 `fixedDays === stages.length`、day 为 1..N、时长有序、数值有限且距离/
-  升降非负。附近峰海拔不能替代必填路线最高点或采样点海拔。
-- 无效静态目录抛 `RouteCatalogValidationError`，`code='invalid_route_catalog'`，issues
-  只含稳定 code/path；`getById` miss 返回 null。I07 不新增公共 phase/error。
-- 175 条 BUILTIN_ROUTES 只适配为 175 个 `legacy_unverified`/place-only Place，且
-  Route/Variant 数均为 0；仅映射 name/aliases/location/GCJ-02 lat/lon/type hint/I05 ID。
-  alias 在每个 Place 内 trim、去重并删除等于 canonicalName 的项，但跨 Place 重复 alias
-  必须保留；旧 elevation/bestSeason/note 不进入新领域事实，不从 note 推断 blocked。
-- I07 不修改 `data/routes.js`、`geocode.js`、`index.js` 或前端，不迁移数据库，不改变公共
-  响应、confirm ID、天气、装备、AI、历史或当前搜索行为。I08–I12 分别录入数据；I13
-  再建立生产聚合与搜索接入。
-
-### Exact schema
-
-除明确标为可空或可选的字段外，下列字段均必填；未知值不得用空字符串或伪造的 0/推导
-事实占位，合法的 0 经纬度或 0 升降仍按其真实含义接受。所有名称、别名、摘要和理由必须
-是 trim 后非空字符串，alias 不得为空、重复或等于自身 canonicalName。
-
-```js
-Source = {
-  id: 'source:<stable-slug>',
-  tier: 'A' | 'B' | 'C',
-  kind: 'official' | 'government' | 'association' | 'trusted_api' |
-        'reviewed_gpx' | 'reliable_secondary' | 'user_input' | 'legacy_unknown',
-  title: string,
-  publisher: string,
-  url: string | null,
-  checkedAt: 'YYYY-MM-DD',
-  supports: [{
-    entityId: string,
-    field: string,
-    method: 'direct' | 'derived',
-    note?: string, // method='derived' 时必填
-  }],
-}
-
-Place = {
-  entityKind: 'place',
-  capability: 'place_only',
-  id: 'place:<stable-slug>',
-  canonicalName: string,
-  aliases: string[],
-  region: string,
-  kind: 'mountain' | 'scenic_area' | 'trail_area' | 'cultural_site' | 'unknown',
-  referenceCoordinate: {
-    lat: number,
-    lon: number,
-    coordinateSystem: 'GCJ-02' | 'WGS84',
-  },
-  sourceStatus: 'verified' | 'unverified' | 'legacy_unverified',
-  sourceIds: string[],
-  activityTypeHint?: 'trek' | 'climb' | 'tour', // legacy adapter only
-  legacyCandidateId?: 'builtin-route:<canonicalName>', // legacy adapter only
-}
-
-Route = {
-  entityKind: 'route',
-  id: 'route:<stable-slug>',
-  placeId: string,
-  canonicalName: string,
-  aliases: string[],
-  routeType: 'trek' | 'climb' | 'tour',
-  summary: string,
-  sourceIds: string[],
-}
-
-FullVariant = {
-  entityKind: 'route_variant',
-  recordStatus: 'verified',
-  capability: 'full',
-  id: 'variant:<stable-slug>',
-  routeId: string,
-  canonicalName: string,
-  aliases: string[],
-  direction: 'loop' | 'out_and_back' | 'point_to_point',
-  startPoint: string,
-  endPoint: string,
-  isLoop: boolean,
-  fixedDays: number,
-  stages: [{
-    day: number,
-    startPoint: string,
-    endPoint: string,
-    distanceKm: number,
-    ascentM: number,
-    descentM: number,
-    durationHours: { min: number, max: number },
-    weatherSamplePointIds: string[],
-  }],
-  distanceKm: number,
-  ascentM: number,
-  descentM: number,
-  routeHighestPointElevationM: number,
-  nearbyPeakElevationM: number | null,
-  weatherSamplePoints: [{
-    id: string, // variant 内唯一的局部 ID
-    name: string,
-    coordinate: { lat: number, lon: number, coordinateSystem: 'GCJ-02' | 'WGS84' },
-    elevationM: number,
-  }],
-  accessMode: 'walk' | 'scenic_transport' | 'mixed',
-  operationalStatus: 'open' | 'unknown',
-  verificationLevel: 'A' | 'B',
-  sourceIds: string[],
-  sourceCheckedAt: 'YYYY-MM-DD',
-}
-
-BlockedVariant = {
-  entityKind: 'route_variant',
-  recordStatus: 'blocked',
-  capability: 'blocked',
-  id: 'variant:<stable-slug>',
-  routeId: string,
-  canonicalName: string,
-  aliases: string[],
-  operationalStatus: 'blocked',
-  restriction: {
-    reason: string,
-    scope: string,
-    effectiveFrom: 'YYYY-MM-DD' | null,
-    effectiveTo: 'YYYY-MM-DD' | null,
-    sourceIds: string[],
-  },
-  verificationLevel: 'A',
-  sourceIds: string[],
-  sourceCheckedAt: 'YYYY-MM-DD',
-}
-```
-
-full 的 `sourceIds` 所指 Source，其 `supports` 合集必须针对该 variant ID 覆盖
-`canonicalName/fixedDays/stages/distanceKm/ascentM/descentM/routeHighestPointElevationM/
-weatherSamplePoints/operationalStatus`；设置 nearby peak 时还必须覆盖
-`nearbyPeakElevationM`。每个上述字段至少要有一个 tier A/B Source 的 claim；仅由 tier C
-覆盖的 full 无效。blocked 必须由 tier A Source 针对该记录覆盖
-`operationalStatus/restriction`，且 restriction sourceIds 是 variant sourceIds 的非空子集。
-这只是字段证据完整性，不按来源数量或权重计算评级；A/B 的真实性仍由 Sol 在数据 Issue
-Review 中判断。
-
-经纬度必须有限且位于地理范围；`fixedDays` 必须是正整数，stages 必须非空，stage day
-必须为整数且恰为 `1..fixedDays`。距离必须大于 0，升降非负，时长满足
-`0 < min <= max`，`isLoop` 必须与 direction 一致。full 的每个 stage 至少引用一个存在的
-采样点。Source claim 的 entityId 必须存在，且该 Source 必须被对应实体的 sourceIds 引用。
-blocked 分支不得携带 full 专属字段；legacy Place 固定 `sourceIds=[]`，不得携带
-elevation、bestSeason、note 或伪造的 Source。
-
-## Implementation allowlist
-
-- `cloudfunctions/getAdvice/domain/route-catalog.js`（新增）
-- `scripts/route-domain-contract-test.js`（新增）
-- `package.json`（仅新增 `test:route-domain` 并纳入根 `test`）
-- `docs/architecture.md`
-- `docs/development-plan.md`
-- `docs/testing-strategy.md`
 - `docs/decision-log.md`
 - `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
+- `docs/research/pilot-route-source-audit.md`
 
-不允许修改锁文件、依赖、`data/routes.js`、`geocode.js`、`index.js`、response/confirmation、
-天气、规则、AI、历史、前端或任何 I08–I13 数据/运行时实现。若实现需要这些文件，必须
-停止并交回 Sol，不得自行扩张。
+本阶段禁止新增/修改 route data、测试代码、package scripts、运行时模块、依赖或锁文件。
+GitHub #17–#21 可更新为更精确的 preliminary/ready 合同，但在规划 PR 合并前不得分派实现。
+来源审计 Agent 可在 `docs/research/pilot-route-source-audit.md` 中固化五条路线的一手来源、
+字段证据、冲突、缺口和解阻条件；该报告是调研产物，不授权写入业务数据。
 
-## Acceptance criteria
+## Frozen inputs
 
-1. catalog 可表达一个最小合法 full fixture 与一个不带行程字段的合法 blocked fixture。
-2. 全量 legacy 适配数量精确为 175/0/0，全部为 place-only/legacy_unverified 且 sourceIds
-   为空；单 Place 内 alias 规范化而跨 Place 歧义保留，不产生路线海拔、采样、stage、
-   source 或 blocked 事实。
-3. ID/引用、A/B full 的逐核心字段 A/B evidence、正整数固定日程、采样点、blocked tier A
-   权威来源和 nearby-vs-route-highest 不变量有敏感失败测试；全 C evidence、零天和空
-   stages 必须失败；错误统一为内部 `invalid_route_catalog`。
-4. factory 不修改调用输入，catalog 的规范化数据不与输入共享可变嵌套对象；ID miss
-   返回 null。
-5. I05 四字段候选、`builtin-route:*`、confirm 和所有现有运行时行为保持不变。
-6. 不新增依赖、公共响应、公共错误码、数据库操作或试点事实。
+- `createRouteCatalog` 的真实实现与验证语义以
+  `cloudfunctions/getAdvice/domain/route-catalog.js` 为准；长期字段定义以
+  `docs/architecture.md` 为准。当前任务不得修改 I07 schema。
+- 每条数据 Issue 必须提供显式 Source/Place/Route/Variant ID，不使用哈希或运行时生成器。
+- full 变体只能使用 A/B 证据并覆盖 I07 要求的每个核心字段；derived claim 必须说明方法。
+- 缺失距离、爬升、路线最高点、逐日路段或采样点时，不以附近山峰、营销文案或单一用户
+  笔记填充。来源不足即保持 backlog/blocked，并把缺口写入 Issue。
+- 五台山大朝台只允许 tier A 官方禁行记录；不进入可规划候选，不伪造 full 行程字段。
+- 本轮只写静态数据和离线测试合同。生产目录聚合、同名优先级和搜索接入仍属于 I13。
 
-## Verification
+## Fixed pilot identities
 
-实施 Agent 必须运行：
+| Issue | Required record | Type/days | Special boundary |
+|---|---|---|---|
+| I08 / #17 | 武功山金顶登山揽胜一日线 | `trek`, 1 day | 成熟景区单日 full variant |
+| I09 / #18 | 四姑娘山二峰·海子沟专业登山线 | `climb`, official 7 days | 不把二峰海拔当全部 stage/sample 海拔 |
+| I10 / #19 | 黛螺顶小朝台·大智路 + 大朝台禁行记录 | `trek`, 1 day + blocked | 两种 Variant 分支并存 |
+| I11 / #20 | 玉龙雪山冰川公园 4680 观景线 | `tour`, 1 day | 景区交通与步行混合，不表述为登顶 |
+| I12 / #21 | 环贡嘎·全国徒步大会三日精华线 | `trek`, 3 days | 点到点逐日路段 |
 
-```bash
-corepack npm@10.9.2 run test:route-domain
-corepack npm@10.9.2 run lint
-corepack npm@10.9.2 run typecheck
-corepack npm@10.9.2 test
-corepack npm@10.9.2 run test:integration
-corepack npm@10.9.2 run build:weapp
-```
+## Revised file and test partition
 
-实施使用测试先行：先提交能因模块缺失/行为缺失而失败的领域契约测试，再写最小实现使其
-通过。不得仅测试对象字面量或重复实现生产校验逻辑。
+- 来源审计后，I10 拆为 #50 / I10a blocked 大朝台和 #51 / I10b full 小朝台。I10a 先建立共享
+  离线 route-data runner、根测试入口和五台山数据/断言文件；其中只允许 tier A
+  blocked 记录，不包含小朝台 full 行程。
+- I08、I09、I10b、I11、I12 各自只能新增一个独立数据文件和一个独立断言文件；
+  共享 runner 自动发现这些测试。生产静态 registry 由 I13 建立，数据 Issue 不争用
+  统一运行时文件。
+- I10a 合并后，只有文件完全不重叠且来源合同已经 `APPROVED` 的两个数据 Issue 可在隔离
+  worktree 并行。共享文档由 Sol 串行更新，不让实现 Agent 并发修改。
+- 约 400 行/10 文件仍只是 Review 信号；每条路线的数据、来源和断言必须保持一个独立 PR。
 
-## Implementation delivery
+## Source audit still required
 
-Terra XHigh 已在本分支完成允许范围内的 test-first 实现，交付状态为
-`READY_FOR_CONTROLLER_REVIEW`。实施只新增纯 `route-catalog` 模块和离线契约测试，并将
-`test:route-domain` 纳入根 `test`；未接入任何运行时调用链。
+每个 Issue 在进入 `READY` 前必须列出：来源 URL、发布者、查阅日期、tier/kind、支持的实体
+字段、direct/derived 方法、来源间冲突、仍未知字段和 Sol 的 A/B 判定。网页当前状态可能
+变化，必须在线复核；搜索摘要或聚合转载不能作为字段证据。
 
-第一次 Sol 实现 Review 返回 `CHANGES_REQUESTED`，指出空 namespace 后缀会被接受，且测试
-尚未完整覆盖测试策略承诺的错误命名空间、variant route/source 引用、日程与采样数量失败。
-Terra 先新增能复现空后缀缺口的失败用例，再以“namespace 后必须有非空稳定后缀”的最小校验
-修复，并补齐其余独立负例。此修复不生成 slug、不引入正则策略，也不增加运行时功能。现在
-恢复为 `READY_FOR_CONTROLLER_REVIEW`；Sol XHigh 必须独立检查实际代码、测试敏感性和完整验证
-结果后，才能决定是否批准或合并。
+## Planning completion criteria
 
-第二次 Sol 实现 Review 已完成：实际代码、测试和范围无剩余 P1/P2 发现；Sol 亲自运行
-`test:route-domain`、lint、typecheck、root test、integration、WeChat build 和 diff check，
-全部通过。Review 结果为 `APPROVED`。后续只允许提交已审内容、创建 PR、验证 latest-head
-`quality` 和执行合并；任何代码变化都会使本批准失效并要求重新 Review。
+1. #17–#21 均有完整任务合同或明确的 `BLOCKED` 来源缺口。
+2. 每条可执行合同含唯一文件 allowlist、非范围、字段级来源、验收、测试、依赖、风险、
+   Agent 自主范围、升级条件和交付物。
+3. 共享测试 seam 与 I10a 首先串行的原因明确；后续最多两路并行且无共享文件。
+4. 合同与 `GOAL.md`、产品、架构、测试和决策文档一致，并通过独立 Review。
+5. 合同-only PR 合并前不创建任何路线数据，不把来源调查结果宣称为已验证产品事实。
 
-禁止实现试探。若现有 175 条数据无法在不伪造路线事实的情况下适配，或必须改变公共
-契约/运行调用方，实施 Agent 必须停止并交回 Sol。涉及数据迁移、产品取舍或来源政策
-变化时升级人工确认。
+## Next action
+
+创建纯规划 PR；在 latest-head `quality` 通过、PR head 与已审阅提交一致且 Sol
+`APPROVED` 后合并。

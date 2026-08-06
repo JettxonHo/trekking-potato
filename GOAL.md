@@ -8,7 +8,10 @@
 
 The controller approved planning PR #9 on `2026-08-06`. M1 completed through PRs #36–#38;
 I04–I06 completed through PRs #40 and #43–#47. M2 Correctness is complete; the Goal is active at
-M3 with the I07 route-domain contract merged in PR #48 and its bounded implementation active.
+M3 with I07 merged through PRs #48/#49. Field-level source audit found that none of the five full
+pilot variants can yet satisfy the frozen A/B geometry contract. The independently supportable
+Wutai blocked record is split as I10a; other full variants remain source-blocked rather than using
+invented values. I14 may proceed from the frozen I07 stage/sample schema with synthetic fixtures.
 
 ## 1. Objective
 
@@ -39,13 +42,15 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 |---|---|---|---|
 | M1 Engineering gate | Complete | I01–I03 | Fresh install, unified commands, CI and PR protection work |
 | M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
-| M3 Route domain | Active | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
+| M3 Route domain | Active — source gate | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
 | M4 Weather and verdict | Pending | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Pending | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Pending | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
-The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`.
+The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10 is
+tracked as a parent with independently reviewable I10a blocked-record and I10b full-route work; the
+split does not reduce the five-variant completion requirement.
 
 ## 6. Agent routing
 
