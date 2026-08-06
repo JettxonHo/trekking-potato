@@ -126,6 +126,29 @@ Variant 和注入式 `requestJson` fixture，不写入任何真实 pilot 数据�
 流程表演制造第二个失败。GREEN 后必须运行 hourly/legacy weather、route-domain、root test、
 integration、lint、typecheck、WeChat build 和 `git diff --check`。
 
+### I15 weather-only verdict contract
+
+I15 测试通过注入式 I14 `fetchRouteWeather` 取得 complete snapshot，再调用纯
+`evaluateWeatherVerdict`；不手写另一套生产天气 shape，不访问网络。首个真实 RED 是
+`test:verdict` 缺少模块或导出，一个 RED 足够。
+
+- 基线：安全 complete snapshot 为 `go`；降水概率单独为 100% 仍为 `go`；non-complete
+  输入不得被静默判成 `go`。
+- 精确边界：阵风 `13.399/13.4/21.999/22`，体感
+  `31.999/32/40.999/41/-29.001/-29/-28.999/0`，能见度 `50.001/50`。
+- WMO：表驱动覆盖雷暴、冻雨和普通雨雪集合；中大雪与 `13.4m/s` 阵风或 `50m`
+  能见度组合为 no_go，并验证同桶泛化原因抑制。
+- 连续：重雨码 `65/82` 两桶、三个相邻桶和中断；不得跨 sample 或 stage 拼成连续三小时。
+- 累计：单 stage/sample 活动桶 `39.999/40mm` 和 `14.999/15cm`；不跨 sample/stage
+  拼接，同 stage 跨午夜可累计。测试和文案不得将其称为完整 24h/自然日累计。
+- 聚合：任一 sample 可升级结论且不被其他安全点抵消；同日同 code 的危险观测选择、跨日
+  保留、固定排序、输入不变和重复调用完全一致。
+- 范围：不测试 I16 的 official blocked、climb support、预报提前量、日落或
+  `insufficient/place_only → verdict=null` 组合。
+
+GREEN 后运行 `test:verdict`、hourly/legacy weather、route-domain、root test、integration、
+lint、typecheck、WeChat build 和 diff check。不为 I14 已保证的每种坏字段复制防御测试。
+
 ## 3. 测试层级
 
 - 单元：路线匹配、Schema、坐标、天气解析、活动窗口、结论、装备合并、reducer。
@@ -169,7 +192,7 @@ integration、lint、typecheck、WeChat build 和 `git diff --check`。
 
 - 时区、日期、活动小时和多采样点长度一致。
 - 夜间雷暴不影响白天窗口；活动小时单点雷暴触发 no_go。
-- 阵风 13.4/22、体感 32/41/-29/0、能见度 50、新雪 15、降水 40 边界。
+- 阵风 13.4/22、体感 32/41/-29/0、能见度 50、活动窗口新雪 15、活动窗口降水 40 边界。
 - 降水概率单独不改变结论。
 - 提前量 5 天为 caution。
 - 小时缺口、单位错误或必要采样点失败 → `verdict=null`。

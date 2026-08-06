@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M4 / I14 implementation; M3 full routes source-blocked`
+- Status: `ACTIVE — M4 / I15 contract; M3 full routes source-blocked`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -157,7 +157,22 @@ I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补�
 - 坐标转换抽为共享无 I/O 纯模块，`geocode.js` 保持原导出与行为。实现 allowlist、精确
   union、TDD 和验收以 GitHub #23 与 `docs/tasks/ACTIVE_TASK.md` 为准。
 
-## 9. 合并顺序与里程碑门
+I14 已在 PR #55 通过 Sol 独立 Review 和 latest-head CI，squash 合并为 `f771b41`，#23
+关闭。其 contract/history 由 GitHub #23、PR #54/#55 和决策记录保存；当前活动合同已切换 I15。
+
+## 9. I15 冻结合同摘要
+
+- I15 新增 weather-only 纯函数，只消费 I14 complete snapshot，返回天气部分
+  `go/caution/no_go` 与稳定原因；I16 负责 blocked route、climb、预报提前量、日落、
+  `verdict=null` 和最终 windows 组合。
+- 固定 WMO、阵风、体感、能见度、中大雪组合、连续重雨和累计阈值，不计算加权分。
+- I14 不保留完整自然日/滚动 24h，因此 `40mm/15cm` 明确为单 stage/sample 的活动桶累计；
+  不跨地点/阶段相加，也不重新扫描无关夜间。
+- 原因以 day+code 去重，保留更危险或最早代表性事实，并按冻结顺序稳定输出。
+- 精确接口、原因码、边界矩阵、allowlist 和 TDD 以 GitHub #24 与当前
+  `docs/tasks/ACTIVE_TASK.md` 为准。
+
+## 10. 合并顺序与里程碑门
 
 每个里程碑最后一个 PR 合并后更新 `GOAL.md` 和 `docs/current-status.md`。I05a 与 I05b
 已按串行顺序分别 Review/合并并关闭父 #14。M3 路线的字段来源合同未冻结不得并行该数据；
