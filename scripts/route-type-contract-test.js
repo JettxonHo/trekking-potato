@@ -146,7 +146,7 @@ async function main() {
     assert('玉龙雪山 → type=tour', rlTour.ok && rlTour.data.type === 'tour', JSON.stringify(rlTour).substring(0, 200))
     assert('玉龙雪山 → typeSource=builtin', rlTour.ok && rlTour.data.typeSource === 'builtin', JSON.stringify(rlTour.data && rlTour.data.typeSource))
     const rlFuzzy = await resolveLocation('卖理浩径')
-    assert('编辑距离解析保留 type/typeSource/matchType 且 needsConfirm', rlFuzzy.ok && rlFuzzy.data.needsConfirm === true && isKnownRouteType(rlFuzzy.data.type) && rlFuzzy.data.typeSource === 'builtin' && rlFuzzy.data.matchType === 'editDistance', JSON.stringify(rlFuzzy.data).substring(0, 200))
+    assert('编辑距离解析只返回 builtin 候选而不泄露路线事实', rlFuzzy.ok && rlFuzzy.data.needsConfirm === true && rlFuzzy.data.matchType === 'fuzzy' && Array.isArray(rlFuzzy.data.candidates) && rlFuzzy.data.candidates.length === 1 && rlFuzzy.data.candidates[0].routeType === 'trek', JSON.stringify(rlFuzzy.data).substring(0, 200))
 
     console.log('\n=== 3b. resolveLocation UGC 分支 ===')
     ugcFixture = [{ name: '契约测试UGC新路线', lat: 30.1, lon: 120.1, elevation: 900, location: '测试省', type: 'climb' }]

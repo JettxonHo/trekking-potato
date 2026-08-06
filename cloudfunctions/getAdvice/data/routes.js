@@ -770,56 +770,115 @@ const BUILTIN_ROUTES = [
   { name: '武当山', aliases: ['武当'], lat: 32.40, lon: 111.00, elevation: 1612, location: '湖北省十堰市丹江口市', type: 'trek', bestSeason: '4-10月', note: '道教圣地，太极拳发源地' },
 ]
 
+function getBuiltinCandidateId(routeOrCanonicalName) {
+  const canonicalName = typeof routeOrCanonicalName === 'string'
+    ? routeOrCanonicalName
+    : routeOrCanonicalName && routeOrCanonicalName.name
+  return typeof canonicalName === 'string' && canonicalName.length > 0
+    ? `builtin-route:${canonicalName}`
+    : null
+}
+
+function builtinCandidate(route) {
+  return {
+    candidateId: getBuiltinCandidateId(route),
+    canonicalName: route.name,
+    region: route.location,
+    routeType: route.type,
+  }
+}
+
+function compareCanonicalName(left, right) {
+  if (left.canonicalName < right.canonicalName) return -1
+  if (left.canonicalName > right.canonicalName) return 1
+  return 0
+}
+
+function uniqueSortedCandidates(routes) {
+  const candidates = new Map()
+  for (const route of routes) {
+    const candidate = builtinCandidate(route)
+    candidates.set(candidate.candidateId, candidate)
+  }
+  return [...candidates.values()].sort(compareCanonicalName).slice(0, 5)
+}
+
+function routeNamesOrAliasesMatch(query, route, predicate) {
+  if (predicate(query, route.name)) return true
+  return (route.aliases || []).some((alias) => typeof alias === 'string' && predicate(query, alias))
+}
+
+function confirmationResult(matchStage, routes) {
+  return {
+    kind: 'confirmation',
+    matchStage,
+    candidates: uniqueSortedCandidates(routes),
+  }
+}
+
 /**
- * 模糊匹配内置路线表
+ * I05a 内置目录解析：直达只允许规范名 exact 或唯一 alias exact；其他命中必须确认。
+ */
+function resolveBuiltinRouteQuery(query, routes = BUILTIN_ROUTES) {
+  if (typeof query !== 'string' || query.length === 0) return { kind: 'not_found' }
+
+  const canonicalExact = routes.find((route) => route.name === query)
+  if (canonicalExact) return { kind: 'direct', matchStage: 'canonical_exact', route: canonicalExact }
+
+  const aliasExact = routes.filter((route) => (route.aliases || []).includes(query))
+  if (aliasExact.length === 1) return { kind: 'direct', matchStage: 'unique_alias_exact', route: aliasExact[0] }
+  if (aliasExact.length > 1) return confirmationResult('repeated_alias_exact', aliasExact)
+
+  const prefix = routes.filter((route) => routeNamesOrAliasesMatch(query, route, (left, right) => left.startsWith(right) || right.startsWith(left)))
+  if (prefix.length > 0) return confirmationResult('prefix', prefix)
+
+  const contains = routes.filter((route) => routeNamesOrAliasesMatch(query, route, (left, right) => left.includes(right) || right.includes(left)))
+  if (contains.length > 0) return confirmationResult('contains', contains)
+
+  if (query.length < 4) return { kind: 'not_found' }
+
+  const fuzzy = []
+  for (const route of routes) {
+    const names = [route.name, ...(route.aliases || [])].filter((name) => typeof name === 'string')
+    const distance = Math.min(...names.map((name) => editDistance(query, name)))
+    if (distance <= 2) fuzzy.push({ route, distance })
+  }
+  if (fuzzy.length === 0) return { kind: 'not_found' }
+
+  fuzzy.sort((left, right) => left.distance - right.distance || compareCanonicalName(builtinCandidate(left.route), builtinCandidate(right.route)))
+  const candidates = new Map()
+  for (const match of fuzzy) {
+    const candidate = builtinCandidate(match.route)
+    if (!candidates.has(candidate.candidateId)) candidates.set(candidate.candidateId, candidate)
+  }
+  return {
+    kind: 'confirmation',
+    matchStage: 'fuzzy',
+    candidates: [...candidates.values()].slice(0, 5),
+  }
+}
+
+function findBuiltinRouteByCandidateId(candidateId, routes = BUILTIN_ROUTES) {
+  if (typeof candidateId !== 'string') return null
+  return routes.find((route) => getBuiltinCandidateId(route) === candidateId) || null
+}
+
+/**
+ * Legacy helper retained for existing internal callers and tests. New request handling uses
+ * resolveBuiltinRouteQuery so prefix/contains/fuzzy results cannot silently enter base.
  */
 function matchBuiltinRoute(query) {
-  if (!query) return null
+  const resolved = resolveBuiltinRouteQuery(query)
+  if (resolved.kind === 'direct') return { ...resolved.route, matchType: 'exact', needsConfirm: false }
+  if (resolved.kind !== 'confirmation' || resolved.candidates.length === 0) return null
 
-  // 1. 精确匹配
-  for (const route of BUILTIN_ROUTES) {
-    if (route.name === query || route.aliases.includes(query)) {
-      return { ...route, matchType: 'exact', needsConfirm: false }
-    }
+  const route = findBuiltinRouteByCandidateId(resolved.candidates[0].candidateId)
+  if (!route) return null
+  return {
+    ...route,
+    matchType: resolved.matchStage === 'fuzzy' ? 'editDistance' : resolved.matchStage,
+    needsConfirm: true,
   }
-
-  // 2. 包含匹配
-  for (const route of BUILTIN_ROUTES) {
-    if (route.name.includes(query) || query.includes(route.name)) {
-      return { ...route, matchType: 'contains', needsConfirm: false }
-    }
-    for (const alias of route.aliases) {
-      if (alias.includes(query) || query.includes(alias)) {
-        return { ...route, matchType: 'contains', needsConfirm: false }
-      }
-    }
-  }
-
-  // 3. 编辑距离匹配（<=2，仅对长度>=4的查询，防短名假阳性）
-  let bestMatch = null
-  let bestDist = 3
-  for (const route of BUILTIN_ROUTES) {
-    if (query.length < 4) break
-    const dist = editDistance(query, route.name)
-    if (dist < bestDist) {
-      bestDist = dist
-      bestMatch = route
-    }
-    for (const alias of route.aliases) {
-      if (alias.length < 4) continue
-      const d = editDistance(query, alias)
-      if (d < bestDist) {
-        bestDist = d
-        bestMatch = route
-      }
-    }
-  }
-
-  if (bestMatch && bestDist <= 2) {
-    return { ...bestMatch, matchType: 'editDistance', editDistance: bestDist, needsConfirm: true }
-  }
-
-  return null
 }
 
 function editDistance(a, b) {
@@ -840,4 +899,11 @@ function editDistance(a, b) {
   return matrix[b.length][a.length]
 }
 
-module.exports = { BUILTIN_ROUTES, matchBuiltinRoute, editDistance }
+module.exports = {
+  BUILTIN_ROUTES,
+  getBuiltinCandidateId,
+  resolveBuiltinRouteQuery,
+  findBuiltinRouteByCandidateId,
+  matchBuiltinRoute,
+  editDistance,
+}

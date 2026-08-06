@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M2 Correctness`
-- Active task: `I05a / GitHub #41 / READY_FOR_EXECUTOR`
+- Active task: `I05a / GitHub #41 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/i05a-backend-confirmation`
 - Base: `main` at `a73b840`
 - Planning PR: `#9` — merged
@@ -13,8 +13,8 @@
 - I05 planning PR: `#43` — merged; #41 ready and #42 blocked
 
 Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
-I04 is complete. I05a is the only implementation task Ready; I05b remains blocked until I05a
-merges, and I06/later Issues remain Backlog until dependencies and exact contracts are approved.
+I04 is complete. I05a is implemented and awaiting Sol XHigh review; I05b remains blocked until
+I05a merges, and I06/later Issues remain Backlog until dependencies and exact contracts are approved.
 
 ## Completed
 
@@ -44,6 +44,8 @@ merges, and I06/later Issues remain Backlog until dependencies and exact contrac
   independently verifiable; #42 is blocked by #41.
 - I05 planning passed independent Review after one fix round and merged in PR #43 as `a73b840`;
   #41 was activated on that real base.
+- I05a implemented the stateless builtin candidate ID, deterministic confirmation stages and
+  `confirm` trust boundary on `codex/i05a-backend-confirmation`; it is awaiting Sol XHigh review.
 
 ## Baseline evidence
 
@@ -56,6 +58,9 @@ merges, and I06/later Issues remain Backlog until dependencies and exact contrac
   CloudBase or DeepSeek access.
 - `node scripts/response-contract-test.js`: offline public-handler and frontend-source contract
   test for I04 response phases, error envelopes, compatibility consistency and phase branches.
+- `node scripts/confirmation-contract-test.js`: offline I05a contract for canonical/alias and
+  candidate-stage matching, four-field candidate exposure, `candidate_not_found`, confirm server
+  fact recovery, zero pre-confirm side effects and disabled UGC substring auto-hit.
 - I01 on Node 24.18.0 + npm 10.9.2: fresh-cache root `ci` and three-project `bootstrap` pass using official npm registry locks.
 - I02 on Node 24.18.0 + Corepack npm 10.9.2: root `lint` (0 errors; 10 existing
   unused-variable warnings), `typecheck`, `test`, `test:integration` and
@@ -73,8 +78,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Terra XHigh implements the exact backend contract in GitHub #41.
-2. Sol XHigh reviews actual code/tests and latest-head CI; #42 remains blocked until merge.
+1. Sol XHigh reviews I05a actual code/tests and latest-head CI; #42 remains blocked until merge.
 
 ## Blockers and risks
 
@@ -94,4 +98,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Implement only GitHub #41; do not start #42 before #41 is approved and merged.
+Review GitHub #41; do not start #42 before #41 is approved and merged.

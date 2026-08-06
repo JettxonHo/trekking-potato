@@ -37,6 +37,7 @@ node scripts/route-type-contract-test.js
 node scripts/weather-contract-test.js
 node scripts/unit-test.js
 node scripts/response-contract-test.js
+node scripts/confirmation-contract-test.js
 node scripts/e2e-local.js
 ```
 
