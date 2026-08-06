@@ -7,6 +7,7 @@
 - Active task: `I18 / #27 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/i18-query-context-implementation`
 - Base: `main` at `270e442`
+- Implementation commit: `c5b2201` (`feat: trust advice context by query id`); PR: not created
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -319,7 +320,8 @@ not accepted or merged until Sol XHigh completes an independent review.
   displays the server reprepare message, and does not record AI degradation or history. The full local
   I18 matrix passed: TripContext, response and confirmation contracts; integration `56/0`; lint with
   `0` errors and `10` existing warnings; typecheck; root test; WeChat build; and `git diff --check`.
-  Terra returned `READY_FOR_CONTROLLER_REVIEW`; no PR has been created, approved or merged.
+  Terra returned `READY_FOR_CONTROLLER_REVIEW` at implementation commit `c5b2201`; no PR has been
+  created, approved or merged.
 
 ## Baseline evidence
 
