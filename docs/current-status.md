@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I17b / #61 / APPROVED — PR_PENDING`
-- Branch: `codex/i17b-trip-context-wiring`
-- Base: `main` at `910c00d`
+- Active task: `I17 checkpoint / #26 / APPROVED — CHECKPOINT_PR_PENDING`
+- Branch: `codex/i17-checkpoint`
+- Base: `main` at `ef245de`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -26,14 +26,15 @@
 - I16 planning PR: `#58` — merged; GitHub #25 implementation activated
 - I16 implementation PR: `#59` — merged; GitHub #25 and M4 closed
 - I17 planning PR: `#62` — merged
-- I17a implementation PR: `#63` — merged; GitHub #60 closed; #61 activated
+- I17a implementation PR: `#63` — merged; GitHub #60 closed
+- I17b implementation PR: `#64` — merged; GitHub #61 closed; parent #26 checkpoint pending
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is now complete through I14–I16 without authorizing I13 or real full-route data. M5 is active at
-I17b controller review. I17 now has a server-owned short-lived context creation candidate in #60/#61;
-advice remains client-baseData compatible and explicitly untrusted until I18.
+the I17 parent checkpoint. I17's server-owned short-lived context creation is merged; advice remains
+client-baseData compatible and explicitly untrusted until I18.
 
 ## Completed
 
@@ -281,6 +282,14 @@ advice remains client-baseData compatible and explicitly untrusted until I18.
   trip-context, root test, integration (56/0), lint (0 errors; 10 existing warnings), typecheck, WeChat
   build and diff checks. All passed; I17b is `APPROVED — PR_PENDING` with only latest-head GitHub
   `quality` remaining.
+- I17b PR #64 matched approved head `e50e661`, passed latest-head GitHub `quality` in 51 seconds and
+  squash merged as `ef245de`; #61 closed. Both I17 children are merged. Parent #26 remains open only
+  until this pure documentation checkpoint passes Review, CI and merge; I18 is not yet authorized.
+- The first independent I17 checkpoint Review found one P2: closed child Issues #60/#61 still displayed
+  historical `PR_PENDING` status. Their bodies now retain the frozen contract but prepend authoritative
+  DONE records for PRs #63/#64, merge commits `910c00d`/`ef245de` and latest-head quality 41s/51s.
+  Re-review returned `APPROVED` with no remaining P0–P2 finding. The unchanged-code root test,
+  integration (56/0), lint (0 errors; 10 existing warnings), typecheck and WeChat build all pass.
 
 ## Baseline evidence
 
@@ -324,14 +333,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: owns I17 parent/child contracts, independent Review and merge decisions.
-- Terra XHigh: assigned #61 I17b within the frozen handler-wiring allowlist.
+- Sol XHigh: owns the I17 parent checkpoint, I18 planning and all merge decisions.
+- Terra XHigh: completed #60/#61 implementation; no active implementation assignment.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Open #61's implementation PR, require latest-head GitHub `quality`, then merge only if the approved
-   head is unchanged.
+1. Open and merge the approved I17 checkpoint after latest-head CI, close parent #26, then freeze I18.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -355,13 +363,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   compatibility input; #60/#61 must not claim that the end-to-end trust boundary is complete.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I17b implementation
+## Forbidden actions during I17 checkpoint
 
-- TripContext read/advice cutover assigned to I18; dependency, lockfile or CloudBase production config
+- Any runtime change, especially the TripContext read/advice cutover assigned to I18
 - I18 queryId-only advice, I19 history/UGC, real route data, frontend or deployment
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Open #61's approved implementation PR and wait for latest-head CI. I18 remains blocked until #61
-merges.
+Open the approved pure documentation checkpoint PR. Close #26 only after it passes latest-head CI and
+merges; then begin I18 contract planning on a fresh branch.
