@@ -45,6 +45,11 @@ I04 的 `test:response` 已纳入根 `test`。它覆盖每一种 `phase` 构造�
 confirmation、route-type、base、advice/degraded 出口。断言兼容字段时只验证迁移
 一致性，不把这些字段确立为最终 API。
 
+I05a 新增离线 `test:confirmation`，覆盖全局 canonical 优先、唯一/重复 alias、
+prefix/contains/fuzzy 候选、稳定 ID、candidate_not_found、confirm 只读服务端事实和
+确认前零天气/规则/AI 副作用。I05b 在同一命令补充前端候选显示、最小 confirm 请求、
+取消/编辑清理与 prepare/confirm request generation；不借此建立 I20 reducer/service。
+
 ## 3. 测试层级
 
 - 单元：路线匹配、Schema、坐标、天气解析、活动窗口、结论、装备合并、reducer。
@@ -67,6 +72,7 @@ confirmation、route-type、base、advice/degraded 出口。断言兼容字段�
 - candidate 只允许 route_variant/full 或 place/place_only 两种组合。
 - 取消或修改输入清除候选。
 - `route_type_required` 不与 confirmation 混淆。
+- I05 无状态 candidate ID 只验证未知/已移除记录；TTL 与 openid 归属在 I17 验证。
 
 ### 路线模型
 
