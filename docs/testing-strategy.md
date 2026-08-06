@@ -175,6 +175,37 @@ GREEN 后运行 trip-verdict、verdict、hourly/legacy weather、route-domain、
 lint、typecheck、WeChat build 和 diff check。公共 handler、queryId、真实路线、AI、装备和 UI
 仍不属于 I16 测试。
 
+### I17 TripContext contract
+
+I17 is serial: #60 proves the deep store, then #61 proves public base creation. `test:trip-context`
+starts with a genuine missing-module/export RED and uses one minimal in-memory CloudBase-compatible
+collection; no network or real database is used.
+
+- ID/TTL: two default creates yield distinct `tctx_<uuid-v4>` IDs; a fixed server clock proves exactly
+  1,800,000 ms. Read at expiry minus 1 ms succeeds and equality expires.
+- Ownership: owner succeeds; unknown, cross-user and expired records return their exact internal code
+  with no snapshot. One case each is sufficient; do not expand into token-attack testing.
+- Format boundary: one malformed queryId returns not-found without calling the collection query. This is
+  a focused operation-boundary test, not an entropy or attack rubric.
+- Isolation: mutate the input, created snapshot, one read result and mock database result in turn;
+  later reads retain the originally persisted nested facts.
+- Availability: one write rejection and one read rejection map to store-unavailable without raw errors;
+  the module never deletes records or silently retries.
+- Snapshot: exact additive place-only BaseData shows legacy compatibility plus request, route,
+  reference-point weather, null verdict, minimum gear and source metadata; no full-route fact appears.
+- Handler lifecycle: successful prepare/base alias/confirm each write exactly once through
+  `collection('trip_contexts').doc(queryId).set({data: record})`, expose matching top-level ID/expiry and
+  reuse the store's returned projection unchanged. The mock rejects a wrong collection or write
+  operation. Confirmation, route-type-required, auth/validation/weather errors and advice write zero
+  contexts; I17 performs zero context reads in advice.
+- Write failure returns retryable `context_unavailable` with no partial base. Client-spoofed safety facts
+  do not enter the stored snapshot. Existing advice still consumes client baseData until I18, and the
+  test names that as a compatibility limitation rather than trusted behavior.
+
+After each child, run trip-context, response, confirmation, I16/I15/I14, legacy weather, route-domain,
+root test, integration, lint, typecheck, WeChat build and diff check. Mocks implement only operations
+needed by the active code; no external emulator or mechanical entropy score is introduced.
+
 ## 3. 测试层级
 
 - 单元：路线匹配、Schema、坐标、天气解析、活动窗口、结论、装备合并、reducer。

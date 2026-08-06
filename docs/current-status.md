@@ -3,10 +3,10 @@
 - Updated: `2026-08-06`
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
-- Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
-- Active task: `I16 / GitHub #25 / APPROVED — PR_PENDING`
-- Branch: `codex/i16-trip-verdict`
-- Base: `main` at `8412535`
+- Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
+- Active task: `I17 parent #26 / #60/#61 / APPROVED — PLANNING_PR_PENDING`
+- Branch: `codex/i17-trip-context-contract`
+- Base: `main` at `bd6017f`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -24,14 +24,14 @@
 - I15 planning PR: `#56` — merged; GitHub #24 implementation activated
 - I15 implementation PR: `#57` — merged; GitHub #24 closed
 - I16 planning PR: `#58` — merged; GitHub #25 implementation activated
+- I16 implementation PR: `#59` — merged; GitHub #25 and M4 closed
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
-independent M4 weather/verdict foundation to proceed using only I07's frozen shape and synthetic
-fixtures; this does not authorize I13, real full-route data or production integration. I14 and I15
-are complete. I16's trip-level composition contract passed independent Review and planning PR #58
-merged. Bounded Terra implementation passed Sol XHigh's second Review and awaits its implementation
-PR/latest-head CI; public handler integration remains forbidden.
+independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
+M4 is now complete through I14–I16 without authorizing I13 or real full-route data. M5 is active at
+I17 contract planning. I17 will establish server-owned short-lived contexts in #60/#61; advice remains
+client-baseData compatible and explicitly untrusted until I18.
 
 ## Completed
 
@@ -228,6 +228,19 @@ PR/latest-head CI; public handler integration remains forbidden.
   fails the new boundary test, then independently reran I16/I15/I14 focused tests and the complete
   root/integration/lint/typecheck/WeChat-build/diff matrix. All passed; result is
   `APPROVED — PR_PENDING`.
+- I16 implementation PR #59 matched approved head `1dcc717`, passed latest-head GitHub `quality` in
+  54 seconds, and squash merged as `bd6017f`; #25 and M4 closed.
+- Two independent Terra XHigh read-only I17 audits inspected the current handler, response contract,
+  CloudBase mocks and I17/I18 boundary. Sol split parent #26 into #60 I17a store and #61 I17b handler
+  integration so ownership/TTL and public writes remain independently verifiable. The chosen design
+  uses random UUIDs, exact 30-minute logical TTL and an honest transitional place-only snapshot; it
+  does not use hashes, complex cleanup or pretend the legacy resolver is a verified route.
+- The first formal I17 contract Review returned `CHANGES_REQUESTED`: it found an ambiguous ownership
+  seam for the TrustedBaseData projection, a stale public-error paragraph and two focused missing test
+  assertions. Sol assigned the private legacy-to-trusted projection exclusively to the I17a store,
+  staged I17/I18 public errors, added malformed-ID zero-query coverage and froze the exact
+  `trip_contexts/doc().set()` mock boundary. The second independent Review returned `APPROVED` with no
+  remaining P0–P2 finding; #26/#60/#61 match the local contract. No implementation has started.
 
 ## Baseline evidence
 
@@ -267,13 +280,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: completed #24/I15 Review/merge and owns #25/I16 contract and merge decision.
-- Terra XHigh: assigned the bounded I16 test-first implementation on `codex/i16-trip-verdict`.
+- Sol XHigh: completed #25/I16 Review/merge and owns I17 parent/child contracts and merge decisions.
+- Terra XHigh: completed two I17 read-only architecture/test audits; implementation is not yet assigned.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Create the approved I16 implementation PR and merge only after latest-head GitHub `quality` passes.
+1. Open and merge the approved I17 planning PR after latest-head CI, then activate #60 I17a.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -293,15 +306,17 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - TP-D029 resolves I16's sunset evidence boundary as the earliest value across each route-day's trusted
   I14 samples. If any necessary sunset cannot be calculated, the result is unavailable unless a known
   hard no-go independently applies.
+- I17 cannot make the advice path trusted by itself. Until I18, client `baseData` remains a documented
+  compatibility input; #60/#61 must not claim that the end-to-end trust boundary is complete.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I16 implementation
+## Forbidden actions during I17 contract review
 
-- Any file outside the #25 implementation allowlist; dependency or lockfile changes
-- Real route data, I13, I17/queryId/history/UI or public handler implementation
+- Business implementation before planning merge; dependency, lockfile or CloudBase production config
+- I18 queryId-only advice, I19 history/UGC, real route data, frontend or deployment
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Create the approved I16 implementation PR; merge only if latest-head GitHub `quality` passes and the
-reviewed head remains unchanged.
+Open the approved I17 planning PR and wait for latest-head CI. Activate
+#60 only after that reviewed PR passes latest-head CI and merges.
