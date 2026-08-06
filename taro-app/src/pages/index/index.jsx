@@ -296,7 +296,9 @@ export default class Index extends Component {
           this.setState({ loading: false, error: '路线确认失败，请重新查询' })
           return
         }
-        this._showBaseAndFetchAdvice(result.data, result.queryId, params, generation)
+        const base = result.data
+        const historyParams = { ...params, route: params.route || base.route }
+        this._showBaseAndFetchAdvice(base, result.queryId, historyParams, generation)
       },
       fail: (err) => {
         if (this._unmounted || generation !== this._requestGeneration) return

@@ -408,6 +408,10 @@ async function main() {
 
   const writesAfterBaseOutcomes = contextWrites.length
   openid = ''
+  const readsBeforeNoAuthAdvice = contextReadCount
+  const noAuthAdvice = await getAdvice.main({ mode: 'advice', queryId: base.queryId })
+  assertError(noAuthAdvice, 'no_auth')
+  assert(contextReadCount === readsBeforeNoAuthAdvice, '未认证 advice 必须在 TripContext read 前失败')
   const noAuth = await getAdvice.main({ mode: 'prepare' })
   assertError(noAuth, 'no_auth')
   openid = 'offline-response-contract-user'

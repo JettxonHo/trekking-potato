@@ -3,7 +3,7 @@
  *
  * 流程（分步加载 P5.3）：
  *   mode='prepare': resolveLocation → Promise.all([fetchWeather, calcSunEvents]) → base phase（~3-5s）
- *   mode='advice': 接收 base 数据 → callLLM → schema 校验 → 降级（~30-40s，独立超时窗口）
+ *   mode='advice': 按 openid + queryId 恢复 TripContext 可信快照 → callLLM → schema 校验 → 降级（~30-40s，独立超时窗口）
  *   mode='base': prepare 的迁移别名；缺失或未知 mode 返回 invalid_mode
  *
  * 关键设计：
