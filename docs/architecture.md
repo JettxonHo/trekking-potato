@@ -16,31 +16,91 @@
 ## 2. 领域模型
 
 ```text
+Source
+  id, tier, kind, title, publisher, url, checkedAt
+  supports[] { field, method, note? }
+
 Place
+  entityKind='place', capability='place_only'
   id, canonicalName, aliases, region, kind
   referenceCoordinate { lat, lon, coordinateSystem }
-  sourceStatus
+  sourceStatus, sourceIds[]
 
 Route
-  id, placeId, canonicalName, routeType
-  summary
+  entityKind='route'
+  id, placeId, canonicalName, aliases, routeType
+  summary, sourceIds[]
 
-RouteVariant
-  id, routeId, canonicalName, direction
+RouteVariant (verified/full)
+  entityKind='route_variant', recordStatus='verified', capability='full'
+  id, routeId, canonicalName, aliases, direction
   startPoint, endPoint, isLoop
   fixedDays, stages[]
   distanceKm, ascentM, descentM
-  routeHighestPointElevation, nearbyPeakElevation
+  routeHighestPointElevationM, nearbyPeakElevationM
   weatherSamplePoints[1..3]
   accessMode, operationalStatus
-  sources[], sourceCheckedAt, verificationLevel
+  sourceIds[], sourceCheckedAt, verificationLevel
+
+RouteVariant (blocked)
+  entityKind='route_variant', recordStatus='blocked', capability='blocked'
+  id, routeId, canonicalName, aliases
+  operationalStatus='blocked', restriction
+  sourceIds[], sourceCheckedAt, verificationLevel
 ```
 
-`stages[]` 包含 day、起终点、`durationHours.min/max` 和关联采样点。附近山峰海拔不得代替路线最高点或天气采样海拔。
+`stages[]` 包含 day、起终点、距离、升降、`durationHours.min/max` 和关联采样点。
+`weatherSamplePoints[]` 含独立 ID、名称、坐标、坐标系和海拔。附近山峰海拔不得代替
+路线最高点或天气采样海拔；校验要求 full 变体显式提供路线最高点，不能用附近峰值兜底。
 
-来源：A 为官方/政府/协会/API；B 为两个可靠独立来源或经主控审阅的 GPX；C 为未验证输入。只有 A/B 且核心字段完整的变体可输出结论。
+来源：A 为官方/政府/协会/API；B 为两个可靠独立来源或经主控审阅的 GPX；C 为未验证
+输入。`Source.supports` 逐字段记录直接或推导证据；推导项必须写明方法，但不计算加权总分。
+只有 A/B 且核心字段完整的 full 变体可输出路线结论。
 
 `operationalStatus` 为 `open | blocked | unknown`。只有仍有效、来源明确的 `blocked` 触发硬阻断；`unknown` 显示核验提示但不自动降级。
+
+### I07 冻结目录边界
+
+I07 新增一个无 I/O 的深模块：
+
+```js
+createRouteCatalog({
+  legacyRecords = [], sources = [], places = [], routes = [], variants = []
+}) -> {
+  sources, places, routes, variants,
+  getById(id) // 未命中返回 null
+}
+```
+
+模块内部完成规范化副本、legacy 适配、引用索引和一次性校验；只导出 factory 与供测试
+识别的 `RouteCatalogValidationError`。无效静态目录抛出
+`code='invalid_route_catalog'`，`issues` 只记录稳定 `code/path`。这是构建期内部错误，不新增
+公共 phase 或错误码，也不建立复杂运行时降级树。
+
+新 Source/Place/Route/Variant ID 必须在数据文件显式提供，分别使用 `source:`、`place:`、
+`route:`、`variant:` 命名空间；不得由数组下标、哈希或展示名称生成。legacy 例外使用冻结
+身份 `place:legacy:<canonicalName>`，并保留现有 `builtin-route:<canonicalName>` 作为内部
+兼容引用；I07 不把任一新 ID 暴露给客户端。
+
+full 与 blocked 是 RouteVariant 的判别式记录：
+
+- full 只允许 A/B，必须有正整数 fixedDays、非空完整日程、连续 day、1–3 个采样点、有效
+  采样引用、逐核心字段 A/B 证据和独立路线最高点；`fixedDays === stages.length`。
+- blocked 只表达禁行身份、理由、范围、有效期和 tier A 权威 access-status 证据，不要求也
+  不得伪造 stages、距离、最高点或采样点；它不进入可规划候选。
+- C 级、旧数据和字段不完整资料不能伪装成 full。Place 自身始终是 `place_only`。
+
+175 条 `BUILTIN_ROUTES` 在 I07 只适配为 175 个 `legacy_unverified` Place，输出
+0 Route 和 0 Variant。只映射名称、别名、地区、GCJ-02 参考坐标和非权威活动类型提示；
+adapter 对每个 Place 内的 alias 做 trim、去重并删除等于 canonicalName 的 alias，但保留
+跨 Place 重复 alias 供 I13 消歧。旧 `elevation/bestSeason/note` 不进入新领域事实，也不得
+从自由文本推断 blocked。
+`data/routes.js` 继续服务 I05 运行时，因此当前 prepare/confirm、四字段候选、临时 ID、
+天气、装备和结果完全不变。
+
+I07 不提供 query resolver，不修改 `routes.js`、`geocode.js` 或 `index.js`，不创建空的试点
+注册表。I08–I12 可各自在独立数据文件调用同一 factory 验证；I13 再建立生产目录聚合、
+同名优先级、永久候选 ID、blocked 精确解析和旧 I05 ID 兼容窗口。
 
 ## 3. 路线解析
 
@@ -322,8 +382,8 @@ AI 内部 schema 只允许：
 I06 implementation on `codex/i06-safety-advice` follows this boundary with
 `cloudfunctions/getAdvice/safety-advice.js`: handler paths construct only the three documented
 `aiOutcome` cases, then attach `degradedReason` only to server `meta`. The implementation passed a
-two-round independent Sol XHigh review and remains pending PR/CI/merge; it does not establish
-I17/I18 server-owned base trust.
+two-round independent Sol XHigh review and merged in PR #47; it does not establish I17/I18
+server-owned base trust.
 
 ## 9. 前端状态
 

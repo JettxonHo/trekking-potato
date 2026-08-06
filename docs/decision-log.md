@@ -114,3 +114,32 @@
 - Why: 原始合并和 Prompt 约束都无法形成可测试的权限边界；大适配器会把 I06 扩成编排
   重构；调用方零散修补容易让正常与降级路径漂移。单入口纯投影让策略局部、可验证且不
   提前侵入 I17/I18 或 I20。
+
+## 2026-08-06 — TP-D018 M2 正确性里程碑完成
+
+- Status: Accepted
+- Decision: I04–I06 已完成并关闭 M2。公共响应以 `phase` 判别；模糊输入必须由稳定候选
+  ID 确认；AI advice 只能通过单入口白名单投影补充解释，正常、无效输出、服务不可用和
+  前端传输失败均保留现有确定性装备与风险。LLM 可达但输出/信封不可解析为
+  `ai_output_invalid`，传输/HTTP/服务失败为 `ai_unavailable`。
+- Evidence: PR #40、#43–#47；I04–I06 Issues 已关闭；latest-head GitHub `quality` 与本地
+  lint/typecheck/test/integration/build 通过。
+- Limitation: 当前 baseData 仍由客户端回传；I06 只建立 AI 相对 base 的只读边界，真正
+  服务端可信上下文仍属于 I17/I18。
+- Why: M2 的三个用户可观察正确性不变量均已独立测试和 Review，剩余信任与领域能力有
+  清晰后续 Issue，不应把 M2 完成与 I17/I18 混为一谈。
+
+## 2026-08-06 — TP-D019 I07 冷目录与判别式路线记录
+
+- Status: Accepted
+- Decision: I07 采用单一 `createRouteCatalog` 深模块，集中 Source/Place/Route/RouteVariant
+  规范化、legacy 适配和静态引用校验，但不接入现有搜索运行链路。full 与 blocked 是
+  RouteVariant 的判别式记录：full 要求 A/B 与完整行程；blocked 只保留权威限制事实，
+  不伪造日程、几何、最高点或天气采样。175 条旧扁平记录只生成
+  `legacy_unverified`、place-only Place，不伪造 verification level 或来源。
+- Alternatives: I07 同时实现 query resolver 和 dual-read 生产切换；预建五个空 pilot
+  registry 文件并把 I07 拆为 schema/adapter 两个 Issue；让 blocked 复用 full 结构；把
+  legacy elevation 和 note 映射为路线事实。
+- Why: cold catalog 让 I08–I12 在冻结 schema 上独立验证，同时保持 I05 公共契约零变化；
+  搜索接入本来属于 I13。blocked 强填 full 字段或转换 legacy 自由文本都会制造并不存在的
+  安全事实。schema、adapter 与测试是一个可独立验收目标，无需为机械规模拆分。
