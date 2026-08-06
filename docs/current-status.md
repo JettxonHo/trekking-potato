@@ -3,10 +3,10 @@
 - Updated: `2026-08-06`
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
-- Active milestone: `M3 Route domain`
-- Active task: `I10a / GitHub #50 / IMPLEMENTATION_ACTIVE`
-- Branch: `codex/i10a-wutai-blocked-record`
-- Base: `main` at `7b708f2`
+- Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
+- Active task: `I14 / GitHub #23 / CONTRACT_APPROVED — PLANNING_PR_PENDING`
+- Branch: `codex/i14-hourly-weather-contract`
+- Base: `main` at `9021f31`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -18,11 +18,12 @@
 - I07 planning PR: `#48` — merged; GitHub #16 remains open for implementation
 - I07 implementation PR: `#49` — merged; GitHub #16 closed
 - M3 source-gate PR: `#52` — merged; #50 activated, #17/#18/#20/#21/#51 blocked
+- I10a implementation PR: `#53` — merged; GitHub #50 closed
 
-Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 is complete. The field-level
-audit blocks every full pilot variant. Source-gate PR #52 is merged; #50/I10a is now the sole active
-route-data implementation and may establish only the Wutai blocked record plus the shared offline data
-test seam. All full pilot variants remain unauthorized while their source gates are blocked.
+Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
+field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
+independent M4/I14 weather foundation to proceed using only I07's frozen shape and synthetic fixtures;
+this does not authorize I13, real full-route data or production integration.
 
 ## Completed
 
@@ -115,8 +116,9 @@ test seam. All full pilot variants remain unauthorized while their source gates 
 - TP-D023 resolves mixed-route metrics as complete journey geometry, with access mode shown
   separately; endpoint or cableway height differences cannot substitute for cumulative ascent.
 - GitHub #19 is now a blocked parent with #50 I10a and #51 I10b. #17/#18/#20/#21 and #51 carry
-  `status:blocked` plus exact source gaps; #50 is contract-pending until this planning PR merges.
-- TP-D024 allows I14 to proceed later from I07's frozen stage/sample contract with synthetic offline
+  `status:blocked` plus exact source gaps; at that checkpoint #50 remained contract-pending until
+  source-gate PR #52 merged.
+- TP-D024 allows I14 to proceed from I07's frozen stage/sample contract with synthetic offline
   fixtures while real pilot data remains blocked. It does not authorize I13 or production route data.
 - The first independent source-gate contract Review returned `CHANGES_REQUESTED` for five document
   consistency findings: stale I08-first wording, I10a status drift, an effective-date contradiction,
@@ -133,6 +135,21 @@ test seam. All full pilot variants remain unauthorized while their source gates 
   legacy Places with 1 Route and 1 tier A blocked Variant (0 full Variant and 0 verified Place), while
   retaining the existing production search path. Direct negative checks reject a tier B restriction
   source, missing restriction evidence and a blocked record with `fixedDays`.
+- I10a PR #53 matched reviewed head `d112ffe`, passed latest-head GitHub `quality` in 50 seconds,
+  received Sol `APPROVED`, and squash merged as `9021f31`; GitHub #50 closed.
+- Two Terra XHigh read-only I14 audits compared module and testing seams. Both found #23's stale
+  I08–I12 dependency and stale #50 activity facts; Sol resolved them in this contract branch and
+  synchronized the exact frozen contract to GitHub #23. The
+  selected design isolates an internal route-hourly interface, keeps legacy daily production behavior
+  unchanged, normalizes mixed Open-Meteo valid-time semantics into explicit hourly buckets, and shares
+  a pure coordinate conversion module.
+- The first formal I14 contract Review returned `CHANGES_REQUESTED` for three bounded findings:
+  GitHub #23 authority drift, an underspecified insufficient-window shape, and missing semantic domains
+  for external weather numbers. Sol synchronized #23, froze metadata-only insufficient windows, and
+  added WMO/probability/non-negative guards with representative tests. A final synchronization check
+  also required direct assertions for normalized units and deterministic output order.
+- The final independent Review read both the actual diff and live #23, returned `APPROVED`, and found
+  no remaining P0–P2 issue or human decision. No implementation file has been modified or authorized.
 
 ## Baseline evidence
 
@@ -151,6 +168,8 @@ test seam. All full pilot variants remain unauthorized while their source gates 
 - `node scripts/route-domain-contract-test.js`: I07 cold catalog contract for valid full/blocked
   fixtures, 175 legacy place-only adaptation, nonempty namespace suffix/error namespace, evidence/
   reference/itinerary/sample-count failures, input isolation and `getById` miss semantics.
+- `node scripts/route-data-contract-test.js`: I10a aggregated data contract for 175 legacy Places,
+  one Wutai Route, one tier A blocked Variant, zero full Variants, and focused evidence/field failures.
 - `node scripts/confirmation-contract-test.js`: offline I05a contract for canonical/alias and
   candidate-stage matching, four-field candidate exposure, `candidate_not_found`, confirm server
   fact recovery, zero pre-confirm side effects and disabled UGC substring auto-hit; I05b source
@@ -167,14 +186,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: active implementation owner for #50/I10a on `codex/i10a-wutai-blocked-record`.
-- Sol XHigh: owns #50 contract, independent implementation Review, PR approval and merge decision.
+- Sol XHigh: owns #23/I14 architecture, contract, planning PR and implementation Review.
+- Terra XHigh: proposed implementation owner after the I14 contract PR merges; not yet authorized.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Sol reviews #50 actual code/tests, requests fixes if needed, verifies latest-head CI and decides merge.
-2. After I10a, freeze and execute I14 against synthetic fixtures while source acquisition continues.
+1. Run the pure planning branch quality matrix, create/review/merge the I14 planning PR.
+2. Activate an implementation branch from its exact merged main commit, then
+   dispatch Terra XHigh test-first.
+3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
 
@@ -186,16 +207,18 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   remediation are recorded in the research report and must not be filled from adjacent routes.
 - I09's seven-day identity is now official, but D2–D6 detail and the 5276m/5454m official conflict
   remain unresolved. I12 is a 2017 event record and lacks current access evidence.
-- I10a can progress only with the narrow official-title claim; broader restriction scope requires the
-  missing official announcement body or poster.
+- I10a remains deliberately narrow: broader restriction scope still requires the missing official
+  announcement body or poster.
+- I14 must not silently resolve the separate I15 question of how the 24-hour precipitation and daily
+  snowfall thresholds interact with activity-only windows; Sol will freeze that in I15's contract.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during route-data contract design
+## Forbidden actions during I14 contract design
 
-- Any route data, test harness, runtime code, dependency or lockfile implementation
-- Stable search I13, weather/verdict/queryId/history/UI implementation
+- Any implementation code, test fixture, dependency or lockfile change before the planning PR merges
+- Real route data, stable search I13, verdict/queryId/history/UI or public handler implementation
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Sol XHigh reviews #50. Do not write any full pilot variant or production search path.
+Create and merge the approved I14 planning PR. Do not start implementation before it merges.

@@ -1,132 +1,272 @@
 # 当前活动任务
 
-- Task ID: `I10a`
-- GitHub Issue: `#50`
-- Title: 录入五台山大朝台官方禁行记录与数据测试入口
-- Status: `READY_FOR_CONTROLLER_REVIEW`
-- Mode: `IMPLEMENTATION`
-- Owner: Terra XHigh
-- Reviewer: Sol XHigh
-- Branch: `codex/i10a-wutai-blocked-record`
-- Base: `main` at `7b708f2`
+- Task ID: `I14-CONTRACT`
+- GitHub Issue: `#23`
+- Title: 冻结多采样点小时天气与活动窗口合同
+- Status: `CONTRACT_APPROVED — PLANNING_PR_PENDING`
+- Mode: `PLANNING`
+- Owner: Sol XHigh
+- Proposed implementation owner: Terra XHigh
+- Branch: `codex/i14-hourly-weather-contract`
+- Base: `main` at `9021f31`
 - Goal: `TP-BETA-001`
+
+## Current authorization
+
+本分支只允许文档、Issue 合同和状态同步，不允许实现代码、fixture、依赖或锁文件修改。
+合同通过独立 Review、planning PR 的 latest-head CI 并合并后，Sol 才能从新的 main 创建
+`codex/i14-hourly-weather`，把状态改为 `IMPLEMENTATION_ACTIVE` 并分派 Terra XHigh。
 
 ## Mandatory context
 
-在检查实现代码前，按 `AGENTS.md` 顺序读取治理文档，然后读取：
+实现 Agent 在激活后必须按 `AGENTS.md` 顺序读取治理文件，并额外读取：
 
-1. `docs/architecture.md` 的 I07 目录边界和 I10a 数据 seam。
-2. `docs/research/pilot-route-source-audit.md` 的 I10 章节。
-3. `docs/testing-strategy.md` 的 I07/I10a 离线测试策略。
-4. GitHub #50 完整任务合同。
+1. `GOAL.md`
+2. `docs/architecture.md` 的 I07 schema 与 I14 小时天气边界
+3. `docs/testing-strategy.md` 的 I14 离线矩阵
+4. `docs/decision-log.md` 的 TP-D024、TP-D026、TP-D027
+5. GitHub #23 的完整任务合同
 
 ## Objective
 
-录入一条严格限定于 2026-07-31 官方公告标题的五台山大朝台 tier A
-blocked 记录，并建立后续试点数据共用的离线 `test:route-data` seam。本任务
-不创建任何 full 行程，不改变生产搜索。
+为一个已经通过 I07 catalog 的 full RouteVariant 获取所有必要采样点的 Open-Meteo 小时
+天气，只保留每日统一当地出发时间至该 stage 最大预计时长所覆盖的小时桶，并返回可供
+I15/I16 消费的完整或不足状态。I14 不产生 verdict，不接入现有生产 handler。
 
-## Allowlist
+## Implementation allowlist after activation
 
-- `cloudfunctions/getAdvice/data/catalog/pilots/wutai.js`
-- `scripts/route-data-contract-test.js`
-- `scripts/route-data/wutai.test.js`
-- `package.json`
-- `docs/current-status.md`
+- `cloudfunctions/getAdvice/hourly-weather.js`（新增纯计划/投影模块）
+- `cloudfunctions/getAdvice/weather.js`（仅新增 Open-Meteo hourly adapter 与内部入口）
+- `cloudfunctions/getAdvice/coordinates.js`（新增纯坐标转换模块）
+- `cloudfunctions/getAdvice/geocode.js`（仅改为导入并兼容导出原转换函数）
+- `scripts/hourly-weather-contract-test.js`（新增）
+- `scripts/fixtures/open-meteo-hourly.js`（新增）
+- `package.json`（新增 `test:hourly-weather` 并纳入根 `test`）
+- `docs/architecture.md`
 - `docs/testing-strategy.md`
+- `docs/development-plan.md`
+- `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
 
-修改 allowlist 外任何文件前必须停止并升级 Sol。
+超出 allowlist 必须停止并升级 Sol。不得修改依赖或任何 lockfile。
 
-## Required data shape
+## Fixed internal interface
 
-`wutai.js` 只导出 plain `{ sources, places, routes, variants }` 片段；不自建 catalog、不做
-I/O、不执行搜索。`route-data-contract-test.js` 聚合现有 `BUILTIN_ROUTES` 和已入库片段，
-只调用一次 I07 `createRouteCatalog`。路线专属断言放在 `scripts/route-data/wutai.test.js`。
+```js
+fetchRouteWeather(
+  { variant, date, startTimeLocal },
+  { now?, requestJson? } = {},
+)
+```
 
-### Stable IDs
+结果为判别式内部 union：
 
-- `source:wutai-dailuoding-2021`
-- `source:wutai-no-summit-hiking-2026-07-31`
-- `route:wutai-grand-pilgrimage`
-- `variant:wutai-grand-pilgrimage`
+```js
+{
+  ok: true,
+  dataStatus: 'complete',
+  source: 'Open-Meteo',
+  fetchedAt,
+  timezone: 'Asia/Shanghai',
+  units: {
+    temperatureC: '°C',
+    apparentTemperatureC: '°C',
+    precipitationProbabilityPct: '%',
+    precipitationMm: 'mm',
+    snowfallCm: 'cm',
+    weatherCode: 'wmo code',
+    visibilityM: 'm',
+    windSpeedMs: 'm/s',
+    windGustMs: 'm/s',
+    freezingLevelHeightM: 'm',
+  },
+  evaluatedWindows,
+}
 
-### Sources
+{
+  ok: true,
+  dataStatus: 'insufficient',
+  source: 'Open-Meteo',
+  fetchedAt,
+  timezone: 'Asia/Shanghai',
+  insufficientReasons: [{
+    samplePointId,
+    code: 'out_of_range' | 'weather_unavailable' | 'weather_data_invalid',
+    retryable,
+  }],
+  retryable,
+  evaluatedWindows,
+}
 
-两个 Source 均为 `tier='A'`、`kind='official'`、`checkedAt='2026-08-06'`：
+{
+  ok: false,
+  error: 'invalid_route_weather_request',
+  message,
+}
+```
 
-- `source:wutai-dailuoding-2021`：
-  - title: `黛螺顶`
-  - publisher: `五台山风景名胜区管理委员会`
-  - url: `https://www.wtsykfwzx.com/ztzl_show.aspx?id=84`
-  - 直接支持大朝台路线身份。
-- `source:wutai-no-summit-hiking-2026-07-31`：
-  - title: `五台山风景名胜区管理委员会关于全域禁止台顶徒步的公告`
-  - publisher: `五台山风景名胜区管理委员会`
-  - url: `https://www.wtsykfwzx.com/tzzn_show.aspx?id=1129`
-  - 直接支持 restriction 文字，派生支持 blocked 模型状态。
+`insufficient.evaluatedWindows[]` 只允许审计元数据：
 
-### Route and Variant
+```js
+{
+  day,
+  date,
+  startLocal,
+  endLocalExclusive,
+  durationHoursMax,
+  samplePointIds,
+}
+```
 
-- Route 引用 `place:legacy:五台山朝台`；不新建/升级 verified Place，不消费 legacy 海拔或坐标。
-- Route:
-  - `canonicalName='五台山大朝台'`
-  - `aliases=['五台山朝台']`
-  - `routeType='trek'`
-  - `summary='亲登五座台顶的大朝台路线；当前只保留官方禁行记录，不提供可规划行程。'`
-- Variant:
-  - `canonicalName='五台山大朝台禁行记录'`
-  - `aliases=['五台山大朝台']`
-  - `recordStatus='blocked'`
-  - `capability='blocked'`
-  - `operationalStatus='blocked'`
-  - `verificationLevel='A'`
-  - `restriction.reason='五台山风景名胜区管理委员会关于全域禁止台顶徒步的公告'`
-  - `restriction.scope='台顶徒步'`
-  - `restriction.effectiveFrom=null`
-  - `restriction.effectiveTo=null`
-  - `sourceCheckedAt='2026-08-06'`
+insufficient 分支不得出现 `samples`、`hours`、requestCoordinate 或任何天气读数；测试必须
+直接断言该字段集合，避免部分成功数据被 I15 误用。
 
-两个 null 表示官方页未披露边界，不表示永久禁令。不得将 restriction 扩大为具体
-古道、野路、起止日或例外。
+`complete.evaluatedWindows[]` 按 stage day 输出：
+
+```js
+{
+  day,
+  date,
+  startLocal,
+  endLocalExclusive,
+  durationHoursMax,
+  samples: [{
+    samplePointId,
+    samplePointName,
+    elevationM,
+    requestCoordinate: { lat, lon, coordinateSystem: 'WGS84' },
+    hours: [{
+      bucketStartLocal,
+      bucketEndLocal,
+      temperatureC,
+      apparentTemperatureC,
+      precipitationProbabilityPct,
+      precipitationMm,
+      snowfallCm,
+      weatherCode,
+      visibilityM,
+      windSpeedMs,
+      windGustMs,
+      freezingLevelHeightM,
+    }],
+  }],
+}
+```
+
+`evaluatedWindows` 保持 stage day 顺序，每个 window 的 samples 保持该 stage
+`weatherSamplePointIds` 顺序；这是确定性输出要求，不要求额外排序或机械评分。
+
+字段名称和 union 不得由实现 Agent自行更改；若实际代码约束要求调整，升级 Sol 并先同步
+架构、Issue 与合同。
+
+I14 对输入只做本模块必要的最小边界校验：`date` 必须是真实 ISO 日期，
+`startTimeLocal` 必须严格为 `HH:mm`，variant 必须具有 I07 `verified/full` 身份。其他
+catalog 完整性由 I07 保证；不在这里复制公开输入的所有异常 case。
+
+## Window and upstream-time rules
+
+1. `variant` 只接受 I07 verified/full shape；I14 不重新实现完整 catalog 校验。
+2. `date` 为第 1 天，stage day 通过 ISO 日历日加法获得；所有 day 使用同一规范化
+   `HH:mm`。I14 不提供默认出发时间。
+3. 活动区间为 `[start, start + durationHours.max)`，不得使用 min。
+4. 每个与活动区间相交的本地整点桶都纳入；精确结束时不多取下一个桶。跨午夜仍属于
+   原 stage day。
+5. 瞬时字段（temperature、apparent、weatherCode、visibility、windSpeed、
+   freezingLevelHeight）读取桶起点标签。
+6. 前一小时字段（precipitationProbability、precipitation、snowfall、windGust）读取
+   桶终点标签。
+7. 每个被 stage 引用的 unique sample 只请求一次；未引用 sample 不请求。请求日期范围
+   必须覆盖该 sample 所有桶起点及终点标签。
+8. WGS84 原样复制；GCJ-02 经 `coordinates.js` 转换。请求使用 sample `elevationM`，不得
+   用其他海拔或 `0` 回退。
+
+## Open-Meteo contract
+
+请求固定：
+
+```text
+timezone=Asia/Shanghai
+temperature_unit=celsius
+precipitation_unit=mm
+wind_speed_unit=ms
+timeformat=iso8601
+hourly=temperature_2m,apparent_temperature,precipitation_probability,
+       precipitation,snowfall,weather_code,visibility,
+       wind_speed_10m,wind_gusts_10m,freezing_level_height
+```
+
+成功响应必须有 `timezone='Asia/Shanghai'`，hourly 数组与 `time` 等长对齐，且
+`hourly_units.time='iso8601'`，十个天气字段单位分别为
+`°C/°C/%/mm/cm/wmo code/m/m/s/m/s/m`。只有活动桶所需值必须为有限数；不为同型
+不可能 case 重复建立机械负例。
+
+活动桶读数的最小语义域固定为：
+
+- `weatherCode` 是整数且属于
+  `0,1,2,3,45,48,51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99`；
+- `precipitationProbabilityPct` 为 `0–100` 的有限数；
+- `precipitationMm/snowfallCm/visibilityM/windSpeedMs/windGustMs` 为非负有限数；
+- `temperatureC/apparentTemperatureC/freezingLevelHeightM` 为有限数。
+
+任何违反都将对应 sample 归为 `weather_data_invalid`。实现使用通用验证，不为每个不可能
+case 重复分支；测试只需一个非法 WMO 码和一个代表性的范围/非负反例证明守卫敏感。
+
+任一必要 sample 请求失败、必要桶缺失、时间错位、单位/时区错误或选中值非数值时，
+整体 insufficient 且不返回任何带读数的部分窗口。每个失败 sample 产生一条去重的
+`insufficientReasons[]`；Open-Meteo 明确日期范围错误映射
+`out_of_range/retryable=false`，网络或服务失败映射
+`weather_unavailable/retryable=true`，结构、单位或时间错误映射
+`weather_data_invalid/retryable=true`。顶层 `retryable` 为任一 reason 可重试；不得暴露
+原始上游 reason，也不得用单一优先级隐藏多 sample 的不同失败。
 
 ## Out of scope
 
-- 黛螺顶小朝台 full 变体。
-- 任何距离、stages、海拔、坐标、天气采样点或装备数据。
-- I13 生产 registry、搜索、confirm 或公共响应。
-- 修改 `data/routes.js`、I07 schema、依赖或锁文件。
-- 实时网络测试、公告抓取器、部署或数据迁移。
+- 修改 `index.js`、公共 response contract 或前端。
+- I13 registry/search/production catalog 接线。
+- I15 阈值、原因码、24 小时累计或 verdict。
+- I16 climb support、日落、公开时间输入校验和 `verdict=null` 组合。
+- 真实路线数据、当前运行状态、AI、queryId、历史或 UI。
+- 实时网络测试、缓存、重试循环、新天气源、依赖、部署或迁移。
 
-## Test-first requirement
+## TDD requirement
 
-1. 在数据/测试模块存在前，已先运行预定 `test:route-data` 并记录真实 RED：缺少 root script。
-   新增 runner 与路线断言后，第二个真实 RED 为缺少 `wutai` 数据片段模块。
-2. 已实现最小 GREEN，不修改 I07 来迁就新数据。
-3. 正例覆盖聚合目录、稳定 ID、来源字段、blocked 分支、legacy Place 引用。
-4. 有效负例至少直接证明 tier B/C 限制源、缺 restriction evidence 或偷加 full 字段时失败；不重复 I07 全部通用矩阵。
+1. 先新增合成 full catalog fixture、hourly fixture 和契约测试，运行预定
+   `test:hourly-weather`；真实 RED 应为模块或导出缺失。
+2. 一个真实 RED 足够，不制造第二个失败来表演流程。
+3. 实现最小 GREEN；旧 `fetchWeather` 的 86 项 daily 语义保持不变。
+4. 合成 Variant 必须通过 I07 `createRouteCatalog`，不能直接伪装成 production route。
 
-## Execution evidence
+## Required test cases
 
-- `test:route-data` 已独立通过，并已纳入根 `test`。
-- 聚合目录仍为 175 个 legacy Place、1 Route、1 blocked Variant、0 full Variant、0 verified Place。
-- 离线断言覆盖合同固定 IDs、来源元数据、legacy Place 引用、blocked restriction 和禁止 full 字段；
-  tier B restriction source、缺 restriction evidence 与偷加 `fixedDays` 的 blocked 记录均被 I07
-  catalog 校验拒绝。
+- 两日、三个 unique samples：D1 A/B，D2 B/C；B 只请求一次。
+- 每日同一出发时间，分别使用 stage max；不读取无关夜间。
+- 非整点边界、精确结束、跨午夜和 bucket start/end 字段来源。
+- URL hourly 字段、日期范围、timezone 与所有显式单位。
+- WGS84 原样和一个 GCJ-02 已知转换；直接导入 hourly 模块不加载 CloudBase。
+- ISO 时间格式和十项天气单位正例；一个错误单位负例。
+- 完整快照的 normalized `units` 对象精确相等；windows 与 samples 保持冻结输入顺序。
+- 一个数组错位、一个必要桶缺口、一个选中值非数值。
+- 一个非法 WMO 码和一个代表性的概率越界或负气象量。
+- 一个必要 sample 网络失败时整体 insufficient 且无部分数据。
+- API 明确范围错误与普通网络失败的 reason/retryable 区分；混合失败保留逐 sample 原因。
+- 输入对象和上游 response 不被修改。
 
 ## Acceptance
 
-1. 根级 `test:route-data` 可独立运行并纳入根 `test`。
-2. 聚合目录仍产生 175 个 legacy Place，新增 1 Route 和 1 blocked Variant，不新增 full Variant 或 verified Place。
-3. 大朝台记录通过 I07 schema、引用和 tier A evidence 校验。
-4. blocked 记录不含 I07 禁止的任何 full itinerary 字段。
-5. 日期、restriction 和 checkedAt 与本合同精确一致；测试不访问网络。
-6. 现有 route-domain、root test、integration、lint、typecheck 和 WeChat build 保持通过。
+1. `test:hourly-weather` 独立运行并纳入根 `test`。
+2. frozen internal union、窗口、小时桶和 valid-time 映射与本文精确一致。
+3. 每个必要 sample 最多一次请求，总数不超过三；未引用 sample 零请求。
+4. 任一必要数据失败时原子地返回 insufficient，不泄漏局部可判定 hours。
+   insufficient 的 evaluatedWindows 只能包含冻结的六个审计字段。
+5. 旧 daily weather、geocode 导出和当前生产 handler 行为无变化。
+6. 不存在真实路线、I13、I15、I16 或公共接口范围扩张。
+7. 全部本地门禁和 latest-head GitHub `quality` 通过。
 
 ## Validation commands
 
 ```bash
-corepack npm@10.9.2 run test:route-data
+corepack npm@10.9.2 run test:hourly-weather
+corepack npm@10.9.2 run test:weather
 corepack npm@10.9.2 run test:route-domain
 corepack npm@10.9.2 run lint
 corepack npm@10.9.2 run typecheck
@@ -138,18 +278,24 @@ git diff --check
 
 ## Executor autonomy
 
-Terra 可决定 runner 的最小发现/调用细节、测试函数命名和模块内常量组织；不得改变
-ID、数据值、source tier、文件边界或验收标准。
+Terra 可决定纯模块内部函数命名、fixture 常量组织、URL 参数构造和 Promise 聚合细节；
+不得改变输出 union、窗口/桶语义、字段/单位、坐标职责、失败原子性、allowlist 或非范围。
 
 ## Escalate immediately
 
-需改 I07 schema、需生产 registry/搜索、无法引用现有 legacy Place、需新坐标/海拔事实、
-需扩大 restriction 范围、测试暴露跨模块缺陷，或任何修改超出 allowlist。
+- 需要修改 I07 schema、公共 handler/response、真实路线、I13/I15/I16 或依赖。
+- Open-Meteo 实际字段/单位与冻结合同不兼容，或必须更换/增加天气源。
+- 无法把 GCJ 提取限制为纯函数零行为移动。
+- 无法在不返回部分可判定数据的情况下处理必要 sample 失败。
+- 同一问题连续两轮修复仍不能通过 Review，或需要降低验收标准。
+
+I15 中“24 小时降水/单日新雪”与活动窗口的组合语义尚未冻结，不属于 I14；不得在本
+Issue 中提前扫描整日。Sol 必须在 I15 合同中单独解决。
 
 ## Required result package
 
 - 完成情况与修改摘要。
 - 实际修改文件。
-- RED 命令/失败原因、GREEN 与完整验证命令/结果。
-- 与合同的偏差、自主实现级决策、已知限制。
+- RED 命令/失败原因、GREEN 与完整验证结果。
+- 与合同的偏差、自主实现级决策和已知限制。
 - PR 链接与建议 Sol 重点 Review 位置。

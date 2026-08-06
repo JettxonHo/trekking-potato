@@ -290,6 +290,81 @@ freezing_level_height
 
 每个变体最多三个必要采样点。每个行进日只评估用户出发时间至该 stage 最大预计时长；无关夜间天气不得影响结论。任一必要采样点的活动窗口不完整时，天气数据状态为 `insufficient`。
 
+### I14 冻结边界
+
+I14 不接入当前 legacy 单点 `prepare` 路径，也不修改公共 `prepare/confirm/advice`
+响应。I13 尚未把 cold catalog 接入生产解析，因此 I14 只新增供后续编排调用的内部接口：
+
+```js
+fetchRouteWeather(
+  { variant, date, startTimeLocal },
+  { now?, requestJson? } = {},
+)
+  -> { ok: true, dataStatus: 'complete', ...hourlySnapshot }
+   | { ok: true, dataStatus: 'insufficient', insufficientReasons, retryable, ...auditFields }
+   | { ok: false, error: 'invalid_route_weather_request', message }
+```
+
+`variant` 必须是已经通过 I07 catalog 的 full RouteVariant。I14 只消费
+`fixedDays/stages/weatherSamplePoints`，不重复 I07 的来源、引用和完整 schema 校验。
+`date` 是第 1 日当地日期，所有 stage 使用同一个已规范化 `HH:mm`
+`startTimeLocal`；公开输入校验和错误映射属于 I16/I21。
+
+活动区间为 `[start, start + stage.durationHours.max)`。I14 把它投影为所有与区间相交的
+当地整点小时桶，保留 stage day、原始起止时间和采样点身份。一个 `07:30–11:30`
+窗口对应 `07:00–08:00` 至 `11:00–12:00` 共五个桶；一个 `07:00–12:00`
+窗口对应五个桶，不额外读取 `12:00–13:00`。跨午夜按 ISO 日历日推进，不依赖云函数
+主机时区；固定 `Asia/Shanghai`，不构造 DST 分支。
+
+Open-Meteo 多数字段是标记时刻的瞬时值，而 `precipitation_probability`、
+`precipitation`、`snowfall` 和 `wind_gusts_10m` 描述前一小时。为避免边界偏移，每个
+规范化小时桶的温度、体感、天气码、能见度、平均风和冻结层取桶起点标签；降水概率、
+降水、降雪和阵风取桶终点标签。快照记录 `bucketStartLocal/bucketEndLocal`，下游 I15
+只消费规范化桶，不重新解释上游时间标签。
+
+每个被至少一个 stage 引用的采样点只发一次请求，按它涉及的最早桶起点和最晚桶终点
+确定 `start_date/end_date`；未被 stage 引用的 sample 不请求。I07 已限制必要采样点最多
+三个，因此直接并发最多三次，不增加缓存、轮询、并发配置或依赖。GCJ-02 坐标先经共享
+纯坐标模块转为 WGS84；WGS84 原样复制。每个请求使用 sample 自身 `elevationM`，不得
+回退到 Place、路线最高点、附近峰顶或 `0`。
+
+输入边界只做本模块实际需要的最小校验：真实 ISO 日期、严格 `HH:mm` 和 I07
+`verified/full` 身份；失败统一为内部 `invalid_route_weather_request`，不在 I14 复制公开
+输入的完整错误矩阵。
+
+响应必须明确返回 `timezone='Asia/Shanghai'`，所有 hourly 数组与 `time` 对齐，且时间格式/
+单位为：
+
+```text
+time iso8601
+temperature_2m °C              apparent_temperature °C
+precipitation_probability %    precipitation mm
+snowfall cm                     weather_code wmo code
+visibility m                    wind_speed_10m m/s
+wind_gusts_10m m/s              freezing_level_height m
+```
+
+完整快照把上述天气单位映射到对应规范化字段名的 `units` 对象；windows 保持 stage day
+顺序，window 内 samples 保持 stage 的 sample ID 顺序，不额外引入排序规则。
+
+任一必要采样请求失败、必要桶缺失、时间错位、选中值非数值、时区或单位不符时，整体
+`dataStatus='insufficient'`，不返回可供规则使用的部分小时数据。每个失败采样点记录一条
+`insufficientReasons[] { samplePointId, code, retryable }`，code 仅使用
+`out_of_range | weather_unavailable | weather_data_invalid`；顶层 `retryable` 为任一原因
+可重试。这样多采样点同时出现不同失败时不需要机械优先级，也不暴露原始上游 reason。
+insufficient 的 `evaluatedWindows` 只保留
+`day/date/startLocal/endLocalExclusive/durationHoursMax/samplePointIds`；不得含 `samples`、
+`hours`、坐标或任何天气读数。
+
+选中桶的数值还必须满足下游安全判断需要的最小语义域：天气码是 Open-Meteo/WMO
+允许集合 `0,1,2,3,45,48,51,53,55,56,57,61,63,65,66,67,71,73,75,77,80,81,82,85,86,95,96,99`
+中的整数；降水概率在 `0–100`；降水、降雪、能见度、平均风和阵风为非负有限数；温度、
+体感和冻结层为有限数。违反时归入该 sample 的 `weather_data_invalid`。这是一条通用外部
+数据边界，不为每个字段复制防御分支或测试。
+I15 只对 `complete` 快照计算阈值，I16 再组合为
+`verdict=null/dataStatus='insufficient'`。I14 本身不产生 verdict、风险原因、日落判断或
+公共错误码。
+
 ## 7. TP-VERDICT-1
 
 规则输出：
