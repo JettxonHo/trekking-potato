@@ -7,6 +7,8 @@
  */
 const Module = require('module')
 const https = require('https')
+const fs = require('fs')
+const path = require('path')
 const openMeteoFixture = require('./fixtures/open-meteo-forecast')
 
 let openid = 'offline-confirmation-user'
@@ -216,6 +218,17 @@ async function main() {
   ugcFixture = [{ name: 'I05a UGC 长路线', lat: 30.1, lon: 120.1, elevation: 900, location: '测试省', type: 'trek' }]
   const ugcSubstring = await resolveLocation('I05a UGC')
   assert(ugcSubstring.ok && ugcSubstring.data.source.startsWith('高德POI'), 'UGC substring 自动命中必须关闭，改走 AMap')
+
+  const pageSource = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
+  assert(pageSource.includes('showCandidatePopup'), '前端必须为 confirmation 使用独立候选 Popup')
+  assert(pageSource.includes('candidateSnapshot: { date: params.date, level: params.level, days: params.days }'), 'prepare confirmation 必须保存当次 date/level/days 快照')
+  assert(pageSource.includes('onCandidateSelect = (candidateId)'), '前端必须处理用户显式选择 candidateId')
+  assert(pageSource.includes("const params = { candidateId, date: snapshot.date, level: snapshot.level, days: snapshot.days }"), 'confirm 参数必须只从 candidateId 与快照恢复')
+  assert(pageSource.includes("data: { mode: 'confirm', ...params }"), 'confirm 调用必须使用冻结 mode=confirm 参数')
+  assert(pageSource.includes('this._showBaseAndFetchAdvice(result.data, params)'), 'confirm base 必须复用现有 base→advice 流程')
+  assert(pageSource.includes("candidates.length < 1 || candidates.length > 5 || !candidates.every((candidate) => this._isValidCandidate(candidate))"), '空或畸形候选必须稳定报错而不进入 base')
+  assert(pageSource.includes('onCandidateClose = () =>') && pageSource.includes('this._nextRequestGeneration()'), '取消候选必须使旧 prepare/confirm 回调失效')
+  assert((pageSource.match(/generation !== this\._requestGeneration/g) || []).length >= 4, 'prepare 与 confirm 的 success/fail 回调必须受单调 generation 保护')
 
   assert(openid === 'offline-confirmation-user', '离线 mock 身份必须保持固定')
   console.log('PASS: I05a 服务端候选与 confirm 契约')

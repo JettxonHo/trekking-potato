@@ -4,17 +4,18 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M2 Correctness`
-- Active task: `I05a / GitHub #41 / READY_FOR_CONTROLLER_REVIEW`
-- Branch: `codex/i05a-backend-confirmation`
-- Base: `main` at `a73b840`
+- Active task: `I05b / GitHub #42 / READY_FOR_CONTROLLER_REVIEW`
+- Branch: `codex/i05b-frontend-confirmation`
+- Base: `main` at `1a76bc0`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
-- I05 planning PR: `#43` — merged; #41 ready and #42 blocked
+- I05 planning PR: `#43` — merged
+- I05a PR: `#44` — merged; GitHub #41 closed and #42 unblocked
 
 Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
-I04 is complete. I05a is implemented and awaiting Sol XHigh review; I05b remains blocked until
-I05a merges, and I06/later Issues remain Backlog until dependencies and exact contracts are approved.
+I04 and I05a are complete. I05b is implemented and awaiting Sol XHigh review; I06 and later Issues
+remain Backlog until dependencies and exact contracts are approved.
 
 ## Completed
 
@@ -44,8 +45,11 @@ I05a merges, and I06/later Issues remain Backlog until dependencies and exact co
   independently verifiable; #42 is blocked by #41.
 - I05 planning passed independent Review after one fix round and merged in PR #43 as `a73b840`;
   #41 was activated on that real base.
-- I05a implemented the stateless builtin candidate ID, deterministic confirmation stages and
-  `confirm` trust boundary on `codex/i05a-backend-confirmation`; it is awaiting Sol XHigh review.
+- I05a passed Sol XHigh Review and latest-head `quality`, merged in PR #44 as `1a76bc0`, and
+  GitHub #41 was closed. I05b was unblocked on that real base.
+- I05b implemented the page-local candidate selection Popup, frozen minimal confirm request and
+  prepare/confirm-only generation guard on `codex/i05b-frontend-confirmation`; it is awaiting
+  Sol XHigh review.
 
 ## Baseline evidence
 
@@ -73,12 +77,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: authorized implementation fallback; assigned I05a / #41.
-- Sol XHigh: owns I05 contracts, task routing and independent Review; #42 is not assigned.
+- Terra XHigh: authorized implementation fallback; assigned I05b / #42.
+- Sol XHigh: owns I05 contracts, task routing and independent Review.
 
 ## Open work
 
-1. Sol XHigh reviews I05a actual code/tests and latest-head CI; #42 remains blocked until merge.
+1. Sol XHigh reviews I05b UI flow, tests and latest-head CI before closing parent #14.
 
 ## Blockers and risks
 
@@ -89,13 +93,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Five route variants still require field-level A/B evidence during I08–I12.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I05a
+## Forbidden actions during I05b
 
-- Frontend candidate UI or request-generation changes owned by #42
-- Route data field/schema edits, persistent candidate storage, queryId/TTL or permanent IDs
-- Verdict/weather/rule changes, I20 reducer/service, full UGC migration, deployment or dependencies
+- Backend candidate/match/confirm contract changes
+- I20 reducer/service, global store or broad advice/history race refactor
+- Route schema, queryId/TTL, verdict/weather/rule/history/UGC changes, deployment or dependencies
 - Deployment, database mutation, UGC deletion or production configuration
 
 ## Next action
 
-Review GitHub #41; do not start #42 before #41 is approved and merged.
+Review GitHub #42; I06 remains blocked until parent #14 is reviewed and closed.

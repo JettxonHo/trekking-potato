@@ -48,8 +48,9 @@ confirmation、route-type、base、advice/degraded 出口。断言兼容字段�
 
 I05a 新增离线 `test:confirmation`，覆盖全局 canonical 优先、唯一/重复 alias、
 prefix/contains/fuzzy 候选、稳定 ID、candidate_not_found、confirm 只读服务端事实和
-确认前零天气/规则/AI 副作用。I05b 在同一命令补充前端候选显示、最小 confirm 请求、
-取消/编辑清理与 prepare/confirm request generation；不借此建立 I20 reducer/service。
+确认前零天气/规则/AI 副作用。I05b 在同一命令补充页面源码契约：候选显示、最小
+confirm 请求、空/畸形候选失败、取消/编辑清理，以及仅 prepare/confirm 的组件私有
+单调 generation；不借此建立 I20 reducer/service。
 
 ## 3. 测试层级
 

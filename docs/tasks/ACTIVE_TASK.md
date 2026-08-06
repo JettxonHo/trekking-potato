@@ -1,48 +1,46 @@
 # 当前活动任务
 
-- Task ID: `I05a`
-- GitHub Issue: `#41` — `https://github.com/JettxonHo/trekking-potato/issues/41`
+- Task ID: `I05b`
+- GitHub Issue: `#42` — `https://github.com/JettxonHo/trekking-potato/issues/42`
 - Parent: `#14`
-- Title: 服务端路线候选与 confirm 契约
+- Title: 前端候选确认闭环与局部竞态保护
 - Status: `READY_FOR_EXECUTOR`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh (authorized Luna fallback)
 - Reviewer: Sol XHigh
-- Branch: `codex/i05a-backend-confirmation`
-- Base: `main` at `a73b840`
+- Branch: `codex/i05b-frontend-confirmation`
+- Base: `main` at `1a76bc0`
 - Goal: `TP-BETA-001`
 
-完整任务合同以 GitHub #41 为准；本文件记录执行指针和不能遗漏的边界。
+完整任务合同以 GitHub #42 为准；本文件记录执行指针和不能遗漏的边界。
 
 ## Objective
 
-为 `BUILTIN_ROUTES` 建立可由服务端重新解析的无状态 candidate ID、确定匹配阶段和
-`mode='confirm'`，使 prefix/contains/fuzzy/歧义 alias 不再自动进入 base，客户端
-附带的路线事实不能改变确认结果。
+在现有 Taro 首页消费 I05a 的 `confirmation/candidates` 与 `mode='confirm'` 契约，完成
+候选查看、选择、取消和编辑闭环，并以组件私有单调 generation 防止旧 prepare/confirm
+响应覆盖新查询或用户取消。不得提前实现 I20 的 reducer/service。
 
 ## Executor allowlist
 
-- `cloudfunctions/getAdvice/data/routes.js`（只改 helper，不改 175 条数据字段）
-- `cloudfunctions/getAdvice/geocode.js`
-- `cloudfunctions/getAdvice/index.js`
-- `cloudfunctions/getAdvice/response-contract.js`
-- `scripts/route-type-contract-test.js`、`scripts/response-contract-test.js`、`scripts/unit-test.js`
-- 可新增 `scripts/confirmation-contract-test.js`
-- 根 `package.json`（只接入 `test:confirmation`）
-- `docs/testing-strategy.md`、`docs/current-status.md`
+- `taro-app/src/pages/index/index.jsx`
+- `taro-app/src/pages/index/index.css`（仅候选 Popup、行和按钮的必要样式）
+- `scripts/confirmation-contract-test.js`
+- `scripts/response-contract-test.js`
+- `docs/testing-strategy.md`
+- `docs/current-status.md`
 
 ## Frozen contract
 
-- ID：``builtin-route:${canonicalName}``；不用 index、哈希、随机存储或新 schema。
-- 直达：全局 canonical exact；无 canonical 时唯一 alias exact。
-- 候选阶段：重复 alias exact → prefix → contains → fuzzy；只用第一非空阶段；先按 ID
-  去重，再按 #41 的确定规则排序，最后最多五条。
-- Candidate 字段固定为 `candidateId/canonicalName/region/routeType`，分别映射旧记录的
-  ID helper、`name/location/type`；不含 coords/elevation/weather/baseData。
-- Confirm 只使用 `candidateId/date/level/days`；其他客户端事实不参与。未知/畸形/
-  已移除 ID 为 `candidate_not_found`、不可重试。
-- AMap 不生成 candidate；UGC exact/alias 暂留，substring 自动命中关闭。
-- 真实 TTL/归属、永久 ID、领域 schema 和前端闭环分别留 I17、I13、I07、I05b。
+- prepare confirmation 保存 1–5 个候选及当次 `date/level/days` 快照，打开独立候选
+  Popup；不得显示结果或调用 advice/cache/history。
+- 每行展示 canonicalName、region 与中文 routeType；不默认、不自动选择。
+- 点击候选只发送 `mode/candidateId/date/level/days`，不得发送 route、坐标、海拔、
+  routeType、天气或 baseData。
+- confirm 返回 base 后复用已有 base→advice 流程；route_type_required/error 沿用 I04。
+- 取消、关闭、编辑路线或新 prepare 均清空候选/快照，且不调用 confirm。
+- 组件私有单调 request generation 只保护 prepare/confirm；旧回调不得覆盖新查询、取消
+  或编辑后的状态。不得扩大到 advice/history 通用竞态或新全局状态库。
+- 空或畸形 candidates 显示稳定错误，不进入 base。
 
 ## Verification
 
@@ -56,6 +54,7 @@ corepack npm@10.9.2 run build:weapp
 git diff --check
 ```
 
-默认测试完全离线。Agent 只可决定纯 helper 命名与内部组织；任何合同、allowlist、
-数据字段、持久化、依赖或后续 Issue 边界变化必须停止并升级。完成后提交并返回
-`READY_FOR_CONTROLLER_REVIEW`，不得 push、创建/合并 PR 或自批。
+默认测试完全离线。Agent 可决定本地 state/helper 名称与当前设计体系内的小幅样式值；
+任何后端合同、依赖、reducer/service、公共竞态范围、allowlist 或产品文案实质变化必须
+停止并升级。完成后提交并返回 `READY_FOR_CONTROLLER_REVIEW`，不得 push、创建/合并
+PR 或自批。
