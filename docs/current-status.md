@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I17 parent #26 / #60/#61 / APPROVED — PLANNING_PR_PENDING`
-- Branch: `codex/i17-trip-context-contract`
-- Base: `main` at `bd6017f`
+- Active task: `I17a / #60 / APPROVED — PR_PENDING`
+- Branch: `codex/i17a-trip-context-store`
+- Base: `main` at `bc23dbe`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -25,12 +25,13 @@
 - I15 implementation PR: `#57` — merged; GitHub #24 closed
 - I16 planning PR: `#58` — merged; GitHub #25 implementation activated
 - I16 implementation PR: `#59` — merged; GitHub #25 and M4 closed
+- I17 planning PR: `#62` — merged; GitHub #60 implementation is ready for Sol XHigh Review
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is now complete through I14–I16 without authorizing I13 or real full-route data. M5 is active at
-I17 contract planning. I17 will establish server-owned short-lived contexts in #60/#61; advice remains
+I17a Review. I17 will establish server-owned short-lived contexts in #60/#61; advice remains
 client-baseData compatible and explicitly untrusted until I18.
 
 ## Completed
@@ -241,6 +242,24 @@ client-baseData compatible and explicitly untrusted until I18.
   staged I17/I18 public errors, added malformed-ID zero-query coverage and froze the exact
   `trip_contexts/doc().set()` mock boundary. The second independent Review returned `APPROVED` with no
   remaining P0–P2 finding; #26/#60/#61 match the local contract. No implementation has started.
+- I17 planning PR #62 matched approved head `176c8a8`, passed latest-head GitHub `quality` in 64 seconds
+  and squash merged as `bc23dbe`. #60 is active on a fresh branch from that exact base; #61 remains
+  blocked and no handler change is authorized in I17a.
+- I17a recorded a genuine TDD RED because the new `trip-context` module did not exist. Its GREEN adds
+  only the injected storage seam, random `tctx_<uuid-v4>` IDs, exact 30-minute logical expiry,
+  `_openid` ownership, legacy-to-place-only TrustedBaseData projection and offline contract coverage.
+  It performs no handler, response, mock, frontend, dependency, configuration or production-data work.
+  The completed local matrix is green; #60 is `READY_FOR_CONTROLLER_REVIEW` and awaits Sol's actual-diff
+  review before any PR, CI or merge.
+- Sol's first I17a implementation Review returned `CHANGES_REQUESTED` for one malformed-record P1:
+  an unparsable `createdAt` or a snapshot without `schemaVersion='beta_base_v1'` could previously reach
+  `found`. The bounded `REVIEW_FIX` first recorded both sensitive RED cases, then added only those two
+  stored-record checks. It does not revalidate I14–I16 nested data; the focused test and complete local
+  matrix are green again, so #60 is returned as `READY_FOR_CONTROLLER_REVIEW`.
+- Sol's second I17a Review inspected the actual REVIEW_FIX, confirmed the previous corrupt-record probe
+  now returns `store_unavailable`, and independently reran trip-context, root test, integration (56/0),
+  lint (0 errors; 10 existing warnings), typecheck, WeChat build and diff checks. All passed; result is
+  `APPROVED — PR_PENDING` with only latest-head GitHub `quality` remaining.
 
 ## Baseline evidence
 
@@ -280,13 +299,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: completed #25/I16 Review/merge and owns I17 parent/child contracts and merge decisions.
-- Terra XHigh: completed two I17 read-only architecture/test audits; implementation is not yet assigned.
+- Sol XHigh: owns I17 parent/child contracts, independent Review and merge decisions.
+- Terra XHigh: assigned #60 I17a within the frozen store-only allowlist.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Open and merge the approved I17 planning PR after latest-head CI, then activate #60 I17a.
+1. Open #60's implementation PR, require latest-head GitHub `quality`, then merge only if the approved
+   diff is unchanged.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -310,13 +330,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   compatibility input; #60/#61 must not claim that the end-to-end trust boundary is complete.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I17 contract review
+## Forbidden actions during I17a implementation
 
-- Business implementation before planning merge; dependency, lockfile or CloudBase production config
+- Handler/response/mock changes assigned to I17b; dependency, lockfile or CloudBase production config
 - I18 queryId-only advice, I19 history/UGC, real route data, frontend or deployment
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Open the approved I17 planning PR and wait for latest-head CI. Activate
-#60 only after that reviewed PR passes latest-head CI and merges.
+Open #60's approved implementation PR and wait for latest-head CI. I17b/#61 remains blocked until I17a
+merges.

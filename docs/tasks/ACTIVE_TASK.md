@@ -1,25 +1,30 @@
 # 当前活动任务
 
-- Task ID: `I17` parent; children `I17a / #60` and `I17b / #61`
-- GitHub Issue: `#26`
-- Title: 冻结服务端 TripContext 与 queryId 合同
-- Status: `APPROVED — PLANNING_PR_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Reviewer: independent Terra XHigh
-- Branch: `codex/i17-trip-context-contract`
-- Base: `main` at `bd6017f`
+- Task ID: `I17a`
+- GitHub Issue: `#60` (parent `#26`)
+- Title: 建立 TripContext 服务端存储核心
+- Status: `APPROVED — PR_PENDING`
+- Mode: `REVIEW_FIX`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
+- Branch: `codex/i17a-trip-context-store`
+- Base: `main` at `bc23dbe`
 - Goal: `TP-BETA-001`
 
 ## Current authorization
 
 I16 implementation PR #59 passed Sol XHigh Review and latest-head GitHub `quality`, squash merged as
-`bd6017f`, and closed #25. M4 is complete. Sol XHigh may now freeze I17's server-owned context
-contract and split the parent into independently reviewable children. No I17 business implementation
-is authorized until this planning PR passes independent Review, CI and merge. The first independent
+`bd6017f`, and closed #25. M4 is complete. Sol XHigh froze I17's server-owned context contract and
+split the parent into independently reviewable children. The first independent
 contract Review returned `CHANGES_REQUESTED` for one ownership ambiguity, one stale public-error
 paragraph and two focused test gaps. All four were corrected and synchronized; the second independent
-Review returned `APPROVED` with no remaining P0–P2 finding.
+Review returned `APPROVED` with no remaining P0–P2 finding. Planning PR #62 then passed latest-head
+GitHub `quality` and squash merged as `bc23dbe`. I17a/#60 is now authorized exactly within its allowlist;
+I17b/#61 remains blocked until I17a merges. Terra completed I17a test-first. Sol's first implementation
+Review returned `CHANGES_REQUESTED` for one malformed-record boundary; the focused fix now rejects an
+unparsable `createdAt` and non-`beta_base_v1` snapshot without nested rule revalidation. Sol inspected
+the actual fix, reran the full quality matrix and returned `APPROVED`; latest-head GitHub CI is the only
+remaining merge gate.
 
 ## Mandatory context
 
