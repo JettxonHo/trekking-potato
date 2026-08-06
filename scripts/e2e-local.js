@@ -87,13 +87,14 @@ const BUILTIN_TESTS = [
   { route: '五台山朝台', expectElev: 3058, tripDays: 3, routeType: 'trek' },
 ]
 
-async function testPipeline(route, expectElev, tripDays, routeType) {
+async function testPipeline(route, expectElev, tripDays, expectedRouteType) {
   console.log('\n--- 路线: ' + route + ' ---')
 
   // 1. 地理编码（内置表，无网络）
   const loc = await resolveLocation(route)
   check('resolveLocation.ok', loc.ok === true, JSON.stringify(loc))
   check('海拔匹配', loc.ok && loc.data.elevation === expectElev, String(loc.ok && loc.data.elevation))
+  check('路线类型由解析结果贯穿', loc.ok && loc.data.type === expectedRouteType, String(loc.ok && loc.data.type))
 
   if (!loc.ok) return
 
@@ -127,9 +128,9 @@ async function testPipeline(route, expectElev, tripDays, routeType) {
   check('含 terrainCaveat', typeof sun.terrainCaveat === 'string' && sun.terrainCaveat.length > 10)
 
   // 5. 装备规则
-  const gear = getGearRules({ month: 8, elevation: loc.data.elevation, days: tripDays, lat: loc.data.lat, routeType })
+  const gear = getGearRules({ month: 8, elevation: loc.data.elevation, days: tripDays, lat: loc.data.lat, routeType: loc.data.type })
   check('gear.essential 非空', gear.essential.length > 0)
-  check('gear.routeType 符合当前契约', gear.routeType === routeType, gear.routeType)
+  check('gear.routeType 符合解析结果', gear.routeType === loc.data.type, gear.routeType)
   if (expectElev >= 5276) {
     check('高海拔含冰爪', gear.essential.some((g) => g.item.includes('冰爪')))
     check('高海拔含结组绳', gear.essential.some((g) => g.item.includes('结组绳')))
