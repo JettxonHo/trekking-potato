@@ -1,9 +1,9 @@
 # 当前活动任务
 
 - Task ID: `M3-DATA-CONTRACTS`
-- GitHub Issues: `#17–#21`
+- GitHub Issues: `#17–#21`, I10 children `#50/#51`
 - Title: 五条试点路线来源与数据任务合同
-- Status: `CONTROLLER_CONTRACT_DESIGN`
+- Status: `READY_FOR_PLANNING_PR`
 - Mode: `REVIEW_ONLY`
 - Owner: Sol XHigh
 - Reviewer: Sol XHigh
@@ -11,8 +11,9 @@
 - Base: `main` at `ea3b869`
 - Goal: `TP-BETA-001`
 
-I07 已通过 PR #48/#49 合并，GitHub #16 关闭。当前只允许 Sol XHigh 对 I08–I12 做只读
-来源审计、数据文件拆分和任务合同设计；本文件不授权任何路线数据或测试代码实现。
+I07 已通过 PR #48/#49 合并，GitHub #16 关闭。当前只允许 Sol XHigh 和明确分配的
+来源 Agent 做只读来源审计、调研报告、数据文件拆分和任务合同设计；本文件不授权任何
+路线数据或测试代码实现。
 
 ## Objective
 
@@ -28,9 +29,12 @@ I07 已通过 PR #48/#49 合并，GitHub #16 关闭。当前只允许 Sol XHigh 
 - `docs/decision-log.md`
 - `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
+- `docs/research/pilot-route-source-audit.md`
 
 本阶段禁止新增/修改 route data、测试代码、package scripts、运行时模块、依赖或锁文件。
 GitHub #17–#21 可更新为更精确的 preliminary/ready 合同，但在规划 PR 合并前不得分派实现。
+来源审计 Agent 可在 `docs/research/pilot-route-source-audit.md` 中固化五条路线的一手来源、
+字段证据、冲突、缺口和解阻条件；该报告是调研产物，不授权写入业务数据。
 
 ## Frozen inputs
 
@@ -54,13 +58,15 @@ GitHub #17–#21 可更新为更精确的 preliminary/ready 合同，但在规�
 | I11 / #20 | 玉龙雪山冰川公园 4680 观景线 | `tour`, 1 day | 景区交通与步行混合，不表述为登顶 |
 | I12 / #21 | 环贡嘎·全国徒步大会三日精华线 | `trek`, 3 days | 点到点逐日路段 |
 
-## Preliminary file and test partition
+## Revised file and test partition
 
-- I08 先建立共享离线 route-data runner、根测试入口和自己的独立数据/测试文件；它合并前
-  I09–I12 不并行实施。
-- I09–I12 各自只能新增一个独立数据文件和一个独立断言文件；共享 runner 自动发现这些
-  测试。生产静态 registry 由 I13 建立，数据 Issue 不争用统一运行时文件。
-- I08 合并后，只有文件完全不重叠且来源合同已经 `APPROVED` 的两个数据 Issue 可在隔离
+- 来源审计后，I10 拆为 #50 / I10a blocked 大朝台和 #51 / I10b full 小朝台。I10a 先建立共享
+  离线 route-data runner、根测试入口和五台山数据/断言文件；其中只允许 tier A
+  blocked 记录，不包含小朝台 full 行程。
+- I08、I09、I10b、I11、I12 各自只能新增一个独立数据文件和一个独立断言文件；
+  共享 runner 自动发现这些测试。生产静态 registry 由 I13 建立，数据 Issue 不争用
+  统一运行时文件。
+- I10a 合并后，只有文件完全不重叠且来源合同已经 `APPROVED` 的两个数据 Issue 可在隔离
   worktree 并行。共享文档由 Sol 串行更新，不让实现 Agent 并发修改。
 - 约 400 行/10 文件仍只是 Review 信号；每条路线的数据、来源和断言必须保持一个独立 PR。
 
@@ -75,10 +81,11 @@ GitHub #17–#21 可更新为更精确的 preliminary/ready 合同，但在规�
 1. #17–#21 均有完整任务合同或明确的 `BLOCKED` 来源缺口。
 2. 每条可执行合同含唯一文件 allowlist、非范围、字段级来源、验收、测试、依赖、风险、
    Agent 自主范围、升级条件和交付物。
-3. 共享测试 seam 与 I08 首先串行的原因明确；后续最多两路并行且无共享文件。
+3. 共享测试 seam 与 I10a 首先串行的原因明确；后续最多两路并行且无共享文件。
 4. 合同与 `GOAL.md`、产品、架构、测试和决策文档一致，并通过独立 Review。
 5. 合同-only PR 合并前不创建任何路线数据，不把来源调查结果宣称为已验证产品事实。
 
 ## Next action
 
-并行执行只读来源审计，Sol 复核原始网页并决定哪些 Issue 可以进入 `READY`。
+创建纯规划 PR；在 latest-head `quality` 通过、PR head 与已审阅提交一致且 Sol
+`APPROVED` 后合并。

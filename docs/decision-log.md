@@ -153,3 +153,64 @@
 - Evidence: Planning PR #48、implementation PR #49、GitHub #16；两轮合同 Review、两轮实现
   Review；local lint/typecheck/test/integration/build 与 latest-head GitHub `quality` 通过。
 - Why: 领域事实和旧地点提示已经可由同一深模块诚实区分，且搜索切换仍清晰留在 I13。
+
+## 2026-08-06 — TP-D021 试点路线不以缺失几何换取进度
+
+- Status: Accepted
+- Decision: I08、I09、I10 的小朝台部分、I11 和 I12 在本轮官方来源审计后保持
+  `BLOCKED: SOURCE_EVIDENCE_INCOMPLETE`。已有页面可以证明路线身份、部分点序或高程，
+  但不足以同时支撑 I07 full 变体要求的完整距离、累计升降、逐日时长、
+  采样坐标/海拔和当前运行状态。不用附近山峰、相邻路线、净高差、营销时长
+  或单一社区笔记补齐。
+- Evidence: `docs/research/pilot-route-source-audit.md`；GitHub #17–#21 的字段级解阻条件。
+- Why: 这些值会直接影响天气窗口、装备和出发结论，证据不足时应返回无法判断，
+  而不是把看似完整的数据写入可规划目录。
+
+## 2026-08-06 — TP-D022 五台山禁行与小朝台分开验收
+
+- Status: Accepted
+- Decision: 原 I10 拆为两个串行子任务：I10a 只录入大朝台 tier A blocked 记录并
+  建立共享离线 route-data test seam；I10b 只处理黛螺顶小朝台 full 变体。I10a 可基于
+  2026-07-31 管委会官方公告标题与本次核验日期进入实现；由于官方页未披露
+  生效/截止日，两个日期均保留 `null`，不声称永久禁行。I10b 继续 blocked。
+- Alternatives: 等小朝台所有几何齐全后一次交付；仅凭 2024 索道答复推导大智路当前
+  状态；把无截止日解释为永久。
+- Why: blocked 记录与 full 行程在 I07 就是两种独立的判别分支；拆分后每个 PR
+  只有一个可验收主要目标，也不需为了可用的禁行事实而伪造小朝台几何。
+
+## 2026-08-06 — TP-D023 mixed 行程指标语义
+
+- Status: Accepted
+- Decision: `distanceKm/ascentM/descentM` 始终表达变体起终点之间的完整行程
+  几何；`accessMode='mixed'` 负责告知其中存在索道/景区交通，因而累计升降不等同于
+  用户纯步行负荷。索道垂直高差或终点净高差不能直接替代全行程累计升降。
+- Alternatives: 不记录交通段的纯步行指标；立即引入分段 mode schema；将索道高差当作爬升。
+- Why: 统一几何语义不需要在 Beta 提前增加新公共 schema，同时保持事实完整；
+  access mode 与 UI 标注防止将交通爬升误读为体力强度。
+
+## 2026-08-06 — TP-D024 来源阻塞期的交付重排
+
+- Status: Accepted
+- Decision: I14 的运行依赖收窄为已合并的 I07 stage/sample schema，不再等待五条
+  真实路线数据。I14 只用小型合成变体和离线天气 fixture 验证多点、多日活动窗口，
+  不新增生产路线、搜索接入或运行状态假设。数据方面先完成可独立验证的 I10a
+  blocked 记录，然后在来源解阻时回到 I08/I09/I10b/I11/I12。
+- Alternatives: 所有 M3 数据齐全前停止整个 Goal；提前伪造五条路线作为天气测试输入；
+  与 I14 同时偷做 I13 生产 registry。
+- Why: I14 只消费已冻结的 stage/sample 形状，具体山线数值不改变小时窗口
+  算法。这一重排保持验收标准和产品范围，同时遵守“可继续不受影响的独立任务”
+  规则。
+
+## 2026-08-06 — TP-D025 试点数据片段与 I10a legacy Place 边界
+
+- Status: Accepted
+- Decision: I10a 建立的数据 seam 使每条路线文件只导出 plain
+  `{ sources, places, routes, variants }`；离线 runner 聚合这些片段和现有
+  `BUILTIN_ROUTES`，再一次性调用 `createRouteCatalog`。I10a 的大朝台 Route 引用
+  `place:legacy:五台山朝台`，不创建无可追溯参考坐标的 verified Place，也不消费
+  该 legacy Place 的旧海拔/坐标作为限制事实。I13 以后复用同一片段格式。
+- Alternatives: 每个数据文件返回一个独立 catalog；提前维护中央 registry；用旧五台山坐标
+  冒充新 verified Place。
+- Why: 可聚合的 plain fragment 既不把 I13 生产搜索偷进数据 PR，又能在同一目录
+  检查里发现跨文件重复和引用错误；复用 legacy Place 只是稳定身份容器，不新增
+  任何安全事实。

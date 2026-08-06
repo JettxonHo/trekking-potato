@@ -53,11 +53,20 @@ RouteVariant (blocked)
 `weatherSamplePoints[]` 含独立 ID、名称、坐标、坐标系和海拔。附近山峰海拔不得代替
 路线最高点或天气采样海拔；校验要求 full 变体显式提供路线最高点，不能用附近峰值兜底。
 
+`distanceKm/ascentM/descentM` 描述从变体起点到终点的完整行程几何，不等同于
+用户纯步行负荷。`accessMode='mixed'` 时，索道/景区交通段必须在路线摘要和来源
+说明中明示，界面也必须同时展示 access mode；不得把索道垂直高差或终点净高差
+直接当作全行程累计爬升。若来源不能覆盖完整几何，该 full 变体保持阻塞，不为
+混合路线另造一套模糊的体力指标。
+
 来源：A 为官方/政府/协会/API；B 为两个可靠独立来源或经主控审阅的 GPX；C 为未验证
 输入。`Source.supports` 逐字段记录直接或推导证据；推导项必须写明方法，但不计算加权总分。
 只有 A/B 且核心字段完整的 full 变体可输出路线结论。
 
 `operationalStatus` 为 `open | blocked | unknown`。只有仍有效、来源明确的 `blocked` 触发硬阻断；`unknown` 显示核验提示但不自动降级。
+blocked 的 `effectiveFrom/effectiveTo=null` 只表示官方来源未披露对应边界，不表示永久
+禁令；`sourceCheckedAt` 必须跟随记录并在上线/闭测前重新核验。静态条目不得从旧公告
+推导当前状态。
 
 ### I07 冻结目录边界
 
@@ -101,6 +110,20 @@ adapter 对每个 Place 内的 alias 做 trim、去重并删除等于 canonicalN
 I07 不提供 query resolver，不修改 `routes.js`、`geocode.js` 或 `index.js`，不创建空的试点
 注册表。I08–I12 可各自在独立数据文件调用同一 factory 验证；I13 再建立生产目录聚合、
 同名优先级、永久候选 ID、blocked 精确解析和旧 I05 ID 兼容窗口。
+
+### I10a 起的静态数据 seam
+
+每个试点文件位于 `cloudfunctions/getAdvice/data/catalog/pilots/<slug>.js`，只导出
+`{ sources, places, routes, variants }` 的普通数据片段，不自建 catalog、不做 I/O、不执行搜索。
+`scripts/route-data-contract-test.js` 用既有 `BUILTIN_ROUTES` 作为 legacyRecords，聚合已入库
+的试点片段后只调用一次 `createRouteCatalog`；`scripts/route-data/<slug>.test.js` 保留每条
+路线的证据与字段断言。I13 将复用同一片段格式建立生产聚合，不要求数据
+Issue 提前编写 registry。
+
+I10a 的 blocked 记录引用现有 `place:legacy:五台山朝台` 作为地点容器；它不使用旧
+海拔或坐标，也不把该 Place 升级为 verified。这让限制事实在不伪造新 Place 参考
+坐标的情况下可以独立验证。I10b 只有取得可追溯坐标后才可新增 verified Place，并
+在同一受控 PR 中调整引用。
 
 ## 3. 路线解析
 
