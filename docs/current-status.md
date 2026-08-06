@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M3 Route domain`
-- Active task: `M3-DATA-CONTRACTS / #50 I10a + #17–#21 source gates / READY_FOR_PLANNING_PR`
-- Branch: `codex/i08-i12-route-data-contracts`
-- Base: `main` at `ea3b869`
+- Active task: `I10a / GitHub #50 / IMPLEMENTATION_ACTIVE`
+- Branch: `codex/i10a-wutai-blocked-record`
+- Base: `main` at `7b708f2`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -17,11 +17,12 @@
 - I06 implementation PR: `#47` — merged; GitHub #15 and M2 closed
 - I07 planning PR: `#48` — merged; GitHub #16 remains open for implementation
 - I07 implementation PR: `#49` — merged; GitHub #16 closed
+- M3 source-gate PR: `#52` — merged; #50 activated, #17/#18/#20/#21/#51 blocked
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 is complete. The field-level
-audit blocks every full pilot variant; I10 is being split so its independently supported Wutai blocked
-record can establish the route-data test seam without inventing the small-route geometry. No route-data
-implementation is authorized until this contract change is independently reviewed and merged.
+audit blocks every full pilot variant. Source-gate PR #52 is merged; #50/I10a is now the sole active
+route-data implementation and may establish only the Wutai blocked record plus the shared offline data
+test seam. All full pilot variants remain unauthorized while their source gates are blocked.
 
 ## Completed
 
@@ -124,6 +125,14 @@ implementation is authorized until this contract change is independently reviewe
 - Sol reran the complete planning-branch quality matrix after the contract changes: lint passed with
   0 errors and 10 existing warnings; typecheck, root test, 56/0 offline integration, WeChat build and
   `git diff --check` all passed.
+- Source-gate PR #52 matched reviewed head `8961998`, passed latest-head GitHub `quality` in 48 seconds,
+  received Sol `APPROVED`, and squash merged as `7b708f2`. GitHub #50 is activated from that exact base.
+- I10a implementation recorded a real two-step RED: the planned `test:route-data` command first lacked
+  a root script, then the new runner lacked the Wutai data fragment. The minimum GREEN adds only the
+  Wutai plain data fragment, shared offline runner and Wutai-specific assertions. It aggregates 175
+  legacy Places with 1 Route and 1 tier A blocked Variant (0 full Variant and 0 verified Place), while
+  retaining the existing production search path. Direct negative checks reject a tier B restriction
+  source, missing restriction evidence and a blocked record with `fixedDays`.
 
 ## Baseline evidence
 
@@ -158,15 +167,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: no active implementation assignment while the I10a/source-gate contract is under design.
-- Sol XHigh: owns I10 split, #17–#21 blocker contracts, scheduling and independent Review.
+- Terra XHigh: active implementation owner for #50/I10a on `codex/i10a-wutai-blocked-record`.
+- Sol XHigh: owns #50 contract, independent implementation Review, PR approval and merge decision.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Create the pure planning PR from the reviewed branch and verify latest-head `quality`.
-2. Merge the contract PR, then activate I10a on the merged base.
-3. After I10a, freeze and execute I14 against synthetic fixtures while source acquisition continues.
+1. Sol reviews #50 actual code/tests, requests fixes if needed, verifies latest-head CI and decides merge.
+2. After I10a, freeze and execute I14 against synthetic fixtures while source acquisition continues.
 
 ## Blockers and risks
 
@@ -190,5 +198,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Finish the source-gate planning PR and independent Review; then activate I10a. Do not write full pilot
-variants while their evidence gates remain blocked.
+Sol XHigh reviews #50. Do not write any full pilot variant or production search path.

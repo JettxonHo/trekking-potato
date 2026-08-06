@@ -90,14 +90,14 @@ I07 已新增离线 `test:route-domain` 并纳入根 `test`。测试只穿过
 - 既有 route-type、confirmation、response、unit、integration 全部继续运行，证明 I05
   四字段候选、`builtin-route:*`、confirm 和运行时行为没有变化。
 
-I10a 将先建立离线 `test:route-data` 入口，由一个共享 runner 汇总各路线的独立数据
-断言文件，与现有 `BUILTIN_ROUTES` legacyRecords 聚合后再调用一次 I07
-`createRouteCatalog`。首个用例只验证五台山 tier A blocked
-记录：权威 Source 与 restriction/operationalStatus 证据相连，禁止 full 行程字段，
-`effectiveFrom/effectiveTo` 对官方未披露边界保留 `null`，并固定核验日期。后续每个
-full 路线 Issue 只能新增自己的数据和断言文件，不并发修改 runner。来源页可访问性
-不作为默认 CI 的实时网络门禁；CI 验证入库的来源元数据和领域契约，人工/发布
-前清单负责复核动态运行状态。
+I10a 已建立离线 `test:route-data` 入口并纳入根 `test`。共享 runner 汇总各路线的独立数据
+断言文件，与现有 `BUILTIN_ROUTES` legacyRecords 聚合后调用 I07 `createRouteCatalog`。
+首个五台山用例固定验证 tier A blocked 记录、权威 Source 与
+restriction/operationalStatus evidence 的连接、禁止 full 行程字段，以及官方未披露边界的
+`effectiveFrom/effectiveTo=null` 和核验日期；还直接证明 tier B restriction source、缺
+restriction evidence 与 blocked 记录偷加 full 字段均被拒绝。后续每个 full 路线 Issue 只能
+新增自己的数据和断言文件，不并发修改 runner。来源页可访问性不作为默认 CI 的实时网络门禁；
+CI 验证入库的来源元数据和领域契约，人工/发布前清单负责复核动态运行状态。
 
 ## 3. 测试层级
 

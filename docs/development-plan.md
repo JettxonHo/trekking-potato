@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M3 source gate / I10a planning`
+- Status: `ACTIVE — M3 / I10a implementation`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
