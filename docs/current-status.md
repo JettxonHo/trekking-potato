@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
-- Active task: `I14 / GitHub #23 / IMPLEMENTATION_ACTIVE`
+- Active task: `I14 / GitHub #23 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/i14-hourly-weather`
 - Base: `main` at `ea64e28`
 - Planning PR: `#9` — merged
@@ -24,7 +24,8 @@
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent M4/I14 weather foundation to proceed using only I07's frozen shape and synthetic fixtures;
-this does not authorize I13, real full-route data or production integration.
+this does not authorize I13, real full-route data or production integration. I14 implementation is
+ready for Sol XHigh's independent review; it has not been approved or merged.
 
 ## Completed
 
@@ -155,6 +156,11 @@ this does not authorize I13, real full-route data or production integration.
 - I14 planning PR #54 matched approved head `0da38c8`, passed latest-head GitHub `quality` in 51
   seconds, and squash merged as `ea64e28`. Implementation is now authorized only on the exact
   allowlist and internal union frozen in #23.
+- I14 implementation completed the required real TDD RED with the new hourly module absent, then
+  added only the isolated route-hourly adapter, pure GCJ-02 helper extraction, synthetic I07-validated
+  catalog/weather fixtures and offline contract. The final local matrix passes `test:hourly-weather`,
+  legacy weather (86/0), route-domain, lint (0 errors; 10 pre-existing warnings), typecheck, root test,
+  integration (56/0), WeChat build and `git diff --check`. It remains `READY_FOR_CONTROLLER_REVIEW`.
 
 ## Baseline evidence
 
@@ -192,14 +198,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns #23/I14 architecture, contract, independent implementation Review and merge decision.
-- Terra XHigh: active I14 implementation owner on `codex/i14-hourly-weather`.
+- Terra XHigh: I14 implementation owner; delivery is `READY_FOR_CONTROLLER_REVIEW` on
+  `codex/i14-hourly-weather`.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Terra XHigh implements #23 test-first within the exact allowlist and returns a result package.
-2. Sol reviews actual code/tests, verifies latest-head CI and decides merge.
-3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
+1. Sol reviews actual I14 code/tests, verifies latest-head CI and decides merge.
+2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
 
@@ -225,4 +231,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra XHigh implements #23; Sol independently reviews before any merge.
+Sol XHigh independently reviews I14 before any merge.

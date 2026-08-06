@@ -9,46 +9,10 @@
 const https = require('https')
 const { resolveBuiltinRouteQuery } = require('./data/routes')
 const { isKnownRouteType } = require('./route-type')
+const { gcj02ToWgs84 } = require('./coordinates')
 const cloud = require('wx-server-sdk')
 cloud.init(/** @type {any} */ ({ env: cloud.DYNAMIC_CURRENT_ENV }))
 const ugcDb = cloud.database()
-
-// GCJ-02 -> WGS84 坐标转换（红队击穿点：必须转换，否则海拔查询偏差100-300m）
-// 算法来源：公开的 GCJ-02 解密算法
-function gcj02ToWgs84(lng, lat) {
-  const PI = 3.1415926535897932384626
-  const A = 6378245.0
-  const EE = 0.00669342162296594323
-
-  function transformLat(lng, lat) {
-    let ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + 0.1 * lng * lat + 0.2 * Math.sqrt(Math.abs(lng))
-    ret += (20.0 * Math.sin(6.0 * lng * PI) + 20.0 * Math.sin(2.0 * lng * PI)) * 2.0 / 3.0
-    ret += (20.0 * Math.sin(lat * PI) + 40.0 * Math.sin(lat / 3.0 * PI)) * 2.0 / 3.0
-    ret += (160.0 * Math.sin(lat / 12.0 * PI) + 320 * Math.sin(lat * PI / 30.0)) * 2.0 / 3.0
-    return ret
-  }
-
-  function transformLng(lng, lat) {
-    let ret = 300.0 + lng + 2.0 * lat + 0.1 * lng * lng + 0.1 * lng * lat + 0.1 * Math.sqrt(Math.abs(lng))
-    ret += (20.0 * Math.sin(6.0 * lng * PI) + 20.0 * Math.sin(2.0 * lng * PI)) * 2.0 / 3.0
-    ret += (20.0 * Math.sin(lng * PI) + 40.0 * Math.sin(lng / 3.0 * PI)) * 2.0 / 3.0
-    ret += (150.0 * Math.sin(lng / 12.0 * PI) + 300.0 * Math.sin(lng / 30.0 * PI)) * 2.0 / 3.0
-    return ret
-  }
-
-  let dLat = transformLat(lng - 105.0, lat - 35.0)
-  let dLng = transformLng(lng - 105.0, lat - 35.0)
-  const radLat = lat / 180.0 * PI
-  let magic = Math.sin(radLat)
-  magic = 1 - EE * magic * magic
-  const sqrtMagic = Math.sqrt(magic)
-  dLat = (dLat * 180.0) / ((A * (1 - EE)) / (magic * sqrtMagic) * PI)
-  dLng = (dLng * 180.0) / (A / sqrtMagic * Math.cos(radLat) * PI)
-  const mgLat = lat + dLat
-  const mgLng = lng + dLng
-
-  return { lng: lng * 2 - mgLng, lat: lat * 2 - mgLat }
-}
 
 /**
  * HTTPS GET 请求封装

@@ -28,6 +28,29 @@ function httpsGet(url) {
   })
 }
 
+/**
+ * I14's HTTP boundary for the frozen route-hourly module. URL construction and
+ * response projection stay in hourly-weather.js so this adapter remains the
+ * only new I/O seam.
+ */
+function requestHourlyWeather(url) {
+  return httpsGet(url)
+}
+
+/**
+ * Internal I14 entry retained next to the existing Open-Meteo transport. The
+ * lazy require avoids loading the new hourly module on the legacy daily path.
+ */
+function fetchRouteWeather(request, options) {
+  const hourlyOptions = options || {}
+  return require('./hourly-weather').fetchRouteWeather(request, {
+    ...hourlyOptions,
+    requestJson: typeof hourlyOptions.requestJson === 'function'
+      ? hourlyOptions.requestJson
+      : requestHourlyWeather,
+  })
+}
+
 /* ---------- ISO 日期辅助函数（TP-P0-002） ----------
  * 纯 UTC 日历运算，不依赖云函数主机或本地时区；
  * 不使用本地时间毫秒运算，规避夏令时/时区偏移造成的日期漂移。
@@ -244,4 +267,13 @@ async function fetchWeather(lat, lon, elevation, dateStr, tripDays, options) {
   }
 }
 
-module.exports = { fetchWeather, isValidIsoDate, addIsoDays, diffIsoDays, getDateInTimeZone, parseTripDaysInput }
+module.exports = {
+  fetchWeather,
+  fetchRouteWeather,
+  requestHourlyWeather,
+  isValidIsoDate,
+  addIsoDays,
+  diffIsoDays,
+  getDateInTimeZone,
+  parseTripDaysInput,
+}

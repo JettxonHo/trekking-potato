@@ -3,7 +3,7 @@
 - Task ID: `I14`
 - GitHub Issue: `#23`
 - Title: 冻结多采样点小时天气与活动窗口合同
-- Status: `IMPLEMENTATION_ACTIVE`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -13,9 +13,9 @@
 
 ## Current authorization
 
-规划 PR #54 已通过独立 Review、latest-head CI 并合并为 `ea64e28`。Terra XHigh 现在可以
-在本文 implementation allowlist 内 test-first 实现；不得修改公共合同、依赖、lockfile 或
-非范围。Terra 不得批准或合并自己的 PR。
+规划 PR #54 已通过独立 Review、latest-head CI 并合并为 `ea64e28`。Terra XHigh 已在本文
+implementation allowlist 内完成 test-first 实现，交付给 Sol XHigh 独立 Review；不得修改公共
+合同、依赖、lockfile 或非范围。Terra 不得批准或合并自己的 PR。
 
 ## Mandatory context
 
@@ -299,3 +299,16 @@ Issue 中提前扫描整日。Sol 必须在 I15 合同中单独解决。
 - RED 命令/失败原因、GREEN 与完整验证结果。
 - 与合同的偏差、自主实现级决策和已知限制。
 - PR 链接与建议 Sol 重点 Review 位置。
+
+## Implementation handoff
+
+- Status: `READY_FOR_CONTROLLER_REVIEW`; no implementation approval or merge has occurred.
+- TDD evidence: `corepack npm@10.9.2 run test:hourly-weather` first failed with the required missing
+  `hourly-weather` module, then passed after the minimum implementation.
+- The isolated module consumes only a synthetic I07-validated full Variant; all Open-Meteo calls are
+  injected fixtures. It keeps legacy daily `fetchWeather`, `geocode`'s exported converter and public
+  handler behavior unchanged.
+- Final local validation passed hourly-weather, weather (86/0), route-domain, lint (0 errors; 10
+  existing warnings), typecheck, root test, offline integration (56/0), WeChat build and diff check.
+- Sol review should focus on hourly valid-time mapping, atomic insufficient projection and the absence
+  of any I13/I15/I16 or public-handler wiring.
