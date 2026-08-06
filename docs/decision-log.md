@@ -214,3 +214,33 @@
 - Why: 可聚合的 plain fragment 既不把 I13 生产搜索偷进数据 PR，又能在同一目录
   检查里发现跨文件重复和引用错误；复用 legacy Place 只是稳定身份容器，不新增
   任何安全事实。
+
+## 2026-08-06 — TP-D026 I14 隔离路线小时天气接口
+
+- Status: Accepted
+- Decision: I14 只基于已冻结的 I07 full Variant shape 建立内部
+  `fetchRouteWeather({ variant, date, startTimeLocal }, options)`；使用合成 catalog fixture，
+  不等待真实 pilot 数据，不接当前 legacy `prepare`，不修改公共 response。模块对每个被
+  stage 引用的 unique sample 最多请求一次，任一必要 sample 失败时整体
+  `dataStatus='insufficient'`，不向 I15 返回部分可判定数据。旧单点 daily `fetchWeather`
+  保持兼容。GCJ-02 算法提取到无 I/O 的共享 `coordinates.js`，`geocode.js` 继续兼容导出。
+- Alternatives: 等 I08–I12 全部解阻后才开发；直接把 cold catalog 接进 `index.js`；把全部
+  小时逻辑追加到既有 daily 函数；复制一份坐标算法；由调用方注入生产坐标转换器。
+- Why: 天气窗口算法只依赖 stage/sample 契约，等待真实路线没有正确性收益；提前接生产
+  会偷做 I13/I16。单独深模块保持 legacy 路径稳定，共享纯坐标函数避免 CloudBase 模块加载
+  副作用和双实现漂移。
+
+## 2026-08-06 — TP-D027 I14 小时桶与上游有效时间
+
+- Status: Accepted
+- Decision: 每日活动区间固定为半开区间
+  `[startTimeLocal, startTimeLocal + durationHours.max)`，保留所有与之相交的当地整点小时桶。
+  温度、体感、天气码、能见度、平均风和冻结层使用桶起点的瞬时标签；降水概率、降水、
+  降雪和阵风使用桶终点的“前一小时”标签。快照显式记录桶起止，不扫描无关整日或夜间。
+  必要桶、数组、数值、时区或单位不完整时整体 insufficient。
+- Alternatives: 只选落在区间内的原始标签；对所有字段统一取桶起点；对所有字段统一取
+  桶终点；为边界前后机械增加一小时并让 I15 猜测含义。
+- Evidence: Open-Meteo 官方 Forecast API 将大多数小时变量定义为标记时刻瞬时值，将
+  precipitation、snowfall 和 wind gust 定义为前一小时累计/最大值。
+- Why: 规范化小时桶让 I15 直接评估真实活动时段，并明确处理上游混合时间语义；它只在
+  小时数据固有分辨率内保守覆盖相交桶，不把无关夜间风险混入结果。

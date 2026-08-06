@@ -99,6 +99,33 @@ restriction evidence 与 blocked 记录偷加 full 字段均被拒绝。后续�
 新增自己的数据和断言文件，不并发修改 runner。来源页可访问性不作为默认 CI 的实时网络门禁；
 CI 验证入库的来源元数据和领域契约，人工/发布前清单负责复核动态运行状态。
 
+I14 新增独立离线 `test:hourly-weather` 并纳入根 `test`；既有 `test:weather` 的 86 项
+legacy 单点日天气契约保持不变。测试使用经 I07 `createRouteCatalog` 验证的最小合成 full
+Variant 和注入式 `requestJson` fixture，不写入任何真实 pilot 数据，也不访问网络。
+
+- 两日三采样点场景：D1 引用 A/B、D2 引用 B/C，证明每个 unique sample 只请求一次，
+  每日复用统一出发时间，并按各自 `durationHours.max` 而非 min 生成窗口。
+- 小时桶边界：半开活动区间只选择相交的整点桶；瞬时字段取桶起点，前一小时的降水
+  概率、降水、降雪和阵风取桶终点；精确结束不多取下一桶，跨午夜保留原 stage day。
+- 请求契约：只含规定 hourly 字段，显式 `Asia/Shanghai`、Celsius、mm 和 m/s；WGS84
+  原样使用，GCJ-02 经共享纯函数转换，每点使用自己的 elevation。
+- 响应契约：timezone、ISO time unit 和十项天气 `hourly_units` 精确匹配，数组对齐，活动桶所需值有限数。
+  完整输出还要精确断言 normalized `units` 对象，以及 stage windows 和 stage sample IDs 的
+  输入顺序；不把上游单位检查误当成输出契约检查。
+  不机械地为每个字段复制同型坏例；一个单位反例、一个数组错位、一个活动桶缺口和一个
+  非数值反例证明通用守卫有效。另用一个非法 WMO 码和一个代表性的概率越界/负气象量
+  证明语义域守卫，不为所有字段复制相同测试。
+- 失败原子性：一个必要 sample 网络失败、API 明确 out-of-range 或结构/单位错误时，整体
+  为 `insufficient` 且没有部分小时数据；逐 sample 固定 reasons 和 retryable 语义。
+  insufficient 的 evaluatedWindows 只能含 day/date/起止/duration/samplePointIds 六类
+  审计元数据，不含 samples、hours、坐标或读数。
+- 范围隔离：夜间未与活动区间相交的危险值不进入快照；I14 不测试 I15 阈值、I16 日落/
+  climb 组合、公共 handler、AI 或 UI。
+
+真实 TDD 首个 RED 为 `test:hourly-weather` 缺少实现模块或导出；一个真实 RED 足够，不为
+流程表演制造第二个失败。GREEN 后必须运行 hourly/legacy weather、route-domain、root test、
+integration、lint、typecheck、WeChat build 和 `git diff --check`。
+
 ## 3. 测试层级
 
 - 单元：路线匹配、Schema、坐标、天气解析、活动窗口、结论、装备合并、reducer。

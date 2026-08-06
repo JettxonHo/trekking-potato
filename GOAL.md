@@ -10,8 +10,9 @@ The controller approved planning PR #9 on `2026-08-06`. M1 completed through PRs
 I04–I06 completed through PRs #40 and #43–#47. M2 Correctness is complete; the Goal is active at
 M3 with I07 merged through PRs #48/#49. Field-level source audit found that none of the five full
 pilot variants can yet satisfy the frozen A/B geometry contract. The independently supportable
-Wutai blocked record is split as I10a; other full variants remain source-blocked rather than using
-invented values. I14 may proceed from the frozen I07 stage/sample schema with synthetic fixtures.
+Wutai blocked record was delivered by I10a/PR #53; other full variants remain source-blocked rather
+than using invented values. I14's contract is independently approved and proceeds from the frozen I07
+stage/sample schema with synthetic fixtures.
 
 ## 1. Objective
 
@@ -22,7 +23,8 @@ Deliver a reproducible, reviewable WeChat mini-program that uses verified route 
 The Taro app and two CloudBase functions are the current product. Engineering gates, wind units,
 trip date windows, route type propagation, fuzzy confirmation, and deterministic safety projection
 are complete. Route variants, hourly evaluation, trusted second-stage context, private-only history,
-and explicit UI state remain; M3 currently starts with the isolated I07 domain catalog contract.
+and explicit UI state remain. M3's full pilot records are source-gated; under TP-D024 the active
+unblocked path is M4/I14's isolated hourly-weather contract.
 
 Current verified baselines are route type `93/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 
@@ -42,8 +44,8 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 |---|---|---|---|
 | M1 Engineering gate | Complete | I01–I03 | Fresh install, unified commands, CI and PR protection work |
 | M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
-| M3 Route domain | Active — source gate | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
-| M4 Weather and verdict | Pending | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
+| M3 Route domain | Active — full routes source-blocked | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
+| M4 Weather and verdict | Active — I14 planning PR | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Pending | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Pending | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |

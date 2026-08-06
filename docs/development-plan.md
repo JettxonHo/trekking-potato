@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M3 / I10a implementation`
+- Status: `ACTIVE — M4 / I14 contract approved, planning PR pending; M3 full routes source-blocked`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -138,15 +138,26 @@ I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补�
 - 字段级证据和直达来源以 `docs/research/pilot-route-source-audit.md` 为调研事实源。
 - I08、I09、I10b、I11、I12 均是 `BLOCKED: SOURCE_EVIDENCE_INCOMPLETE`；任何实现 Agent
   不得仅凭 Issue 中的部分数值创建 full 变体。
-- I10a 是当前唯一 `SOURCE_EVIDENCE_READY / CONTRACT_PENDING` 的路线数据子任务；本规划
-  PR 合并后才可激活。实现只写大朝台 Route、
-  tier A Source 和 blocked Variant，引用但不升级现有 legacy Place，禁止 full 行程字段。
-  官方页未披露的生效/截止日
-  保留 `null`，并记录 `sourceCheckedAt=2026-08-06`。
-- I10a 合并后，Sol 可在新的合同 PR 中激活 I14；I14 不使用上述阻塞路线的
-  伪造数据。
+- I10a 已通过 PR #53 合并并关闭 #50：只新增大朝台 tier A blocked 记录和共享
+  `test:route-data` seam，未创建 full 变体或接入生产搜索。
+- I08、I09、I10b、I11、I12 继续等待各自字段级来源解阻。I14 已从最新 main 建立独立
+  合同，不使用上述阻塞路线的伪造数据。
 
-## 8. 合并顺序与里程碑门
+## 8. I14 冻结合同摘要
+
+- 运行依赖仅为 I07 full RouteVariant 的 `stages/weatherSamplePoints` shape；测试内构造并
+  经 catalog 验证的合成变体，不创建 pilot 数据，不接 I13 生产目录。
+- 新增内部路线小时天气接口；旧单点 daily weather 与当前公共 handler 保持不变。
+- 每日统一 `HH:mm` 出发，使用 `durationHours.max` 形成半开活动区间；规范化所有相交的
+  当地整点小时桶，并区分桶起点瞬时字段与桶终点“前一小时”字段。
+- 每个被 stage 引用的 unique sample 最多一个 Open-Meteo 请求，总数最多三个。请求固定
+  `Asia/Shanghai`、Celsius、mm、m/s 和十个冻结 hourly 字段；sample elevation 不回退。
+- 任一必要采样请求、桶、数值、单位或时区不完整时整体 insufficient，不返回部分可判定
+  小时数据；I14 不生成 verdict、阈值原因、日落或 climb 组合。
+- 坐标转换抽为共享无 I/O 纯模块，`geocode.js` 保持原导出与行为。实现 allowlist、精确
+  union、TDD 和验收以 GitHub #23 与 `docs/tasks/ACTIVE_TASK.md` 为准。
+
+## 9. 合并顺序与里程碑门
 
 每个里程碑最后一个 PR 合并后更新 `GOAL.md` 和 `docs/current-status.md`。I05a 与 I05b
 已按串行顺序分别 Review/合并并关闭父 #14。M3 路线的字段来源合同未冻结不得并行该数据；
