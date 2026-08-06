@@ -112,7 +112,7 @@ function parseTripDaysInput(value) {
  * @param {string} dateStr - 出发日期 YYYY-MM-DD（必须是真实日期且不早于 Asia/Shanghai 今天）
  * @param {number} tripDays - 行程天数，必须是 1–7 的整数
  * @param {Object} [options] - 可选 { now: Date }，仅用于确定性测试；生产不传
- * @returns {Object} ok:true 时 data.days[0].date === dateStr 且 data.days.length === tripDays；
+ * @returns {Promise<Object>} ok:true 时 data.days[0].date === dateStr 且 data.days.length === tripDays；
  *                   完整窗口不可获得时 ok:false, error:'out_of_range'
  */
 async function fetchWeather(lat, lon, elevation, dateStr, tripDays, options) {

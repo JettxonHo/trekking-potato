@@ -10,7 +10,7 @@ const https = require('https')
 const { matchBuiltinRoute } = require('./data/routes')
 const { isKnownRouteType } = require('./route-type')
 const cloud = require('wx-server-sdk')
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+cloud.init(/** @type {any} */ ({ env: cloud.DYNAMIC_CURRENT_ENV }))
 const ugcDb = cloud.database()
 
 // GCJ-02 -> WGS84 坐标转换（红队击穿点：必须转换，否则海拔查询偏差100-300m）
@@ -121,7 +121,7 @@ async function fetchElevation(lat, lon) {
 /**
  * resolveLocation 主函数
  * @param {string} route - 路线名
- * @returns {Object} {name, lat, lon, elevation, source, needsConfirm?}
+ * @returns {Promise<Object>} {name, lat, lon, elevation, source, needsConfirm?}
  */
 async function resolveLocation(route) {
   if (!route || route.trim().length === 0) {
@@ -163,7 +163,7 @@ async function resolveLocation(route) {
     return { type: 'unknown', typeSource: 'unknown' }
   }
   try {
-    const ugcRes = await ugcDb.collection('routes').limit(500).get()
+    const ugcRes = /** @type {{ data?: any[] }} */ (await ugcDb.collection('routes').limit(500).get())
     const ugcRoutes = ugcRes.data || []
     for (const r of ugcRoutes) {
       // 名称精确匹配或别名匹配

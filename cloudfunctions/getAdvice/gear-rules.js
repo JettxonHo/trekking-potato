@@ -56,7 +56,7 @@ function getGearRules(params) {
   // 缺失、unknown 或非法值必须被调用层确定性识别，不得默认成 trek 或 climb，
   // 也不得把任意“非 trek”当作 climb。
   if (!isKnownRouteType(routeType)) {
-    const err = new Error('invalid_route_type: getGearRules 只接受 trek/climb/tour')
+    const err = /** @type {Error & { code: string }} */ (new Error('invalid_route_type: getGearRules 只接受 trek/climb/tour'))
     err.code = 'invalid_route_type'
     throw err
   }

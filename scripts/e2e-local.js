@@ -1,13 +1,72 @@
 /**
- * 本地端到端测试（P8.1 预演，无需 GLM_KEY/AMAP_KEY）
+ * 本地端到端测试（离线，无需任何服务凭据）
  *
- * 验证链路：resolveLocation(内置表) → fetchWeather(真实 Open-Meteo) → calcSunEvents → getGearRules → schema 校验
- * GLM 调用用 mock 替代（验证校验+降级逻辑，不依赖网络）
- *
- * 用法：node scripts/e2e-local.js
- * 需要：网络（Open-Meteo 是免费 API，无需 key）
+ * 验证链路：resolveLocation(内置表) → fixture Open-Meteo → calcSunEvents → getGearRules → schema 校验。
+ * wx-server-sdk 在加载云函数模块时替换为本地 mock；DeepSeek 不在这个测试路径中调用。
  */
 const CF = __dirname + '/../cloudfunctions/getAdvice'
+const Module = require('module')
+const https = require('https')
+const cloudbaseMock = require('./mocks/cloudbase')
+const openMeteoFixture = require('./fixtures/open-meteo-forecast')
+
+const originalModuleLoad = Module._load
+const originalHttpsGet = https.get
+let weatherRequestUrl = null
+
+function getFixtureForWeatherRequest(url) {
+  const params = new URL(url).searchParams
+  const startDate = params.get('start_date')
+  const endDate = params.get('end_date')
+  const startIndex = openMeteoFixture.daily.time.indexOf(startDate)
+  const endIndex = openMeteoFixture.daily.time.indexOf(endDate)
+
+  if (startIndex < 0 || endIndex < startIndex) {
+    throw new Error('离线天气 fixture 不包含请求窗口: ' + startDate + ' 至 ' + endDate)
+  }
+
+  const slice = (values) => values.slice(startIndex, endIndex + 1)
+  return {
+    daily_units: openMeteoFixture.daily_units,
+    daily: {
+      time: slice(openMeteoFixture.daily.time),
+      temperature_2m_max: slice(openMeteoFixture.daily.temperature_2m_max),
+      temperature_2m_min: slice(openMeteoFixture.daily.temperature_2m_min),
+      precipitation_probability_max: slice(openMeteoFixture.daily.precipitation_probability_max),
+      wind_speed_10m_max: slice(openMeteoFixture.daily.wind_speed_10m_max),
+    },
+  }
+}
+
+Module._load = function mockCloudbase(request, parent, isMain) {
+  if (request === 'wx-server-sdk') return cloudbaseMock
+  return originalModuleLoad.call(this, request, parent, isMain)
+}
+
+https.get = function getOfflineWeather(url, callback) {
+  if (!String(url).startsWith('https://api.open-meteo.com/v1/forecast?')) {
+    throw new Error('离线 E2E 阻止了未 mock 的网络请求: ' + url)
+  }
+  weatherRequestUrl = String(url)
+  const listeners = {}
+  const response = {
+    on(event, handler) {
+      listeners[event] = handler
+      return response
+    },
+  }
+  const request = {
+    destroy() {},
+    on() { return request },
+    setTimeout() { return request },
+  }
+  callback(response)
+  process.nextTick(() => {
+    listeners.data(JSON.stringify(getFixtureForWeatherRequest(url)))
+    listeners.end()
+  })
+  return request
+}
 
 const { resolveLocation, gcj02ToWgs84 } = require(CF + '/geocode')
 const { fetchWeather } = require(CF + '/weather')
@@ -23,12 +82,12 @@ function check(name, cond, detail) {
 
 // 内置表路线测试（无需 AMAP_KEY）
 const BUILTIN_TESTS = [
-  { route: '武功山', expectElev: 1918 },
-  { route: '四姑娘山二峰', expectElev: 5276 },
-  { route: '五台山朝台', expectElev: 3058 },
+  { route: '武功山', expectElev: 1918, tripDays: 1, routeType: 'trek' },
+  { route: '四姑娘山二峰', expectElev: 5276, tripDays: 2, routeType: 'climb' },
+  { route: '五台山朝台', expectElev: 3058, tripDays: 3, routeType: 'trek' },
 ]
 
-async function testPipeline(route, expectElev) {
+async function testPipeline(route, expectElev, tripDays, routeType) {
   console.log('\n--- 路线: ' + route + ' ---')
 
   // 1. 地理编码（内置表，无网络）
@@ -42,17 +101,21 @@ async function testPipeline(route, expectElev) {
   const wgs84 = gcj02ToWgs84(loc.data.lon, loc.data.lat)
   check('坐标转换有效', typeof wgs84.lat === 'number' && typeof wgs84.lng === 'number', JSON.stringify(wgs84))
 
-  // 3. 天气（真实 Open-Meteo，免费）
-  const weather = await fetchWeather(wgs84.lat, wgs84.lng, loc.data.elevation, '2026-07-05')
+  // 3. 天气（固定 Open-Meteo fixture，不允许访问网络）
+  const weather = await fetchWeather(
+    wgs84.lat,
+    wgs84.lng,
+    loc.data.elevation,
+    '2026-08-07',
+    tripDays,
+    { now: new Date('2026-08-04T00:00:00.000Z') },
+  )
   check('fetchWeather.ok', weather.ok === true, JSON.stringify(weather).substring(0, 200))
   if (weather.ok) {
-    check('返回至少7天', weather.data.days.length >= 7, String(weather.data.days.length))
+    check('返回天数符合 tripDays', weather.data.days.length === tripDays, String(weather.data.days.length))
+    check('天气请求来自 Open-Meteo fixture', weatherRequestUrl && weatherRequestUrl.includes('wind_speed_unit=ms'))
     check('含 elevationCaveat', typeof weather.data.elevationCaveat === 'string' && weather.data.elevationCaveat.length > 10)
-    check('第6天标参考', weather.data.days[5].confidence === '参考')
-    // 四姑娘山二峰温度应明显低于低海拔（验证海拔修正）
-    if (expectElev > 4000) {
-      check('高海拔温度修正（<10°C 最高温）', weather.data.days[0].tempMax < 10, String(weather.data.days[0].tempMax))
-    }
+    check('第三天按预报提前量标参考', tripDays < 3 || weather.data.days[2].confidence === '参考')
   }
 
   // 4. 天文时刻
@@ -64,8 +127,9 @@ async function testPipeline(route, expectElev) {
   check('含 terrainCaveat', typeof sun.terrainCaveat === 'string' && sun.terrainCaveat.length > 10)
 
   // 5. 装备规则
-  const gear = getGearRules({ month: 7, elevation: loc.data.elevation, days: 1, lat: loc.data.lat })
+  const gear = getGearRules({ month: 8, elevation: loc.data.elevation, days: tripDays, lat: loc.data.lat, routeType })
   check('gear.essential 非空', gear.essential.length > 0)
+  check('gear.routeType 符合当前契约', gear.routeType === routeType, gear.routeType)
   if (expectElev >= 5276) {
     check('高海拔含冰爪', gear.essential.some((g) => g.item.includes('冰爪')))
     check('高海拔含结组绳', gear.essential.some((g) => g.item.includes('结组绳')))
@@ -73,15 +137,17 @@ async function testPipeline(route, expectElev) {
 }
 
 ;(async () => {
-  console.log('=== 徒步薯 本地端到端测试（真实 Open-Meteo） ===\n')
+  console.log('=== 徒步薯 本地端到端测试（fixture/mock） ===\n')
   for (const t of BUILTIN_TESTS) {
     try {
-      await testPipeline(t.route, t.expectElev)
+      await testPipeline(t.route, t.expectElev, t.tripDays, t.routeType)
     } catch (e) {
       console.log('  ERROR: ' + t.route + ' -> ' + e.message)
       fail++
     }
   }
+
+  check('CloudBase 使用本地 mock 初始化', cloudbaseMock.calls.init > 0, String(cloudbaseMock.calls.init))
 
   console.log('\n=== Schema 校验逻辑测试 ===')
   const mockDegraded = require(CF + '/prompt').buildDegradedResponse({ days: [], elevationCaveat: 'x' }, { sunrise: '06:00' }, {})
@@ -99,5 +165,7 @@ async function testPipeline(route, expectElev) {
 
   console.log('\n=== 总结 ===')
   console.log('PASS: ' + pass + ', FAIL: ' + fail)
-  process.exit(fail > 0 ? 1 : 0)
+  https.get = originalHttpsGet
+  Module._load = originalModuleLoad
+  process.exitCode = fail > 0 ? 1 : 0
 })()

@@ -9,7 +9,9 @@
 - Base: `main` at `868c181`
 - Planning PR: `#9` — merged
 
-Status semantics: planning is approved and TP-BETA-001 is active. I01 is complete; only I02 is Ready. I03 waits for I02, and all business Issues remain gated by M1.
+Status semantics: planning is approved and TP-BETA-001 is active. I01 is complete;
+I02 is implemented on its assigned branch and awaits Sol XHigh review. I03 waits for I02
+to merge, and all business Issues remain gated by M1.
 
 ## Completed
 
@@ -21,6 +23,8 @@ Status semantics: planning is approved and TP-BETA-001 is active. I01 is complet
 - Controller approved and Sol XHigh squash merged planning PR #9.
 - Goal activated in PR #35; 8 governance labels, M1–M7 milestones and GitHub Issues #10–#34 were created.
 - I01 merged in PR #36 and GitHub #10 closed after Sol XHigh `APPROVED` review.
+- I02 local quality commands and offline E2E are implemented on
+  `codex/i02-quality-commands`; controller review and merge remain pending.
 
 ## Baseline evidence
 
@@ -28,9 +32,13 @@ Status semantics: planning is approved and TP-BETA-001 is active. I01 is complet
 - `node scripts/weather-contract-test.js`: 86 pass / 0 fail
 - `node scripts/unit-test.js`: 55 pass / 0 fail
 - `node scripts/security-test.js`: 15 pass / 0 fail
-- `node scripts/e2e-local.js`: installed but still uses live weather and stale contracts; I02 will replace it with offline fixtures/mocks.
+- `node scripts/e2e-local.js`: offline fixture/mock E2E, 53 pass / 0 fail; covers
+  `tripDays` 1/2/3 and current `trek` / `climb` route types without Open-Meteo,
+  CloudBase or DeepSeek access.
 - I01 on Node 24.18.0 + npm 10.9.2: fresh-cache root `ci` and three-project `bootstrap` pass using official npm registry locks.
-- Taro build: deferred to I02; global `taro` is not required.
+- I02 on Node 24.18.0 + Corepack npm 10.9.2: root `lint` (0 errors; 10 existing
+  unused-variable warnings), `typecheck`, `test`, `test:integration` and
+  `build:weapp` pass; global `taro` is not required.
 
 All four passing counts were rerun on the planning branch. Local Markdown links and `git diff --check` also pass.
 
@@ -43,8 +51,8 @@ All four passing counts were rerun on the planning branch. Local Markdown links 
 
 ## Open work
 
-1. Terra XHigh implements GitHub #11 on `codex/i02-quality-commands`.
-2. Sol XHigh independently reviews its tests, configs, build and PR.
+1. Sol XHigh independently reviews I02's tests, configs, build and PR.
+2. After I02 merges, prepare and dispatch I03 (#12).
 
 ## Blockers and risks
 
