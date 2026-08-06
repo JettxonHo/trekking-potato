@@ -215,7 +215,8 @@ I04 先把当前云函数的所有出口统一到上述 `phase` 判别方式，�
   `candidates[]` 结构和 `confirm` 请求由 I05 实现。
 - I04 的 `base` 仍是当前 BaseData；`queryId`、`expiresAt` 和最终快照结构由
   I07、I14–I17 分阶段补齐。
-- I04 的 `advice` 暂时仍接收当前 `baseData`；I17 建立可信上下文，I18 移除该输入。
+- I04 的 `advice` 在当时暂时接收客户端 `baseData`；I17 建立可信上下文，I18 的原子实现
+  已移除该公共输入并改为 `queryId`。
 - 兼容字段 `ok`、`error`、`needsConfirm`、`needsRouteType` 和旧 `data` 在 I04
   可以保留，但它们不是新前端的分支依据；删除时机由 I20 在调用面收敛后决定。
 
@@ -293,15 +294,14 @@ does not claim route-hourly weather or a full route verdict.
 
 The exact snapshot returned in `base.data` is the snapshot persisted by the store. Create/read boundaries
 deep-copy it so later caller or mock/SDK mutation does not change another view. Unknown, foreign and
-expired reads are internally distinguishable but return no snapshot; I18 will map all three to one public
+expired reads are internally distinguishable but return no snapshot; I18 maps all three to one public,
 non-leaking unavailable error.
 
 I17b creates the injected `trip_contexts` collection store only after the existing server BaseData is
 complete, then returns its created snapshot unchanged as `base.data` with `queryId/expiresAt` at the top
 level. A write failure returns the retryable public `context_unavailable` error and no partial base. The
-I17 handler performs no TripContext read. I17 deliberately leaves advice on its legacy
-client-`baseData` path; I18 atomically changes both server and production frontend to remove that client
-authority.
+I17 handler performs no TripContext read. I17 initially left advice on its legacy client-`baseData` path;
+I18 atomically changes both server and production frontend to remove that client authority.
 
 ### I18 advice 读取边界
 

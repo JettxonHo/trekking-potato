@@ -229,9 +229,9 @@ I18 使用一个原子实现 PR。`test:response` 的内存 `trip_contexts` mock
   degraded、不追加 `AI_UNAVAILABLE_NOTE`、不写 history，并证明结果视图内消息与既有返回动作
   可见；不得让当前 generic advice-error 分支吞掉该语义。
 
-实现完成后运行 `test:trip-context`、`test:response`、`test:confirmation`、root test、
-integration、lint、typecheck、WeChat build 和 diff check；不增加哈希、token 熵、机械覆盖率
-或不成比例的 impossible-case 防御。
+I18 implementation has run `test:trip-context`、`test:response`、`test:confirmation`、root test、
+integration、lint、typecheck、WeChat build 和 diff check successfully before controller review；不增加
+哈希、token 熵、机械覆盖率或不成比例的 impossible-case 防御。
 
 ## 3. 测试层级
 

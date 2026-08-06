@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M5 / I18 planning approved; M3 full routes source-blocked`
+- Status: `ACTIVE — M5 / I18 APPROVED — PR_PENDING; M3 full routes source-blocked`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -230,5 +230,7 @@ M7 前不做重复全局 Review。
   仅留给本地历史保存，`queryId` 不入历史。success/fail 都用当前 generation 拒绝迟到响应。
   `query_context_unavailable` 另行保留 base，在结果视图展示消息与既有返回动作，不伪装为
   AI degraded，也不写 history。
-- 实现按 RED → 服务端 → 前端 → 完整质量矩阵串行；精确 allowlist、测试与升级条件以 #27
-  和 `docs/tasks/ACTIVE_TASK.md` 为准。
+- 实现按 RED → 服务端 → 前端 → 完整质量矩阵串行。当前 #27 工作分支已完成这条原子切换：
+  `test:response` 记录了旧字段 getter 的真实 RED，并在 GREEN 中覆盖 owner/unknown/foreign/
+  expired/read-failure、AI 降级和前端静态合同；完整本地矩阵已通过，等待 Sol XHigh 的独立
+  Review。精确 allowlist、测试与升级条件以 #27 和 `docs/tasks/ACTIVE_TASK.md` 为准。

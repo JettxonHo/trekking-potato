@@ -3,7 +3,7 @@
  *
  * 流程（分步加载 P5.3）：
  *   mode='prepare': resolveLocation → Promise.all([fetchWeather, calcSunEvents]) → base phase（~3-5s）
- *   mode='advice': 接收 base 数据 → callLLM → schema 校验 → 降级（~30-40s，独立超时窗口）
+ *   mode='advice': 按 openid + queryId 恢复 TripContext 可信快照 → callLLM → schema 校验 → 降级（~30-40s，独立超时窗口）
  *   mode='base': prepare 的迁移别名；缺失或未知 mode 返回 invalid_mode
  *
  * 关键设计：
@@ -24,7 +24,7 @@ const { calcSunEvents } = require('./sun-events')
 const { getGearRules } = require('./gear-rules')
 const { buildMessages } = require('./prompt')
 const { projectSafetyAdvice } = require('./safety-advice')
-const { isKnownRouteType, validateRouteTypeContract } = require('./route-type')
+const { isKnownRouteType } = require('./route-type')
 const { createTripContextStore } = require('./trip-context')
 const {
   errorResponse,
@@ -161,8 +161,7 @@ function mapLocationResolutionFailure(locResult) {
  */
 async function main(event, context) {
   const startTime = Date.now()
-  let route = event.route
-  const { date, level, days, mode, candidateId } = event
+  const { mode } = event
 
   // 鉴权：所有调用都必须携带合法 openid
   const wxContext = cloud.getWXContext()
@@ -175,6 +174,18 @@ async function main(event, context) {
   if (mode !== 'prepare' && mode !== 'base' && mode !== 'confirm' && mode !== 'advice') {
     return errorResponse('invalid_mode', '请求模式无效')
   }
+
+  // I18：advice 仅使用当前身份绑定的 queryId；不得读取客户端旧路线或 BaseData 字段。
+  if (mode === 'advice') {
+    return await handleAdvice({
+      openid,
+      queryId: event.queryId,
+      startTime,
+    })
+  }
+
+  let route = event.route
+  const { date, level, days, candidateId } = event
 
   // I05a：confirm 只以 candidateId 恢复内置路线；客户端附带的路线、坐标、类型和
   // baseData 不参与解析。候选已失效时在天气、规则和 AI 前结束。
@@ -189,11 +200,6 @@ async function main(event, context) {
     route = confirmedRoute.name
   } else if (!route || !date || !level) {
     return errorResponse('missing_params', '缺少必要参数（route/date/level）')
-  }
-
-  // ========== 分步加载：mode='advice' 时跳过 geo/weather，直接用前端传来的数据跑 GLM ==========
-  if (mode === 'advice') {
-    return await handleAdvice(event, startTime)
   }
 
   // TP-P0-002：tripDays 严格归一化——未提供默认 1；提供时只接受数字 1–7 整数或单字符 "1"–"7"，
@@ -336,71 +342,21 @@ async function main(event, context) {
 }
 
 /**
- * 分步加载第二阶段：接收 base 数据，只跑 GLM
- * 前端调 getAdvice({mode:'advice', baseData, route, date, level, days})
+ * 分步加载第二阶段：只由当前 openid 的 queryId 恢复服务端可信快照。
  */
-/**
- * 校验 baseData 结构，防止客户端篡改注入
- * 只校验关键字段是否存在且类型正确，不信任值的具体内容
- */
-function isPlainObject(value) {
-  return value !== null && typeof value === 'object' && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype
-}
-
-function isNonEmptyText(value) {
-  return typeof value === 'string' && value.trim().length > 0
-}
-
-function isValidGearItem(value) {
-  return isPlainObject(value) && isNonEmptyText(value.item) && isNonEmptyText(value.reason)
-}
-
-function validateBaseData(baseData) {
-  if (!isPlainObject(baseData)) return false
-  // TP-P0-003：路线类型结构一致性校验
-  // - routeType 必须是已知类型（trek/climb/tour，不接受 unknown/非法值）；
-  // - routeTypeSource 必须是允许来源；
-  // - gearRules.routeType 必须与 routeType 一致；
-  // 任一不满足返回 invalid_base_data。
-  // 说明：这只能保证结构一致性，不能解决客户端同时篡改 routeType 与
-  // gearRules 的问题；完整服务端可信上下文仍属于 P1-1（queryId）。
-  if (!validateRouteTypeContract(baseData).ok) return false
-  if (!isPlainObject(baseData.gearRules)) return false
-  for (const category of ['essential', 'recommended', 'optional']) {
-    const items = baseData.gearRules[category]
-    if (!Array.isArray(items) || !items.every(isValidGearItem)) return false
+async function handleAdvice({ openid, queryId, startTime }) {
+  const tripContextStore = createTripContextStore({
+    collection: cloud.database().collection('trip_contexts'),
+  })
+  const contextResult = await tripContextStore.read({ openid, queryId })
+  if (contextResult.kind === 'store_unavailable') {
+    return errorResponse('context_unavailable', '暂时无法读取本次查询，请重试')
   }
-  if (!Array.isArray(baseData.gearRules.fatalRisks) || !baseData.gearRules.fatalRisks.every(isNonEmptyText)) return false
-  if (!Array.isArray(baseData.gearRules.ruleNotes) || !baseData.gearRules.ruleNotes.every(isNonEmptyText)) return false
-
-  // I06 仅确认 weather/sunEvents 的边界形态；更深的天气语义仍属于 I14。
-  if (baseData.weather !== null && !isPlainObject(baseData.weather)) return false
-  if (baseData.sunEvents !== null && !isPlainObject(baseData.sunEvents)) return false
-
-  // 既有天气数值边界校验继续保留。
-  if (baseData.weather) {
-    if (baseData.weather.days && Array.isArray(baseData.weather.days)) {
-      for (const d of baseData.weather.days) {
-        // 降水概率是数字且在 0-100 之间，不接受客户端伪造为 0 来隐藏天气风险
-        if (d.precipProb != null && (typeof d.precipProb !== 'number' || d.precipProb < 0 || d.precipProb > 100)) return false
-        if (d.tempMin != null && typeof d.tempMin !== 'number') return false
-        if (d.tempMax != null && typeof d.tempMax !== 'number') return false
-      }
-    }
-  }
-  return true
-}
-
-async function handleAdvice(event, startTime) {
-  const { baseData } = event
-
-  // 校验 baseData 结构，防止客户端篡改注入
-  if (!validateBaseData(baseData)) {
-    console.warn('[getAdvice:advice] baseData 结构校验失败，拒绝执行')
-    return errorResponse('invalid_base_data', '基础数据异常，请重新查询')
+  if (contextResult.kind !== 'found') {
+    return errorResponse('query_context_unavailable', '本次查询已失效，请重新查询')
   }
 
-  // 从 baseData 恢复上下文（避免重复查 geo/weather）
+  const baseData = contextResult.snapshot
   const { weather, sunEvents, gearRules } = baseData
   const elevation = baseData.elevation || null
   const locationName = baseData.route
