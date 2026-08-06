@@ -1,9 +1,13 @@
 # TP-P0-004 调查结论
 
 - Task ID: `TP-P0-004`
-- Status: `READY_FOR_IMPLEMENTATION_CONTRACT`
+- Status: `SUPERSEDED_BY_I05_CONTRACT`
 - Investigation completed during: `TP-BETA-001` planning audit
 - No implementation included
+
+> Superseded note (2026-08-06): GitHub #14/#41/#42、TP-D016 和
+> `docs/architecture.md` 已冻结实际 I05 合同。本调查中的 `alias direct base` 仅适用于
+> 不与 canonical name 冲突的唯一 alias；重复 alias 必须进入 confirmation。
 
 ## Conclusion
 

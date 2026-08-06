@@ -6,7 +6,7 @@
 ## 1. 依赖图
 
 ```text
-I01 → I02 → I03 → I04 → I05 → I06
+I01 → I02 → I03 → I04 → I05a → I05b → I06
 I04 → I07 → I08..I12 → I13
 I07 + I08..I12 → I14 → I15 → I16
 I15 + I16 → I17 → I18 → I19
@@ -26,7 +26,7 @@ I19 + I23 → I24 → I25
 | I02 | #11 | 修复离线 E2E 和本地质量命令 | lint/typecheck/test/integration/build |
 | I03 | #12 | GitHub 最小门禁 | Actions、模板、标签、保护 |
 | I04 | #13 | 判别式云函数响应 | prepare/confirm/advice union |
-| I05 | #14 | 模糊路线确认闭环 | 服务端 ID + 前端确认 |
+| I05 | #14 (parent), #41/#42 | 模糊路线确认闭环 | I05a 服务端 ID/confirm + I05b 前端确认 |
 | I06 | #15 | 确定性安全合并 | AI 不可覆盖规则项 |
 | I07 | #16 | 领域模型与旧数据适配 | Place/Route/Variant schema |
 | I08 | #17 | 武功山数据 | 可追溯 verified variant |
@@ -50,9 +50,9 @@ I19 + I23 → I24 → I25
 
 ## 3. 第一批任务合同
 
-I01–I03 已分别通过 PR #36、#37、#38 合并，M1 已关闭。PR #39 完成 checkpoint 后，
-I04 已基于 `main@900b79e` 激活；合同记录于 GitHub #13 与
-`docs/tasks/ACTIVE_TASK.md`。以下 M1 合同保留为历史记录。
+I01–I03 已分别通过 PR #36、#37、#38 合并，M1 已关闭。I04 通过 PR #40 合并并关闭
+GitHub #13。I05 由父 Issue #14 跟踪，拆为串行 #41（I05a 服务端候选/confirm）和
+#42（I05b 前端闭环）；规划 PR 合并前均不得分派。以下 M1 合同保留为历史记录。
 
 ### I01 — 统一工具链、固定依赖与锁文件
 
@@ -89,8 +89,10 @@ I04 已基于 `main@900b79e` 激活；合同记录于 GitHub #13 与
 
 ## 4. Issue 合同生成规则
 
-I05–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补齐文件 allowlist、精确验收、测试命令和当前基准提交。不得用本表的一句话目标直接分派。
+I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补齐文件 allowlist、精确验收、测试命令和当前基准提交。I05a/I05b 的冻结合同在 GitHub #41/#42；规划 PR 合并后仍需写回各自真实基准才可 Ready。不得用本表的一句话目标直接分派。
 
 ## 5. 合并顺序与里程碑门
 
-每个里程碑最后一个 PR 合并后更新 `GOAL.md` 和 `docs/current-status.md`。M1 未通过不得开始业务实现；M3 数据 schema 未冻结不得并行路线数据；M7 前不做重复全局 Review。
+每个里程碑最后一个 PR 合并后更新 `GOAL.md` 和 `docs/current-status.md`。I05a 与 I05b
+串行、分别 Review/合并，父 #14 在两者完成后关闭。M3 数据 schema 未冻结不得并行
+路线数据；M7 前不做重复全局 Review。

@@ -4,15 +4,16 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M2 Correctness`
-- Active task: `I04 / GitHub #13 / READY_FOR_CONTROLLER_REVIEW`
-- Branch: `codex/i04-response-contract`
-- Base: `main` at `900b79e`
+- Active task: `I05 contract planning / parent #14 / children #41 and #42`
+- Branch: `codex/i05-confirmation-contract`
+- Base: `main` at `34170ba`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
+- I04 PR: `#40` — merged; GitHub #13 closed
 
 Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
-I04 is the only business task awaiting Sol XHigh controller review; I05 and later Issues remain
-Backlog until their dependencies and exact contracts are approved.
+I04 is complete. I05a/I05b contracts are frozen but remain pending the planning PR and real-base
+activation; I06 and later Issues remain Backlog until dependencies and exact contracts are approved.
 
 ## Completed
 
@@ -36,6 +37,10 @@ Backlog until their dependencies and exact contracts are approved.
   `test:response` exercises public handler exits and minimal frontend phase consumption. The
   first Sol review changes are addressed on `codex/i04-response-contract`, which is again
   `READY_FOR_CONTROLLER_REVIEW`.
+- I04 passed Sol XHigh second review and latest-head `quality`, merged in PR #40 as `34170ba`,
+  and GitHub #13 was closed.
+- I05 was split into parent #14 with backend child #41 and frontend child #42 to keep each PR
+  independently verifiable; #42 is blocked by #41.
 
 ## Baseline evidence
 
@@ -60,13 +65,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: authorized implementation fallback; completed I04 and first review fixes.
-- Sol XHigh: owns the I04 public-contract migration design and is reviewing the current branch.
+- Terra XHigh: authorized implementation fallback; completed I04 and performed the I05 read-only audit.
+- Sol XHigh: owns I05 contract decisions, split, activation and later independent Review.
 
 ## Open work
 
-1. Sol XHigh reviews the I04 response-contract implementation and latest-head CI before any
-   merge or I05 activation.
+1. Review and merge the I05 contract planning PR.
+2. Activate #41 on the resulting real `main`; keep #42 blocked until #41 merges.
 
 ## Blockers and risks
 
@@ -77,12 +82,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Five route variants still require field-level A/B evidence during I08–I12.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I04
+## Forbidden actions during I05 planning
 
-- Route domain schema, stable candidate IDs, confirmation request handling or `queryId` storage
-- Verdict/weather/business-rule changes, history/UGC changes, UI state refactor or visual redesign
+- Business implementation before the planning PR and real-base activation
+- Route domain schema, persistent candidate storage, queryId/TTL, verdict/weather/rule changes
+- I20 reducer/service work, UGC migration, global state or visual redesign
 - Deployment, database mutation, UGC deletion or production configuration
 
 ## Next action
 
-Sol XHigh reviews the current I04 result package; no I05 activation occurs before approval.
+Create and independently review the I05 planning PR; do not dispatch #41 or #42 yet.

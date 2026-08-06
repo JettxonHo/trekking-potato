@@ -50,7 +50,34 @@ RouteVariant
 2. 别名精确匹配
 3. 前缀/模糊候选
 
-精确匹配先定位实体；只有唯一可规划 RouteVariant 才直达 base。Place 具有多个 verified 变体或输入需要消歧时返回候选列表。候选只暴露稳定 ID、名称、地区、类型和典型天数。用户确认后提交 ID，服务端重新读取可信记录；客户端坐标、类型和海拔不参与确认。
+规范名精确匹配在整个目录中优先；没有规范名命中时，唯一别名精确匹配可继续定位，
+重复别名必须确认。只有唯一可规划 RouteVariant 才直达 base。Place 具有多个 verified
+变体或输入需要消歧时返回候选列表。候选只暴露稳定 ID、名称、地区、类型和典型天数。
+用户确认后提交 ID，服务端重新读取可信记录；客户端坐标、类型和海拔不参与确认。
+
+### I05 过渡候选
+
+I05 在 I07 领域 schema 前只为现有 `BUILTIN_ROUTES` 建立无状态候选，分两次串行合并：
+I05a 冻结服务端匹配/confirm，I05b 完成前端选择/取消/编辑。临时 ID 为
+``builtin-route:${canonicalName}``，不使用数组下标、哈希或额外数据库；canonical name
+未改名时稳定，跨目录永久 ID 仍属于 I13。
+
+- canonical exact 直达；不存在 canonical exact 时，唯一 alias exact 可直达。候选阶段按
+  `重复 alias exact → prefix → contains → fuzzy` 执行，只使用第一个非空阶段：先按
+  candidate ID 去重，再排序，最后截取最多五条。alias/prefix/contains 阶段按
+  canonicalName 的 Unicode code point 顺序；fuzzy 先按最小编辑距离、再按同一名称顺序。
+  prefix 指 query 与 canonical/alias 任一方以另一方开头；contains 指 prefix 未命中后
+  任一方包含另一方；fuzzy 保持长度至少 4 且编辑距离 `<=2`。
+- I05 候选只含 `candidateId/canonicalName/region/routeType`，不暴露坐标、海拔或天气。
+  字段固定映射为 `canonicalName=name`、`region=location`、`routeType=type`；region 在
+  I05 只用于原文展示，不推导或新建行政区 schema。I07 再以加法补齐
+  `entityKind/capability/fixedDays`，不得由 I05 伪造领域身份。
+- `confirm` 只消费 `candidateId/date/level/days`，并从服务端目录重建事实。额外客户端
+  route、坐标、类型、天气或 baseData 均不参与确认。
+- 未知、畸形或已移除 ID 返回 `candidate_not_found`。无状态 I05 不声称提供 TTL；
+  openid 归属和真实过期语义属于 I17。
+- AMap 不生成 candidate ID，继续进入 `route_type_required`。旧 UGC 只暂留精确名/别名
+  兼容，substring 自动命中关闭；完整退出由 I19 完成。
 
 ## 4. 云函数契约
 
@@ -80,6 +107,9 @@ RouteVariant
 
 `candidateId` 只能引用服务端内置记录。外部地理编码不生成可由客户端伪造的 candidate ID。
 Candidate 不变量：`entityKind='route_variant'` 时 `capability` 必为 `full`；`entityKind='place'` 时必为 `place_only`。其他组合是服务端数据错误，不得返回成功候选。
+
+上述是 I07 后的最终候选形状；I05 过渡候选按本节的迁移规则仅提供已存在且可诚实
+表达的四个字段。
 
 响应是判别式 union：
 
