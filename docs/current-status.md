@@ -8,7 +8,7 @@
 - Branch: `codex/m1-checkpoint`
 - Base: `main` at `6ee02c9`
 - Planning PR: `#9` — merged
-- Checkpoint PR: `#39` — open; GitHub `quality` passed in 51 seconds
+- Checkpoint PR: `#39` — open; merge remains gated by its latest-head GitHub `quality`
 
 Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
 I04 is the only business task being prepared for execution; I05 and later Issues remain Backlog
