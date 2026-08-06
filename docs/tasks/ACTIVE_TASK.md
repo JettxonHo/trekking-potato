@@ -3,7 +3,7 @@
 - Task ID: `I10a`
 - GitHub Issue: `#50`
 - Title: 录入五台山大朝台官方禁行记录与数据测试入口
-- Status: `IMPLEMENTATION_ACTIVE`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -100,10 +100,19 @@ I/O、不执行搜索。`route-data-contract-test.js` 聚合现有 `BUILTIN_ROUT
 
 ## Test-first requirement
 
-1. 在数据/测试模块存在前，先运行预定 `test:route-data` 入口并记录真实 RED。
-2. 实现最小 GREEN，不修改 I07 来迁就新数据。
+1. 在数据/测试模块存在前，已先运行预定 `test:route-data` 并记录真实 RED：缺少 root script。
+   新增 runner 与路线断言后，第二个真实 RED 为缺少 `wutai` 数据片段模块。
+2. 已实现最小 GREEN，不修改 I07 来迁就新数据。
 3. 正例覆盖聚合目录、稳定 ID、来源字段、blocked 分支、legacy Place 引用。
 4. 有效负例至少直接证明 tier B/C 限制源、缺 restriction evidence 或偷加 full 字段时失败；不重复 I07 全部通用矩阵。
+
+## Execution evidence
+
+- `test:route-data` 已独立通过，并已纳入根 `test`。
+- 聚合目录仍为 175 个 legacy Place、1 Route、1 blocked Variant、0 full Variant、0 verified Place。
+- 离线断言覆盖合同固定 IDs、来源元数据、legacy Place 引用、blocked restriction 和禁止 full 字段；
+  tier B restriction source、缺 restriction evidence 与偷加 `fixedDays` 的 blocked 记录均被 I07
+  catalog 校验拒绝。
 
 ## Acceptance
 

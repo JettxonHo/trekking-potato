@@ -127,6 +127,12 @@ test seam. All full pilot variants remain unauthorized while their source gates 
   `git diff --check` all passed.
 - Source-gate PR #52 matched reviewed head `8961998`, passed latest-head GitHub `quality` in 48 seconds,
   received Sol `APPROVED`, and squash merged as `7b708f2`. GitHub #50 is activated from that exact base.
+- I10a implementation recorded a real two-step RED: the planned `test:route-data` command first lacked
+  a root script, then the new runner lacked the Wutai data fragment. The minimum GREEN adds only the
+  Wutai plain data fragment, shared offline runner and Wutai-specific assertions. It aggregates 175
+  legacy Places with 1 Route and 1 tier A blocked Variant (0 full Variant and 0 verified Place), while
+  retaining the existing production search path. Direct negative checks reject a tier B restriction
+  source, missing restriction evidence and a blocked record with `fixedDays`.
 
 ## Baseline evidence
 
@@ -167,9 +173,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Terra XHigh executes #50 test-first within the exact allowlist and returns a result package.
-2. Sol reviews actual code/tests, requests fixes if needed, verifies latest-head CI and decides merge.
-3. After I10a, freeze and execute I14 against synthetic fixtures while source acquisition continues.
+1. Sol reviews #50 actual code/tests, requests fixes if needed, verifies latest-head CI and decides merge.
+2. After I10a, freeze and execute I14 against synthetic fixtures while source acquisition continues.
 
 ## Blockers and risks
 
@@ -193,4 +198,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra XHigh implements #50 test-first. Do not write any full pilot variant or production search path.
+Sol XHigh reviews #50. Do not write any full pilot variant or production search path.
