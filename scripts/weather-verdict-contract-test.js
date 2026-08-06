@@ -168,6 +168,15 @@ async function testWindTemperatureAndVisibilityBoundaries() {
       assert.deepEqual(reason(result, expectedCodes[0]).observed, windGustMs === 22
         ? { windGustMs, thresholdMs: 22 }
         : { windGustMs, lowerMs: 13.4, upperMs: 22 })
+      if (windGustMs === 22) {
+        assert.deepEqual(reason(result, 'extreme_wind_gust').at, {
+          day: 1,
+          date: '2026-08-06',
+          samplePointId: 'sample-b',
+          startLocal: '2026-08-06T07:00',
+          endLocalExclusive: '2026-08-06T08:00',
+        }, 'single-bucket scalar reasons retain their bucket span')
+      }
     }
   }
 
@@ -267,8 +276,10 @@ async function testWmoAndHeavySnowRules() {
 }
 
 async function testConsecutiveRain() {
-  async function rainResult(hoursBySample) {
+  async function rainResult(hoursBySample, { variant, startTimeLocal } = {}) {
     return resultFor(await completeSnapshot({
+      variant,
+      startTimeLocal,
       mutate(response, sampleId) {
         for (const localTime of hoursBySample[sampleId] || []) setBucket(response, localTime, { weatherCode: 65 })
       },
@@ -302,6 +313,23 @@ async function testConsecutiveRain() {
     'sample-b': ['2026-08-06T10:00', '2026-08-06T11:00', '2026-08-07T07:00'],
   })
   assert.equal(codes(acrossStages).includes('heavy_rain_three_hours'), false, 'separate route stages never form one rain run')
+
+  const crossMidnightVariant = makeVariant((variant) => {
+    variant.fixedDays = 1
+    variant.stages = [clone(variant.stages[0])]
+    variant.stages[0].durationHours = { min: 1, max: 3 }
+    variant.stages[0].weatherSamplePointIds = ['sample-b']
+  })
+  const crossMidnight = await rainResult({
+    'sample-b': ['2026-08-06T23:00', '2026-08-07T00:00', '2026-08-07T01:00'],
+  }, { variant: crossMidnightVariant, startTimeLocal: '23:30' })
+  assert.deepEqual(reason(crossMidnight, 'heavy_rain_three_hours').at, {
+    day: 1,
+    date: '2026-08-06',
+    samplePointId: 'sample-b',
+    startLocal: '2026-08-06T23:00',
+    endLocalExclusive: '2026-08-07T02:00',
+  }, 'one stage may retain a heavy-rain run across midnight')
 }
 
 async function testActivityWindowAccumulations() {
@@ -324,11 +352,19 @@ async function testActivityWindowAccumulations() {
   const noPrecipitationWarning = await totalResult({ precipitationMm: 39.999, snowfallCm: 0 })
   assert.equal(codes(noPrecipitationWarning).includes('activity_window_precipitation'), false)
   const precipitationWarning = await totalResult({ precipitationMm: 40, snowfallCm: 0 })
-  assert.deepEqual(reason(precipitationWarning, 'activity_window_precipitation').observed, {
+  const precipitationReason = reason(precipitationWarning, 'activity_window_precipitation')
+  assert.deepEqual(precipitationReason.observed, {
     precipitationMm: 40,
     thresholdMm: 40,
     bucketCount: 5,
   })
+  assert.deepEqual(precipitationReason.at, {
+    day: 1,
+    date: '2026-08-06',
+    samplePointId: 'sample-b',
+    startLocal: '2026-08-06T07:30',
+    endLocalExclusive: '2026-08-06T11:30',
+  }, 'accumulation reasons retain their owning window span')
 
   const noSnowBlock = await totalResult({ precipitationMm: 0, snowfallCm: 14.999 })
   assert.equal(codes(noSnowBlock).includes('activity_window_snowfall'), false)
@@ -407,6 +443,13 @@ async function testDedupSelectionAndSorting() {
   assert.equal(winds.length, 1, 'same-day numeric codes deduplicate')
   assert.equal(winds[0].at.samplePointId, 'sample-a', 'more dangerous same-day gust retains its own location')
   assert.deepEqual(winds[0].observed, { windGustMs: 25, thresholdMs: 22 })
+  assert.deepEqual(winds[0].at, {
+    day: 1,
+    date: '2026-08-06',
+    samplePointId: 'sample-a',
+    startLocal: '2026-08-06T08:00',
+    endLocalExclusive: '2026-08-06T09:00',
+  }, 'numeric representative keeps observed and at from the same candidate')
   assert.equal(result.reasons.filter((item) => item.code === 'thunderstorm').length, 2, 'cross-day WMO reasons are retained')
 }
 

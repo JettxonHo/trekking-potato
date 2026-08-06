@@ -189,6 +189,10 @@ I15's approved weather-only rule contract is active for bounded Terra implementa
   genuine missing-module RED, then passed GREEN coverage for every frozen threshold, combination,
   accumulation, representative-selection, sorting, message, immutability and non-complete-boundary
   rule. The full local command matrix is green; the task awaits Sol XHigh's independent code Review.
+- Sol XHigh's first I15 implementation Review returned `CHANGES_REQUESTED` only for test sensitivity:
+  it requested exact `at` spans for a same-stage cross-midnight heavy-rain run, scalar bucket,
+  accumulation window and numeric representative. Terra added those I14-derived assertions without
+  changing production rules, then returned the task to `READY_FOR_CONTROLLER_REVIEW`.
 
 ## Baseline evidence
 
