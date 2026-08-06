@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M1 / I01`
+- Status: `ACTIVE — M2 / I04`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -50,6 +50,9 @@ I19 + I23 → I24 → I25
 
 ## 3. 第一批任务合同
 
+I01–I03 已分别通过 PR #36、#37、#38 合并，M1 已关闭。当前可执行合同为
+GitHub #13 与 `docs/tasks/ACTIVE_TASK.md` 中的 I04；以下 M1 合同保留为历史记录。
+
 ### I01 — 统一工具链、固定依赖与锁文件
 
 - Agent：Terra XHigh；模式 `IMPLEMENTATION`。
@@ -85,7 +88,7 @@ I19 + I23 → I24 → I25
 
 ## 4. Issue 合同生成规则
 
-I04–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补齐文件 allowlist、精确验收、测试命令和当前基准提交。不得用本表的一句话目标直接分派。
+I05–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补齐文件 allowlist、精确验收、测试命令和当前基准提交。不得用本表的一句话目标直接分派。
 
 ## 5. 合并顺序与里程碑门
 

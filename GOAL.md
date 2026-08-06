@@ -6,7 +6,7 @@
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
 
-The controller approved planning PR #9 on `2026-08-06`. The Goal is active at M1; business implementation remains gated until I01–I03 complete.
+The controller approved planning PR #9 on `2026-08-06`. M1 completed through PRs #36–#38; the Goal is now active at M2, starting with I04.
 
 ## 1. Objective
 
@@ -16,7 +16,7 @@ Deliver a reproducible, reviewable WeChat mini-program that uses verified route 
 
 The Taro app and two CloudBase functions are the current product. Wind units, trip date windows, and route type propagation are fixed. Fuzzy confirmation, route variants, hourly evaluation, trusted second-stage context, private-only history, explicit UI state, and engineering gates remain.
 
-Current verified offline baselines are route type `93/0`, weather `86/0`, and unit `55/0`. The legacy E2E cannot run until dependencies and stale assumptions are repaired.
+Current verified baselines are route type `93/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 
 ## 3. Read first
 
@@ -30,15 +30,15 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 
 ## 5. Milestones
 
-| Milestone | Issues | Done when |
-|---|---|---|
-| M1 Engineering gate | I01–I03 | Fresh install, unified commands, CI and PR protection work |
-| M2 Correctness | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
-| M3 Route domain | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
-| M4 Weather and verdict | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
-| M5 Trust and privacy | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
-| M6 Core UX | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
-| M7 Acceptance | I24–I25 | Full validation, documentation sync and Goal report are complete |
+| Milestone | Status | Issues | Done when |
+|---|---|---|---|
+| M1 Engineering gate | Complete | I01–I03 | Fresh install, unified commands, CI and PR protection work |
+| M2 Correctness | Active | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
+| M3 Route domain | Pending | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
+| M4 Weather and verdict | Pending | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
+| M5 Trust and privacy | Pending | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
+| M6 Core UX | Pending | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
+| M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`.
 
