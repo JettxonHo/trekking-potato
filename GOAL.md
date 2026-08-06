@@ -15,7 +15,7 @@ than using invented values. I14's contract and implementation merged through PRs
 closed. I15 and I16 merged through PRs #57/#59; M4 is complete. I17 planning, both children and its
 completion checkpoint merged through PRs #62–#65; parent #26 is closed. Successful base results now
 create server-owned short-lived TripContexts. I18's queryId-only planning contract merged in PR #66;
-implementation is active on its exact main base.
+implementation and REVIEW_FIX are Sol-approved and awaiting the implementation PR.
 
 ## 1. Objective
 
@@ -49,7 +49,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
 | M3 Route domain | Active — full routes source-blocked | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
-| M5 Trust and privacy | Active — I18 implementation | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
+| M5 Trust and privacy | Active — I18 PR pending | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Pending | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 

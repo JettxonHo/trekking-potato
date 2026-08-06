@@ -3,8 +3,8 @@
 - Task ID: `I18`
 - GitHub Issue: `#27`
 - Title: 移除客户端可信 BaseData 回传并让 advice 仅接收 queryId
-- Status: `CHANGES_REQUESTED — REVIEW_FIX`
-- Mode: `REVIEW_FIX`
+- Status: `APPROVED — PR_PENDING`
+- Mode: `REVIEW`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
 - Branch: `codex/i18-query-context-implementation`
@@ -30,8 +30,12 @@ merged as `270e442`。当前授权 Terra XHigh 按本合同实施 I18；不得�
 2. 云函数文件头仍把 advice 描述为接收 base 数据，需改为服务端 TripContext 快照。
 3. 补一条未认证 advice 的零 context read 聚焦断言，证明冻结的认证顺序。
 
-当前重新授权 Terra XHigh 仅处理上述 REVIEW_FIX，重新运行完整矩阵并返回。尚未创建、批准或
+Sol 当时仅授权 Terra XHigh 处理上述 REVIEW_FIX 并重新运行完整矩阵；该返工未创建、批准或
 合并 implementation PR。
+
+REVIEW_FIX commit `2a4c85c` 已关闭以上三项。Sol 检查实际 diff 并独立重跑聚焦与完整矩阵；
+额外 Terra 复核亦无剩余 P0–P2。正式 Review 结果为 `APPROVED`。当前只允许 Sol 推送、创建
+implementation PR、核对 latest-head CI 并在条件全部满足后合并；Terra 不得自批或自并。
 
 ## 必读上下文
 

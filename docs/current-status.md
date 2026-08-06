@@ -4,10 +4,10 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I18 / #27 / CHANGES_REQUESTED — REVIEW_FIX`
+- Active task: `I18 / #27 / APPROVED — PR_PENDING`
 - Branch: `codex/i18-query-context-implementation`
 - Base: `main` at `270e442`
-- Implementation commit: `c5b2201` (`feat: trust advice context by query id`); PR: not created
+- Implementation commits: `c5b2201` + REVIEW_FIX `2a4c85c`; PR: pending
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -326,8 +326,12 @@ not accepted or merged until Sol XHigh completes an independent review.
   that existing tests missed: confirm history params contain no route, so the I18 local-history split
   would save a successful confirmed route as “未知路线”. Review is `CHANGES_REQUESTED`; the fix is
   limited to restoring `base.route` in local historyParams without changing either network request.
-  Two P2 cleanups also apply: update the stale cloud-function header and explicitly prove unauthenticated
-  advice performs zero context reads. Remote #27 must mirror this Review state.
+  Two P2 cleanups also applied: update the stale cloud-function header and explicitly prove unauthenticated
+  advice performs zero context reads. Remote #27 was synchronized before the fix assignment.
+- REVIEW_FIX `2a4c85c` restores the server-resolved route only in local historyParams, while confirm and
+  advice network payloads remain frozen and queryId stays out of history. It also fixes the handler header
+  and proves unauthenticated advice performs zero reads. Sol inspected the patch and reran the complete
+  matrix; independent re-review found no remaining P0–P2. Formal result: `APPROVED — PR_PENDING`.
 
 ## Baseline evidence
 
@@ -372,13 +376,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns I18 independent Review, GitHub orchestration and all merge decisions.
-- Terra XHigh: assigned the bounded I18 REVIEW_FIX after Sol `CHANGES_REQUESTED`.
+- Terra XHigh: completed I18 implementation and bounded REVIEW_FIX; no active coding assignment.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Terra fixes the confirmed-route history regression and two P2 contract drifts, then reruns the matrix.
-2. Sol inspects the actual fix diff and reruns focused/full validation before any PR/merge.
+1. Sol pushes the approved I18 head, opens the implementation PR and verifies latest-head CI.
+2. Merge only if the PR still matches the approved head and quality passes; then close #27/checkpoint.
 3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -410,5 +414,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra completes only the recorded REVIEW_FIX and returns a new result package. Sol then re-reviews the
-actual diff; no implementation PR may be opened or merged before an explicit `APPROVED`.
+Push the approved I18 head and create its implementation PR. Merge only after latest-head GitHub quality
+passes and the head still matches Sol's reviewed commit.
