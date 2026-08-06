@@ -149,6 +149,32 @@ I15 测试通过注入式 I14 `fetchRouteWeather` 取得 complete snapshot，再
 GREEN 后运行 `test:verdict`、hourly/legacy weather、route-domain、root test、integration、
 lint、typecheck、WeChat build 和 diff check。不为 I14 已保证的每种坏字段复制防御测试。
 
+### I16 trip-level verdict contract
+
+I16's offline `test:trip-verdict` composes I14-derived complete and insufficient snapshots with I15.
+The first real RED is a missing `trip-verdict` module/export. Astronomy edges use an injected local
+sunset seam; tests do not depend on a real date's solar output or any network.
+
+- Terminal capability: official blocked is no-go and calls neither I15 nor sunset; place-only is
+  `null/place_only`; full insufficient is `null/insufficient` and skips both evaluators.
+- Weather preservation: I15 go/caution/no-go outcomes and reason objects remain unchanged within the
+  final stable sequence.
+- Climb table: all 3 levels x 3 support choices; only novice solo/unsure adds the climb hard no-go,
+  the other eight remain at least caution. trek/tour stay weather-driven even if support is supplied.
+- Lead time: `fetchedAt` near Shanghai midnight proves the per-route-day 4/5-day boundary without
+  using host timezone or client time.
+- Sunset: finish equal to sunset, one minute later, cross-midnight, multiple-sample earliest/tie order,
+  and one unavailable sample. Coordinates asserted at the seam are exactly I14 WGS84 values.
+- Precedence: known hard no-go survives unavailable data; caution does not turn unavailable into
+  danger. Weather issues and sunset issues are data facts without severity.
+- Quality: exact reason/data-issue ordering, repeatability and deep input immutability. One internal
+  invalid-climb-support guard plus one route-kind/level/weather boundary assertion are sufficient;
+  do not replicate impossible-case defenses for every nested field.
+
+GREEN 后运行 trip-verdict、verdict、hourly/legacy weather、route-domain、root test、integration、
+lint、typecheck、WeChat build 和 diff check。公共 handler、queryId、真实路线、AI、装备和 UI
+仍不属于 I16 测试。
+
 ## 3. 测试层级
 
 - 单元：路线匹配、Schema、坐标、天气解析、活动窗口、结论、装备合并、reducer。
