@@ -367,24 +367,49 @@ I15 只对 `complete` 快照计算阈值，I16 再组合为
 
 ## 7. TP-VERDICT-1
 
-规则输出：
+I15 是 weather-only 深模块：
+
+```js
+evaluateWeatherVerdict(completeWeatherSnapshot)
+  -> { verdict: 'go' | 'caution' | 'no_go', dataStatus: 'complete', reasons }
+```
+
+它只接受 I14 `complete` 快照，无 I/O、无当前时间、无路线推断；non-complete 是内部编排
+错误而不是 `go`。I16 把 I15 结果与可信路线、攀登支持、预报提前量和日落组合，并从 I14
+注入 `evaluatedWindows`，最终形成：
 
 ```js
 {
   verdict: 'go' | 'caution' | 'no_go' | null,
   dataStatus: 'complete' | 'insufficient' | 'place_only',
-  reasons: [{ code, severity, at?, observed?, message }],
-  evaluatedWindows: []
+  reasons: [{ code, severity, at, observed, message }],
+  evaluatedWindows: [],
 }
 ```
 
-优先级：硬阻断 → `no_go`；否则任一警示 → `caution`；否则 → `go`。数据不足或地点级结果 → `null`。不计算总分。
+I15 硬阻断：WMO `95/96/99` 雷暴；`56/57/66/67` 冻雨；阵风 `>=22m/s`；
+中大雪 `73/75/85/86` 与同桶阵风 `>=13.4m/s` 或能见度 `<=50m` 的组合；单 stage、
+单 sample 的活动桶累计新雪 `>=15cm`；体感 `>=41°C` 或 `<=-29°C`。
 
-硬阻断：官方禁行；WMO `95/96/99` 雷暴；`56/57/66/67` 冻雨；阵风 `>=22m/s`；中大雪 `73/75/85/86` 伴阵风 `>=13.4m/s`；单日新雪 `>=15cm`；能见度 `<=50m` 与中大雪组合；体感 `>=41°C` 或 `<=-29°C`；新手技术攀登且独自/不确定。
+I15 警示：阵风 `13.4 <= gust <22m/s`；能见度 `<=50m`；同 stage/sample 的重雨码
+`65/82` 连续三个相邻小时桶；单 stage/sample 活动桶累计降水 `>=40mm`；体感
+`32 <= apparent <41°C` 或 `-29 < apparent <=0°C`；普通雨雪
+`51/53/55/61/63/65/71/73/75/77/80/81/82/85/86`。
 
-警示：阵风 `13.4–22m/s`；能见度 `<=50m`；重雨码 `65/82` 连续三小时或 24 小时降水 `>=40mm`；体感 `32–41°C` 或 `-29–0°C`；普通雨雪；提前量达到 5 天；任何技术攀登；预计结束晚于日落。
+I14 只保留活动窗口，不能声称获得完整自然日或滚动 24 小时。Beta 的 `40mm/15cm` 规则
+因此明确是规范化活动桶累计；跨午夜但仍属同一 stage 时可累计，不跨 sample/stage 拼接，
+不把未返回小时当零，也不为此重新扫描无关夜间。Open-Meteo 的降水/降雪本身是前一小时
+累计，I15 直接对 I14 已映射到桶的值求和，不再次解释有效时间。
 
-降水概率不单独改变结论；冻结层高度当前仅用于解释；不从单点山峰海拔推导雪线硬阻断。
+每个原因包含确定位置 `at { day,date,samplePointId,startLocal,endLocalExclusive }` 和规则专属
+`observed` 数值。去重键为 `day + code`；数值规则保留更危险观测，组合/WMO/连续规则保留
+冻结顺序中的最早命中。输出先列 `no_go`，再按 day、触发时间、sample 顺序和冻结 code
+顺序稳定排列。该排序不是评分；结论只按任一硬阻断、任一警示、无命中三级聚合。
+
+官方禁行、新手技术攀登、提前量达到 5 天、预计结束晚于日落和
+`insufficient/place_only → verdict=null` 属于 I16 最终组合。降水概率不单独改变 I15 结论；
+冻结层高度当前仅用于解释；不从单点山峰海拔推导雪线硬阻断。完整 code、reason shape、
+排序表和测试边界以当前 GitHub #24 与 `docs/tasks/ACTIVE_TASK.md` 为准。
 
 规则依据：
 

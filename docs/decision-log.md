@@ -244,3 +244,21 @@
   precipitation、snowfall 和 wind gust 定义为前一小时累计/最大值。
 - Why: 规范化小时桶让 I15 直接评估真实活动时段，并明确处理上游混合时间语义；它只在
   小时数据固有分辨率内保守覆盖相交桶，不把无关夜间风险混入结果。
+
+## 2026-08-06 — TP-D028 I15 活动窗口累计与 weather-only 边界
+
+- Status: Accepted
+- Decision: I15 是只消费 I14 complete snapshot 的纯天气规则模块；官方禁行、climb support、
+  预报提前量、日落和 `insufficient/place_only → verdict=null` 留给 I16 最终组合。由于 I14
+  按 TP-D027 只返回活动窗口相交桶，Beta 的 `40mm` 降水和 `15cm` 新雪规则明确改写为
+  单 stage、单 sample 的规范化活动桶累计，不再称为完整 24 小时或自然日累计。跨午夜但
+  仍属同一 stage 时可累计，不跨 sample/stage 拼接，不把缺失夜间当零。
+- Alternatives: 让 I15 把活动桶冒充完整日累计；回改 I14 扫描自然日；增加滚动 24 小时
+  lookback；请求 Open-Meteo daily 聚合；在多个 sample 间相加；推迟到 I16 临时决定。
+- Evidence: Open-Meteo 官方 Forecast API 把 precipitation/snowfall 定义为标记时刻前一小时
+  累计；I14 已把它们投影到规范化桶终点。两个独立 Terra XHigh 只读审计均确认 I14 快照
+  无法重建完整 24h/自然日，但可以确定性计算活动桶累计。
+- Why: 该解释优先保持已确认的“只评估活动时段”边界，不让行程结束后的无关夜间天气改变
+  结论，也不扩大天气 I/O。明确改名避免数据能力虚假声明；每个路线采样点独立判断，仍能
+  保持安全阈值、可解释性和离线测试。若未来产品确需完整滚动 24 小时，应作为新的天气
+  数据合同和独立 Issue 设计，不能在 I15 内猜测。
