@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
-- Active task: `I14 / GitHub #23 / CONTRACT_APPROVED — PLANNING_PR_PENDING`
-- Branch: `codex/i14-hourly-weather-contract`
-- Base: `main` at `9021f31`
+- Active task: `I14 / GitHub #23 / APPROVED — PR_PENDING`
+- Branch: `codex/i14-hourly-weather`
+- Base: `main` at `ea64e28`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -19,11 +19,13 @@
 - I07 implementation PR: `#49` — merged; GitHub #16 closed
 - M3 source-gate PR: `#52` — merged; #50 activated, #17/#18/#20/#21/#51 blocked
 - I10a implementation PR: `#53` — merged; GitHub #50 closed
+- I14 planning PR: `#54` — merged; GitHub #23 implementation activated
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent M4/I14 weather foundation to proceed using only I07's frozen shape and synthetic fixtures;
-this does not authorize I13, real full-route data or production integration.
+this does not authorize I13, real full-route data or production integration. Sol XHigh approved the
+I14 implementation after one bounded review-fix round; it has not yet passed remote CI or merged.
 
 ## Completed
 
@@ -149,7 +151,26 @@ this does not authorize I13, real full-route data or production integration.
   added WMO/probability/non-negative guards with representative tests. A final synchronization check
   also required direct assertions for normalized units and deterministic output order.
 - The final independent Review read both the actual diff and live #23, returned `APPROVED`, and found
-  no remaining P0–P2 issue or human decision. No implementation file has been modified or authorized.
+  no remaining P0–P2 issue or human decision. At that review checkpoint no implementation file had
+  been modified or authorized.
+- I14 planning PR #54 matched approved head `0da38c8`, passed latest-head GitHub `quality` in 51
+  seconds, and squash merged as `ea64e28`. Implementation is now authorized only on the exact
+  allowlist and internal union frozen in #23.
+- I14 implementation completed the required real TDD RED with the new hourly module absent, then
+  added only the isolated route-hourly adapter, pure GCJ-02 helper extraction, synthetic I07-validated
+  catalog/weather fixtures and offline contract. The final local matrix passes `test:hourly-weather`,
+  legacy weather (86/0), route-domain, lint (0 errors; 10 pre-existing warnings), typecheck, root test,
+  integration (56/0), WeChat build and `git diff --check`. It remains `READY_FOR_CONTROLLER_REVIEW`.
+- Sol's first I14 implementation Review returned `CHANGES_REQUESTED` for two P1 boundary cases: a
+  catalog-valid sub-minute fractional duration produced a non-normalized local audit time, and a
+  non-range Open-Meteo service error was classified as invalid data. The bounded REVIEW_FIX now rounds
+  duration minutes conservatively upward while retaining the original duration field, maps only explicit
+  non-range upstream errors to retryable `weather_unavailable`, and directly covers the weather-module
+  injected entry. The complete local matrix turned green again and returned I14 for the second Review.
+- Sol's second Review inspected the real code and regression-test diff, then independently reran
+  hourly-weather, legacy weather (86/0), route-domain, lint (0 errors; 10 pre-existing warnings),
+  typecheck, root test, integration (56/0), WeChat build and diff checks. All passed; result is
+  `APPROVED — PR_PENDING`, with latest-head GitHub `quality` still required before merge.
 
 ## Baseline evidence
 
@@ -186,16 +207,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: owns #23/I14 architecture, contract, planning PR and implementation Review.
-- Terra XHigh: proposed implementation owner after the I14 contract PR merges; not yet authorized.
+- Sol XHigh: owns #23/I14 architecture, contract, independent implementation Review and merge decision.
+- Terra XHigh: I14 implementation owner; delivery is `READY_FOR_CONTROLLER_REVIEW` on
+  `codex/i14-hourly-weather`.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Run the pure planning branch quality matrix, create/review/merge the I14 planning PR.
-2. Activate an implementation branch from its exact merged main commit, then
-   dispatch Terra XHigh test-first.
-3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
+1. Create I14 PR, verify latest-head GitHub `quality`, then squash merge and close #23 if green.
+2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
 
@@ -213,12 +233,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   snowfall thresholds interact with activity-only windows; Sol will freeze that in I15's contract.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I14 contract design
+## Forbidden actions during I14 implementation
 
-- Any implementation code, test fixture, dependency or lockfile change before the planning PR merges
+- Any file outside the activated #23 allowlist, dependency or lockfile change
 - Real route data, stable search I13, verdict/queryId/history/UI or public handler implementation
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Create and merge the approved I14 planning PR. Do not start implementation before it merges.
+Create the approved I14 PR; do not merge until latest-head GitHub `quality` passes.

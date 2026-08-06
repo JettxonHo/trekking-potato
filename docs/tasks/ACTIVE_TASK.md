@@ -1,21 +1,22 @@
 # 当前活动任务
 
-- Task ID: `I14-CONTRACT`
+- Task ID: `I14`
 - GitHub Issue: `#23`
 - Title: 冻结多采样点小时天气与活动窗口合同
-- Status: `CONTRACT_APPROVED — PLANNING_PR_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Proposed implementation owner: Terra XHigh
-- Branch: `codex/i14-hourly-weather-contract`
-- Base: `main` at `9021f31`
+- Status: `APPROVED — PR_PENDING`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
+- Branch: `codex/i14-hourly-weather`
+- Base: `main` at `ea64e28`
 - Goal: `TP-BETA-001`
 
 ## Current authorization
 
-本分支只允许文档、Issue 合同和状态同步，不允许实现代码、fixture、依赖或锁文件修改。
-合同通过独立 Review、planning PR 的 latest-head CI 并合并后，Sol 才能从新的 main 创建
-`codex/i14-hourly-weather`，把状态改为 `IMPLEMENTATION_ACTIVE` 并分派 Terra XHigh。
+规划 PR #54 已通过独立 Review、latest-head CI 并合并为 `ea64e28`。Terra XHigh 已在本文
+implementation allowlist 内完成 test-first 实现。Sol XHigh 已检查实际代码与测试、要求并
+复验两项边界修复，最终给出 `APPROVED`；下一步仅允许创建 PR、等待 latest-head CI 并按
+合并条件处理。不得修改公共合同、依赖、lockfile 或非范围。Terra 不得批准或合并自己的 PR。
 
 ## Mandatory context
 
@@ -33,7 +34,7 @@
 天气，只保留每日统一当地出发时间至该 stage 最大预计时长所覆盖的小时桶，并返回可供
 I15/I16 消费的完整或不足状态。I14 不产生 verdict，不接入现有生产 handler。
 
-## Implementation allowlist after activation
+## Implementation allowlist
 
 - `cloudfunctions/getAdvice/hourly-weather.js`（新增纯计划/投影模块）
 - `cloudfunctions/getAdvice/weather.js`（仅新增 Open-Meteo hourly adapter 与内部入口）
@@ -299,3 +300,24 @@ Issue 中提前扫描整日。Sol 必须在 I15 合同中单独解决。
 - RED 命令/失败原因、GREEN 与完整验证结果。
 - 与合同的偏差、自主实现级决策和已知限制。
 - PR 链接与建议 Sol 重点 Review 位置。
+
+## Implementation handoff
+
+- Status: `READY_FOR_CONTROLLER_REVIEW`; no implementation approval or merge has occurred.
+- TDD evidence: `corepack npm@10.9.2 run test:hourly-weather` first failed with the required missing
+  `hourly-weather` module, then passed after the minimum implementation.
+- The isolated module consumes only a synthetic I07-validated full Variant; all Open-Meteo calls are
+  injected fixtures. It keeps legacy daily `fetchWeather`, `geocode`'s exported converter and public
+  handler behavior unchanged.
+- Final local validation passed hourly-weather, weather (86/0), route-domain, lint (0 errors; 10
+  existing warnings), typecheck, root test, offline integration (56/0), WeChat build and diff check.
+- Sol review should focus on hourly valid-time mapping, atomic insufficient projection and the absence
+  of any I13/I15/I16 or public-handler wiring.
+- Sol's first implementation Review requested two P1 fixes. A catalog-valid `durationHours.max=4.125`
+  now conservatively projects to an integer-minute local end while preserving `durationHoursMax=4.125`;
+  an explicit non-range upstream `{ error: true }` now returns retryable `weather_unavailable` without
+  exposing its reason. The hourly contract also invokes the exported weather-module injected entry once.
+- The review-fix local matrix passed hourly-weather, weather (86/0), route-domain, lint (0 errors; 10
+  existing warnings), typecheck, root test, offline integration (56/0), WeChat build and diff check.
+- Sol's second independent Review inspected the actual review-fix diff and reran the complete local
+  matrix. Result: `APPROVED — PR_PENDING`; merge still requires latest-head GitHub `quality`.
