@@ -7,7 +7,7 @@
  */
 
 const https = require('https')
-const { matchBuiltinRoute } = require('./data/routes')
+const { resolveBuiltinRouteQuery } = require('./data/routes')
 const { isKnownRouteType } = require('./route-type')
 const cloud = require('wx-server-sdk')
 cloud.init(/** @type {any} */ ({ env: cloud.DYNAMIC_CURRENT_ENV }))
@@ -129,8 +129,19 @@ async function resolveLocation(route) {
   }
 
   // 1. 内置表匹配
-  const builtin = matchBuiltinRoute(route)
-  if (builtin) {
+  const builtinResult = resolveBuiltinRouteQuery(route)
+  if (builtinResult.kind === 'confirmation') {
+    return {
+      ok: true,
+      data: {
+        candidates: builtinResult.candidates,
+        needsConfirm: true,
+        matchType: builtinResult.matchStage,
+      },
+    }
+  }
+  if (builtinResult.kind === 'direct') {
+    const builtin = builtinResult.route
     // TP-P0-003：内置路线透传可信类型；类型数据异常时确定性拒绝，不得默认成 trek
     if (!isKnownRouteType(builtin.type)) {
       return { ok: false, error: 'invalid_route_type', message: '内置路线类型数据异常' }
@@ -176,10 +187,6 @@ async function resolveLocation(route) {
             return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc', ...ugcTypeFields(r) } }
           }
         }
-      }
-      // 包含匹配（如"黑排角"命中"黑排角海岸线"）
-      if (r.name && r.name.indexOf(route) >= 0) {
-        return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc', ...ugcTypeFields(r) } }
       }
     }
   } catch (e) {

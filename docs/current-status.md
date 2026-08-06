@@ -4,16 +4,17 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M2 Correctness`
-- Active task: `I05 contract planning / parent #14 / children #41 and #42`
-- Branch: `codex/i05-confirmation-contract`
-- Base: `main` at `34170ba`
+- Active task: `I05a / GitHub #41 / READY_FOR_CONTROLLER_REVIEW`
+- Branch: `codex/i05a-backend-confirmation`
+- Base: `main` at `a73b840`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
+- I05 planning PR: `#43` — merged; #41 ready and #42 blocked
 
 Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
-I04 is complete. I05a/I05b contracts are frozen but remain pending the planning PR and real-base
-activation; I06 and later Issues remain Backlog until dependencies and exact contracts are approved.
+I04 is complete. I05a is implemented and awaiting Sol XHigh review; I05b remains blocked until
+I05a merges, and I06/later Issues remain Backlog until dependencies and exact contracts are approved.
 
 ## Completed
 
@@ -41,6 +42,10 @@ activation; I06 and later Issues remain Backlog until dependencies and exact con
   and GitHub #13 was closed.
 - I05 was split into parent #14 with backend child #41 and frontend child #42 to keep each PR
   independently verifiable; #42 is blocked by #41.
+- I05 planning passed independent Review after one fix round and merged in PR #43 as `a73b840`;
+  #41 was activated on that real base.
+- I05a implemented the stateless builtin candidate ID, deterministic confirmation stages and
+  `confirm` trust boundary on `codex/i05a-backend-confirmation`; it is awaiting Sol XHigh review.
 
 ## Baseline evidence
 
@@ -53,6 +58,9 @@ activation; I06 and later Issues remain Backlog until dependencies and exact con
   CloudBase or DeepSeek access.
 - `node scripts/response-contract-test.js`: offline public-handler and frontend-source contract
   test for I04 response phases, error envelopes, compatibility consistency and phase branches.
+- `node scripts/confirmation-contract-test.js`: offline I05a contract for canonical/alias and
+  candidate-stage matching, four-field candidate exposure, `candidate_not_found`, confirm server
+  fact recovery, zero pre-confirm side effects and disabled UGC substring auto-hit.
 - I01 on Node 24.18.0 + npm 10.9.2: fresh-cache root `ci` and three-project `bootstrap` pass using official npm registry locks.
 - I02 on Node 24.18.0 + Corepack npm 10.9.2: root `lint` (0 errors; 10 existing
   unused-variable warnings), `typecheck`, `test`, `test:integration` and
@@ -65,13 +73,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: authorized implementation fallback; completed I04 and performed the I05 read-only audit.
-- Sol XHigh: owns I05 contract decisions, split, activation and later independent Review.
+- Terra XHigh: authorized implementation fallback; assigned I05a / #41.
+- Sol XHigh: owns I05 contracts, task routing and independent Review; #42 is not assigned.
 
 ## Open work
 
-1. Review and merge the I05 contract planning PR.
-2. Activate #41 on the resulting real `main`; keep #42 blocked until #41 merges.
+1. Sol XHigh reviews I05a actual code/tests and latest-head CI; #42 remains blocked until merge.
 
 ## Blockers and risks
 
@@ -82,13 +89,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Five route variants still require field-level A/B evidence during I08–I12.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I05 planning
+## Forbidden actions during I05a
 
-- Business implementation before the planning PR and real-base activation
-- Route domain schema, persistent candidate storage, queryId/TTL, verdict/weather/rule changes
-- I20 reducer/service work, UGC migration, global state or visual redesign
+- Frontend candidate UI or request-generation changes owned by #42
+- Route data field/schema edits, persistent candidate storage, queryId/TTL or permanent IDs
+- Verdict/weather/rule changes, I20 reducer/service, full UGC migration, deployment or dependencies
 - Deployment, database mutation, UGC deletion or production configuration
 
 ## Next action
 
-Create and independently review the I05 planning PR; do not dispatch #41 or #42 yet.
+Review GitHub #41; do not start #42 before #41 is approved and merged.

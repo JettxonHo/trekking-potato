@@ -18,6 +18,7 @@ const cloud = require('wx-server-sdk')
 cloud.init(/** @type {any} */ ({ env: cloud.DYNAMIC_CURRENT_ENV }))
 const { resolveLocation, gcj02ToWgs84 } = require('./geocode')
 const { fetchElevation } = require('./geocode')
+const { findBuiltinRouteByCandidateId } = require('./data/routes')
 const { fetchWeather, isValidIsoDate, parseTripDaysInput } = require('./weather')
 const { calcSunEvents } = require('./sun-events')
 const { getGearRules } = require('./gear-rules')
@@ -196,7 +197,8 @@ function mapLocationResolutionFailure(locResult) {
  */
 async function main(event, context) {
   const startTime = Date.now()
-  const { route, date, level, days, mode } = event
+  let route = event.route
+  const { date, level, days, mode, candidateId } = event
 
   // 鉴权：所有调用都必须携带合法 openid
   const wxContext = cloud.getWXContext()
@@ -206,12 +208,22 @@ async function main(event, context) {
   }
 
   // I04：生产首请求固定为 prepare；base 仅作为兼容别名，缺失或未知 mode 不再回退全链路。
-  if (mode !== 'prepare' && mode !== 'base' && mode !== 'advice') {
+  if (mode !== 'prepare' && mode !== 'base' && mode !== 'confirm' && mode !== 'advice') {
     return errorResponse('invalid_mode', '请求模式无效')
   }
 
-  // 1. 输入校验
-  if (!route || !date || !level) {
+  // I05a：confirm 只以 candidateId 恢复内置路线；客户端附带的路线、坐标、类型和
+  // baseData 不参与解析。候选已失效时在天气、规则和 AI 前结束。
+  if (mode === 'confirm') {
+    if (!candidateId || !date || !level) {
+      return errorResponse('missing_params', '缺少必要参数（candidateId/date/level）')
+    }
+    const confirmedRoute = findBuiltinRouteByCandidateId(candidateId)
+    if (!confirmedRoute) {
+      return errorResponse('candidate_not_found', '候选路线已失效，请重新查询')
+    }
+    route = confirmedRoute.name
+  } else if (!route || !date || !level) {
     return errorResponse('missing_params', '缺少必要参数（route/date/level）')
   }
 
@@ -234,7 +246,7 @@ async function main(event, context) {
 
   // 2. 地理编码：手动坐标优先，否则走 resolveLocation
   let loc
-  if (event.manualLat && event.manualLon) {
+  if (mode !== 'confirm' && event.manualLat && event.manualLon) {
     // TP-P0-003：手动坐标必须由用户明确选择路线类型，不得硬编码 trek
     if (!isKnownRouteType(event.routeType)) {
       return errorResponse('invalid_route_type', '请选择有效的路线类型')
@@ -265,20 +277,11 @@ async function main(event, context) {
     loc = locResult.data
   }
 
-  // 如果需要用户确认（编辑距离匹配），返回确认请求
-  // TP-P0-003：候选携带路线类型与来源，供确认展示；确认交互闭环由 TP-P0-004 处理
-  if (loc.needsConfirm && loc.matchType === 'editDistance') {
+  // I05a：模糊、前缀和歧义 alias 只返回服务器内置候选，不暴露坐标等路线事实。
+  if (loc.needsConfirm && Array.isArray(loc.candidates)) {
     return confirmationResponse(
-      `你输入的"${route}"可能是指"${loc.name}"（${loc.location}），请确认`,
-      {
-        name: loc.name,
-        lat: loc.lat,
-        lon: loc.lon,
-        elevation: loc.elevation,
-        routeType: loc.type,
-        routeTypeSource: loc.typeSource,
-        matchType: loc.matchType,
-      },
+      `请确认你要查询的路线：${route}`,
+      loc.candidates,
     )
   }
 

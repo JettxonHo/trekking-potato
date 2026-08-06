@@ -11,6 +11,7 @@ const ERROR_RETRYABLE = Object.freeze({
   invalid_trip_days: false,
   invalid_date: false,
   invalid_route_type: false,
+  candidate_not_found: false,
   location_failed: false,
   out_of_range: false,
   invalid_base_data: false,
@@ -34,11 +35,11 @@ function errorResponse(code, message, extra) {
   }
 }
 
-function confirmationResponse(message, data) {
+function confirmationResponse(message, candidates) {
   return {
     phase: 'confirmation',
     message,
-    data,
+    candidates,
     ok: true,
     needsConfirm: true,
   }

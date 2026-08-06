@@ -130,7 +130,8 @@ function assertExclusivePhaseFields(response) {
   assert(!Object.prototype.hasOwnProperty.call(response, 'retryable'), response.phase + ' 不得携带 retryable')
 
   if (response.phase === 'confirmation') {
-    assert(typeof response.message === 'string' && response.data, 'confirmation 必须包含 message/data')
+    assert(typeof response.message === 'string' && Array.isArray(response.candidates), 'confirmation 必须包含 message/candidates')
+    assert(!Object.prototype.hasOwnProperty.call(response, 'data'), 'confirmation 不得携带旧 data')
     assert(!Object.prototype.hasOwnProperty.call(response, 'displayName'), 'confirmation 不得携带 displayName')
     assert(!Object.prototype.hasOwnProperty.call(response, 'allowedTypes'), 'confirmation 不得携带 allowedTypes')
     assert(!Object.prototype.hasOwnProperty.call(response, 'degraded'), 'confirmation 不得携带 degraded')
@@ -252,7 +253,8 @@ async function main() {
   })
   assert(confirmation.phase === 'confirmation', '模糊匹配必须返回 phase=confirmation，实际=' + JSON.stringify(confirmation))
   assert(confirmation.ok === true && confirmation.needsConfirm === true, '确认态兼容字段必须一致，实际=' + JSON.stringify(confirmation))
-  assert(confirmation.data && confirmation.data.name === '麦理浩径', '确认态必须给出候选路线，实际=' + JSON.stringify(confirmation))
+  assert(confirmation.candidates && confirmation.candidates.length === 1 && confirmation.candidates[0].canonicalName === '麦理浩径', '确认态必须给出候选路线，实际=' + JSON.stringify(confirmation))
+  assert(confirmation.candidates[0].candidateId === 'builtin-route:麦理浩径', '确认态必须提供稳定 candidateId，实际=' + JSON.stringify(confirmation))
   assert(weatherRequestCount === weatherBeforeConfirmation, 'confirmation 必须在天气查询前返回')
   assertExclusivePhaseFields(confirmation)
 
