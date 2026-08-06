@@ -1,48 +1,44 @@
 # 当前活动任务
 
-- Task ID: `I02`
-- GitHub Issue: `#11` — `https://github.com/JettxonHo/trekking-potato/issues/11`
-- Title: 修复离线 E2E 并建立本地质量命令
+- Task ID: `I03`
+- GitHub Issue: `#12` — `https://github.com/JettxonHo/trekking-potato/issues/12`
+- Title: 建立 GitHub 最小工程门禁
 - Status: `READY_FOR_EXECUTOR`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh (authorized Luna fallback)
-- Reviewer: Sol XHigh
-- Branch: `codex/i02-quality-commands`
-- Base: `main` at `868c181`
+- Reviewer and protection applier: Sol XHigh
+- Branch: `codex/i03-github-gates`
+- Base: `main` at `fd706af`
 - Goal: `TP-BETA-001`
 
 ## Objective
 
-让离线集成测试与根级 lint、typecheck、test、test:integration、build:weapp 命令真实可运行，且任何失败都以非零状态暴露。
+让 Pull Request 自动运行 I02 的统一质量命令，并在该 PR 验证成功后为 `main` 建立最小保护规则。
 
 ## Allowlist
 
-- 根 `package.json` 与 `package-lock.json`
-- `scripts/e2e-local.js`
-- 新增 `eslint.config.js`
-- 新增 `tsconfig.quality.json`（或同等单一 JS typecheck 配置）
-- `scripts/fixtures/**` 与 `scripts/mocks/**`
-- `README.md`、`docs/testing-strategy.md`、`docs/current-status.md`
-- 生产文件仅允许在 `cloudfunctions/getAdvice/**/*.js`、`cloudfunctions/history/**/*.js`、`taro-app/src/**/*.{js,jsx}` 增加无行为变化的 JSDoc/类型注释，并在 PR 单独列出
+- `.github/workflows/quality.yml`
+- `.github/ISSUE_TEMPLATE/**`
+- `.github/pull_request_template.md`
+- `docs/current-status.md`、`docs/testing-strategy.md`、`docs/issue-and-pr-workflow.md`
+- 只读核验既有标签、M1–M7 和目标保护配置
 
 ## Out of scope
 
-- 改变业务行为迁就旧测试或修改公共接口
-- 默认运行 live 网络、DeepSeek、deep-audit 或 redteam-audit
-- Jest、Vitest、机械覆盖率线或新的全局状态/框架
-- Taro、NutUI、Node/npm 策略变更
-- CI、部署、发布和数据操作
+- 业务代码、依赖、质量命令语义或验收标准变化
+- 部署、发布、密钥、生产配置和收费服务
+- 复杂自动化、机械评分或额外 GitHub 审批人数
+- 实现 Agent 合并自身 PR、应用保护或关闭 #12
 
 ## Acceptance
 
-- 根级 `lint`、`typecheck`、`test`、`test:integration`、`build:weapp` 都是可执行的真实命令。
-- E2E 使用 fixture/mock，不访问 live Open-Meteo、CloudBase 或 DeepSeek，并使用当前 `tripDays`、`routeType` 契约。
-- 失败命令返回非零，不隐藏失败。
-- 不为通过测试改变业务行为。
+- I03 PR 触发名为 `quality` 的 check，并运行 install/bootstrap、lint、typecheck、test、test:integration、build:weapp。
+- Issue/PR 模板覆盖合同与交付说明字段。
+- PR 合并后由 Sol XHigh 应用并回读：require PR、require `quality`、禁止 force push 和删除。
+- 不包含部署、密钥或付费集成。
 
 ## Verification
 
-- 完整合同以 GitHub #11 为准。
-- 使用 I01 固定的 Node 24.18.0 与 Corepack npm 10.9.2。
-- 必跑五个根质量命令和三个原始基线脚本。
-- 执行 Agent 交付状态只能为 `READY_FOR_CONTROLLER_REVIEW`。
+- 完整合同以 GitHub #12 为准。
+- PR 使用 `Refs #12`，不得提前关闭 Issue。
+- 执行 Agent 交付状态只能为 `READY_FOR_CONTROLLER_REVIEW`；Sol 完成线上保护回读后关闭 #12。
