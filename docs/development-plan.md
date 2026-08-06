@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M3 / I07 implementation`
+- Status: `ACTIVE — M3 / I07 approved for PR`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -117,6 +117,10 @@ I06 规划 PR #46 已合并为 `bf7ac83`，#15 在该真实 base 激活并交给
 - I07 是 cold catalog：不接 `routes.js/geocode.js/index.js`，不改变 I05 候选、confirm 或
   公共响应。数据录入属于 I08–I12，生产聚合与搜索接入属于 I13。
 - 实现 allowlist 和完整验收以 GitHub #16 与 `docs/tasks/ACTIVE_TASK.md` 为准。
+- Terra 已交付 test-first 实现与第一次 Review 的最小修复：空 namespace 后缀必须失败，且 I07
+  测试策略列出的 namespace、引用、日程和采样数量负例均已直接覆盖。状态恢复为
+  `READY_FOR_CONTROLLER_REVIEW`。Sol 第二次 Review 和完整本地矩阵均通过，结果为
+  `APPROVED`；在实现 PR 合并前，I08–I12 仍不得启动。
 
 ## 6. Issue 合同生成规则
 

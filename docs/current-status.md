@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M3 Route domain`
-- Active task: `I07 / GitHub #16 / READY`
+- Active task: `I07 / GitHub #16 / APPROVED`
 - Branch: `codex/i07-route-domain`
 - Base: `main` at `7d43b1d`
 - Planning PR: `#9` — merged
@@ -17,8 +17,8 @@
 - I06 implementation PR: `#47` — merged; GitHub #15 and M2 closed
 - I07 planning PR: `#48` — merged; GitHub #16 remains open for implementation
 
-Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 contract is merged and the
-bounded I07 implementation is active on its independent branch; no I08–I13 work is authorized yet.
+Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 implementation passed its
+second independent Sol Review and is approved for PR/CI; no I08–I13 work is authorized before merge.
 
 ## Completed
 
@@ -85,6 +85,19 @@ bounded I07 implementation is active on its independent branch; no I08–I13 wor
   `git diff --check` passing.
 - I07 planning PR #48 matched approved head `ac31c26`, passed latest-head GitHub `quality`, and
   squash merged as `7d43b1d`. GitHub #16 intentionally remains open for the implementation PR.
+- I07 implementation is ready for Sol XHigh review: a new cold `createRouteCatalog` module validates
+  Source/Place/Route/full-or-blocked RouteVariant records, adapts all 175 legacy records only to
+  place-only data, and does not change the production search path. Its offline test began with a
+  genuine missing-module failure, then passed valid/invalid, evidence, legacy, immutability and ID
+  lookup assertions.
+- Sol 的第一次 I07 实现 Review 返回 `CHANGES_REQUESTED`：空 namespace 后缀未被拒绝，且
+  route-domain 测试尚缺错误 namespace、variant route/source 引用、日程与采样数量的独立负例。
+  Terra 先以 `source:` 无后缀写出真实失败，再加入最小非空后缀校验和这些测试；没有生成 ID、
+  没有新增搜索或运行时路径。修复后的交付状态恢复为 `READY_FOR_CONTROLLER_REVIEW`，等待第二次
+  Sol Review。
+- Sol 的第二次 I07 实现 Review 直接检查了实际模块、测试与文档，并亲自重跑
+  `test:route-domain`、lint、typecheck、root test、integration、WeChat build 和 diff check；
+  全部通过。Review 结果为 `APPROVED`，当前仅等待实现 PR 的 latest-head CI 与合并。
 
 ## Baseline evidence
 
@@ -100,6 +113,9 @@ bounded I07 implementation is active on its independent branch; no I08–I13 wor
   extends it with pre-LLM zero-call, base-only Prompt, outcome ownership, and base-first UI assertions.
 - `node scripts/advice-safety-contract-test.js`: I06 pure projection contract for deterministic
   gear/risk ownership, exact additions, notes ordering, unavailable/invalid degradation and immutability.
+- `node scripts/route-domain-contract-test.js`: I07 cold catalog contract for valid full/blocked
+  fixtures, 175 legacy place-only adaptation, nonempty namespace suffix/error namespace, evidence/
+  reference/itinerary/sample-count failures, input isolation and `getById` miss semantics.
 - `node scripts/confirmation-contract-test.js`: offline I05a contract for canonical/alias and
   candidate-stage matching, four-field candidate exposure, `candidate_not_found`, confirm server
   fact recovery, zero pre-confirm side effects and disabled UGC substring auto-hit; I05b source
@@ -116,15 +132,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: assigned the bounded I07 test-first implementation on `codex/i07-route-domain`.
+- Terra XHigh: delivered the bounded I07 test-first implementation and one bounded review fix on
+  `codex/i07-route-domain`; Sol second Review is `APPROVED`.
 - Sol XHigh: owns I07 product/domain contract, task routing and independent Review.
 - I07 design/review agents: three alternatives and two independent contract Review rounds complete.
 
 ## Open work
 
-1. Terra writes the sensitive route-domain contract tests first, then the minimum catalog implementation.
-2. Terra runs the exact local validation matrix and returns a result package without merging.
-3. Sol independently reviews actual code/tests, requests fixes if needed, then decides PR approval.
+1. Commit the reviewed I07 implementation and create its focused PR.
+2. Confirm the PR head matches the reviewed commit and latest-head GitHub `quality` passes.
+3. Squash merge, close #16, update the M3 checkpoint, then freeze the first route-data contract.
 
 ## Blockers and risks
 
@@ -143,4 +160,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Dispatch the frozen GitHub #16 contract to Terra XHigh for test-first implementation.
+Create the approved I07 implementation PR; no I08–I13 task may start before merge.
