@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M4 / I15 ready for controller review; M3 full routes source-blocked`
+- Status: `ACTIVE — M4 / I15 approved, PR pending; M3 full routes source-blocked`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图

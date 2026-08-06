@@ -3,8 +3,8 @@
 - Task ID: `I15`
 - GitHub Issue: `#24`
 - Title: 冻结 TP-VERDICT-1 小时天气规则引擎合同
-- Status: `READY_FOR_CONTROLLER_REVIEW`
-- Mode: `REVIEW_FIX`
+- Status: `APPROVED — PR_PENDING`
+- Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
 - Branch: `codex/i15-weather-verdict`
@@ -20,7 +20,8 @@ squash 合并为 `8a4d2c4`。Terra XHigh 已在本文 allowlist 和冻结合同�
 
 Sol XHigh 首轮实现 Review 仅返回测试敏感度的 `CHANGES_REQUESTED`：补足同一 stage 跨午夜
 连续重雨、单桶、累计窗口和数值代表性原因的精确 `at` 时间跨度。Terra 已在既有 I14 离线
-派生测试内完成这一最小 REVIEW_FIX；没有修改生产规则、接口或合同，现等待复审。
+派生测试内完成这一最小 REVIEW_FIX；没有修改生产规则、接口或合同。Sol 第二轮检查实际
+diff 并独立重跑完整矩阵后给出 `APPROVED`；下一步仅允许创建 PR 并等待 latest-head CI。
 
 ## Mandatory context
 

@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
-- Active task: `I15 / GitHub #24 / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `I15 / GitHub #24 / APPROVED — PR_PENDING`
 - Branch: `codex/i15-weather-verdict`
 - Base: `main` at `8a4d2c4`
 - Planning PR: `#9` — merged
@@ -193,6 +193,9 @@ I15's approved weather-only rule contract is active for bounded Terra implementa
   it requested exact `at` spans for a same-stage cross-midnight heavy-rain run, scalar bucket,
   accumulation window and numeric representative. Terra added those I14-derived assertions without
   changing production rules, then returned the task to `READY_FOR_CONTROLLER_REVIEW`.
+- Sol's second implementation Review inspected the review-fix diff and independently reran verdict,
+  hourly/legacy weather, route-domain, root test, integration (56/0), lint (0 errors; 10 existing
+  warnings), typecheck, WeChat build and diff checks. All passed; result is `APPROVED — PR_PENDING`.
 
 ## Baseline evidence
 
@@ -238,8 +241,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol independently reviews I15's actual code/tests, requires fixes if needed, and merges only after
-   latest-head CI.
+1. Create the approved I15 PR and merge only after latest-head GitHub `quality` passes.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -266,4 +268,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol performs independent I15 Review before any PR creation or merge.
+Create the approved I15 PR; do not merge until latest-head GitHub `quality` passes.
