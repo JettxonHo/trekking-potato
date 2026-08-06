@@ -1,67 +1,74 @@
 # Trekking Potato — Agent Bootstrap
 
-> This file is the mandatory entry point for every coding agent working in this repository.
-> Governance version: `TP-GOV-1.0.0`
+> Mandatory entry point for every agent. Governance version: `TP-GOV-2.0.0`.
 
-## 1. Authority model
+## 1. Authority and roles
 
-- The human user and the controller assistant are the **project controllers**.
-- Coding agents are **bounded executors**.
-- An executor may investigate or implement only the task explicitly authorized in `docs/tasks/ACTIVE_TASK.md`.
-- An executor must never select the next backlog item, expand scope, or declare a task accepted.
+Authority order:
+
+1. Explicit controller instruction for the current turn
+2. `GOAL.md` for the active Goal
+3. `docs/governance/MASTER_PLAN.md` for long-term product direction
+4. The GitHub Issue referenced by `docs/tasks/ACTIVE_TASK.md`
+5. Product, architecture, testing, and workflow documents
+6. `docs/decision-log.md`
+7. Existing code behavior
+
+The human user and the Sol XHigh controller are project controllers. The implementation agent is a bounded executor. The preferred executor is Luna XHigh; while it is unavailable, the controller has authorized `gpt-5.6-terra` XHigh as the recorded fallback. An executor cannot approve or merge its own work.
 
 ## 2. Mandatory reading order
 
-Before inspecting or changing implementation code, read these files in order:
+Before implementation or review, read:
 
 1. `AGENTS.md`
-2. `docs/governance/MASTER_PLAN.md`
-3. `docs/governance/AGENT_EXECUTION_PROTOCOL.md`
-4. `docs/governance/PLAN_SYNC_PROTOCOL.md`
-5. `docs/tasks/ACTIVE_TASK.md`
-6. The project documents explicitly named by the active task
+2. `GOAL.md`
+3. `docs/current-status.md`
+4. `docs/governance/MASTER_PLAN.md`
+5. `docs/governance/AGENT_EXECUTION_PROTOCOL.md`
+6. `docs/governance/PLAN_SYNC_PROTOCOL.md`
+7. `docs/tasks/ACTIVE_TASK.md`
+8. The Issue and project documents named by the active task
 
-`docs/governance/MASTER_PLAN.md` is the single source of truth for product direction and priority.
-Do not copy its full content into another instruction file.
+If these sources conflict, stop the affected work and report the conflict to Sol XHigh. Do not choose silently.
 
-## 3. Required session handshake
+## 3. Session handshake
 
-Before modifying code, report:
+Before modifying implementation code, report:
 
 ```text
 Governance version:
-MASTER_PLAN SHA-256:
-ACTIVE_TASK SHA-256:
-Active task ID:
-Authorized mode: INVESTIGATION | IMPLEMENTATION | REVIEW_FIX
-Current branch:
+Goal ID and status:
+Active milestone:
+Active Issue and mode:
+Current branch and base commit:
 Working tree status:
+Required documents read:
 Baseline commands run:
 Blocking inconsistencies:
 ```
 
-If any required file is missing, the active task is ambiguous, hashes differ from the controller-provided values, or the worktree contains unexplained changes, stop without modifying code.
+No file hash or SHA-256 handshake is required. Git commit IDs may be recorded only where they identify a real branch, review, or handoff state.
 
 ## 4. Hard rules
 
-- One active task, one primary objective.
-- Do not overwrite, discard, stash, or reformat unrelated user changes.
-- Do not modify files outside the active task allowlist unless a necessary dependency is documented first.
-- Do not mix refactors, visual polish, dependency upgrades, and bug fixes in one task.
-- Add or update tests before claiming implementation completion.
-- Passing tests means “ready for controller review,” not “accepted.”
-- The executor cannot change task status to `VERIFIED` or `DONE`.
-- Safety-critical facts must come from deterministic rules, trusted APIs, or verified route data—not solely from an LLM.
+- One active Issue, one primary objective, one focused PR.
+- Modify only the task contract allowlist. Escalate necessary scope changes before editing.
+- Preserve unrelated user changes; never discard, hide, stash, or reformat them.
+- Do not mix feature work, broad refactors, dependency upgrades, and visual polish.
+- Add or update behavior tests before claiming completion.
+- Passing tests means ready for Sol XHigh review, not accepted.
+- Safety-critical facts come from deterministic rules, trusted APIs, or verified route data—not solely from an LLM.
+- Do not deploy, publish, delete data, perform irreversible migrations, or alter production configuration without human approval.
+- Do not hide failed tests, known defects, uncertainty, or risk.
 
-## 5. Conflict resolution
+## 5. Proportional engineering
 
-Priority order:
+- Validate realistic input and trust boundaries, but do not build speculative defenses for effectively impossible cases.
+- Do not add hashing or SHA-based mechanisms unless a concrete, major risk threatens core functionality and the controller approves the exception.
+- Prefer a few explainable invariants over repetitive defensive branches.
+- Rubrics are review aids, not mechanical scoring systems or substitutes for judgment.
+- Avoid abstractions, dependencies, and compatibility layers that are not required by the active Issue.
 
-1. Explicit instruction from the project controllers for the current turn
-2. `docs/tasks/ACTIVE_TASK.md`
-3. `docs/governance/AGENT_EXECUTION_PROTOCOL.md`
-4. `docs/governance/MASTER_PLAN.md`
-5. Existing project documentation
-6. Existing code behavior
+## 6. Completion and escalation
 
-When documents and code disagree, do not silently choose. Record the drift and follow the active task boundary.
+Executors deliver `READY_FOR_CONTROLLER_REVIEW`. Sol XHigh returns one of `APPROVED`, `CHANGES_REQUESTED`, `BLOCKED`, or `ESCALATE_TO_HUMAN`. Only Sol XHigh may decide that a PR is mergeable; only the project controller may accept the Goal-level result.

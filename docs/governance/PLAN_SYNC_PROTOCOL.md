@@ -1,66 +1,44 @@
-# 徒步薯 — 主控与执行 Agent 规划同步协议
+# 徒步薯 — 规划与上下文同步协议
 
-- Sync protocol version: `1.0.0`
-- Goal: 保证主控和执行 Agent 使用同一份规划与当前任务，避免会话记忆、复制提示词或旧文档造成漂移。
+- Protocol version: `2.0.0`
+- Governance version: `TP-GOV-2.0.0`
 
-## 1. 单一事实源
+## 1. 同步事实源
 
-- 产品和技术规划：`docs/governance/MASTER_PLAN.md`
-- 执行规则：`docs/governance/AGENT_EXECUTION_PROTOCOL.md`
-- 当前唯一任务：`docs/tasks/ACTIVE_TASK.md`
-- Agent 自动入口：根目录 `AGENTS.md`；Claude Code 入口为 `CLAUDE.md`
+- 当前 Goal：`GOAL.md`
+- 长期方向：`docs/governance/MASTER_PLAN.md`
+- 当前状态：`docs/current-status.md`
+- 当前任务：GitHub Issue 与 `docs/tasks/ACTIVE_TASK.md`
+- 关键决策：`docs/decision-log.md`
 
-`AGENTS.md` 和 `CLAUDE.md` 只负责引导，不复制主计划正文。
+不使用文件哈希作为激活条件。分支名、真实基准提交、Goal ID、Issue ID、治理版本和干净工作区足以完成同步。
 
-## 2. 版本与哈希握手
+## 2. 更新顺序
 
-每个 Agent 会话开始时，必须计算并报告：
+1. Sol XHigh 记录决策及原因。
+2. 更新受影响的产品、架构或测试文档。
+3. 必要时更新 `GOAL.md` 的状态，不在多个文件重复定义新范围。
+4. 更新 GitHub Issue 和 `ACTIVE_TASK.md`。
+5. 执行 Agent重新完成会话握手。
 
-```bash
-sha256sum docs/governance/MASTER_PLAN.md docs/tasks/ACTIVE_TASK.md
-```
+重要长期事实不得只存在于聊天中。
 
-macOS 可使用：
+## 3. 检查点
 
-```bash
-shasum -a 256 docs/governance/MASTER_PLAN.md docs/tasks/ACTIVE_TASK.md
-```
+无法可靠获得上下文比例时，在以下节点更新 `docs/current-status.md`：
 
-主控在下发任务时应提供或确认：
+- 每个里程碑完成
+- 一批相关 Issues 完成
+- 重大产品或架构决策完成
+- 进入新阶段、准备全局 Review 或发生 Agent/会话交接
+- 早期信息开始难以稳定召回
 
-- Plan version
-- Master plan hash
-- Active task ID
-- Active task hash
-- 授权模式
+检查点记录 Goal、里程碑、Issues/PR、Agent 分配、分支与提交、测试、决策、阻塞、风险、下一步和禁止范围。
 
-只要任一项不一致，执行 Agent 不得修改代码。
+## 4. 恢复流程
 
-## 3. 更新顺序
-
-规划变更只能按以下顺序进行：
-
-1. 主控提出变更理由
-2. 主控更新 `MASTER_PLAN.md` 并递增版本
-3. 主控更新 `ACTIVE_TASK.md` 或任务状态
-4. 重新计算哈希
-5. 执行 Agent 在下一轮重新握手
-
-禁止只在聊天提示词中改变长期规划而不更新仓库权威文档。
-
-## 4. 会话恢复
-
-执行 Agent 在上下文压缩、切换模型、重启终端或长时间中断后，必须重新读取四个治理文件并重新报告哈希，不得依赖之前记忆继续执行。
+压缩、重启或交接后重新读取：`AGENTS.md`、`GOAL.md`、`docs/current-status.md`、`docs/decision-log.md`、当前阶段文档、开放 Issues 与 PR。不得仅依赖模型摘要继续。
 
 ## 5. 漂移处理
 
-发现以下情况时立即停止：
-
-- 聊天指令与 `ACTIVE_TASK.md` 冲突
-- `MASTER_PLAN.md` 版本未更新但内容哈希变化
-- 活动任务存在两个主要目标
-- 多个任务同时标记为 active
-- Agent 入口文件引用不存在路径
-- 代码行为与主计划的关键假设冲突
-
-输出 `SYNC_BLOCKED`，列出冲突和建议由主控决定的事项。
+若 Goal、Issue、文档和代码冲突，输出 `SYNC_BLOCKED`，列出具体冲突、可继续的独立工作和需要 Sol XHigh 或人工决定的事项。

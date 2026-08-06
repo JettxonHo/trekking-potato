@@ -1,92 +1,58 @@
 # 徒步薯 — Agent 执行协议
 
-- Protocol version: `1.0.0`
-- Applies to: Codex、Claude Code、Cursor Agent 及其他代码执行 Agent
+- Protocol version: `2.0.0`
+- Governance version: `TP-GOV-2.0.0`
 
 ## 1. 角色
 
-- 主控：维护产品目标、规划、优先级、任务边界和最终验收。
-- 执行 Agent：在授权范围内调查、实现、测试和提交证据。
+- Sol XHigh：策划、架构、任务合同、调度、独立 Review、合并判断和 Goal 验收。
+- Luna XHigh：首选实现 Agent，当前不可用。
+- Terra XHigh：经人工授权的临时实现 Agent，权限与 Luna 相同，不得自行扩大范围或批准自身 PR。
 
-执行 Agent 无权自行选择下一任务、改变产品方向、扩大范围或宣布验收完成。
+## 2. 授权模式
 
-## 2. 三种授权模式
+- `INVESTIGATION`：只读证据、根因、影响、方案和测试设计。
+- `IMPLEMENTATION`：按已批准合同实现和测试。
+- `REVIEW_FIX`：只修复明确 Review 意见。
+- `FINAL_REVIEW`：Sol XHigh 执行 Goal 级审查，不授权普通实现。
 
-### INVESTIGATION
+## 3. 任务合同必备字段
 
-只读分析。不得修改代码、文档、依赖或 Git 状态。输出问题真实性、证据、根因、影响、最小方案和测试设计。
+每个 Issue 必须包含：目标、背景、允许范围、非范围、固定决策、验收标准、测试、依赖、风险、允许自主决策、升级条件和交付物。合同不完整不得分派。
 
-### IMPLEMENTATION
+## 4. 标准循环
 
-根因和方案已经获主控授权。允许修改 `ACTIVE_TASK.md` 中列出的文件范围，实施最小变更并运行规定验证。
+1. Sol XHigh 核对 Goal、依赖和工作区，建立 Issue 合同与分支。
+2. 执行 Agent完成握手、阅读指定文档、运行基线并提交简要实现计划。
+3. 执行 Agent只修改 allowlist，添加测试并运行合同要求的验证。
+4. 执行 Agent自检 diff、文档、失败测试和已知风险，提交结果包与 PR。
+5. Sol XHigh 阅读实际 diff 和验证证据，返回 `APPROVED`、`CHANGES_REQUESTED`、`BLOCKED` 或 `ESCALATE_TO_HUMAN`。
+6. 返工由原执行 Agent完成并重新验证；不能只凭“已修复”声明批准。
+7. 仅在全部验收满足、CI 通过、文档同步且 Sol XHigh 明确批准后 squash merge。
+8. 合并后更新 Issue、`GOAL.md`、`docs/current-status.md` 和必要决策记录。
 
-### REVIEW_FIX
+## 5. 工作区和并发
 
-仅修复主控审查指出的问题。不得借返工重新设计或扩大范围。
+- 禁止 `git reset --hard`、`git clean -fd`、擅自 stash、force push 或覆盖用户修改。
+- 默认串行。并行必须使用隔离工作区，且不共享核心文件、Schema、公共接口、数据库结构或未完成依赖。
+- 同一云函数编排、前端状态模型和公共契约不得由多个执行 Agent并行修改。
 
-## 3. 标准执行流程
+## 6. 升级条件
 
-1. 完成同步握手
-2. 检查分支和工作区
-3. 阅读任务要求和相关文件
-4. 复现或验证基线
-5. 仅在授权为 IMPLEMENTATION / REVIEW_FIX 时修改
-6. 添加或更新相关测试
-7. 运行任务要求的验证与必要回归
-8. 检查 Diff 是否越界
-9. 输出交付报告并停止
+执行 Agent必须停止受影响工作并升级：
 
-## 4. 工作区保护
+- 合同与代码现实不一致或出现需求缺口
+- 需要改变公共接口、核心架构或主要依赖
+- 需要数据迁移、部署、生产配置或额外付费
+- 修改范围超出 Issue
+- 测试暴露跨模块冲突
+- 同一问题连续两轮修复仍未通过 Review
+- 无法在不降低验收标准的情况下完成
 
-- 不得执行 `git reset --hard`、`git clean -fd` 或覆盖用户修改。
-- 不得擅自 stash、rebase、merge、force push。
-- 发现未解释修改时先停止并汇报。
-- 不得把格式化整个仓库、升级依赖或无关重命名混入任务。
+可继续处理与风险项完全独立的任务。
 
-## 5. 修改边界
+## 7. 交接格式
 
-`ACTIVE_TASK.md` 必须给出：
+Sol XHigh 下发包：Issue、合同、必读文档、模块、固定决策、验收、测试、分支/基线、风险和禁止范围。
 
-- 唯一任务 ID 和目标
-- 授权模式
-- 允许修改文件
-- 禁止范围
-- 验收标准
-- 必须运行的命令
-- 交付格式
-
-若实现必须修改 allowlist 外文件，先停止并说明原因，不得先改后报。
-
-## 6. 测试与证据
-
-- Bug 修复优先提供失败测试或可重复复现步骤。
-- 测试必须检查用户可观察行为或明确契约，避免只验证内部实现。
-- 相关测试通过后，还需运行任务指定的回归命令。
-- 无法运行的命令必须说明原因，不能写成“已通过”。
-
-## 7. 提交原则
-
-除非活动任务明确授权创建提交，否则只准备工作区修改。
-
-授权提交时：
-
-- 一个任务一个聚焦提交
-- 使用 Conventional Commits
-- 提交信息不能声称尚未由主控验证的结果
-
-## 8. 执行 Agent 交付模板
-
-```text
-Task ID:
-Mode:
-Plan version and hash:
-Summary:
-Root cause or implementation approach:
-Files changed:
-Tests added or updated:
-Commands run and results:
-Diff boundary check:
-Known limitations:
-Unresolved risks:
-Status: READY_FOR_CONTROLLER_REVIEW
-```
+执行 Agent返回包：完成情况、修改摘要、实际文件、命令与结果、计划偏差、自主实现决策、限制、PR 和重点 Review 位置。

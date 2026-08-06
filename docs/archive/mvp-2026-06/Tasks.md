@@ -1,3 +1,5 @@
+> **历史文档：** 这是 2026-06 MVP 任务清单，不再作为 Issue 或进度事实源。当前事实见根目录 `GOAL.md`、`docs/current-status.md` 和 GitHub Issues。
+
 # 徒步薯 — 任务清单（Phase 3 Tasks）
 > **v0.10.0 更新 | 2026-07-01 | P0-P8 全部完成，方案A增量（v0.7-v0.10）已完成**
 

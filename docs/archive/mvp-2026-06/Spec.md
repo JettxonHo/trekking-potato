@@ -1,3 +1,5 @@
+> **历史文档：** 这是 2026-06 MVP 规格，不再定义当前产品。当前事实见根目录 `GOAL.md`、`docs/product-requirements.md` 和 `docs/architecture.md`。
+
 # 徒步薯 — PRD 与技术 Spec
 > **v0.10.0 更新 | 2026-07-01 | MVP + 方案A增量已完成**
 
