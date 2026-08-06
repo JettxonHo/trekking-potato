@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "jsx": "preserve",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "target": "es2022"
+  },
+  "include": [
+    "cloudfunctions/getAdvice/**/*.js",
+    "cloudfunctions/history/**/*.js",
+    "taro-app/src/**/*.{js,jsx}",
+    "scripts/mocks/quality-types.d.ts"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "taro-app/dist/**"
+  ]
+}

@@ -19,7 +19,7 @@
  */
 
 const cloud = require('wx-server-sdk')
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+cloud.init(/** @type {any} */ ({ env: cloud.DYNAMIC_CURRENT_ENV }))
 
 const db = cloud.database()
 const MAX_SUMMARY = 120
@@ -94,7 +94,7 @@ async function saveRecord(event, openid) {
   }
 
   try {
-    const res = await db.collection('history').add({ data: record })
+    const res = /** @type {{ _id?: string }} */ (await db.collection('history').add({ data: record }))
     return { ok: true, id: res._id }
   } catch (e) {
     console.error('[history:save] 失败:', e.message)
@@ -113,11 +113,11 @@ async function listRecords(event, openid) {
   const limit = Math.min(20, Math.max(1, parseInt(event.limit) || 20))
 
   try {
-    const res = await db.collection('history')
+    const res = /** @type {{ data?: any[] }} */ (await db.collection('history')
       .where({ _openid: openid })
       .orderBy('createdAt', 'desc')
       .limit(limit)
-      .get()
+      .get())
     return { ok: true, data: res.data || [] }
   } catch (e) {
     console.error('[history:list] 失败:', e.message)
@@ -138,7 +138,7 @@ async function deleteRecord(event, openid) {
   }
   try {
     // 校验所有权：先查再删，防越权
-    const doc = await db.collection('history').doc(id).get()
+    const doc = /** @type {{ data?: any }} */ (await db.collection('history').doc(id).get())
     if (!doc.data || doc.data._openid !== openid) {
       return { ok: false, error: 'not_owner', message: '只能删除自己的记录' }
     }
@@ -194,7 +194,7 @@ async function saveRoute(event, openid) {
 
   try {
     // 拉取现有 UGC 路线全表（数据量小，一次性拉取）
-    const existing = await db.collection('routes').limit(1000).get()
+    const existing = /** @type {{ data?: any[] }} */ (await db.collection('routes').limit(1000).get())
     const routes = existing.data || []
 
     const SAME_PLACE_M = 1000   // 1km 内判定同一目的地
@@ -255,7 +255,7 @@ async function saveRoute(event, openid) {
       _openid: openid,
       createdAt: db.serverDate(),
     }
-    const res = await db.collection('routes').add({ data: record })
+    const res = /** @type {{ _id?: string }} */ (await db.collection('routes').add({ data: record }))
     return { ok: true, action: 'created', id: res._id, data: { name: finalName, lat, lon, elevation, type } }
   } catch (e) {
     console.error('[history:saveRoute] 失败:', e.message)
@@ -275,7 +275,7 @@ async function listRoutes(event, openid) {
 
   try {
     // 拉取全表后 JS 侧过滤（云开发不支持正则模糊查，数据量小可接受）
-    const res = await db.collection('routes').limit(500).get()
+    const res = /** @type {{ data?: any[] }} */ (await db.collection('routes').limit(500).get())
     const routes = res.data || []
     const matched = routes.filter((r) => {
       if (r.name && r.name.indexOf(keyword) >= 0) return true

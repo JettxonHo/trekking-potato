@@ -16,22 +16,27 @@
 ## 2. M1 后统一门禁
 
 ```bash
-npm ci
-npm run bootstrap
-npm run lint
-npm run typecheck
-npm test
-npm run test:integration
-npm run build:weapp
+corepack npm@10.9.2 ci
+corepack npm@10.9.2 run bootstrap
+corepack npm@10.9.2 run lint
+corepack npm@10.9.2 run typecheck
+corepack npm@10.9.2 test
+corepack npm@10.9.2 run test:integration
+corepack npm@10.9.2 run build:weapp
 ```
 
-在 I01/I02 完成前，真实基线命令为：
+I02 的离线集成测试使用 `scripts/fixtures/open-meteo-forecast.js` 和
+`scripts/mocks/cloudbase.js`：只允许受控的 Open-Meteo forecast URL 返回 fixture，其他
+HTTPS GET 会使测试失败；`wx-server-sdk` 在加载云函数模块时替换为 mock。该测试覆盖
+`tripDays` 1、2、3 和内置路线的 `trek` / `climb` 类型；它不调用 DeepSeek。
+
+三个可单独运行的稳定契约脚本为：
 
 ```bash
 node scripts/route-type-contract-test.js   # 93/0
 node scripts/weather-contract-test.js      # 86/0
 node scripts/unit-test.js                  # 55/0
-node scripts/e2e-local.js                   # 当前缺 wx-server-sdk，预期失败
+node scripts/e2e-local.js                   # 离线 E2E，53/0
 ```
 
 ## 3. 测试层级

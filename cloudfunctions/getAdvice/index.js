@@ -15,7 +15,7 @@
 
 const https = require('https')
 const cloud = require('wx-server-sdk')
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+cloud.init(/** @type {any} */ ({ env: cloud.DYNAMIC_CURRENT_ENV }))
 const { resolveLocation, gcj02ToWgs84 } = require('./geocode')
 const { fetchElevation } = require('./geocode')
 const { fetchWeather, isValidIsoDate, parseTripDaysInput } = require('./weather')

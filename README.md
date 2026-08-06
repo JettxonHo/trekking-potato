@@ -107,13 +107,21 @@ npm run build:weapp
 
 不要用仓库根目录的旧 `project.config.json` 作为当前入口；它仍指向历史原生 `miniprogram/`，后续将由独立工程清理任务处理。
 
-## 当前验证基线
+## 本地质量门禁
 
 ```bash
-npm test  # 路线 PASS 93 / FAIL 0；天气 PASS 86 / FAIL 0；单元 PASS 55 / FAIL 0
+corepack npm@10.9.2 run lint
+corepack npm@10.9.2 run typecheck
+corepack npm@10.9.2 test
+corepack npm@10.9.2 run test:integration
+corepack npm@10.9.2 run build:weapp
 ```
 
-`scripts/e2e-local.js` 当前契约陈旧，不作为门禁。I02 将补齐根级 `lint`、`typecheck`、`test:integration` 和 `build:weapp` 命令。
+`test` 保留三个稳定契约脚本：路线 93/0、天气 86/0、单元 55/0。`test:integration`
+运行离线 E2E：Open-Meteo 使用固定 fixture，CloudBase 使用本地 mock，并覆盖当前
+`tripDays` 与 `routeType` 契约；它不会访问真实 Open-Meteo、CloudBase 或 DeepSeek。
+`lint` 以 ESLint flat config 检查云函数、Taro 源码和脚本，`typecheck` 用 TypeScript
+的 `allowJs`、`checkJs`、`noEmit` 与 `skipLibCheck` 检查两个云函数和 Taro 源码。
 
 ## 目录
 
