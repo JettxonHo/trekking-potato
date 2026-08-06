@@ -30,6 +30,25 @@ const ROUTE_TYPE_SOURCE_TEXT = {
   amap: '外部位置，用户已确认',
   unknown: '类型待确认',
 }
+const DETERMINISTIC_RISK_ADVICE = '本风险由海拔/季节规则判定，请查阅专业路书获取具体应对措施'
+const AI_UNAVAILABLE_NOTE = 'AI 说明暂不可用，当前仅展示确定性规则结果。'
+
+function buildBaseSafetyResult(gearRules) {
+  const rules = gearRules || {}
+  const gear = {
+    essential: Array.isArray(rules.essential) ? rules.essential : [],
+    recommended: Array.isArray(rules.recommended) ? rules.recommended : [],
+    optional: Array.isArray(rules.optional) ? rules.optional : [],
+  }
+  const risks = Array.isArray(rules.fatalRisks)
+    ? rules.fatalRisks.map((riskName) => ({
+      risk: riskName + '风险',
+      level: '致命',
+      advice: DETERMINISTIC_RISK_ADVICE,
+    }))
+    : []
+  return { gear, risks }
+}
 
 export default class Index extends Component {
   state = {
@@ -342,14 +361,15 @@ export default class Index extends Component {
   }
 
   _showBaseAndFetchAdvice(base, params) {
+    const baseSafetyResult = buildBaseSafetyResult(base.gearRules)
     this.setState({
       loading: false,
       showResult: true,
       result: {
         weatherWindow: base.weather,
         photoTiming: base.sunEvents,
-        gear: { essential: [], recommended: [], optional: [] },
-        risks: [],
+        gear: baseSafetyResult.gear,
+        risks: baseSafetyResult.risks,
         notes: [],
         meta: {
           elevation: base.elevation,
@@ -465,9 +485,10 @@ export default class Index extends Component {
             result: {
               ...prev.result,
               gear: d.gear || prev.result.gear,
-              risks: d.risks || [],
-              notes: d.notes || [],
+              risks: d.risks || prev.result.risks,
+              notes: d.notes || prev.result.notes,
               degraded,
+              weatherWindow: d.weather || prev.result.weatherWindow,
               photoTiming: d.photoTiming || prev.result.photoTiming,
               disclaimer: d.disclaimer,
              meta: { ...prev.result.meta, ...d.meta },
@@ -479,8 +500,17 @@ export default class Index extends Component {
             meta: { ...((this.state.result && this.state.result.meta) || {}), ...d.meta },
           })
         } else {
-          this.setState({ adviceLoading: false, funnyMsg: '',
-    daysBounce: false, error: (result && result.phase === 'error' && result.message) || 'AI 建议生成失败' })
+          this.setState((prev) => ({
+            adviceLoading: false,
+            funnyMsg: '',
+            daysBounce: false,
+            error: (result && result.phase === 'error' && result.message) || 'AI 建议生成失败',
+            result: {
+              ...prev.result,
+              degraded: true,
+              notes: [...(prev.result.notes || []), AI_UNAVAILABLE_NOTE],
+            },
+          }), () => this._saveCache())
         }
       },
       fail: (err) => {
@@ -494,8 +524,8 @@ export default class Index extends Component {
           result: {
             ...prev.result,
             degraded: true,
-           notes: ['AI 建议超时，以下为天气基础数据。请重试或查阅专业路书。'],
-         },
+            notes: [...(prev.result.notes || []), AI_UNAVAILABLE_NOTE],
+          },
         }), () => this._saveCache())
        console.error('[徒步薯] advice callFunction fail', err)
       }
@@ -718,42 +748,32 @@ export default class Index extends Component {
           <View className="card">
             <Text className="card-quirky-icon">🎒</Text>
             <Text className="card-title">装备清单</Text>
-            {adviceLoading ? (
-              <View className="skeleton-lines">
-                <View className="sk-line sk-40" />
-                <View className="sk-line sk-85" />
-                <View className="sk-line sk-60" />
+            {gear.essential && gear.essential.length > 0 && (
+             <View className="gear-section">
+                <Text className="gear-tag gear-tag-essential">必备</Text>
+                {gear.essential.map((g, i) => (
+                  <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
+                ))}
               </View>
-            ) : (
-              <>
-                {gear.essential && gear.essential.length > 0 && (
-                 <View className="gear-section">
-                    <Text className="gear-tag gear-tag-essential">必备</Text>
-                    {gear.essential.map((g, i) => (
-                      <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
-                    ))}
-                  </View>
-                )}
-                {gear.recommended && gear.recommended.length > 0 && (
-                 <View className="gear-section">
-                    <Text className="gear-tag gear-tag-recommended">推荐</Text>
-                    {gear.recommended.map((g, i) => (
-                      <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
-                    ))}
-                  </View>
-                )}
-                {gear.optional && gear.optional.length > 0 && (
-                 <View className="gear-section">
-                    <Text className="gear-tag gear-tag-optional">可选</Text>
-                    {gear.optional.map((g, i) => (
-                      <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
-                    ))}
-                  </View>
-                )}
-                {(!gear.essential || gear.essential.length === 0) && (!gear.recommended || gear.recommended.length === 0) && (
-                  <Text className="empty-hint">装备清单为空</Text>
-                )}
-              </>
+            )}
+            {gear.recommended && gear.recommended.length > 0 && (
+             <View className="gear-section">
+                <Text className="gear-tag gear-tag-recommended">推荐</Text>
+                {gear.recommended.map((g, i) => (
+                  <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
+                ))}
+              </View>
+            )}
+            {gear.optional && gear.optional.length > 0 && (
+             <View className="gear-section">
+                <Text className="gear-tag gear-tag-optional">可选</Text>
+                {gear.optional.map((g, i) => (
+                  <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
+                ))}
+              </View>
+            )}
+            {(!gear.essential || gear.essential.length === 0) && (!gear.recommended || gear.recommended.length === 0) && (
+              <Text className="empty-hint">装备清单为空</Text>
             )}
           </View>
 
@@ -761,12 +781,7 @@ export default class Index extends Component {
             <Text className="card-quirky-icon">⚠️</Text>
             <Text className="card-quirky-icon" style="right:60rpx;opacity:0.2;">(•̀_•́)</Text>
             <Text className="card-title">风险提示</Text>
-            {adviceLoading ? (
-              <View className="skeleton-lines">
-                <View className="sk-line sk-70" />
-                <View className="sk-line sk-50" />
-              </View>
-            ) : risks.length > 0 ? (
+            {risks.length > 0 ? (
              risks.map((r, i) => {
                return (
                  <View key={i} className={`risk-item ${r.level === '致命' ? 'fatal fatal-enter' : ''}`}>

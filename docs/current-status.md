@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M2 Correctness`
-- Active task: `I06 / GitHub #15 / READY_FOR_EXECUTOR`
+- Active task: `I06 / GitHub #15 / READY_FOR_PR`
 - Branch: `codex/i06-safety-advice`
 - Base: `main` at `bf7ac83`
 - Planning PR: `#9` — merged
@@ -16,8 +16,8 @@
 - I06 planning PR: `#46` — merged; latest-head `quality` passed
 
 Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
-I04 and I05 are complete. I06 contract Review and planning PR are complete; #15 is activated for
-bounded Terra XHigh implementation on `main@bf7ac83`.
+I04 and I05 are complete. I06 contract Review and planning PR are complete; the bounded Terra XHigh
+implementation passed two-round Sol XHigh Review and is ready for PR on `main@bf7ac83`.
 
 ## Completed
 
@@ -60,6 +60,19 @@ bounded Terra XHigh implementation on `main@bf7ac83`.
   closed and no human escalation is required.
 - Planning PR #46 passed latest-head GitHub `quality` and merged as `bf7ac83`; I06 implementation
   was activated on a fresh branch from that exact commit.
+- I06 implementation added the single `projectSafetyAdvice` pure projection, pre-LLM base validation,
+  base-only Prompt construction, and base-first UI deterministic gear/risk display. Invalid AI output,
+  unavailable AI, and advice transport failure retain deterministic content; review is still pending.
+- I06 final local validation passed: lint (0 errors; 10 pre-existing warnings), typecheck,
+  `test:safety`, `test:response`, root `test`, offline integration, WeChat build and `git diff --check`.
+- Sol XHigh first implementation Review returned `CHANGES_REQUESTED` for two bounded findings.
+  P1 now distinguishes successful-but-unparseable LLM envelopes/content as `ai_output_invalid` from
+  transport/service failures as `ai_unavailable`; P2 now snapshots the full projection input and
+  asserts AI-only risks never enter the deterministic risk set. The corrected full local matrix is
+  green.
+- The second independent implementation Review returned `APPROVED`: transport/HTTP failures remain
+  `ai_unavailable`, response envelope/content parse failures are `ai_output_invalid`, and the new
+  tests are sensitive to both failure classes, full-input mutation and AI-only risk leakage.
 
 ## Baseline evidence
 
@@ -71,7 +84,10 @@ bounded Terra XHigh implementation on `main@bf7ac83`.
   `tripDays` 1/2/3 and current `trek` / `climb` route types without Open-Meteo,
   CloudBase or DeepSeek access.
 - `node scripts/response-contract-test.js`: offline public-handler and frontend-source contract
-  test for I04 response phases, error envelopes, compatibility consistency and phase branches.
+  test for I04 response phases, error envelopes, compatibility consistency and phase branches; I06
+  extends it with pre-LLM zero-call, base-only Prompt, outcome ownership, and base-first UI assertions.
+- `node scripts/advice-safety-contract-test.js`: I06 pure projection contract for deterministic
+  gear/risk ownership, exact additions, notes ordering, unavailable/invalid degradation and immutability.
 - `node scripts/confirmation-contract-test.js`: offline I05a contract for canonical/alias and
   candidate-stage matching, four-field candidate exposure, `candidate_not_found`, confirm server
   fact recovery, zero pre-confirm side effects and disabled UGC substring auto-hit; I05b source
@@ -94,8 +110,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Terra XHigh implements #15 and returns its scoped result package without approving or merging.
-2. Sol XHigh independently reviews code, tests and documentation before publishing an implementation PR.
+1. Sol XHigh commits the approved I06 implementation and publishes its focused PR.
+2. Merge only after latest-head GitHub `quality` succeeds and the PR still matches the reviewed commit.
 
 ## Blockers and risks
 
@@ -114,4 +130,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Dispatch the frozen #15 contract to Terra XHigh, then run the full local gate and independent Sol Review.
+Publish the approved I06 implementation PR and wait for latest-head GitHub `quality` before merge.

@@ -66,6 +66,11 @@ Prompt 不读取 event 中重复的路线事实。页面源码契约验证 base 
 调用真实 DeepSeek、CloudBase 或天气服务；还要断言纯投影 data 的固定字段集合、固定
 disclaimer 以及 caller-only meta，防止未知 AI 字段通过新出口回流。
 
+I06 implementation keeps this split explicit: `test:safety` owns direct pure-projection behavior,
+while `test:response` owns offline handler and page-source integration assertions. `test:integration`
+only updates its existing advice-degradation fixture to ensure an unavailable AI retains deterministic
+gear and risks.
+
 ## 3. 测试层级
 
 - 单元：路线匹配、Schema、坐标、天气解析、活动窗口、结论、装备合并、reducer。

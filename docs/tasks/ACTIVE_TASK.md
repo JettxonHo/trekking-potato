@@ -3,8 +3,8 @@
 - Task ID: `I06`
 - GitHub Issue: `#15` — `https://github.com/JettxonHo/trekking-potato/issues/15`
 - Title: 合并确定性安全结果并限制 AI 权限
-- Status: `READY_FOR_EXECUTOR`
-- Mode: `IMPLEMENTATION`
+- Status: `READY_FOR_PR`
+- Mode: `REVIEW_ONLY`
 - Owner: Terra XHigh (authorized Luna fallback)
 - Reviewer: Sol XHigh
 - Branch: `codex/i06-safety-advice`
@@ -12,7 +12,8 @@
 - Goal: `TP-BETA-001`
 
 GitHub #15 与本文件共同冻结实施合同；独立合同 Review 与规划 PR #46 均已完成。实现
-Agent 必须按 #15 全文执行，不得自行更改公共契约、字段所有权或验收标准。
+已通过两轮 Sol XHigh Review，第一轮两项 finding 已修复。仅允许控制端提交、发布 PR，
+并在 latest-head `quality` 通过后决定合并；实现 Agent不得再扩大修改。
 
 ## Objective
 

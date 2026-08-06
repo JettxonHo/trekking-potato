@@ -8,8 +8,8 @@
  *
  * 关键设计：
  * - Promise.all 并行天气+天文（省2-5s）
- * - JSON schema 校验（核心字段缺失→降级，非核心→默认值填充）
- * - 降级不隐藏（degraded:true + 风险栏空）
+ * - AI 输出经 I06 纯投影白名单化，不能覆盖确定性装备或风险
+ * - 降级不隐藏（degraded:true + 完整确定性装备和风险）
  * - 分步加载（base 秒回天气，advice 独立跑 GLM，规避 SDK 20s 硬超时）
  */
 
@@ -22,7 +22,8 @@ const { findBuiltinRouteByCandidateId } = require('./data/routes')
 const { fetchWeather, isValidIsoDate, parseTripDaysInput } = require('./weather')
 const { calcSunEvents } = require('./sun-events')
 const { getGearRules } = require('./gear-rules')
-const { buildMessages, buildDegradedResponse } = require('./prompt')
+const { buildMessages } = require('./prompt')
+const { projectSafetyAdvice } = require('./safety-advice')
 const { isKnownRouteType, validateRouteTypeContract } = require('./route-type')
 const {
   errorResponse,
@@ -102,12 +103,26 @@ async function callLLM(messages) {
   return parseLLMContent(res.data)
 }
 
+class LlmParseError extends Error {}
+
 /**
- * 解析 DeepSeek 返回内容（提取 JSON）
+ * 解析 DeepSeek 返回内容（提取 JSON）。请求已成功收到但 envelope/content 不可解析时，
+ * 以私有错误类型交给 advice 编排标记为 ai_output_invalid。
  */
 function parseLLMContent(rawData) {
-  const parsed = JSON.parse(rawData)
-  const content = parsed.choices[0].message.content
+  let parsed
+  try {
+    parsed = JSON.parse(rawData)
+  } catch (error) {
+    throw new LlmParseError('LLM response envelope is not JSON')
+  }
+
+  const content = parsed
+    && Array.isArray(parsed.choices)
+    && parsed.choices[0]
+    && parsed.choices[0].message
+    && parsed.choices[0].message.content
+  if (typeof content !== 'string') throw new LlmParseError('LLM response content is missing')
 
   // 尝试直接解析
   try {
@@ -116,65 +131,13 @@ function parseLLMContent(rawData) {
     // 尝试从 markdown code block 提取
     const match = content.match(/```(?:json)?\s*([\s\S]*?)```/)
     if (match) {
-      return JSON.parse(match[1])
+      try {
+        return JSON.parse(match[1])
+      } catch (parseError) {
+        throw new LlmParseError('LLM response code block is not JSON')
+      }
     }
-    throw new Error('DeepSeek 返回非 JSON: ' + content.substring(0, 100))
-  }
-}
-
-/**
- * JSON Schema 校验（分层：核心字段缺失→降级，非核心→默认值）
- */
-function validateAndFill(advice) {
-  const errors = []
-
-  // 核心字段校验（缺失或类型错 → 触发降级）
-  // weatherWindow 由后端注入（GLM 不再生成），不校验
-  if (!advice.gear) {
-    errors.push('gear 缺失')
-  } else {
-    if (!Array.isArray(advice.gear.essential)) errors.push('gear.essential 非数组')
-    if (!Array.isArray(advice.gear.recommended)) errors.push('gear.recommended 非数组')
-    if (!Array.isArray(advice.gear.optional)) errors.push('gear.optional 非数组')
-  }
-  if (!Array.isArray(advice.risks)) errors.push('risks 非数组')
-
-  // 非核心字段（缺失 → 默认值填充，不降级）
-  if (!advice.notes) advice.notes = ['无额外注意事项']
-  if (!advice.photoTiming) advice.photoTiming = { sunrise: null, sunset: null, goldenHour: null, blueHour: null }
-  if (!advice.microclimate) advice.microclimate = null
-  if (!advice.disclaimer) {
-    advice.disclaimer = '本建议由 AI 生成，仅供参考；天气数据来自 Open-Meteo；出行前请核实官方气象与路线信息；户外活动有风险，责任自负。'
-  }
-
-  return { valid: errors.length === 0, errors, advice }
-}
-
-/**
- * 规则兜底：双模型都失败时，用本地 gearRules 构建确定性建议（不依赖 LLM）
- * 保证用户至少看到基于海拔/季节的装备和风险清单，而非空降级
- */
-function buildRuleBasedAdvice(gearRules, weather) {
-  // 把 gearRules.essential/recommended/optional 转成 advice 格式
-  // gearRules 的 item 已含 reason，直接用
-  const risks = []
-  if (gearRules.fatalRisks && gearRules.fatalRisks.length > 0) {
-    for (const riskName of gearRules.fatalRisks) {
-      risks.push({ risk: riskName + '风险', level: '致命', advice: '本风险由海拔/季节规则判定，请查阅专业路书获取具体应对措施' })
-    }
-  }
-  return {
-    gear: {
-      essential: gearRules.essential || [],
-      recommended: gearRules.recommended || [],
-      optional: gearRules.optional || [],
-    },
-    risks: risks,
-    notes: ['本建议由本地规则引擎生成（AI 双模型均不可用），仅含基于海拔/季节的通用装备与风险。请结合实际路况判断。'],
-    microclimate: { humidity: null, windMs: weather && weather.days && weather.days[0] ? weather.days[0].windMs : null, dewPointSpread: null },
-    disclaimer: 'AI 模型暂时不可用，以下为基于海拔和季节的确定性规则建议。装备清单完整，风险提示基于规则。出行前请核实官方信息。户外有风险，责任自负。',
-    degraded: true,  // 标记降级（前端显示横幅），但内容不为空
-    degradedReason: 'AI 双模型超时，使用本地规则兜底',
+    throw new LlmParseError('LLM response content is not JSON')
   }
 }
 
@@ -366,8 +329,20 @@ async function main(event, context) {
  * 校验 baseData 结构，防止客户端篡改注入
  * 只校验关键字段是否存在且类型正确，不信任值的具体内容
  */
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype
+}
+
+function isNonEmptyText(value) {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+function isValidGearItem(value) {
+  return isPlainObject(value) && isNonEmptyText(value.item) && isNonEmptyText(value.reason)
+}
+
 function validateBaseData(baseData) {
-  if (!baseData || typeof baseData !== 'object') return false
+  if (!isPlainObject(baseData)) return false
   // TP-P0-003：路线类型结构一致性校验
   // - routeType 必须是已知类型（trek/climb/tour，不接受 unknown/非法值）；
   // - routeTypeSource 必须是允许来源；
@@ -376,8 +351,20 @@ function validateBaseData(baseData) {
   // 说明：这只能保证结构一致性，不能解决客户端同时篡改 routeType 与
   // gearRules 的问题；完整服务端可信上下文仍属于 P1-1（queryId）。
   if (!validateRouteTypeContract(baseData).ok) return false
-  // weather 结构校验
-  if (baseData.weather && typeof baseData.weather === 'object') {
+  if (!isPlainObject(baseData.gearRules)) return false
+  for (const category of ['essential', 'recommended', 'optional']) {
+    const items = baseData.gearRules[category]
+    if (!Array.isArray(items) || !items.every(isValidGearItem)) return false
+  }
+  if (!Array.isArray(baseData.gearRules.fatalRisks) || !baseData.gearRules.fatalRisks.every(isNonEmptyText)) return false
+  if (!Array.isArray(baseData.gearRules.ruleNotes) || !baseData.gearRules.ruleNotes.every(isNonEmptyText)) return false
+
+  // I06 仅确认 weather/sunEvents 的边界形态；更深的天气语义仍属于 I14。
+  if (baseData.weather !== null && !isPlainObject(baseData.weather)) return false
+  if (baseData.sunEvents !== null && !isPlainObject(baseData.sunEvents)) return false
+
+  // 既有天气数值边界校验继续保留。
+  if (baseData.weather) {
     if (baseData.weather.days && Array.isArray(baseData.weather.days)) {
       for (const d of baseData.weather.days) {
         // 降水概率是数字且在 0-100 之间，不接受客户端伪造为 0 来隐藏天气风险
@@ -387,23 +374,11 @@ function validateBaseData(baseData) {
       }
     }
   }
-  // gearRules 结构校验：每个 item 必须是 string（防对象注入 prompt）
-  if (baseData.gearRules && typeof baseData.gearRules === 'object') {
-    for (const cat of ['essential', 'recommended', 'optional']) {
-      const arr = baseData.gearRules[cat]
-      if (arr && Array.isArray(arr)) {
-        for (const g of arr) {
-          if (g && typeof g.item === 'string' && /[\r\n]/.test(g.item)) return false
-        }
-      }
-    }
-  }
   return true
 }
 
 async function handleAdvice(event, startTime) {
-  const { route, date, level, days, baseData } = event
-  const tripDays = days || 1
+  const { baseData } = event
 
   // 校验 baseData 结构，防止客户端篡改注入
   if (!validateBaseData(baseData)) {
@@ -412,11 +387,9 @@ async function handleAdvice(event, startTime) {
   }
 
   // 从 baseData 恢复上下文（避免重复查 geo/weather）
-  const weather = baseData && baseData.weather ? baseData.weather : null
-  const sunEvents = baseData && baseData.sunEvents ? baseData.sunEvents : null
-  const gearRules = baseData && baseData.gearRules ? baseData.gearRules : null
-  const elevation = baseData && baseData.elevation ? baseData.elevation : null
-  const locationName = typeof baseData?.route === 'string' ? baseData.route : route
+  const { weather, sunEvents, gearRules } = baseData
+  const elevation = baseData.elevation || null
+  const locationName = baseData.route
 
   const meta = {
     generatedAt: new Date().toISOString(),
@@ -428,67 +401,24 @@ async function handleAdvice(event, startTime) {
     elapsed: 0,
   }
 
-  let advice
-  let degraded = false
-  let degradedReason = ''
+  let aiOutcome
 
   try {
-    const messages = buildMessages({
-      route: locationName,
-      date,
-      level,
-      days: tripDays,
-      weather,
-      gearRules,
-      sunEvents,
-      microclimate: weather ? { humidity: null, windMs: weather.days && weather.days[0] && weather.days[0].windMs, dewPointSpread: null } : null,
-      // TP-P0-003：advice 阶段复用已通过结构校验的路线类型与来源
-      routeType: baseData.routeType,
-      routeTypeSource: baseData.routeTypeSource,
-    })
+    const messages = buildMessages(baseData)
 
     console.log('[getAdvice:advice] 调用 DeepSeek')
-    advice = await callLLM(messages)
-    meta.llmModel = LLM_MODEL
-    console.log('[getAdvice:advice] DeepSeek 返回成功, keys:', Object.keys(advice).join(','))
-
-    const validation = validateAndFill(advice)
-    if (!validation.valid) {
-      console.warn('[getAdvice:advice] Schema 校验失败:', validation.errors.join(', '))
-      degraded = true
-      degradedReason = 'AI 输出格式异常'  // 脱敏
-    }
-    advice = validation.advice
+    aiOutcome = { status: 'available', value: await callLLM(messages) }
+    console.log('[getAdvice:advice] DeepSeek 返回成功')
   } catch (e) {
     console.error('[getAdvice:advice] DeepSeek 调用失败:', e.message)
-    degraded = true
-    degradedReason = 'AI 服务暂时不可用'  // 脱敏：不向客户端暴露 e.message
+    aiOutcome = e instanceof LlmParseError ? { status: 'invalid' } : { status: 'unavailable' }
   }
 
-  if (degraded) {
-    const ruleAdvice = buildRuleBasedAdvice(gearRules || {}, weather)
-    const degradedResponse = buildDegradedResponse(weather, sunEvents, meta)
-    degradedResponse.data.gear = ruleAdvice.gear
-    degradedResponse.data.risks = ruleAdvice.risks
-    degradedResponse.data.notes = ruleAdvice.notes
-    degradedResponse.data.degradedReason = ruleAdvice.degradedReason
-    degradedResponse.data.meta.elapsed = Date.now() - startTime
-    degradedResponse.data.meta.degradedReason = degradedReason
-    return adviceResponse(degradedResponse.data, true)
-  }
-
-  // photoTiming 用 suncalc 确定性计算覆盖 LLM 复述
-  if (sunEvents) {
-    advice.photoTiming = Object.assign({}, advice.photoTiming, sunEvents)
-  }
+  const projection = projectSafetyAdvice({ gearRules, weather, sunEvents, aiOutcome })
   meta.elapsed = Date.now() - startTime
+  if (projection.degraded) meta.degradedReason = projection.degradedReason
 
-  return adviceResponse({
-    ...advice,
-    weather,   // 回传天气（前端需要合并）
-    sunEvents,
-    meta,
-  }, false)
+  return adviceResponse({ ...projection.data, meta }, projection.degraded)
 }
 
 exports.main = async (event, context) => {

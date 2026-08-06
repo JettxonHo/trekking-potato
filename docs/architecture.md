@@ -319,6 +319,12 @@ AI 内部 schema 只允许：
 结果；AI schema 无效、调用失败或 advice 传输失败时保留先前确定性内容并显示降级状态。
 页面内只做 I06 所需的局部初始化，不提前引入 I20 reducer/service 或全局状态库。
 
+I06 implementation on `codex/i06-safety-advice` follows this boundary with
+`cloudfunctions/getAdvice/safety-advice.js`: handler paths construct only the three documented
+`aiOutcome` cases, then attach `degradedReason` only to server `meta`. The implementation passed a
+two-round independent Sol XHigh review and remains pending PR/CI/merge; it does not establish
+I17/I18 server-owned base trust.
+
 ## 9. 前端状态
 
 纯 reducer 管理：

@@ -31,6 +31,8 @@ const originalHttpsGet = https.get
 const originalHttpsRequest = https.request
 let weatherResponseMode = 'success'
 let weatherRequestCount = 0
+let llmRequestCount = 0
+let lastLlmRequestBody = null
 Module._load = function loadOfflineCloudbase(request, parent, isMain) {
   if (request === 'wx-server-sdk') return cloudbaseMock
   return originalModuleLoad.call(this, request, parent, isMain)
@@ -168,10 +170,12 @@ function assertExclusivePhaseFields(response) {
   throw new Error('未知 phase: ' + JSON.stringify(response))
 }
 
-function installLlmMock(mode) {
+function installLlmMock(mode, advicePayload) {
   https.request = function requestOfflineLlm(options, callback) {
+    llmRequestCount++
     const requestHandlers = {}
     const responseHandlers = {}
+    let requestBody = ''
     const response = {
       statusCode: 200,
       on(event, handler) {
@@ -184,25 +188,26 @@ function installLlmMock(mode) {
         requestHandlers[event] = handler
         return request
       },
-      write() {},
+      write(chunk) { requestBody += chunk },
       end() {
         process.nextTick(() => {
+          lastLlmRequestBody = requestBody ? JSON.parse(requestBody) : null
           if (mode === 'failure') {
             requestHandlers.error(new Error('offline LLM failure'))
             return
           }
           callback(response)
           process.nextTick(() => {
-            const payload = {
-              choices: [{
-                message: {
-                  content: JSON.stringify({
-                    gear: { essential: [], recommended: [], optional: [] },
-                    risks: [],
-                  }),
-                },
-              }],
-            }
+            const content = mode === 'non_json_content'
+              ? 'this is not JSON'
+              : JSON.stringify(advicePayload || {
+                gearAdditions: { recommended: [], optional: [] },
+                riskExplanations: [],
+                notes: [],
+              })
+            const payload = mode === 'malformed_envelope'
+              ? { choices: [] }
+              : { choices: [{ message: { content } }] }
             responseHandlers.data(JSON.stringify(payload))
             responseHandlers.end()
           })
@@ -347,20 +352,124 @@ async function main() {
 
   process.env.LLM_KEY = 'offline-response-contract-key'
   installLlmMock('failure')
+  const invalidBaseCalls = llmRequestCount
+  const malformedGearBase = {
+    ...base.data,
+    gearRules: { ...base.data.gearRules, essential: {} },
+  }
+  const malformedGearResponse = await getAdvice.main({
+    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: malformedGearBase,
+  })
+  assertError(malformedGearResponse, 'invalid_base_data')
+  assert(llmRequestCount === invalidBaseCalls, '畸形装备数组必须在 LLM 前拒绝')
+
+  const missingGearArrayResponse = await getAdvice.main({
+    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: {
+      ...base.data,
+      gearRules: { ...base.data.gearRules, recommended: undefined },
+    },
+  })
+  assertError(missingGearArrayResponse, 'invalid_base_data')
+  assert(llmRequestCount === invalidBaseCalls, '缺失装备数组必须在 LLM 前拒绝')
+
+  const malformedGearItemResponse = await getAdvice.main({
+    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: {
+      ...base.data,
+      gearRules: { ...base.data.gearRules, optional: [{ item: '缺少原因', reason: '' }] },
+    },
+  })
+  assertError(malformedGearItemResponse, 'invalid_base_data')
+  assert(llmRequestCount === invalidBaseCalls, '畸形装备条目必须在 LLM 前拒绝')
+
+  const malformedRiskResponse = await getAdvice.main({
+    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: {
+      ...base.data,
+      gearRules: { ...base.data.gearRules, fatalRisks: '雷暴' },
+    },
+  })
+  assertError(malformedRiskResponse, 'invalid_base_data')
+  assert(llmRequestCount === invalidBaseCalls, '畸形 fatalRisks 必须在 LLM 前拒绝')
+
+  const malformedRuleNotesResponse = await getAdvice.main({
+    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: {
+      ...base.data,
+      gearRules: { ...base.data.gearRules, ruleNotes: [''] },
+    },
+  })
+  assertError(malformedRuleNotesResponse, 'invalid_base_data')
+  assert(llmRequestCount === invalidBaseCalls, '畸形 ruleNotes 必须在 LLM 前拒绝')
+
+  const malformedWeatherResponse = await getAdvice.main({
+    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: { ...base.data, weather: [] },
+  })
+  assertError(malformedWeatherResponse, 'invalid_base_data')
+  assert(llmRequestCount === invalidBaseCalls, 'weather 非 object/null 必须在 LLM 前拒绝')
+
+  const malformedSunResponse = await getAdvice.main({
+    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: { ...base.data, sunEvents: [] },
+  })
+  assertError(malformedSunResponse, 'invalid_base_data')
+  assert(llmRequestCount === invalidBaseCalls, 'sunEvents 非 object/null 必须在 LLM 前拒绝')
+
   const degradedAdvice = await getAdvice.main({
     mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: base.data,
   })
   assert(degradedAdvice.phase === 'advice' && degradedAdvice.degraded === true, 'LLM 降级仍必须返回 phase=advice，实际=' + JSON.stringify(degradedAdvice))
   assertExclusivePhaseFields(degradedAdvice)
+  assert(degradedAdvice.data.meta.degradedReason === 'ai_unavailable', 'LLM 调用失败必须只在 data.meta 记录 ai_unavailable')
 
-  installLlmMock('success')
-  const normalAdvice = await getAdvice.main({
+  installLlmMock('success', {
+    gearAdditions: { recommended: [], optional: [] },
+    riskExplanations: '不是数组',
+    notes: [],
+  })
+  const invalidAdvice = await getAdvice.main({
     mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: base.data,
+  })
+  assert(invalidAdvice.phase === 'advice' && invalidAdvice.degraded === true, 'AI schema 无效仍必须返回降级 advice')
+  assert(invalidAdvice.data.meta.degradedReason === 'ai_output_invalid', 'AI schema 无效必须只在 data.meta 记录 ai_output_invalid')
+  assert(JSON.stringify(invalidAdvice.data.gear) === JSON.stringify(degradedAdvice.data.gear)
+    && JSON.stringify(invalidAdvice.data.risks) === JSON.stringify(degradedAdvice.data.risks)
+    && JSON.stringify(invalidAdvice.data.notes) === JSON.stringify(degradedAdvice.data.notes), 'AI 无效与不可用必须共享确定性核心')
+
+  installLlmMock('non_json_content')
+  const nonJsonAdvice = await getAdvice.main({
+    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: base.data,
+  })
+  assert(nonJsonAdvice.phase === 'advice' && nonJsonAdvice.degraded === true, 'LLM non-JSON content 必须返回降级 advice')
+  assert(nonJsonAdvice.data.meta.degradedReason === 'ai_output_invalid', 'LLM non-JSON content 必须标记 ai_output_invalid')
+
+  installLlmMock('malformed_envelope')
+  const malformedEnvelopeAdvice = await getAdvice.main({
+    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: base.data,
+  })
+  assert(malformedEnvelopeAdvice.phase === 'advice' && malformedEnvelopeAdvice.degraded === true, 'LLM 畸形 envelope 必须返回降级 advice')
+  assert(malformedEnvelopeAdvice.data.meta.degradedReason === 'ai_output_invalid', 'LLM 畸形 envelope 必须标记 ai_output_invalid')
+
+  installLlmMock('success', {
+    gearAdditions: { recommended: [{ item: '  头灯  ', reason: '  天黑备用  ' }], optional: [] },
+    riskExplanations: [{ risk: '雷暴风险', explanation: '  尽早下撤  ' }],
+    notes: ['  随身携带雨具  '],
+    essential: [],
+    risks: [],
+    verdict: 'go',
+    weather: { days: [] },
+    meta: { injected: true },
+  })
+  const normalAdvice = await getAdvice.main({
+    mode: 'advice', route: 'EVENT_ROUTE_MUST_NOT_REACH_PROMPT', date: 'EVENT_DATE_MUST_NOT_REACH_PROMPT', level: 'EVENT_LEVEL_MUST_NOT_REACH_PROMPT', days: 7, baseData: base.data,
   })
   assert(normalAdvice.phase === 'advice' && normalAdvice.degraded === false, '正常 AI 结果必须返回 phase=advice，实际=' + JSON.stringify(normalAdvice))
   assertExclusivePhaseFields(normalAdvice)
+  assert(JSON.stringify(normalAdvice.data.gear.essential) === JSON.stringify(base.data.gearRules.essential), 'handler 正常路径不得允许 AI 覆盖确定性必备装备')
+  assert(normalAdvice.data.gear.recommended.some((item) => item.item === '头灯'), 'handler 正常路径只能追加白名单装备')
+  assert(normalAdvice.data.risks.every((risk) => risk.level === '致命'), 'handler 风险等级必须保持确定性致命等级')
+  assert(!Object.prototype.hasOwnProperty.call(normalAdvice.data, 'verdict') && !Object.prototype.hasOwnProperty.call(normalAdvice.data, 'degradedReason'), '越权 AI 字段和第二 degradedReason 位置不得进入 data')
+  assert(normalAdvice.data.weather === base.data.weather && normalAdvice.data.sunEvents === base.data.sunEvents, 'weather/sunEvents 必须仅来自 baseData')
+  assert(lastLlmRequestBody && !JSON.stringify(lastLlmRequestBody.messages).includes('EVENT_'), 'Prompt 不得读取 event 中重复路线事实')
 
   const pageSource = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
+  const showBaseSource = pageMethod(pageSource, '_showBaseAndFetchAdvice(base, params)', '_submitBase(params)')
   const submitBaseSource = pageMethod(pageSource, '_submitBase(params)', '_fetchAdvice(params)')
   const fetchAdviceSource = pageMethod(pageSource, '_fetchAdvice(params)', 'onBack =')
   const confirmationBranch = sourceBranch(
@@ -385,6 +494,14 @@ async function main() {
   assert(!/_fetchAdvice|_saveCache|_saveHistory/.test(routeTypeBranch), 'route_type_required 分支不得触发 advice、缓存或历史')
   assert(!/result\.ok/.test(fetchAdviceSource), '前端 advice 消费不得按兼容 ok 分支')
   assert(fetchAdviceSource.includes("result.phase === 'advice'"), '前端必须只消费 advice 阶段的建议')
+  assert(showBaseSource.includes('buildBaseSafetyResult(base.gearRules)'), 'base 到达后必须立即由 gearRules 建立确定性装备和风险')
+  assert(pageSource.includes("risk: riskName + '风险'") && pageSource.includes("level: '致命'"), '前端 base 风险必须使用冻结记录格式')
+  assert(!pageSource.includes('gear: { essential: [], recommended: [], optional: [] }'), 'base 阶段不得先用空装备覆盖确定性内容')
+  assert((fetchAdviceSource.match(/notes: \[\.\.\.\(prev\.result\.notes \|\| \[\]\), AI_UNAVAILABLE_NOTE\]/g) || []).length === 2, 'advice phase error 与传输失败都必须只追加降级说明')
+  const gearCard = sourceBranch(pageSource, '<Text className="card-title">装备清单</Text>', '<Text className="card-title">风险提示</Text>')
+  const riskCard = sourceBranch(pageSource, '<Text className="card-title">风险提示</Text>', '<Text className="card-title">晨昏光影时刻</Text>')
+  assert(!gearCard.includes('adviceLoading ?'), 'advice loading 不得用 skeleton 遮挡已有装备')
+  assert(!riskCard.includes('adviceLoading ?'), 'advice loading 不得用 skeleton 遮挡已有风险')
 
   console.log('PASS: 后端与前端响应阶段契约')
 }
