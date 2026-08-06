@@ -4,19 +4,20 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M2 Correctness`
-- Active task: `I06-CONTRACT / GitHub #15 / PLANNING_PR_READY`
-- Branch: `codex/i06-safety-merge-contract`
-- Base: `main` at `deb3a8c`
+- Active task: `I06 / GitHub #15 / READY_FOR_EXECUTOR`
+- Branch: `codex/i06-safety-advice`
+- Base: `main` at `bf7ac83`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
 - I05 planning PR: `#43` — merged
 - I05a PR: `#44` — merged; GitHub #41 closed and #42 unblocked
 - I05b PR: `#45` — merged; GitHub #42 and parent #14 closed
+- I06 planning PR: `#46` — merged; latest-head `quality` passed
 
 Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
-I04 and I05 are complete. I06 contract Review is `APPROVED`; implementation remains blocked until
-the planning PR is merged and #15 is activated on that real base.
+I04 and I05 are complete. I06 contract Review and planning PR are complete; #15 is activated for
+bounded Terra XHigh implementation on `main@bf7ac83`.
 
 ## Completed
 
@@ -57,6 +58,8 @@ the planning PR is merged and #15 is activated on that real base.
   synchronized before re-review.
 - The second independent contract Review returned `APPROVED`; all four first-round findings are
   closed and no human escalation is required.
+- Planning PR #46 passed latest-head GitHub `quality` and merged as `bf7ac83`; I06 implementation
+  was activated on a fresh branch from that exact commit.
 
 ## Baseline evidence
 
@@ -85,14 +88,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: authorized implementation fallback; no I06 implementation assignment until contract merge.
+- Terra XHigh: authorized implementation fallback; assigned I06 / #15.
 - Sol XHigh: owns I06 contract, task routing and independent Review.
 - I06 read-only design agents: three alternatives complete; no code or task authority.
 
 ## Open work
 
-1. Create, verify and merge the I06 contract-only planning PR.
-2. Update #15 and this pointer to a real implementation base, then dispatch Terra XHigh.
+1. Terra XHigh implements #15 and returns its scoped result package without approving or merging.
+2. Sol XHigh independently reviews code, tests and documentation before publishing an implementation PR.
 
 ## Blockers and risks
 
@@ -103,13 +106,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Five route variants still require field-level A/B evidence during I08–I12.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I06 contract review
+## Forbidden actions during I06 implementation
 
-- Any business-code, test-code, dependency or runtime configuration change
 - TP-VERDICT-1、RouteVariant、queryId/TTL、历史/UGC 或 I20 reducer/service implementation
-- Public response changes, deployment, database mutation, UGC deletion or production configuration
+- Public phase/error changes, dependencies, deployment, database mutation, UGC deletion or production configuration
+- Files outside the GitHub #15 and ACTIVE_TASK implementation allowlist
 
 ## Next action
 
-Create the contract-only planning PR; only after it is merged may #15 become
-`READY_FOR_EXECUTOR` on the resulting `main` commit.
+Dispatch the frozen #15 contract to Terra XHigh, then run the full local gate and independent Sol Review.

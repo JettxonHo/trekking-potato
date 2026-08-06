@@ -7,8 +7,8 @@
 - Release boundary: code-ready for closed beta; no deployment or publication
 
 The controller approved planning PR #9 on `2026-08-06`. M1 completed through PRs #36–#38;
-I04 and I05 completed through PRs #40 and #43–#45. The Goal is active at M2 with the I06
-contract under controller review; implementation has not started.
+I04 and I05 completed through PRs #40 and #43–#45. The reviewed I06 contract merged in PR #46;
+the Goal is active at M2 with I06 ready for bounded implementation.
 
 ## 1. Objective
 
