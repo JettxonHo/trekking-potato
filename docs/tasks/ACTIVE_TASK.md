@@ -21,8 +21,8 @@
 - 新增 `.node-version`
 - 根 `.gitignore`
 - `taro-app/package.json`
-- `cloudfunctions/getWeatherData/package.json`
-- `cloudfunctions/generateAdvice/package.json`
+- `cloudfunctions/getAdvice/package.json`
+- `cloudfunctions/history/package.json`
 - 根及三个子项目共四个 `package-lock.json`
 - `README.md`
 - `docs/current-status.md`
