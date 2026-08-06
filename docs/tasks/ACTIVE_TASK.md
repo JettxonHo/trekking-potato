@@ -1,49 +1,50 @@
 # 当前活动任务
 
-- Task ID: `TP-PLAN-001`
-- Title: 固化 TP-BETA-001 策划、治理和执行合同
-- Status: `READY_FOR_CONTROLLER_REVIEW`
+- Task ID: `I01`
+- GitHub Issue: `#10` — `https://github.com/JettxonHo/trekking-potato/issues/10`
+- Title: 统一工具链、固定依赖与锁文件
+- Status: `READY_FOR_EXECUTOR`
 - Mode: `IMPLEMENTATION`
-- Owner: Sol XHigh
-- Branch: `codex/tp-beta-planning`
+- Owner: Terra XHigh (authorized Luna fallback)
+- Reviewer: Sol XHigh
+- Branch: `codex/i01-toolchain-locks`
+- Base: activation PR merge commit on `main`
 - Goal: `TP-BETA-001`
-- Planning PR: `#9` — `https://github.com/JettxonHo/trekking-potato/pull/9`
 
 ## Objective
 
-在不修改业务代码的前提下，建立治理 v2、根 `GOAL.md`、产品/架构/开发/测试/协作文档、当前状态和首批任务合同，并归档冲突的旧 MVP 文档。
+使全新检出可确定性安装，并从根目录运行现有测试；建立 Node 24、固定依赖和锁文件基础。
 
 ## Allowlist
 
+- 新增根 `package.json`
+- 新增 `.node-version`
+- 根 `.gitignore`
+- `taro-app/package.json`
+- `cloudfunctions/getAdvice/package.json`
+- `cloudfunctions/history/package.json`
+- 根及三个子项目共四个 `package-lock.json`
 - `README.md`
-- `taro-app/README.md`
-- `AGENTS.md`
-- `CLAUDE.md`
-- `GOAL.md`
-- `docs/**/*.md`
+- `docs/current-status.md`
 
 ## Out of scope
 
-- 业务代码、测试代码、依赖、lock 文件和 `.github`
-- GitHub Issues I01–I25 的实际实现
+- 业务逻辑、UI 和云函数行为
+- CI 与 GitHub 配置
+- Taro 升级
+- 测试框架或重大依赖
 - 部署、发布和数据操作
 
 ## Acceptance
 
-- 权威层级和必读顺序一致。
-- 产品、架构、Goal、开发与测试文档没有相互冲突。
-- 模型实际可用性和 Terra fallback 被诚实记录。
-- 首批 I01–I03 合同达到可直接分派程度。
-- 旧 Spec/Plan/Tasks 被明确归档。
-- 链接、关键术语、Goal ID 和治理版本检查通过。
-- 规划 PR 展示给控制者后，编码继续保持暂停。
+- `npm ci && npm run bootstrap` 可安装根和三个子项目。
+- 不依赖全局 Taro。
+- 根命令可调度现有测试。
+- 路线 93/0、天气 86/0、单元 55/0 保持通过。
+- diff 不包含业务行为变化。
 
 ## Verification
 
-- Independent planning review: `APPROVED` by Terra XHigh after three fix rounds.
-- Markdown local links: pass.
-- `git diff --check`: pass.
-- Route type contracts: 93 pass / 0 fail.
-- Weather contracts: 86 pass / 0 fail.
-- Unit tests: 55 pass / 0 fail.
-- Existing security baseline: 15 pass / 0 fail.
+- 完整合同以 GitHub #10 为准。
+- 必跑：`npm ci`、`npm run bootstrap`、根测试调度命令、三个现有测试脚本。
+- 执行 Agent 交付状态只能为 `READY_FOR_CONTROLLER_REVIEW`。

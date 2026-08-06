@@ -1,12 +1,12 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `PLANNING_REVIEW`
+- Status: `ACTIVE`
 - Governance: `TP-GOV-2.0.0`
-- Started: not activated
+- Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
 
-`PLANNING_REVIEW` means the controller-approved design is being reviewed as a repository artifact before Goal activation. Documents marked `APPROVED` describe decisions already authorized in the implementation request; they do not mean the planning PR has merged or coding may start.
+The controller approved planning PR #9 on `2026-08-06`. The Goal is active at M1; business implementation remains gated until I01–I03 complete.
 
 ## 1. Objective
 
