@@ -12,9 +12,10 @@ M3 with I07 merged through PRs #48/#49. Field-level source audit found that none
 pilot variants can yet satisfy the frozen A/B geometry contract. The independently supportable
 Wutai blocked record was delivered by I10a/PR #53; other full variants remain source-blocked rather
 than using invented values. I14's contract and implementation merged through PRs #54/#55; #23 is
-closed. I15 and I16 merged through PRs #57/#59; M4 is complete. I17 planning and both children merged
-through PRs #62–#64; its parent checkpoint is pending. Successful base results now create server-owned
-short-lived TripContexts, while I18 still must make advice queryId-only.
+closed. I15 and I16 merged through PRs #57/#59; M4 is complete. I17 planning, both children and its
+completion checkpoint merged through PRs #62–#65; parent #26 is closed. Successful base results now
+create server-owned short-lived TripContexts. I18's queryId-only planning contract is approved and
+awaiting its planning PR.
 
 ## 1. Objective
 
@@ -26,7 +27,7 @@ The Taro app and two CloudBase functions are the current product. Engineering ga
 trip date windows, route type propagation, fuzzy confirmation, hourly evaluation and deterministic
 safety composition are complete. Full pilot route records, trusted second-stage context, private-only
 history and explicit UI state remain. M3's full pilot records are source-gated; the active unblocked
-path is the I17 completion checkpoint followed by I18's queryId-only advice cutover.
+path is I18's atomic queryId-only advice cutover, followed by I19 private history and UGC shutdown.
 
 Current verified baselines are route type `93/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 
@@ -48,7 +49,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
 | M3 Route domain | Active — full routes source-blocked | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
-| M5 Trust and privacy | Active — I17 checkpoint | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
+| M5 Trust and privacy | Active — I18 planning approved | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Pending | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 

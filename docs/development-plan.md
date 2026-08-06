@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M5 / I17 checkpoint; M3 full routes source-blocked`
+- Status: `ACTIVE — M5 / I18 planning approved; M3 full routes source-blocked`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -212,7 +212,23 @@ M7 前不做重复全局 Review。
   `context_unavailable`，不返回半成品 base。
 - I17 不让 advice 读取 context；当前 client `baseData` 临时路径保留并明确不可信。I18 才完成
   queryId-only 切换并统一公开的不存在/越权/过期语义。
-- I17a and I17b merged through PRs #63/#64 after Sol Review and latest-head CI. Parent #26 closes only
-  after the pure completion checkpoint merges. I18 remains the next separately frozen contract.
+- I17a and I17b merged through PRs #63/#64 after Sol Review and latest-head CI. The pure completion
+  checkpoint merged in PR #65 as `46752c0`; parent #26 is closed.
 - 精确接口、record/snapshot shape、allowlist、TDD 和矩阵以 #26/#60/#61 与当前
   `docs/tasks/ACTIVE_TASK.md` 为准。
+
+## 13. I18 冻结合同摘要
+
+- I18 使用一个 Issue、一个原子实现 PR；前后端分开合并会造成中间主干协议不兼容，保留
+  客户端 `baseData` 回退则会形成双信任路径。
+- advice 公共输入精确为 `{ mode: 'advice', queryId }`。入口在读取普通查询字段前分流，
+  使用当前 `openid` 调用既有 TripContext store 一次，只把 `found.snapshot` 交给 Prompt、
+  AI 和安全投影。额外旧字段静默忽略且不得读取。
+- unknown、foreign、expired 统一为不可重试 `query_context_unavailable`；存储读取失败复用
+  可重试 `context_unavailable`。两类错误无 data、无内部状态、无 LLM 调用。
+- 前端从完整 base response 顶层读取 `queryId`，advice 网络请求只发送 mode/queryId；表单参数
+  仅留给本地历史保存，`queryId` 不入历史。success/fail 都用当前 generation 拒绝迟到响应。
+  `query_context_unavailable` 另行保留 base，在结果视图展示消息与既有返回动作，不伪装为
+  AI degraded，也不写 history。
+- 实现按 RED → 服务端 → 前端 → 完整质量矩阵串行；精确 allowlist、测试与升级条件以 #27
+  和 `docs/tasks/ACTIVE_TASK.md` 为准。

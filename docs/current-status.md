@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I17 checkpoint / #26 / APPROVED — CHECKPOINT_PR_PENDING`
-- Branch: `codex/i17-checkpoint`
-- Base: `main` at `ef245de`
+- Active task: `I18 / #27 / APPROVED — PLANNING_PR_PENDING`
+- Branch: `codex/i18-query-context-contract`
+- Base: `main` at `46752c0`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -27,14 +27,15 @@
 - I16 implementation PR: `#59` — merged; GitHub #25 and M4 closed
 - I17 planning PR: `#62` — merged
 - I17a implementation PR: `#63` — merged; GitHub #60 closed
-- I17b implementation PR: `#64` — merged; GitHub #61 closed; parent #26 checkpoint pending
+- I17b implementation PR: `#64` — merged; GitHub #61 closed
+- I17 completion PR: `#65` — merged; GitHub #26 closed
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is now complete through I14–I16 without authorizing I13 or real full-route data. M5 is active at
-the I17 parent checkpoint. I17's server-owned short-lived context creation is merged; advice remains
-client-baseData compatible and explicitly untrusted until I18.
+I18 contract review. I17 is complete and creates server-owned short-lived contexts; advice remains
+client-baseData compatible and explicitly untrusted until I18 implementation merges.
 
 ## Completed
 
@@ -290,6 +291,18 @@ client-baseData compatible and explicitly untrusted until I18.
   DONE records for PRs #63/#64, merge commits `910c00d`/`ef245de` and latest-head quality 41s/51s.
   Re-review returned `APPROVED` with no remaining P0–P2 finding. The unchanged-code root test,
   integration (56/0), lint (0 errors; 10 existing warnings), typecheck and WeChat build all pass.
+- I17 completion PR #65 matched approved head `8f37590`, passed latest-head GitHub `quality` in 59
+  seconds and squash merged as `46752c0`; parent #26 was closed. I17 is complete.
+- Two independent Terra XHigh read-only I18 audits confirmed one atomic vertical implementation is the
+  smallest safe merge unit. They froze a queryId-only read path, unified non-leaking public errors, a
+  focused RED/GREEN matrix and frontend success/fail generation guards. No human blocker was found.
+- The first formal I18 contract Review returned `CHANGES_REQUESTED` for a missing visible frontend
+  context-expiry branch and an inaccurate store-factory invocation. The contract now requires an
+  in-result reprepare message with the existing return action, no degraded/AI note/history write, and
+  the actual injected collection factory. Re-review returned `APPROVED` with no remaining P0–P2.
+- The approved I18 planning head passes `git diff --check`, lint (0 errors; 10 existing warnings),
+  typecheck, root test, integration (56/0) and the WeChat production build. Latest-head PR CI is the
+  remaining planning gate.
 
 ## Baseline evidence
 
@@ -333,14 +346,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: owns the I17 parent checkpoint, I18 planning and all merge decisions.
-- Terra XHigh: completed #60/#61 implementation; no active implementation assignment.
+- Sol XHigh: owns I18 planning, GitHub orchestration and all merge decisions.
+- Terra XHigh: completed two independent read-only I18 architecture/test audits; implementation is not
+  assigned until the planning PR passes Review, CI and merge.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Open and merge the approved I17 checkpoint after latest-head CI, close parent #26, then freeze I18.
-2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
+1. Open the approved pure I18 planning PR, pass latest-head CI and merge.
+2. Activate #27 implementation on fresh main and dispatch the frozen contract to Terra XHigh.
+3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
 
@@ -359,17 +374,17 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - TP-D029 resolves I16's sunset evidence boundary as the earliest value across each route-day's trusted
   I14 samples. If any necessary sunset cannot be calculated, the result is unavailable unless a known
   hard no-go independently applies.
-- I17 cannot make the advice path trusted by itself. Until I18, client `baseData` remains a documented
-  compatibility input; #60/#61 must not claim that the end-to-end trust boundary is complete.
+- I17 does not make the advice path trusted by itself. Until I18 implementation merges, client
+  `baseData` remains a documented compatibility input and end-to-end trust is incomplete.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I17 checkpoint
+## Forbidden actions during I18 planning
 
-- Any runtime change, especially the TripContext read/advice cutover assigned to I18
-- I18 queryId-only advice, I19 history/UGC, real route data, frontend or deployment
+- Any runtime, test, dependency, lockfile or workflow change before the planning PR merges
+- I19 history/UGC, real route data, broader frontend redesign or deployment
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Open the approved pure documentation checkpoint PR. Close #26 only after it passes latest-head CI and
-merges; then begin I18 contract planning on a fresh branch.
+Open and merge the approved pure I18 planning PR after latest-head CI. After that exact head reaches
+`main`, activate implementation and dispatch Terra XHigh.

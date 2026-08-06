@@ -60,7 +60,8 @@ meta；允许的 recommended/optional 追加按精确 item 去重；风险解释
 `invalid` 与 `unavailable` 均保留完整确定性内容，只在
 `data.meta.degradedReason` 返回不同稳定原因；输入对象保持不变。handler 集成用例还必须
 证明正常冲突输出和 AI 失败共享同一确定性核心，缺失/畸形装备数组、装备条目、
-fatalRisks、ruleNotes 或 weather/sunEvents 形态时返回 `invalid_base_data` 且 LLM 零调用，
+fatalRisks、ruleNotes 或 weather/sunEvents 形态时返回 `invalid_base_data` 且 LLM 零调用；这是
+I06 客户端迁移阶段的历史回归，I18 后公共 advice 不再接收或校验 client BaseData，
 Prompt 不读取 event 中重复的路线事实。页面源码契约验证 base 立即以同一固定格式初始化
 最低装备/风险、加载态不遮挡它们，以及 advice 传输失败保留前一结果。全部测试离线，不
 调用真实 DeepSeek、CloudBase 或天气服务；还要断言纯投影 data 的固定字段集合、固定
@@ -206,6 +207,31 @@ collection; no network or real database is used.
 After each child, run trip-context, response, confirmation, I16/I15/I14, legacy weather, route-domain,
 root test, integration, lint, typecheck, WeChat build and diff check. Mocks implement only operations
 needed by the active code; no external emulator or mechanical entropy score is introduced.
+
+### I18 queryId-only advice contract
+
+I18 使用一个原子实现 PR。`test:response` 的内存 `trip_contexts` mock 扩展为能按
+`where({_id}).limit(1).get()` 读取 I17 创建的记录，但不建立外部数据库或双可信兼容路径。
+先提交真实 RED，再按服务端、前端、完整矩阵转绿：
+
+- prepare 获得真实 queryId，owner 只发送 `{mode:'advice', queryId}` 即成功；Prompt 与投影
+  中的路线、天气、装备、风险均来自已存 snapshot，read 恰好一次。
+- 在旧 `baseData/route/date/level/days/weather` 属性上设置一个会抛错的 getter；请求仍成功。
+  这个聚焦用例证明入口与 handler 都不再读取客户端事实，不扩展为攻击排列组合。
+- unknown、foreign、expired 各一例，公共 envelope 完全一致为不可重试
+  `query_context_unavailable`，无 data、无 LLM；读取异常一例返回可重试
+  `context_unavailable`，同样无 data、无原始错误和 LLM。
+- 可信 context 下 AI 失败仍返回 `phase:'advice'`、`degraded:true`，确定性内容来自 snapshot。
+- confirm/prepare 保持零 context read；I17 的创建、TTL、归属、完整性与深拷贝测试不修改。
+- 页面源码合同要求 advice 请求字面量只有 mode/queryId，表单 history 参数不进入网络体也不
+  保存 queryId，并且 success/fail 都先检查 generation，迟到 advice 不能覆盖新查询。
+  `query_context_unavailable` 必须有独立分支：保留确定性 base、显示重新查询消息、不设置
+  degraded、不追加 `AI_UNAVAILABLE_NOTE`、不写 history，并证明结果视图内消息与既有返回动作
+  可见；不得让当前 generic advice-error 分支吞掉该语义。
+
+实现完成后运行 `test:trip-context`、`test:response`、`test:confirmation`、root test、
+integration、lint、typecheck、WeChat build 和 diff check；不增加哈希、token 熵、机械覆盖率
+或不成比例的 impossible-case 防御。
 
 ## 3. 测试层级
 

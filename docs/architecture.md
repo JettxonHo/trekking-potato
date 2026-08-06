@@ -259,7 +259,7 @@ I04 先把当前云函数的所有出口统一到上述 `phase` 判别方式，�
 { mode: 'advice', queryId }
 ```
 
-服务端按 `openid + queryId + expiresAt` 读取 `TripContext`。返回 `advice | error`。AI 输出仅包含解释性装备补充、风险解释、注意事项和免责声明，最终响应重新注入可信天气、结论、最低装备和原因。
+服务端按 `openid + queryId + expiresAt` 读取 `TripContext`。返回 `advice | error`。AI 输出仅包含解释性装备补充、风险解释、注意事项和免责声明，最终响应重新注入可信天气、结论、最低装备和原因。客户端即使附带旧 `baseData`、route、date、level、days 或 weather，服务端也不读取、不校验且不回退使用。
 
 ## 5. TripContext
 
@@ -300,8 +300,23 @@ I17b creates the injected `trip_contexts` collection store only after the existi
 complete, then returns its created snapshot unchanged as `base.data` with `queryId/expiresAt` at the top
 level. A write failure returns the retryable public `context_unavailable` error and no partial base. The
 I17 handler performs no TripContext read. I17 deliberately leaves advice on its legacy
-client-`baseData` path; only I18 may read TripContext in the public handler and remove that client
+client-`baseData` path; I18 atomically changes both server and production frontend to remove that client
 authority.
+
+### I18 advice 读取边界
+
+I18 在认证并读取 `mode` 后优先处理 advice，发生在普通 route/date/level/days 校验之前。每个
+advice 请求恰好调用一次现有 `TripContextStore.read({ openid, queryId })`：
+
+- `found`：`snapshot` 是 Prompt、AI 调用和 `projectSafetyAdvice` 的唯一事实输入；不再套用
+  客户端 BaseData validator，也不重建第二份可信投影。
+- `not_found`、`forbidden`、`expired`：统一返回不可重试 `query_context_unavailable`，固定提示
+  重新查询。响应不暴露记录是否存在、归属或过期原因。
+- `store_unavailable`：返回可重试 `context_unavailable`，不返回底层存储错误。
+
+失败响应都没有 `data/queryId/expiresAt/snapshot` 且不会调用 LLM。I06 的
+`invalid_base_data` 只描述历史客户端迁移阶段，从 I18 公共 advice 路径退役。可信 context 下
+AI 不可用或输出无效仍走现有 degraded advice；确定性路线、天气、装备与风险均来自 snapshot。
 
 ## 6. 小时天气
 
@@ -546,18 +561,20 @@ AI 内部 schema 只允许：
   reasons、route、weather、sunEvents、meta、gearRules 或 degraded 字段均被丢弃。
 - `invalid` 与 `unavailable` 都返回完整确定性内容并标记 degraded，原因分别为
   `ai_output_invalid` 与 `ai_unavailable`。不为此新增公共 error code；不合法 base 仍使用
-  已有 `invalid_base_data`，未预期的编程错误仍为 `internal_error`。
+  I06 历史迁移阶段使用 `invalid_base_data`；I18 queryId-only advice 后该公共路径退役。未预期
+  的编程错误仍为 `internal_error`。
 - 投影的 degradedReason 由 caller 仅写入现有 `data.meta.degradedReason`；非降级时该字段
   省略。公共响应继续只在 advice 顶层使用现有 `degraded` 布尔值，不再生成第二个
   `data.degradedReason`。
 - 投影不得修改输入对象。正常 AI 和降级路径必须经过同一投影，不维护两套安全合并规则。
 - advice Prompt 只从已通过本期结构校验的 baseData 派生，不再混入 event 中重复的
-  route/date/level/days；请求字段暂不删除，真正的服务端所有权仍属于 I17/I18。
+  route/date/level/days。此处保留的是 I06 历史实现说明；I18 删除该客户端事实入口。
 
-调用 LLM 前必须确认 `gearRules.essential/recommended/optional` 均为数组且每项是
+I06 客户端迁移阶段在调用 LLM 前确认 `gearRules.essential/recommended/optional` 均为数组且每项是
 `{ item, reason }` 非空字符串对象，`fatalRisks` 与 `ruleNotes` 均为字符串数组，weather
-和 sunEvents 各自只能为 object 或 null；否则返回现有 `invalid_base_data` 且 LLM 调用
-次数为零。不扩展为深层天气语义审计；I14 负责最终小时天气 schema。
+和 sunEvents 各自只能为 object 或 null；否则返回 `invalid_base_data` 且 LLM 调用次数为零。
+I18 改为直接消费经 I17 store 完整性边界恢复的 snapshot，不复制这套客户端 validator，也不
+扩展为深层天气语义审计；I14 负责最终小时天气 schema。
 
 前端收到 base 后立即从现有 `gearRules` 显示最低装备和致命风险；`advice_loading` 只表示
 解释仍在生成，不得用骨架屏遮掉已经存在的确定性内容。advice 成功后使用服务端投影的完整
@@ -581,7 +598,7 @@ idle → searching → awaiting_confirmation | awaiting_route_type
 任何阶段 → error → 可恢复状态
 ```
 
-网络服务从页面组件拆出。每次流程分配本地 request token；迟到响应和卸载后的回调不得覆盖新状态。不引入 Redux/Zustand。
+网络服务从页面组件拆出。每次流程分配本地 request token；迟到响应和卸载后的回调不得覆盖新状态。不引入 Redux/Zustand。I18 过渡实现继续使用页面私有 generation：prepare/confirm 成功把完整 base response 交给结果流程，从顶层取 `queryId`，advice 网络体精确为 `{ mode: 'advice', queryId }`；表单参数仅供本地历史保存且 history 不存 queryId。advice 的 success 和 fail 都必须先拒绝旧 generation。`query_context_unavailable` 保留已显示 base，在结果视图展示“本次查询已失效，请重新查询”并保留现有“返回重新查询”动作，但不设置 degraded、不追加 AI unavailable note 且不写 history；新的恢复控件留给 I23。
 
 ## 10. 历史与 UGC
 
@@ -591,11 +608,10 @@ history 仅保存当前 openid 的私人查询摘要，支持读取、单项删�
 
 - 输入错误（不可重试，需修改输入）：`invalid_date`、`invalid_trip_days`、`invalid_start_time`、`invalid_route_type`、`missing_climb_support`。
 - 解析错误：`route_not_found`、`candidate_not_found`；`route_type_required` 是独立 phase，不是 error code。
-- 上下文错误分阶段：I17 仅在创建失败时公开 `context_unavailable`（`retryable=true`），且不
-  返回半成品 base；`context_expired`、`context_not_found`、`context_forbidden` 只是存储模块
-  的内部可测状态，不得公开。I18 将不存在、他人所属和过期统一公开为
-  `query_context_unavailable`（`retryable=false`，需重新 prepare），不泄露上下文是否存在或
-  属于谁。
+- 上下文错误：创建或读取存储失败公开 `context_unavailable`（`retryable=true`）；创建失败不
+  返回半成品 base。`context_expired`、`context_not_found`、`context_forbidden` 只是存储模块
+  内部状态。I18 将不存在、他人所属和过期统一公开为 `query_context_unavailable`
+  （`retryable=false`，需重新 prepare），不泄露上下文是否存在或属于谁。
 - Advice：`ai_unavailable` 可重试，且不影响已经显示的 BaseData。
 - 天气：`out_of_range`、`weather_unavailable`、`weather_data_invalid` 放在 BaseData weather 状态中，`verdict=null`，允许重新 prepare。
 - 未分类服务端失败：`internal_error`，默认不可在原请求上无限重试。

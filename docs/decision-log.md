@@ -300,3 +300,20 @@
 - Review clarification: I17a 的同一个深模块独占从当前 server-only legacy BaseData 白名单到
   TrustedBaseData 的投影；`create({openid, legacyBaseData})` 在内部构造、存储并返回该快照。
   I17b 不得在 handler 另写 builder。这样 #60 能独立证明精确投影，#61 只证明生命周期接线。
+
+## 2026-08-06 — TP-D031 I18 原子 queryId-only advice 切换
+
+- Status: Accepted
+- Decision: I18 用一个 Issue 和一个原子实现 PR 同时切换服务端与生产前端。advice 公共请求
+  精确为 `{mode:'advice', queryId}`；入口在读取普通查询字段前分流，按当前 `openid` 读取一次
+  I17 TripContext，只把 `found.snapshot` 交给 Prompt、AI 和安全投影。额外旧客户端字段静默
+  忽略且不读取，不保留 `baseData` 回退。unknown、foreign、expired 统一为不可重试
+  `query_context_unavailable`；存储读取失败为可重试 `context_unavailable`。前端 history 参数
+  留在本地，queryId 不持久化，advice success/fail 都受 generation 保护。上下文失效在前端
+  独立显示重新查询消息并保留 base，不标成 AI degraded；新的恢复控件留给 I23。
+- Alternatives: 拆成可独立合并的后端/前端 PR；保留一段双协议或双信任回退；继续校验客户端
+  BaseData；把 unknown/foreign/expired 暴露为不同错误；为 queryId 增加哈希、签名或攻击评分。
+- Why: 任一前后端中间态都会让 main 的协议不兼容；双信任回退又直接违背 I18 目标。现有
+  store 已拥有 ID、归属、TTL、完整性和深拷贝边界，advice 重复校验会制造第二套真相。
+  统一不可用语义既不泄露归属信息，也让用户动作明确；聚焦回归足以证明权限边界，无需过度
+  防御或机械安全 rubric。
