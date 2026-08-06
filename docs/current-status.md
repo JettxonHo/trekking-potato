@@ -4,14 +4,14 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M1 Engineering gate`
-- Active task: `I02 / GitHub #11`
-- Branch: `codex/i02-quality-commands`
-- Base: `main` at `868c181`
+- Active task: `I03 / GitHub #12`
+- Branch: `codex/i03-github-gates`
+- Base: `main` at `fd706af`
 - Planning PR: `#9` — merged
 
-Status semantics: planning is approved and TP-BETA-001 is active. I01 is complete;
-I02 is implemented on its assigned branch and awaits Sol XHigh review. I03 waits for I02
-to merge, and all business Issues remain gated by M1.
+Status semantics: planning is approved and TP-BETA-001 is active. I01 and I02 are complete;
+only I03 is Ready. All business Issues remain gated until I03's PR and online main protection
+are verified.
 
 ## Completed
 
@@ -23,8 +23,7 @@ to merge, and all business Issues remain gated by M1.
 - Controller approved and Sol XHigh squash merged planning PR #9.
 - Goal activated in PR #35; 8 governance labels, M1–M7 milestones and GitHub Issues #10–#34 were created.
 - I01 merged in PR #36 and GitHub #10 closed after Sol XHigh `APPROVED` review.
-- I02 local quality commands and offline E2E are implemented on
-  `codex/i02-quality-commands`; controller review and merge remain pending.
+- I02 merged in PR #37 and GitHub #11 closed after Sol XHigh `APPROVED` review.
 
 ## Baseline evidence
 
@@ -32,7 +31,7 @@ to merge, and all business Issues remain gated by M1.
 - `node scripts/weather-contract-test.js`: 86 pass / 0 fail
 - `node scripts/unit-test.js`: 55 pass / 0 fail
 - `node scripts/security-test.js`: 15 pass / 0 fail
-- `node scripts/e2e-local.js`: offline fixture/mock E2E, 53 pass / 0 fail; covers
+- `node scripts/e2e-local.js`: offline fixture/mock E2E, 56 pass / 0 fail; covers
   `tripDays` 1/2/3 and current `trek` / `climb` route types without Open-Meteo,
   CloudBase or DeepSeek access.
 - I01 on Node 24.18.0 + npm 10.9.2: fresh-cache root `ci` and three-project `bootstrap` pass using official npm registry locks.
@@ -46,13 +45,13 @@ All four passing counts were rerun on the planning branch. Local Markdown links 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: authorized implementation fallback; assigned I02 after I01 completion.
-- I02 is the only implementation task prepared for dispatch.
+- Terra XHigh: authorized implementation fallback; assigned I03 after I02 completion.
+- I03 is the only implementation task prepared for dispatch.
 
 ## Open work
 
-1. Sol XHigh independently reviews I02's tests, configs, build and PR.
-2. After I02 merges, prepare and dispatch I03 (#12).
+1. Terra XHigh creates the I03 workflow and templates.
+2. Sol XHigh reviews the PR, verifies `quality`, merges, applies main protection and closes #12.
 
 ## Blockers and risks
 
@@ -71,4 +70,4 @@ All four passing counts were rerun on the planning branch. Local Markdown links 
 
 ## Next action
 
-Complete I02 (#11), then prepare and dispatch I03 (#12).
+Complete I03 (#12) and the M1 checkpoint before preparing I04.

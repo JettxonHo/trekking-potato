@@ -48,7 +48,20 @@
 
 禁止使用“完成相关功能”“修复若干问题”等空描述。
 
-## 4. 执行 Agent 自检
+PR 模板使用 `Refs #<issue>` 关联 Issue，不得使用 `Closes`
+提前关闭工作项。
+
+## 4. GitHub 最小工程门禁
+
+- 每个 PR 触发 workflow `quality`，其唯一 job/check 名称也为 `quality`。
+- 该 workflow 使用 Node 24、Corepack npm 10.9.2 与四份锁文件驱动的 npm 缓存，并运行
+  root `ci`、`bootstrap`、`lint`、`typecheck`、`test`、`test:integration` 和
+  `build:weapp`。
+- I03 PR 合并且 `quality` 通过后，只能由 Sol XHigh 为 `main` 应用并回读最小保护：
+  必须通过 PR、必须通过 `quality`、禁止 force push 和禁止删除。实现
+  Agent 不应用保护、不合并 PR、不关闭 #12。
+
+## 5. 执行 Agent 自检
 
 - 合同验收是否全部满足
 - diff 是否越界或包含无关变更
@@ -59,7 +72,7 @@
 
 自检结果为 `READY_FOR_CONTROLLER_REVIEW`，不能写 `APPROVED`。
 
-## 5. Sol XHigh Review
+## 6. Sol XHigh Review
 
 必须阅读实际代码和测试，从正确性、简单性、架构、权限/安全、性能和回归六方面检查。结果：
 
@@ -70,10 +83,10 @@
 
 两轮修复仍未通过时，停止继续局部打补丁，由 Sol XHigh 重新做根因或架构判断。
 
-## 6. 合并条件
+## 7. 合并条件
 
 验收完整、要求测试和构建通过、文档同步、无阻塞风险、Sol XHigh 明确批准，且没有待人工确认操作。低风险 Goal 内 PR 可由 Sol XHigh squash merge；部署和数据操作永不随 PR 自动执行。
 
-## 7. 规模与并发
+## 8. 规模与并发
 
 约 400 行非生成代码或 10 个文件是拆分提示，不是机械红线。超出时 PR 说明为何仍是一个不可分割目标。默认串行；只有隔离 worktree、无共享接口/文件/Schema/依赖时才允许并行。
