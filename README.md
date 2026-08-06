@@ -65,7 +65,8 @@ flowchart LR
 
 ### 前置条件
 
-- Node.js 18 或更高（I01 将统一到 Node 24 LTS）
+- Node.js 24 LTS（版本由根目录 [`.node-version`](.node-version) 固定）与 npm 10.9.2
+  （由根 `packageManager` 和 Corepack 固定）
 - 微信开发者工具与小程序 AppID
 - 微信云开发环境
 - DeepSeek `LLM_KEY`
@@ -73,13 +74,21 @@ flowchart LR
 
 ### 安装
 
-当前仓库尚未提交锁文件，M1 会修复这一点。在此之前：
+从仓库根目录执行：
 
 ```bash
-cd taro-app && npm install
-cd ../cloudfunctions/getAdvice && npm install
-cd ../history && npm install
+corepack npm ci
+corepack npm run bootstrap
 ```
+
+根 `bootstrap` 会按顺序为 `taro-app/`、`cloudfunctions/getAdvice/` 和
+`cloudfunctions/history/` 执行各自的 `npm ci`。项目不使用 npm workspaces，
+以保留 CloudBase 云函数的独立部署语义。
+
+请不要用 Node 24 随附的 npm 11 执行安装：`.npmrc` 的 `engine-strict` 会提前
+拒绝它。`@nutui/nutui-react-taro@3.0.20` 声明了已不可解析的可选依赖，npm 11
+生成锁文件时会省略该包、而 `npm ci` 又将其视为锁文件缺失；本项目因此固定在
+npm 10.9.2，未升级或替换 NutUI。
 
 ### 配置
 
@@ -101,12 +110,10 @@ npm run build:weapp
 ## 当前验证基线
 
 ```bash
-node scripts/route-type-contract-test.js  # PASS 93 / FAIL 0
-node scripts/weather-contract-test.js     # PASS 86 / FAIL 0
-node scripts/unit-test.js                 # PASS 55 / FAIL 0
+npm test  # 路线 PASS 93 / FAIL 0；天气 PASS 86 / FAIL 0；单元 PASS 55 / FAIL 0
 ```
 
-`scripts/e2e-local.js` 当前因依赖未安装且契约陈旧而不可作为门禁；I01–I02 将建立根级 `lint`、`typecheck`、`test`、`test:integration` 和 `build:weapp` 命令及锁文件。
+`scripts/e2e-local.js` 当前契约陈旧，不作为门禁。I02 将补齐根级 `lint`、`typecheck`、`test:integration` 和 `build:weapp` 命令。
 
 ## 目录
 
