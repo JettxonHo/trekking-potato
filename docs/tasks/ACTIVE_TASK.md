@@ -1,45 +1,61 @@
 # 当前活动任务
 
-- Task ID: `I05-CONTRACT`
-- Parent Issue: `#14` — `https://github.com/JettxonHo/trekking-potato/issues/14`
-- Planned child Issues: `#41` (I05a backend), `#42` (I05b frontend)
-- Status: `CONTROLLER_PLANNING_REVIEW`
-- Mode: `REVIEW`
-- Owner and reviewer: Sol XHigh
-- Branch: `codex/i05-confirmation-contract`
-- Base: `main` at `34170ba`
+- Task ID: `I05a`
+- GitHub Issue: `#41` — `https://github.com/JettxonHo/trekking-potato/issues/41`
+- Parent: `#14`
+- Title: 服务端路线候选与 confirm 契约
+- Status: `READY_FOR_EXECUTOR`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh (authorized Luna fallback)
+- Reviewer: Sol XHigh
+- Branch: `codex/i05a-backend-confirmation`
+- Base: `main` at `a73b840`
 - Goal: `TP-BETA-001`
 
-当前任务只固化 I05 拆分和公共合同，不授权实现。#41 在本规划 PR 合并并写回真实 base
-前保持 `APPROVED_PENDING_PLANNING_PR`；#42 保持 `BLOCKED_BY_I05A`。实现合同的权威
-全文分别在 GitHub #41/#42，产品与迁移决策在 `docs/architecture.md` 和
-`docs/decision-log.md`。
+完整任务合同以 GitHub #41 为准；本文件记录执行指针和不能遗漏的边界。
 
-## Planning scope
+## Objective
 
-- `docs/architecture.md`
-- `docs/development-plan.md`
-- `docs/testing-strategy.md`
-- `docs/decision-log.md`
-- `docs/current-status.md`
-- `docs/tasks/ACTIVE_TASK.md`
-- `docs/tasks/completed/TP-P0-004-investigation.md`（仅补 superseded 注记）
-- GitHub parent #14 and child #41/#42 contracts
+为 `BUILTIN_ROUTES` 建立可由服务端重新解析的无状态 candidate ID、确定匹配阶段和
+`mode='confirm'`，使 prefix/contains/fuzzy/歧义 alias 不再自动进入 base，客户端
+附带的路线事实不能改变确认结果。
 
-## Frozen split
+## Executor allowlist
 
-1. I05a / #41：服务端 candidate ID、匹配优先级、confirmation payload、confirm 信任边界和离线契约测试。
-2. I05b / #42：在 #41 合并后实现前端候选展示、选择、取消、编辑和局部迟到响应保护。
-3. 两个任务串行、各自独立 PR/Review；父 #14 在两者完成后验收关闭，I06 才能解锁。
+- `cloudfunctions/getAdvice/data/routes.js`（只改 helper，不改 175 条数据字段）
+- `cloudfunctions/getAdvice/geocode.js`
+- `cloudfunctions/getAdvice/index.js`
+- `cloudfunctions/getAdvice/response-contract.js`
+- `scripts/route-type-contract-test.js`、`scripts/response-contract-test.js`、`scripts/unit-test.js`
+- 可新增 `scripts/confirmation-contract-test.js`
+- 根 `package.json`（只接入 `test:confirmation`）
+- `docs/testing-strategy.md`、`docs/current-status.md`
 
-## Stop conditions
+## Frozen contract
 
-- 在规划 PR 合并前修改业务代码
-- 要求 I05 引入 I07 schema、I13 永久 ID、I17 存储/TTL 或 I20 reducer/service
-- 需要哈希、数组下标 ID、数据迁移、部署或新依赖
-- GitHub #14/#41/#42 与仓库合同出现未解决冲突
+- ID：``builtin-route:${canonicalName}``；不用 index、哈希、随机存储或新 schema。
+- 直达：全局 canonical exact；无 canonical 时唯一 alias exact。
+- 候选阶段：重复 alias exact → prefix → contains → fuzzy；只用第一非空阶段；先按 ID
+  去重，再按 #41 的确定规则排序，最后最多五条。
+- Candidate 字段固定为 `candidateId/canonicalName/region/routeType`，分别映射旧记录的
+  ID helper、`name/location/type`；不含 coords/elevation/weather/baseData。
+- Confirm 只使用 `candidateId/date/level/days`；其他客户端事实不参与。未知/畸形/
+  已移除 ID 为 `candidate_not_found`、不可重试。
+- AMap 不生成 candidate；UGC exact/alias 暂留，substring 自动命中关闭。
+- 真实 TTL/归属、永久 ID、领域 schema 和前端闭环分别留 I17、I13、I07、I05b。
 
-## Completion
+## Verification
 
-规划 PR 通过独立 Review 与 `quality` 并合并；之后 Sol XHigh 从真实 main 创建 I05a
-分支，将 #41 与本文件更新为 Ready，才可分派 Terra XHigh。
+```bash
+corepack npm@10.9.2 run lint
+corepack npm@10.9.2 run typecheck
+corepack npm@10.9.2 run test:confirmation
+corepack npm@10.9.2 test
+corepack npm@10.9.2 run test:integration
+corepack npm@10.9.2 run build:weapp
+git diff --check
+```
+
+默认测试完全离线。Agent 只可决定纯 helper 命名与内部组织；任何合同、allowlist、
+数据字段、持久化、依赖或后续 Issue 边界变化必须停止并升级。完成后提交并返回
+`READY_FOR_CONTROLLER_REVIEW`，不得 push、创建/合并 PR 或自批。
