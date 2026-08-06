@@ -8,7 +8,8 @@
 
 The controller approved planning PR #9 on `2026-08-06`. M1 completed through PRs #36–#38;
 I04–I06 completed through PRs #40 and #43–#47. M2 Correctness is complete; the Goal is active at
-M3 with the I07 route-domain contract under controller design before implementation.
+M3 with the I07 route-domain contract independently approved and awaiting planning-PR merge before
+implementation.
 
 ## 1. Objective
 
@@ -17,9 +18,9 @@ Deliver a reproducible, reviewable WeChat mini-program that uses verified route 
 ## 2. Background and current state
 
 The Taro app and two CloudBase functions are the current product. Engineering gates, wind units,
-trip date windows, route type propagation, and fuzzy confirmation are complete. Deterministic safety
-projection is next; route variants, hourly evaluation, trusted second-stage context, private-only
-history, and explicit UI state remain.
+trip date windows, route type propagation, fuzzy confirmation, and deterministic safety projection
+are complete. Route variants, hourly evaluation, trusted second-stage context, private-only history,
+and explicit UI state remain; M3 currently starts with the isolated I07 domain catalog contract.
 
 Current verified baselines are route type `93/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 

@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M3 / I07 contract design`
+- Status: `ACTIVE — M3 / I07 contract approved`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -103,11 +103,26 @@ I06 规划 PR #46 已合并为 `bf7ac83`，#15 在该真实 base 激活并交给
 - 实现 allowlist、精确 schema、验收与命令以 GitHub #15 和
   `docs/tasks/ACTIVE_TASK.md` 为准；任何公共响应、依赖或跨 Issue 扩张必须升级。
 
-## 5. Issue 合同生成规则
+## 5. I07 冻结合同摘要
+
+- I07 保持一个 Issue/PR：schema、legacy 适配和契约测试共同证明旧扁平数据没有被伪造成
+  RouteVariant；拆开会留下无法独立验收的半成品。
+- 新增一个 `createRouteCatalog` 深模块。它构建 Source/Place/Route/RouteVariant 的只读
+  规范化目录，集中校验 ID、引用、full/blocked 判别、固定日程、采样点和来源证据。
+- full 变体必须 A/B 且核心字段完整；blocked 记录只需权威禁行证据，不伪造行程字段。
+  Place 始终是 place-only。
+- 175 条旧记录只适配为 175 个 `legacy_unverified` Place、0 Route、0 Variant；旧海拔、
+  季节、note 和类型不能变成路线最高点、采样海拔、来源或运行状态。adapter 只在单个
+  Place 内规范化 alias，保留跨 Place 歧义。
+- I07 是 cold catalog：不接 `routes.js/geocode.js/index.js`，不改变 I05 候选、confirm 或
+  公共响应。数据录入属于 I08–I12，生产聚合与搜索接入属于 I13。
+- 实现 allowlist 和完整验收以 GitHub #16 与 `docs/tasks/ACTIVE_TASK.md` 为准。
+
+## 6. Issue 合同生成规则
 
 I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补齐文件 allowlist、精确验收、测试命令和当前基准提交。I05a/I05b 的冻结合同与真实基准已作为历史保存在 GitHub #41/#42；后续任务不得用本表的一句话目标直接分派。
 
-## 6. 合并顺序与里程碑门
+## 7. 合并顺序与里程碑门
 
 每个里程碑最后一个 PR 合并后更新 `GOAL.md` 和 `docs/current-status.md`。I05a 与 I05b
 已按串行顺序分别 Review/合并并关闭父 #14。M3 数据 schema 未冻结不得并行路线数据；

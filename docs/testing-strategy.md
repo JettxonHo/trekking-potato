@@ -71,6 +71,25 @@ while `test:response` owns offline handler and page-source integration assertion
 only updates its existing advice-degradation fixture to ensure an unavailable AI retains deterministic
 gear and risks.
 
+I07 新增离线 `test:route-domain` 并纳入根 `test`。测试只穿过
+`createRouteCatalog/getById`：
+
+- 全量 175 条 legacy 输入必须得到 175 Place、0 Route、0 Variant，全部 place-only 且
+  `sourceStatus=legacy_unverified/sourceIds=[]`；名称、规范化后的别名、地区、参考坐标、
+  活动类型提示和旧 I05 ID 可追溯，但新实体不存在
+  stages、采样点、路线最高点或 blocked 推断。
+- 最小合法 full fixture 覆盖三层引用、A/B 来源、fixedDays/stages、连续 day、1–3 个采样
+  点、stage 引用和独立 route-highest 字段；最小 blocked fixture 在没有行程字段时仍可
+  表达权威禁行且不能成为 full。
+- 重复/错误命名空间 ID、悬空 place/route/source/sample 引用、C full、日程不一致、采样
+  数量错误、blocked 缺失权威 access-status 证据，以及只给 nearby peak 而缺路线最高点
+  都返回稳定 `invalid_route_catalog` 内部错误。
+- full 的每个核心字段必须至少由一个 tier A/B Source 覆盖；全 C evidence、零天或空 stages
+  必须失败。legacy alias 在单个 Place 内 trim/去重/去自身名，但跨 Place 重复 alias 保留。
+- factory 不修改输入；普通 ID miss 返回 null。测试不绑定内部 Map、排序或复制实现。
+- 既有 route-type、confirmation、response、unit、integration 全部继续运行，证明 I05
+  四字段候选、`builtin-route:*`、confirm 和运行时行为没有变化。
+
 ## 3. 测试层级
 
 - 单元：路线匹配、Schema、坐标、天气解析、活动窗口、结论、装备合并、reducer。
@@ -108,6 +127,7 @@ gear and risks.
 - fixedDays 与 stages 一致；采样点 1–3 个且逐日引用有效。
 - A/B verified 记录必备字段完整；C 级或 place-only 不产生结论。
 - 五台山 blocked 记录不可规划。
+- I07 只验证 cold catalog；生产搜索、永久 candidate ID 和 blocked 精确解析由 I13 覆盖。
 
 ### 天气与结论
 

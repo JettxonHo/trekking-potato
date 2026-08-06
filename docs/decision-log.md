@@ -128,3 +128,18 @@
   服务端可信上下文仍属于 I17/I18。
 - Why: M2 的三个用户可观察正确性不变量均已独立测试和 Review，剩余信任与领域能力有
   清晰后续 Issue，不应把 M2 完成与 I17/I18 混为一谈。
+
+## 2026-08-06 — TP-D019 I07 冷目录与判别式路线记录
+
+- Status: Accepted
+- Decision: I07 采用单一 `createRouteCatalog` 深模块，集中 Source/Place/Route/RouteVariant
+  规范化、legacy 适配和静态引用校验，但不接入现有搜索运行链路。full 与 blocked 是
+  RouteVariant 的判别式记录：full 要求 A/B 与完整行程；blocked 只保留权威限制事实，
+  不伪造日程、几何、最高点或天气采样。175 条旧扁平记录只生成
+  `legacy_unverified`、place-only Place，不伪造 verification level 或来源。
+- Alternatives: I07 同时实现 query resolver 和 dual-read 生产切换；预建五个空 pilot
+  registry 文件并把 I07 拆为 schema/adapter 两个 Issue；让 blocked 复用 full 结构；把
+  legacy elevation 和 note 映射为路线事实。
+- Why: cold catalog 让 I08–I12 在冻结 schema 上独立验证，同时保持 I05 公共契约零变化；
+  搜索接入本来属于 I13。blocked 强填 full 字段或转换 legacy 自由文本都会制造并不存在的
+  安全事实。schema、adapter 与测试是一个可独立验收目标，无需为机械规模拆分。

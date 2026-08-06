@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M3 Route domain`
-- Active task: `I07-CONTRACT / GitHub #16 / CONTROLLER_CONTRACT_DESIGN`
+- Active task: `I07-CONTRACT / GitHub #16 / CONTRACT_APPROVED`
 - Branch: `codex/i07-route-domain-contract`
 - Base: `main` at `57ab44c`
 - Planning PR: `#9` — merged
@@ -16,9 +16,9 @@
 - I06 planning PR: `#46` — merged; latest-head `quality` passed
 - I06 implementation PR: `#47` — merged; GitHub #15 and M2 closed
 
-Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 contract design is the only
-active task; no M3 implementation is authorized until its design, Issue contract and planning PR are
-independently reviewed and merged.
+Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 contract is independently
+approved; no M3 implementation is authorized until its contract-only planning PR passes latest-head
+quality and merges.
 
 ## Completed
 
@@ -76,6 +76,13 @@ independently reviewed and merged.
   tests are sensitive to both failure classes, full-input mutation and AI-only risk leakage.
 - I06 implementation PR #47 matched reviewed head `d558bf5`, passed latest-head GitHub `quality`,
   and squash merged as `57ab44c`; GitHub #15 and milestone M2 were closed.
+- Three read-only I07 designs compared a minimal cold catalog, an integrated repository and a
+  caller-oriented dual-read seam. Sol selected the minimal cold catalog so I07 does not steal I13
+  search behavior or invent legacy route facts.
+- I07 contract Review first returned `CHANGES_REQUESTED` for Place status drift, C-tier evidence,
+  zero-day itinerary, real legacy self-alias normalization and blocked source wording. All five were
+  corrected and synchronized to GitHub #16; second Review returned `APPROVED` with
+  `git diff --check` passing.
 
 ## Baseline evidence
 
@@ -109,13 +116,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Terra XHigh: authorized implementation fallback; no I07 implementation assignment before contract merge.
 - Sol XHigh: owns I07 product/domain contract, task routing and independent Review.
-- I07 design agents: not yet assigned; all design work is read-only.
+- I07 design/review agents: three alternatives and two independent Review rounds complete; no
+  implementation assignment before planning merge.
 
 ## Open work
 
-1. Audit current route data/read paths and produce three I07 interface alternatives.
-2. Freeze the chosen schema, legacy adapter, validation seam, migration boundary, tests and exact allowlist.
-3. Independently review and merge an I07 contract-only planning PR before assigning Terra.
+1. Commit and open the I07 contract-only planning PR.
+2. Confirm latest-head quality and squash merge the approved planning PR.
+3. Activate #16 on the merged base and assign its bounded TDD implementation to Terra XHigh.
 
 ## Blockers and risks
 
@@ -126,7 +134,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Five route variants still require field-level A/B evidence during I08–I12.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I07 contract design
+## Forbidden actions before I07 planning merge
 
 - Any business-code, test-code, dependency or runtime configuration change
 - Pilot route records I08–I12, stable search I13, weather/verdict/queryId/history/UI implementation
@@ -134,4 +142,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Complete the I07 Design It Twice audit, update GitHub #16 and freeze its implementation contract.
+Create the approved I07 contract-only planning PR and wait for latest-head quality.
