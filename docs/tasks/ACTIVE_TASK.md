@@ -1,34 +1,33 @@
 # 当前活动任务
 
-- Task ID: `I07-CONTRACT`
+- Task ID: `I07`
 - GitHub Issue: `#16` — `https://github.com/JettxonHo/trekking-potato/issues/16`
 - Title: 路线领域模型与旧数据适配任务合同
-- Status: `CONTRACT_APPROVED`
+- Status: `APPROVED`
 - Mode: `REVIEW_ONLY`
-- Owner: Sol XHigh
+- Owner: Terra XHigh
 - Reviewer: Sol XHigh
-- Branch: `codex/i07-route-domain-contract`
-- Base: `main` at `57ab44c`
+- Branch: `codex/i07-route-domain`
+- Base: `main` at `7d43b1d`
 - Goal: `TP-BETA-001`
 
-I07 的三方案设计和两轮独立合同 Review 已完成，最终结果为 `APPROVED`。GitHub #16 在
-规划 PR 合并前仍不能交给 Terra；本阶段只允许创建/验证规划 PR 和下列规划文档变更。
+I07 的三方案设计和两轮独立合同 Review 已完成，最终结果为 `APPROVED`；规划 PR #48 已
+通过 latest-head `quality` 并合并。现在授权 Terra XHigh 严格按本合同实施，不能改变产品、
+schema、运行时边界、依赖策略或验收标准，也不能批准或合并自己的 PR。
 
 ## Objective
 
-审查并冻结 Source/Place/Route/RouteVariant 的最小深模块接口、旧 BUILTIN_ROUTES 适配
-边界、字段验证和来源/运行状态语义，使 I08–I13 可以在冻结 schema 上独立开发，同时不
-提前写入五条试点数据或改变当前搜索行为。
+实现 Source/Place/Route/RouteVariant 的最小深模块、旧 BUILTIN_ROUTES 诚实适配、字段/
+引用/来源校验和敏感契约测试，使 I08–I13 可以在冻结 schema 上独立开发，同时不提前
+写入五条试点数据或改变当前搜索行为。
 
-## Planning allowlist
+## Required reading
 
 - `GOAL.md`
 - `docs/architecture.md`
-- `docs/development-plan.md`
 - `docs/testing-strategy.md`
-- `docs/decision-log.md`
-- `docs/current-status.md`
-- `docs/tasks/ACTIVE_TASK.md`
+- `docs/development-plan.md`
+- GitHub #16
 
 ## Frozen contract
 
@@ -206,7 +205,7 @@ Review 中判断。
 blocked 分支不得携带 full 专属字段；legacy Place 固定 `sourceIds=[]`，不得携带
 elevation、bestSeason、note 或伪造的 Source。
 
-## Implementation allowlist after planning PR merge
+## Implementation allowlist
 
 - `cloudfunctions/getAdvice/domain/route-catalog.js`（新增）
 - `scripts/route-domain-contract-test.js`（新增）
@@ -238,7 +237,7 @@ elevation、bestSeason、note 或伪造的 Source。
 
 ## Verification
 
-规划 Review 阶段运行 Markdown 一致性检查和 `git diff --check`。实施阶段必须运行：
+实施 Agent 必须运行：
 
 ```bash
 corepack npm@10.9.2 run test:route-domain
@@ -251,6 +250,24 @@ corepack npm@10.9.2 run build:weapp
 
 实施使用测试先行：先提交能因模块缺失/行为缺失而失败的领域契约测试，再写最小实现使其
 通过。不得仅测试对象字面量或重复实现生产校验逻辑。
+
+## Implementation delivery
+
+Terra XHigh 已在本分支完成允许范围内的 test-first 实现，交付状态为
+`READY_FOR_CONTROLLER_REVIEW`。实施只新增纯 `route-catalog` 模块和离线契约测试，并将
+`test:route-domain` 纳入根 `test`；未接入任何运行时调用链。
+
+第一次 Sol 实现 Review 返回 `CHANGES_REQUESTED`，指出空 namespace 后缀会被接受，且测试
+尚未完整覆盖测试策略承诺的错误命名空间、variant route/source 引用、日程与采样数量失败。
+Terra 先新增能复现空后缀缺口的失败用例，再以“namespace 后必须有非空稳定后缀”的最小校验
+修复，并补齐其余独立负例。此修复不生成 slug、不引入正则策略，也不增加运行时功能。现在
+恢复为 `READY_FOR_CONTROLLER_REVIEW`；Sol XHigh 必须独立检查实际代码、测试敏感性和完整验证
+结果后，才能决定是否批准或合并。
+
+第二次 Sol 实现 Review 已完成：实际代码、测试和范围无剩余 P1/P2 发现；Sol 亲自运行
+`test:route-domain`、lint、typecheck、root test、integration、WeChat build 和 diff check，
+全部通过。Review 结果为 `APPROVED`。后续只允许提交已审内容、创建 PR、验证 latest-head
+`quality` 和执行合并；任何代码变化都会使本批准失效并要求重新 Review。
 
 禁止实现试探。若现有 175 条数据无法在不伪造路线事实的情况下适配，或必须改变公共
 契约/运行调用方，实施 Agent 必须停止并交回 Sol。涉及数据迁移、产品取舍或来源政策
