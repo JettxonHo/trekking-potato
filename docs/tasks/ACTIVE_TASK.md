@@ -1,22 +1,21 @@
 # 当前活动任务
 
-- Task ID: `I15-CONTRACT`
+- Task ID: `I15`
 - GitHub Issue: `#24`
 - Title: 冻结 TP-VERDICT-1 小时天气规则引擎合同
-- Status: `CONTRACT_APPROVED — PLANNING_PR_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Proposed implementation owner: Terra XHigh
-- Branch: `codex/i15-verdict-contract`
-- Base: `main` at `f771b41`
+- Status: `IMPLEMENTATION_ACTIVE`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
+- Branch: `codex/i15-weather-verdict`
+- Base: `main` at `8a4d2c4`
 - Goal: `TP-BETA-001`
 
 ## Current authorization
 
-本分支只允许 I14 合并检查点、I15 产品/技术合同、GitHub #24 同步和治理文档；不得新增
-规则实现、fixture、测试脚本、依赖或公共 handler 接线。合同已经独立 Terra XHigh 两轮
-Review，首轮 3 个 P1/1 个 P2 全部修正，第二轮结果 `APPROVED`。planning PR 仍须通过
-latest-head CI 并合并后，Sol 才能创建实现分支并分派 Terra XHigh。
+I15 规划 PR #56 已通过独立 Terra XHigh 两轮 Review 和 latest-head GitHub `quality`，并
+squash 合并为 `8a4d2c4`。Terra XHigh 现在仅获授权在本文 allowlist 和冻结合同内 test-first
+实现；不得改变阈值、reason 契约、I15/I16 边界或自行批准/合并 PR。
 
 ## Mandatory context
 
@@ -34,7 +33,7 @@ latest-head CI 并合并后，Sol 才能创建实现分支并分派 Terra XHigh�
 计算天气部分的 `go | caution | no_go` 和稳定原因。I16 再把该结果与路线禁行、技术攀登
 支持、预报提前量、日落及 `verdict=null` 语义组合为最终公开结论。
 
-## Implementation allowlist after activation
+## Implementation allowlist
 
 - `cloudfunctions/getAdvice/weather-verdict.js`（新增纯规则模块）
 - `scripts/weather-verdict-contract-test.js`（新增离线契约测试）
