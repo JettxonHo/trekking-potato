@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
-- Active task: `I15 / GitHub #24 / APPROVED — PR_PENDING`
-- Branch: `codex/i15-weather-verdict`
-- Base: `main` at `8a4d2c4`
+- Active task: `I16 / GitHub #25 / APPROVED — PLANNING_PR_PENDING`
+- Branch: `codex/i16-trip-verdict-contract`
+- Base: `main` at `ade3bdd`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -22,12 +22,14 @@
 - I14 planning PR: `#54` — merged; GitHub #23 implementation activated
 - I14 implementation PR: `#55` — merged; GitHub #23 closed
 - I15 planning PR: `#56` — merged; GitHub #24 implementation activated
+- I15 implementation PR: `#57` — merged; GitHub #24 closed
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent M4 weather/verdict foundation to proceed using only I07's frozen shape and synthetic
-fixtures; this does not authorize I13, real full-route data or production integration. I14 is complete.
-I15's approved weather-only rule contract is active for bounded Terra implementation.
+fixtures; this does not authorize I13, real full-route data or production integration. I14 and I15
+are complete. I16's trip-level composition contract passed independent Review; implementation is not
+authorized before its planning PR passes latest-head CI and merges.
 
 ## Completed
 
@@ -196,6 +198,17 @@ I15's approved weather-only rule contract is active for bounded Terra implementa
 - Sol's second implementation Review inspected the review-fix diff and independently reran verdict,
   hourly/legacy weather, route-domain, root test, integration (56/0), lint (0 errors; 10 existing
   warnings), typecheck, WeChat build and diff checks. All passed; result is `APPROVED — PR_PENDING`.
+- I15 implementation PR #57 matched approved head `0253cd7`, passed latest-head GitHub `quality`,
+  and squash merged as `ade3bdd`; #24 closed. I16 can now freeze the remaining M4 composition rules.
+- Two independent Terra XHigh read-only I16 audits reviewed the available I07/I14/I15 shapes,
+  climbing matrix, forecast-day calculation and existing local `suncalc` seam. Sol selected a narrow
+  normalized route-context union, Shanghai calendar-day lead calculation and the earliest sunset
+  across each window's trusted weather samples. Missing sunset remains a data-availability issue,
+  not a danger reason; independent blocked/novice-climb hard no-go facts retain precedence.
+- Formal independent contract Review checked the actual seven-document diff and synchronized GitHub
+  #25. It returned `APPROVED` with no P0–P2 finding; the existing normalized blocked boundary,
+  proportional TypeError guards, data-issue ordering and all-sample earliest-sunset policy are
+  implementable without changing I14/I15 or requesting human direction.
 
 ## Baseline evidence
 
@@ -235,13 +248,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: completed #23/I14 Review/merge and now owns #24/I15 contract and merge decision.
-- Terra XHigh: completed I15's bounded implementation and returned it for Sol XHigh Review.
+- Sol XHigh: completed #24/I15 Review/merge and owns #25/I16 contract and merge decision.
+- Terra XHigh: completed two read-only I16 contract/test audits; implementation is not yet assigned.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Create the approved I15 PR and merge only after latest-head GitHub `quality` passes.
+1. Independently review and merge the I16 planning contract, then activate bounded Terra implementation.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -258,14 +271,18 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   announcement body or poster.
 - TP-D028 resolved the I15 accumulation ambiguity as activity-window totals. Full rolling-24h or
   natural-day accumulation would require a future weather-data contract and must not be implied now.
+- TP-D029 resolves I16's sunset evidence boundary as the earliest value across each route-day's trusted
+  I14 samples. If any necessary sunset cannot be calculated, the result is unavailable unless a known
+  hard no-go independently applies.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I15 implementation
+## Forbidden actions during I16 contract review
 
-- Any file outside the #24 implementation allowlist, dependency or lockfile change
-- Real route data, I13, I16/queryId/history/UI or public handler implementation
+- Business implementation before the contract PR merges; dependency or lockfile changes
+- Real route data, I13, I17/queryId/history/UI or public handler implementation
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Create the approved I15 PR; do not merge until latest-head GitHub `quality` passes.
+Open the approved I16 planning PR. Activate Terra implementation only after the reviewed contract
+passes latest-head GitHub `quality` and merges.

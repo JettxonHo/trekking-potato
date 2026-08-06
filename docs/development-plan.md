@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M4 / I15 approved, PR pending; M3 full routes source-blocked`
+- Status: `ACTIVE — M4 / I16 contract review; M3 full routes source-blocked`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -172,11 +172,26 @@ I14 已在 PR #55 通过 Sol 独立 Review 和 latest-head CI，squash 合并为
 - 精确接口、原因码、边界矩阵、allowlist 和 TDD 以 GitHub #24 与当前
   `docs/tasks/ACTIVE_TASK.md` 为准。
 
-I15 implementation is now ready for Sol XHigh Review. It contains only the pure evaluator, its
-offline I14-derived contract test and the root test entry; it does not expose a public handler or
-implement I16 composition.
+I15 implementation PR #57 passed Sol XHigh Review and latest-head CI, squash merged as `ade3bdd`,
+and closed #24. It contains only the pure evaluator, its offline I14-derived contract test and the
+root test entry; it does not expose a public handler or implement I16 composition.
 
-## 10. 合并顺序与里程碑门
+## 10. I16 冻结合同摘要
+
+- I16 新增单一纯组合函数，消费 normalized trusted route context、I14 weather snapshot 和
+  `request.level/climbSupport`；I15 与本地日落适配器通过默认依赖调用，测试可注入。
+- blocked 是可信路线能力，直接 `no_go/complete` 且不调用天气；place-only 是
+  `null/place_only`；天气或必要日落不完整是 `null/insufficient`，但独立硬 no-go 仍保留。
+- 技术攀登最低 caution；仅 `小白 + solo_or_unsure` 产生攀登 no_go，并抑制泛化攀登警示。
+- 预报提前量使用 `fetchedAt` 的上海日历日逐 route day 计算，`>=5` 天 caution。
+- 日落使用每个 window 所有 I14 WGS84 采样点的最早几何日落；结束严格晚于它才 caution。
+  任一点无法计算意味着最早值未知，作为 data issue 进入 unavailable，而非风险原因。
+- I15 原因原样保留；I16 新事实使用同类稳定 reason shape，数据问题另列 `dataIssues`，不
+  计算分数、不接公共 handler。
+- 精确接口、优先级、allowlist、TDD、矩阵和命令以 GitHub #25 与
+  `docs/tasks/ACTIVE_TASK.md` 为准。
+
+## 11. 合并顺序与里程碑门
 
 每个里程碑最后一个 PR 合并后更新 `GOAL.md` 和 `docs/current-status.md`。I05a 与 I05b
 已按串行顺序分别 Review/合并并关闭父 #14。M3 路线的字段来源合同未冻结不得并行该数据；

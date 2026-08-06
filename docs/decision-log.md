@@ -262,3 +262,22 @@
   结论，也不扩大天气 I/O。明确改名避免数据能力虚假声明；每个路线采样点独立判断，仍能
   保持安全阈值、可解释性和离线测试。若未来产品确需完整滚动 24 小时，应作为新的天气
   数据合同和独立 Issue 设计，不能在 I15 内猜测。
+
+## 2026-08-06 — TP-D029 I16 组合优先级与日落证据边界
+
+- Status: Accepted
+- Decision: I16 以单一纯函数组合 trusted route context、I14 availability、I15 weather
+  reasons、climb support、forecast lead time 和 geometric sunset。官方 blocked route 和
+  `小白 + climb + solo_or_unsure` 是独立硬 no-go；其余情况下任何必要天气或日落数据不完整
+  都返回 `verdict=null`，并把缺失事实放在无 severity 的 `dataIssues`，不伪造成天气危险。
+  日落按每个 route-day 所有 I14 WGS84 采样点的最早值判断，任一点失败则无法证明最早值；
+  预计结束严格晚于该值才 caution。预报提前量按 `fetchedAt` 的上海日历日逐 route day 计算，
+  `>=5` 天 caution。I16 不接 public handler，也不解释 blocked 日期或 full route 状态。
+- Alternatives: 只用起点/终点日落；取采样点平均或最晚日落；缺少日落仍允许 `go`；把缺失
+  日落作为 caution；在 I16 引入新的路线端点 schema或外部服务；用客户端 clock 计算提前量。
+- Evidence: I14 已提供活动 window、每点 WGS84 `requestCoordinate` 和服务端 `fetchedAt`；
+  现有 `suncalc` 依赖可以离线计算几何日落。两次独立只读审计都确认 endpoint 不在 I07/I14
+  合同内，不能在 I16 临时推断。
+- Why: 最早采样点日落是现有可信事实内可解释且保守的 envelope。缺少任一点时不能证明
+  最早值，明确 unavailable 比假装安全或虚构危险更诚实；硬 no-go 仍优先，避免数据缺失掩盖
+  已知禁行或新手独攀事实。分离 `reasons` 与 `dataIssues` 让 UI 后续能准确解释风险和可用性。

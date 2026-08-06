@@ -245,7 +245,7 @@ I04 先把当前云函数的所有出口统一到上述 `phase` 判别方式，�
     reason?: 'out_of_range' | 'weather_unavailable' | 'weather_data_invalid',
     retryable, samples?, fetchedAt?, source?
   } | null,
-  deterministicResult: { verdict, dataStatus, reasons, evaluatedWindows },
+  deterministicResult: { verdict, dataStatus, reasons, dataIssues, evaluatedWindows },
   minimumGear: { essential, recommended, optional },
   sourceMetadata: { routeSources, weatherSource?, checkedAt }
 }
@@ -383,6 +383,7 @@ evaluateWeatherVerdict(completeWeatherSnapshot)
   verdict: 'go' | 'caution' | 'no_go' | null,
   dataStatus: 'complete' | 'insufficient' | 'place_only',
   reasons: [{ code, severity, at, observed, message }],
+  dataIssues: [],
   evaluatedWindows: [],
 }
 ```
@@ -410,6 +411,40 @@ I14 只保留活动窗口，不能声称获得完整自然日或滚动 24 小时
 `insufficient/place_only → verdict=null` 属于 I16 最终组合。降水概率不单独改变 I15 结论；
 冻结层高度当前仅用于解释；不从单点山峰海拔推导雪线硬阻断。完整 code、reason shape、
 排序表和测试边界以当前 GitHub #24 与 `docs/tasks/ACTIVE_TASK.md` 为准。
+
+### I16 trip-level composition contract
+
+I16 adds one deterministic internal boundary:
+
+```js
+evaluateTripVerdict(
+  { routeContext, request, weatherSnapshot },
+  { evaluateWeatherVerdict?, getSunsetReference? } = {},
+) -> { verdict, dataStatus, reasons, dataIssues, evaluatedWindows }
+```
+
+`routeContext` is server-normalized as `full`, `place_only`, or `blocked`; it does not accept client
+route facts or coordinates. `blocked` is an independent official no-go and does not call weather.
+`place_only` returns `null/place_only`. A full route consumes I14; an insufficient snapshot does not
+call I15 or sunset and normally returns `null/insufficient`. The independent novice technical-climb
+hard rule remains no-go even when weather or sunset is unavailable.
+
+For complete weather, I16 preserves I15 reasons, then adds only technical-climb, forecast-lead and
+sunset facts. Technical climbing is at least caution; `小白 + solo_or_unsure` is no-go. Forecast lead
+is calculated per route day from `weatherSnapshot.fetchedAt` converted to the `Asia/Shanghai`
+calendar date; `leadDays >= 5` is caution.
+
+Sunset is calculated offline for every trusted WGS84 `requestCoordinate` in an I14 window. The
+earliest geometric sunset is selected, with I14 sample order as the tie-break. A route ending strictly
+after that route-day sunset is caution; equality is not. One missing sample means the earliest value
+cannot be established, so the result becomes unavailable unless an independent no-go exists. Missing
+facts are `dataIssues` without severity, never fabricated weather risks. I16 does not infer an endpoint,
+use a nearby peak, read the client clock, add a score, or wire the public handler.
+
+Reason order is stable: I16 global hard reasons, I15's existing sequence, generic technical-climb,
+forecast warnings in window order, then sunset warnings in window order. The exact normalized union,
+reason messages, data-issue shapes and error guards are frozen in GitHub #25 and
+`docs/tasks/ACTIVE_TASK.md`.
 
 规则依据：
 
