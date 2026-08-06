@@ -317,3 +317,19 @@
   store 已拥有 ID、归属、TTL、完整性和深拷贝边界，advice 重复校验会制造第二套真相。
   统一不可用语义既不泄露归属信息，也让用户动作明确；聚焦回归足以证明权限边界，无需过度
   防御或机械安全 rubric。
+
+## 2026-08-06 — TP-D032 I19 私人历史与公共 UGC 非破坏性停用
+
+- Status: Accepted
+- Decision: I19 以一个原子实现 PR 同时收敛 history 云函数、getAdvice geocode 和生产前端。
+  history 身份只取服务端 openid；list 返回显式公共 DTO；delete 用 `_id + openid` 一次条件
+  删除，只在 `stats.removed===1` 时成功，零删除对未知和他人记录统一为 `history_not_found`；
+  clear 返回实际删除量，只删除当前用户历史且空操作成功。
+  旧 `saveRoute/listRoutes` 保留为认证后的 `ugc_disabled` tombstone，geocode 与前端移除公共
+  routes 读写。既有 routes/history 数据不迁移、不批改、不删除。历史失败是局部、非阻断的；
+  queryId 永不进入历史。
+- Alternatives: 分成可独立合并的后端、geocode 与 UI PR；保留只读 UGC 回退；删除存量 UGC；
+  先读文档再检查 owner；引入哈希、签名、深层输入评分或机械隐私 rubric。
+- Why: 三处入口必须共同关闭才能兑现“停用公共 UGC”，而条件删除可直接提供原子归属边界，
+  无需额外认证层。公共 DTO 和统一错误语义足以隔离私人数据；保留存量避免未经授权的破坏性
+  操作，也为将来人工决定保留回滚空间。聚焦真实数据边界比枚举基本不可能的攻击组合更可维护。

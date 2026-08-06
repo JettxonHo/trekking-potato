@@ -602,7 +602,26 @@ idle → searching → awaiting_confirmation | awaiting_route_type
 
 ## 10. 历史与 UGC
 
-history 仅保存当前 openid 的私人查询摘要，支持读取、单项删除和清空。公共 UGC 写入与读取退出主路径；既有数据保留，不迁移、不删除。
+history 仅保存当前 openid 的私人查询摘要，支持保存、读取、单项删除和清空。身份只来自
+`cloud.getWXContext().OPENID`，客户端字段不能覆盖；history 不保存 `queryId`。
+
+公共请求为 `save | list | delete | clear`。`list` 固定按 openid 查询最多 20 条，只返回
+`id, route, date, days, level, elevation, location, summary, degraded, coords, routeType,
+routeTypeSource`，不得透传 `_id`、`_openid` 或未知数据库字段。`delete` 用
+`where({_id:id, _openid:openid}).remove()` 一次条件删除；只有 `result.stats.removed === 1` 才
+成功，零删除对未知和他人记录统一返回 `history_not_found`。`clear` 用
+`where({_openid:openid}).remove()`，返回实际 `result.stats.removed`，空历史也成功并返回
+`removed:0`。
+
+旧 `saveRoute/listRoutes` 是认证后的 tombstone，固定返回 `ugc_disabled`，不得访问 `routes`
+集合。geocode 不再从 CloudBase `routes` 读取，内置可信匹配未命中后直接走 AMap；手动坐标
+查询不再写公共路线。`routeTypeSource:'ugc'` 只作为旧私人历史兼容显示值。既有 routes 和
+history 数据保留，不迁移、不删除。
+
+前端只有服务端成功后才从本地列表删除或清空；删除控件不冒泡到历史恢复动作。清空前使用
+一次原生确认。list 失败保留当前列表并显示局部错误。历史保存失败只提示“历史未保存，不影响
+本次结果”，不改变主结果，也不能把同一参数永久标成已保存；普通 advice 失败保存
+`degraded:true` 的确定性摘要，`query_context_unavailable` 保持零历史。
 
 ## 11. 错误语义
 
@@ -615,5 +634,7 @@ history 仅保存当前 openid 的私人查询摘要，支持读取、单项删�
 - Advice：`ai_unavailable` 可重试，且不影响已经显示的 BaseData。
 - 天气：`out_of_range`、`weather_unavailable`、`weather_data_invalid` 放在 BaseData weather 状态中，`verdict=null`，允许重新 prepare。
 - 未分类服务端失败：`internal_error`，默认不可在原请求上无限重试。
-- 历史保存失败由 history 服务返回 `history_unavailable`，不使 getAdvice 结果失败。
+- 历史 save/list/delete/clear 存储失败统一为可重试 `history_unavailable`，使用通用消息且不
+  暴露原始数据库错误；`history_not_found`、`ugc_disabled` 和输入错误不可重试。任何历史失败
+  都不使 getAdvice 的确定性结果失败。
 - error 的 `retryable` 只表示同一操作稍后重试可能成功；需要修改输入或重新 prepare 时为 false。

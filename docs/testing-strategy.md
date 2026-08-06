@@ -233,6 +233,26 @@ I18 implementation has run `test:trip-context`、`test:response`、`test:confirm
 integration、lint、typecheck、WeChat build 和 diff check successfully before controller review；不增加
 哈希、token 熵、机械覆盖率或不成比例的 impossible-case 防御。
 
+### I19 private history and UGC shutdown contract
+
+I19 先把现有 `scripts/security-test.js` 收敛为聚焦 history/privacy 的 `test:history`，并纳入
+默认 `npm test`，再用一个原子 PR 完成后端、geocode 和前端闭环。测试证明：
+
+- A/B 用户保存和读取严格隔离，伪造客户端 openid 无效，公共 DTO 不包含数据库内部字段。
+- 自有单删只在 `stats.removed===1` 时成功；零删除对他人和未知 id 的公开结果相同且不影响
+  对方记录；clear 返回实际删除量且只删除当前用户，空 clear 成功，预置 routes 数据保持不变。
+- save/list/delete/clear 各一个代表性存储失败统一为通用 `history_unavailable`；不扩展成异常
+  排列组合。
+- 旧 `saveRoute/listRoutes` 固定 `ugc_disabled` 且对 routes 零访问；内置可信匹配未命中后
+  geocode 直接走 AMap，confirmation 路径不读取公共 UGC。
+- 页面无 `saveRoute`，queryId 不入 history；首次保存失败后同一参数仍会再次调用服务端；历史
+  失败不阻断主结果或清空已有列表，单删和清空只在成功后改变本地列表，删除控件不触发
+  restore，清空有一次确认。
+- 普通 advice 失败保存确定性降级摘要，`query_context_unavailable` 保持零 history。
+
+实现至少运行 `test:history`、route、confirmation、response、integration、root test、lint、
+typecheck、WeChat build 和 diff check。deep/redteam/live 网络脚本不进入默认门禁。
+
 ## 3. 测试层级
 
 - 单元：路线匹配、Schema、坐标、天气解析、活动窗口、结论、装备合并、reducer。
@@ -288,8 +308,8 @@ integration、lint、typecheck、WeChat build 和 diff check successfully before
 - advice 只接受 queryId。
 - 上下文按 openid 隔离，过期后要求重新 prepare。
 - 客户端伪造 weather/routeType/baseData 不影响可信结果。
-- 私人历史只返回当前 openid；支持单项删除和清空。
-- 手动地点查询不产生公共 UGC；旧公共数据不进入解析路径。
+- 私人历史只返回当前 openid 的显式 DTO；支持单项删除和清空，跨用户操作不可区分也不生效。
+- 手动地点查询不产生公共 UGC；旧 UGC mode 明确停用，旧公共数据不进入解析路径且不被删除。
 
 ### 状态与降级
 
