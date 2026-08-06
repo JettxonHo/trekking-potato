@@ -3,7 +3,7 @@
 - Task ID: `I17a`
 - GitHub Issue: `#60` (parent `#26`)
 - Title: 建立 TripContext 服务端存储核心
-- Status: `IMPLEMENTATION`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
