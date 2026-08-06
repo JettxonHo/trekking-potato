@@ -50,9 +50,9 @@ I19 + I23 → I24 → I25
 
 ## 3. 第一批任务合同
 
-I01–I03 已分别通过 PR #36、#37、#38 合并，M1 已关闭。I04 合同已经冻结，记录于
-GitHub #13 与 `docs/tasks/ACTIVE_TASK.md`，但必须等待 checkpoint 合并、真实 base SHA
-写回和实现分支创建后才能激活；以下 M1 合同保留为历史记录。
+I01–I03 已分别通过 PR #36、#37、#38 合并，M1 已关闭。PR #39 完成 checkpoint 后，
+I04 已基于 `main@900b79e` 激活；合同记录于 GitHub #13 与
+`docs/tasks/ACTIVE_TASK.md`。以下 M1 合同保留为历史记录。
 
 ### I01 — 统一工具链、固定依赖与锁文件
 

@@ -4,14 +4,14 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M2 Correctness`
-- Active task: `M1-CHECKPOINT / I04 contract approval`
-- Branch: `codex/m1-checkpoint`
-- Base: `main` at `6ee02c9`
+- Active task: `I04 / GitHub #13`
+- Branch: `codex/i04-response-contract`
+- Base: `main` at `900b79e`
 - Planning PR: `#9` — merged
-- Checkpoint PR: `#39` — open; merge remains gated by its latest-head GitHub `quality`
+- Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 
 Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
-I04 is the only business task being prepared for execution; I05 and later Issues remain Backlog
+I04 is the only business task Ready for execution; I05 and later Issues remain Backlog
 until their dependencies and exact contracts are approved.
 
 ## Completed
@@ -31,6 +31,7 @@ until their dependencies and exact contracts are approved.
   force pushes and branch deletion are disabled. Extra GitHub approval count remains zero because
   independent approval is performed by Sol XHigh.
 - M1 Engineering gate was closed after I01–I03 completion.
+- M1 checkpoint and the frozen I04 contract passed independent Review and merged in PR #39.
 
 ## Baseline evidence
 
@@ -53,15 +54,14 @@ All four passing counts were rerun during M1 verification. Local Markdown links 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: authorized implementation fallback; may receive I04 only after its exact contract
-  and checkpoint PR are merged.
+- Terra XHigh: authorized implementation fallback; assigned I04 after its exact contract and
+  checkpoint PR were merged.
 - Sol XHigh: owns the I04 public-contract migration design and independent Review.
 
 ## Open work
 
-1. Merge the M1 checkpoint and I04 contract activation PR.
-2. Create `codex/i04-response-contract` from the resulting `main` and dispatch GitHub #13 to Terra XHigh.
-3. Sol XHigh reviews implementation and CI before any merge or I05 activation.
+1. Terra XHigh implements the exact GitHub #13 contract on `codex/i04-response-contract`.
+2. Sol XHigh reviews implementation and latest-head CI before any merge or I05 activation.
 
 ## Blockers and risks
 
@@ -80,4 +80,4 @@ All four passing counts were rerun during M1 verification. Local Markdown links 
 
 ## Next action
 
-Merge this checkpoint, then implement only the I04 contract in GitHub #13.
+Implement only the activated I04 contract in GitHub #13.
