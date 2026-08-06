@@ -3,7 +3,7 @@
 - Task ID: `I14`
 - GitHub Issue: `#23`
 - Title: 冻结多采样点小时天气与活动窗口合同
-- Status: `READY_FOR_CONTROLLER_REVIEW`
+- Status: `APPROVED — PR_PENDING`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -14,8 +14,9 @@
 ## Current authorization
 
 规划 PR #54 已通过独立 Review、latest-head CI 并合并为 `ea64e28`。Terra XHigh 已在本文
-implementation allowlist 内完成 test-first 实现，交付给 Sol XHigh 独立 Review；不得修改公共
-合同、依赖、lockfile 或非范围。Terra 不得批准或合并自己的 PR。
+implementation allowlist 内完成 test-first 实现。Sol XHigh 已检查实际代码与测试、要求并
+复验两项边界修复，最终给出 `APPROVED`；下一步仅允许创建 PR、等待 latest-head CI 并按
+合并条件处理。不得修改公共合同、依赖、lockfile 或非范围。Terra 不得批准或合并自己的 PR。
 
 ## Mandatory context
 
@@ -318,3 +319,5 @@ Issue 中提前扫描整日。Sol 必须在 I15 合同中单独解决。
   exposing its reason. The hourly contract also invokes the exported weather-module injected entry once.
 - The review-fix local matrix passed hourly-weather, weather (86/0), route-domain, lint (0 errors; 10
   existing warnings), typecheck, root test, offline integration (56/0), WeChat build and diff check.
+- Sol's second independent Review inspected the actual review-fix diff and reran the complete local
+  matrix. Result: `APPROVED — PR_PENDING`; merge still requires latest-head GitHub `quality`.

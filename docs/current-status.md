@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
-- Active task: `I14 / GitHub #23 / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `I14 / GitHub #23 / APPROVED — PR_PENDING`
 - Branch: `codex/i14-hourly-weather`
 - Base: `main` at `ea64e28`
 - Planning PR: `#9` — merged
@@ -24,8 +24,8 @@
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent M4/I14 weather foundation to proceed using only I07's frozen shape and synthetic fixtures;
-this does not authorize I13, real full-route data or production integration. I14 implementation is
-ready for Sol XHigh's independent review; it has not been approved or merged.
+this does not authorize I13, real full-route data or production integration. Sol XHigh approved the
+I14 implementation after one bounded review-fix round; it has not yet passed remote CI or merged.
 
 ## Completed
 
@@ -166,7 +166,11 @@ ready for Sol XHigh's independent review; it has not been approved or merged.
   non-range Open-Meteo service error was classified as invalid data. The bounded REVIEW_FIX now rounds
   duration minutes conservatively upward while retaining the original duration field, maps only explicit
   non-range upstream errors to retryable `weather_unavailable`, and directly covers the weather-module
-  injected entry. The complete local matrix is green again; I14 remains `READY_FOR_CONTROLLER_REVIEW`.
+  injected entry. The complete local matrix turned green again and returned I14 for the second Review.
+- Sol's second Review inspected the real code and regression-test diff, then independently reran
+  hourly-weather, legacy weather (86/0), route-domain, lint (0 errors; 10 pre-existing warnings),
+  typecheck, root test, integration (56/0), WeChat build and diff checks. All passed; result is
+  `APPROVED — PR_PENDING`, with latest-head GitHub `quality` still required before merge.
 
 ## Baseline evidence
 
@@ -210,7 +214,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol reviews actual I14 code/tests, verifies latest-head CI and decides merge.
+1. Create I14 PR, verify latest-head GitHub `quality`, then squash merge and close #23 if green.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -237,4 +241,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol XHigh independently reviews I14 before any merge.
+Create the approved I14 PR; do not merge until latest-head GitHub `quality` passes.
