@@ -74,3 +74,9 @@
 - Status: Accepted
 - Decision: 不做过度防御；除重大核心风险外不引入哈希/SHA；不反复处理基本不可能 case；rubric 只辅助判断。
 - Why: 项目目标是可靠产品，不是安全攻防论文。清晰所有权、少量边界和契约测试优先。
+
+## 2026-08-06 — TP-D013 Goal 激活与 GitHub 执行面
+
+- Status: Accepted
+- Decision: 控制者批准并合并规划 PR #9；TP-BETA-001 激活。建立 M1–M7、8 个治理标签和 I01–I25（GitHub #10–#34）。I01–I03 为首批完整合同，I04–I25 在依赖完成后由 Sol XHigh 补齐并标记 Ready。
+- Why: 让长期 Goal、任务依赖和执行授权存在于可恢复的仓库与 GitHub 事实源中，同时防止 Backlog 一句话任务被提前实现。
