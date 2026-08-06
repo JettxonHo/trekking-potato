@@ -276,7 +276,7 @@ async function main() {
   assert(pageSource.includes('onCandidateSelect = (candidateId)'), '前端必须处理用户显式选择 candidateId')
   assert(pageSource.includes("const params = { candidateId, date: snapshot.date, level: snapshot.level, days: snapshot.days }"), 'confirm 参数必须只从 candidateId 与快照恢复')
   assert(pageSource.includes("data: { mode: 'confirm', ...params }"), 'confirm 调用必须使用冻结 mode=confirm 参数')
-  assert(pageSource.includes('this._showBaseAndFetchAdvice(result.data, params)'), 'confirm base 必须复用现有 base→advice 流程')
+  assert(pageSource.includes('this._showBaseAndFetchAdvice(result.data, result.queryId, params, generation)'), 'confirm base 必须复用现有 base→advice 流程并透传可信 queryId/generation')
   assert(pageSource.includes("candidates.length < 1 || candidates.length > 5 || !candidates.every((candidate) => this._isValidCandidate(candidate))"), '空或畸形候选必须稳定报错而不进入 base')
   assert(pageSource.includes('onCandidateClose = () =>') && pageSource.includes('this._nextRequestGeneration()'), '取消候选必须使旧 prepare/confirm 回调失效')
   assert((pageSource.match(/generation !== this\._requestGeneration/g) || []).length >= 4, 'prepare 与 confirm 的 success/fail 回调必须受单调 generation 保护')

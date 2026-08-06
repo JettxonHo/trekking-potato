@@ -6,6 +6,7 @@
 const ERROR_RETRYABLE = Object.freeze({
   weather_data_invalid: true,
   context_unavailable: true,
+  query_context_unavailable: false,
   no_auth: false,
   missing_params: false,
   invalid_mode: false,

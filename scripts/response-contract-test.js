@@ -15,7 +15,9 @@ let throwOnAuthLookup = false
 let contextWriteFailure = false
 let contextWriteAttempts = 0
 let contextReadCount = 0
+let contextReadFailure = false
 const contextWrites = []
+const contextRecords = new Map()
 
 function copy(value) {
   return JSON.parse(JSON.stringify(value))
@@ -34,14 +36,30 @@ function tripContextCollection() {
             throw new Error('TripContext 只允许 set({ data: record })')
           }
           if (contextWriteFailure) throw new Error('offline TripContext write failure')
-          contextWrites.push({ collection: 'trip_contexts', queryId, record: copy(payload.data) })
+          const record = copy(payload.data)
+          contextWrites.push({ collection: 'trip_contexts', queryId, record })
+          contextRecords.set(queryId, record)
           return { _id: queryId }
         },
       }
     },
-    where() {
+    where(filter) {
       contextReadCount++
-      throw new Error('I17 handler 不得读取 TripContext')
+      if (!filter || Object.keys(filter).length !== 1 || typeof filter._id !== 'string') {
+        throw new Error('TripContext 只允许 where({ _id: queryId })')
+      }
+      return {
+        limit(limit) {
+          if (limit !== 1) throw new Error('TripContext 读取必须 limit(1)')
+          return {
+            async get() {
+              if (contextReadFailure) throw new Error('offline TripContext read failure')
+              const record = contextRecords.get(filter._id)
+              return { data: record ? [copy(record)] : [] }
+            },
+          }
+        },
+      }
     },
   }
 }
@@ -352,6 +370,22 @@ async function main() {
   assert(contextWrites[0].record._openid === openid, 'TripContext 必须绑定当前服务端 openid')
   assert(JSON.stringify(contextWrites[0].record.snapshot) === JSON.stringify(base.data), 'base data 必须直接使用已持久化的可信快照')
 
+  process.env.LLM_KEY = 'offline-response-contract-key'
+  installLlmMock('failure')
+  const legacyFieldsMustNotBeRead = { mode: 'advice', queryId: base.queryId }
+  for (const field of ['route', 'date', 'level', 'days', 'baseData', 'weather']) {
+    Object.defineProperty(legacyFieldsMustNotBeRead, field, {
+      enumerable: true,
+      get() { throw new Error('I18 advice 不得读取客户端 ' + field) },
+    })
+  }
+  const llmBeforeQueryOnlyAdvice = llmRequestCount
+  const queryOnlyAdvice = await getAdvice.main(legacyFieldsMustNotBeRead)
+  assert(queryOnlyAdvice.phase === 'advice' && queryOnlyAdvice.degraded === true, 'owner 只发送 queryId 必须从可信快照返回降级 advice')
+  assert(llmRequestCount === llmBeforeQueryOnlyAdvice + 1, 'owner queryId advice 必须调用 AI 一次')
+  assert(contextReadCount === 1, 'owner queryId advice 必须只读取一次 TripContext')
+  assert(lastLlmRequestBody && JSON.stringify(lastLlmRequestBody.messages).includes('武功山'), 'owner queryId advice 的 Prompt 必须来自可信快照')
+
   const writesBeforeBaseAlias = contextWrites.length
   const baseAlias = await getAdvice.main({
     mode: 'base', route: '武功山', date: '2026-08-07', level: '中级',
@@ -419,75 +453,45 @@ async function main() {
   })
   assertError(invalidWeather, 'weather_data_invalid', true)
   weatherResponseMode = 'success'
+  assert(contextReadCount === 1, 'prepare/base 及其错误分支不得读取 TripContext')
 
-  const invalidBaseData = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级',
-  })
-  assertError(invalidBaseData, 'invalid_base_data')
+  const llmBeforeContextErrors = llmRequestCount
+  const readsBeforeMissingContext = contextReadCount
+  const missingContext = await getAdvice.main({ mode: 'advice' })
+  assertError(missingContext, 'query_context_unavailable')
+  assert(contextReadCount === readsBeforeMissingContext, '缺失 queryId 不得查询 TripContext')
 
-  process.env.LLM_KEY = 'offline-response-contract-key'
-  installLlmMock('failure')
-  const invalidBaseCalls = llmRequestCount
-  const malformedGearBase = {
-    ...base.data,
-    gearRules: { ...base.data.gearRules, essential: {} },
-  }
-  const malformedGearResponse = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: malformedGearBase,
+  const unknownContext = await getAdvice.main({
+    mode: 'advice', queryId: 'tctx_00000000-0000-4000-8000-000000000000',
   })
-  assertError(malformedGearResponse, 'invalid_base_data')
-  assert(llmRequestCount === invalidBaseCalls, '畸形装备数组必须在 LLM 前拒绝')
+  assertError(unknownContext, 'query_context_unavailable')
+  assert(unknownContext.message === '本次查询已失效，请重新查询', 'query_context_unavailable 必须使用冻结的重新查询提示')
+  assert(!['queryId', 'expiresAt', 'snapshot'].some((field) => Object.prototype.hasOwnProperty.call(unknownContext, field)), 'query_context_unavailable 不得泄露上下文元数据')
 
-  const missingGearArrayResponse = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: {
-      ...base.data,
-      gearRules: { ...base.data.gearRules, recommended: undefined },
-    },
-  })
-  assertError(missingGearArrayResponse, 'invalid_base_data')
-  assert(llmRequestCount === invalidBaseCalls, '缺失装备数组必须在 LLM 前拒绝')
+  const ownerOpenid = openid
+  openid = 'offline-foreign-context-user'
+  const foreignContext = await getAdvice.main({ mode: 'advice', queryId: base.queryId })
+  openid = ownerOpenid
+  assertError(foreignContext, 'query_context_unavailable')
 
-  const malformedGearItemResponse = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: {
-      ...base.data,
-      gearRules: { ...base.data.gearRules, optional: [{ item: '缺少原因', reason: '' }] },
-    },
-  })
-  assertError(malformedGearItemResponse, 'invalid_base_data')
-  assert(llmRequestCount === invalidBaseCalls, '畸形装备条目必须在 LLM 前拒绝')
+  const aliasContextRecord = contextRecords.get(baseAlias.queryId)
+  aliasContextRecord.expiresAt = '2000-01-01T00:00:00.000Z'
+  const expiredContext = await getAdvice.main({ mode: 'advice', queryId: baseAlias.queryId })
+  assertError(expiredContext, 'query_context_unavailable')
+  assert(JSON.stringify(unknownContext) === JSON.stringify(foreignContext)
+    && JSON.stringify(unknownContext) === JSON.stringify(expiredContext), 'unknown、foreign、expired 必须公开为同一上下文不可用响应')
 
-  const malformedRiskResponse = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: {
-      ...base.data,
-      gearRules: { ...base.data.gearRules, fatalRisks: '雷暴' },
-    },
-  })
-  assertError(malformedRiskResponse, 'invalid_base_data')
-  assert(llmRequestCount === invalidBaseCalls, '畸形 fatalRisks 必须在 LLM 前拒绝')
-
-  const malformedRuleNotesResponse = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: {
-      ...base.data,
-      gearRules: { ...base.data.gearRules, ruleNotes: [''] },
-    },
-  })
-  assertError(malformedRuleNotesResponse, 'invalid_base_data')
-  assert(llmRequestCount === invalidBaseCalls, '畸形 ruleNotes 必须在 LLM 前拒绝')
-
-  const malformedWeatherResponse = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: { ...base.data, weather: [] },
-  })
-  assertError(malformedWeatherResponse, 'invalid_base_data')
-  assert(llmRequestCount === invalidBaseCalls, 'weather 非 object/null 必须在 LLM 前拒绝')
-
-  const malformedSunResponse = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: { ...base.data, sunEvents: [] },
-  })
-  assertError(malformedSunResponse, 'invalid_base_data')
-  assert(llmRequestCount === invalidBaseCalls, 'sunEvents 非 object/null 必须在 LLM 前拒绝')
+  contextReadFailure = true
+  const unavailableContext = await getAdvice.main({ mode: 'advice', queryId: base.queryId })
+  contextReadFailure = false
+  assertError(unavailableContext, 'context_unavailable', true)
+  assert(unavailableContext.message === '暂时无法读取本次查询，请重试', 'context_unavailable 必须使用冻结的可重试提示')
+  assert(!['queryId', 'expiresAt', 'snapshot'].some((field) => Object.prototype.hasOwnProperty.call(unavailableContext, field)), 'context_unavailable 不得泄露上下文元数据')
+  assert(!unavailableContext.message.includes('offline TripContext'), '存储读取失败不得泄露 mock 或原始错误')
+  assert(llmRequestCount === llmBeforeContextErrors, '上下文不可用不得调用 AI')
 
   const degradedAdvice = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: base.data,
+    mode: 'advice', queryId: base.queryId,
   })
   assert(degradedAdvice.phase === 'advice' && degradedAdvice.degraded === true, 'LLM 降级仍必须返回 phase=advice，实际=' + JSON.stringify(degradedAdvice))
   assertExclusivePhaseFields(degradedAdvice)
@@ -499,7 +503,7 @@ async function main() {
     notes: [],
   })
   const invalidAdvice = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: base.data,
+    mode: 'advice', queryId: base.queryId,
   })
   assert(invalidAdvice.phase === 'advice' && invalidAdvice.degraded === true, 'AI schema 无效仍必须返回降级 advice')
   assert(invalidAdvice.data.meta.degradedReason === 'ai_output_invalid', 'AI schema 无效必须只在 data.meta 记录 ai_output_invalid')
@@ -509,14 +513,14 @@ async function main() {
 
   installLlmMock('non_json_content')
   const nonJsonAdvice = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: base.data,
+    mode: 'advice', queryId: base.queryId,
   })
   assert(nonJsonAdvice.phase === 'advice' && nonJsonAdvice.degraded === true, 'LLM non-JSON content 必须返回降级 advice')
   assert(nonJsonAdvice.data.meta.degradedReason === 'ai_output_invalid', 'LLM non-JSON content 必须标记 ai_output_invalid')
 
   installLlmMock('malformed_envelope')
   const malformedEnvelopeAdvice = await getAdvice.main({
-    mode: 'advice', route: '武功山', date: '2026-08-07', level: '中级', baseData: base.data,
+    mode: 'advice', queryId: base.queryId,
   })
   assert(malformedEnvelopeAdvice.phase === 'advice' && malformedEnvelopeAdvice.degraded === true, 'LLM 畸形 envelope 必须返回降级 advice')
   assert(malformedEnvelopeAdvice.data.meta.degradedReason === 'ai_output_invalid', 'LLM 畸形 envelope 必须标记 ai_output_invalid')
@@ -532,7 +536,7 @@ async function main() {
     meta: { injected: true },
   })
   const normalAdvice = await getAdvice.main({
-    mode: 'advice', route: 'EVENT_ROUTE_MUST_NOT_REACH_PROMPT', date: 'EVENT_DATE_MUST_NOT_REACH_PROMPT', level: 'EVENT_LEVEL_MUST_NOT_REACH_PROMPT', days: 7, baseData: base.data,
+    mode: 'advice', queryId: base.queryId, route: 'EVENT_ROUTE_MUST_NOT_REACH_PROMPT', date: 'EVENT_DATE_MUST_NOT_REACH_PROMPT', level: 'EVENT_LEVEL_MUST_NOT_REACH_PROMPT', days: 7, baseData: base.data,
   })
   assert(normalAdvice.phase === 'advice' && normalAdvice.degraded === false, '正常 AI 结果必须返回 phase=advice，实际=' + JSON.stringify(normalAdvice))
   assertExclusivePhaseFields(normalAdvice)
@@ -540,13 +544,14 @@ async function main() {
   assert(normalAdvice.data.gear.recommended.some((item) => item.item === '头灯'), 'handler 正常路径只能追加白名单装备')
   assert(normalAdvice.data.risks.every((risk) => risk.level === '致命'), 'handler 风险等级必须保持确定性致命等级')
   assert(!Object.prototype.hasOwnProperty.call(normalAdvice.data, 'verdict') && !Object.prototype.hasOwnProperty.call(normalAdvice.data, 'degradedReason'), '越权 AI 字段和第二 degradedReason 位置不得进入 data')
-  assert(normalAdvice.data.weather === base.data.weather && normalAdvice.data.sunEvents === base.data.sunEvents, 'weather/sunEvents 必须仅来自 baseData')
+  assert(JSON.stringify(normalAdvice.data.weather) === JSON.stringify(base.data.weather)
+    && JSON.stringify(normalAdvice.data.sunEvents) === JSON.stringify(base.data.sunEvents), 'weather/sunEvents 必须仅来自可信快照')
   assert(lastLlmRequestBody && !JSON.stringify(lastLlmRequestBody.messages).includes('EVENT_'), 'Prompt 不得读取 event 中重复路线事实')
 
   const pageSource = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
-  const showBaseSource = pageMethod(pageSource, '_showBaseAndFetchAdvice(base, params)', '_submitBase(params)')
-  const submitBaseSource = pageMethod(pageSource, '_submitBase(params)', '_fetchAdvice(params)')
-  const fetchAdviceSource = pageMethod(pageSource, '_fetchAdvice(params)', 'onBack =')
+  const showBaseSource = pageMethod(pageSource, '_showBaseAndFetchAdvice(base, queryId, params, generation)', '_submitBase(params)')
+  const submitBaseSource = pageMethod(pageSource, '_submitBase(params)', '_fetchAdvice(queryId, historyParams, generation)')
+  const fetchAdviceSource = pageMethod(pageSource, '_fetchAdvice(queryId, historyParams, generation)', 'onBack =')
   const confirmationBranch = sourceBranch(
     submitBaseSource,
     "if (result.phase === 'confirmation')",
@@ -569,16 +574,30 @@ async function main() {
   assert(!/_fetchAdvice|_saveCache|_saveHistory/.test(routeTypeBranch), 'route_type_required 分支不得触发 advice、缓存或历史')
   assert(!/result\.ok/.test(fetchAdviceSource), '前端 advice 消费不得按兼容 ok 分支')
   assert(fetchAdviceSource.includes("result.phase === 'advice'"), '前端必须只消费 advice 阶段的建议')
+  assert(showBaseSource.includes('this._fetchAdvice(queryId, params, generation)'), 'base 结果必须把顶层 queryId 与 generation 传给 advice')
+  assert(submitBaseSource.includes('this._showBaseAndFetchAdvice(result.data, result.queryId, params, generation)'), 'prepare base 必须从顶层读取 queryId 并传递当前 generation')
+  assert(fetchAdviceSource.includes("data: { mode: 'advice', queryId }"), 'advice 云函数请求必须只发送 mode/queryId')
+  assert(!fetchAdviceSource.includes('...params'), 'advice 云函数请求不得展开表单或 BaseData')
+  assert(fetchAdviceSource.includes('this._saveHistory(historyParams,'), '历史只能使用本地 history 参数')
+  assert((fetchAdviceSource.match(/generation !== this\._requestGeneration/g) || []).length === 2, 'advice success 与 fail 都必须拒绝迟到 generation')
   assert(showBaseSource.includes('buildBaseSafetyResult(base.gearRules)'), 'base 到达后必须立即由 gearRules 建立确定性装备和风险')
   assert(pageSource.includes("risk: riskName + '风险'") && pageSource.includes("level: '致命'"), '前端 base 风险必须使用冻结记录格式')
   assert(!pageSource.includes('gear: { essential: [], recommended: [], optional: [] }'), 'base 阶段不得先用空装备覆盖确定性内容')
   assert((fetchAdviceSource.match(/notes: \[\.\.\.\(prev\.result\.notes \|\| \[\]\), AI_UNAVAILABLE_NOTE\]/g) || []).length === 2, 'advice phase error 与传输失败都必须只追加降级说明')
+  const queryContextUnavailableBranch = sourceBranch(
+    fetchAdviceSource,
+    "if (result && result.phase === 'error' && result.code === 'query_context_unavailable')",
+    "if (result && result.phase === 'advice')",
+  )
+  assert(queryContextUnavailableBranch.includes('adviceLoading: false') && queryContextUnavailableBranch.includes('error: result.message') && queryContextUnavailableBranch.includes('result: { ...prev.result }'), 'query_context_unavailable 必须保留 base 并展示服务端消息')
+  assert(!/degraded|AI_UNAVAILABLE_NOTE|_saveHistory/.test(queryContextUnavailableBranch), 'query_context_unavailable 不得伪装 AI 降级或写历史')
+  assert((pageSource.match(/\{error && <View className="error-box"><Text>\{error\}<\/Text><\/View>\}/g) || []).length === 2, '结果视图必须显示 query_context_unavailable 消息')
   const gearCard = sourceBranch(pageSource, '<Text className="card-title">装备清单</Text>', '<Text className="card-title">风险提示</Text>')
   const riskCard = sourceBranch(pageSource, '<Text className="card-title">风险提示</Text>', '<Text className="card-title">晨昏光影时刻</Text>')
   assert(!gearCard.includes('adviceLoading ?'), 'advice loading 不得用 skeleton 遮挡已有装备')
   assert(!riskCard.includes('adviceLoading ?'), 'advice loading 不得用 skeleton 遮挡已有风险')
   assert(contextWrites.length === writesAfterBaseOutcomes, '非 base 分支不得写入 TripContext')
-  assert(contextReadCount === 0, 'I17 handler 不得读取 TripContext')
+  assert(contextReadCount > 1, 'I18 advice 必须通过 TripContext 读取可信快照')
 
   console.log('PASS: 后端与前端响应阶段契约')
 }

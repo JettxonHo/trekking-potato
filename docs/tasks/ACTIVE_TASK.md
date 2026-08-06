@@ -3,8 +3,8 @@
 - Task ID: `I18`
 - GitHub Issue: `#27`
 - Title: 移除客户端可信 BaseData 回传并让 advice 仅接收 queryId
-- Status: `ACTIVE — IMPLEMENTATION`
-- Mode: `IMPLEMENTATION`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
+- Mode: `REVIEW`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
 - Branch: `codex/i18-query-context-implementation`
@@ -20,6 +20,10 @@ I17 规划及实现 PR #62–#65 已合并，父 Issue #26 与子 Issues #60/#61
 I18 规划 PR #66 已通过独立 Review 与 latest-head GitHub `quality`（57 秒），并 squash
 merged as `270e442`。当前授权 Terra XHigh 按本合同实施 I18；不得改动合同、扩大范围、批准
 或合并自己的 PR。Sol XHigh 保留独立 Review、返工指令与合并判断。
+
+执行记录：Terra 已按本合同完成 RED → 服务端切换 → 前端切换 → 本地质量矩阵，并返回
+`READY_FOR_CONTROLLER_REVIEW`。当前只允许 Sol XHigh 检查实际 diff、测试证据和文档同步；
+尚未创建、批准或合并 implementation PR。
 
 ## 必读上下文
 

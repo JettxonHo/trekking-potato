@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I18 / #27 / ACTIVE — IMPLEMENTATION`
+- Active task: `I18 / #27 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/i18-query-context-implementation`
 - Base: `main` at `270e442`
 - Planning PR: `#9` — merged
@@ -29,14 +29,15 @@
 - I17a implementation PR: `#63` — merged; GitHub #60 closed
 - I17b implementation PR: `#64` — merged; GitHub #61 closed
 - I17 completion PR: `#65` — merged; GitHub #26 closed
-- I18 planning PR: `#66` — merged; GitHub #27 implementation active
+- I18 planning PR: `#66` — merged; GitHub #27 implementation result awaiting Sol review
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is now complete through I14–I16 without authorizing I13 or real full-route data. M5 is active at
-I18 contract review. I17 is complete and creates server-owned short-lived contexts; advice remains
-client-baseData compatible and explicitly untrusted until I18 implementation merges.
+I18 independent code review. I17 is complete and creates server-owned short-lived contexts; the I18
+working branch now uses those contexts for advice and has no client-`baseData` fallback. This result is
+not accepted or merged until Sol XHigh completes an independent review.
 
 ## Completed
 
@@ -305,6 +306,20 @@ client-baseData compatible and explicitly untrusted until I18 implementation mer
   typecheck, root test, integration (56/0) and the WeChat production build before PR submission.
 - I18 planning PR #66 matched approved head `5b1e360`, passed latest-head GitHub `quality` in 57 seconds
   and squash merged as `270e442`. #27 is active for Terra implementation from that exact base.
+- I18 implementation recorded a real RED in `test:response`: an advice request with only `queryId` and
+  throwing legacy `route/date/level/days/baseData/weather` getters failed before the server cutover. Its
+  GREEN moves the handler's advice branch ahead of all ordinary request-field reads, restores one
+  openid-bound TripContext snapshot, and sends only that snapshot to Prompt, AI and safety projection.
+  The response contract now maps unknown/foreign/expired to the same non-retryable
+  `query_context_unavailable` envelope and storage reads to retryable `context_unavailable` without raw
+  errors or an LLM call.
+- The matching production-page cutover forwards top-level base `queryId` and generation to advice, sends
+  exactly `{ mode: 'advice', queryId }`, retains only local form data for history, and rejects stale
+  success/failure callbacks. Its distinct context-expired branch retains the deterministic result,
+  displays the server reprepare message, and does not record AI degradation or history. The full local
+  I18 matrix passed: TripContext, response and confirmation contracts; integration `56/0`; lint with
+  `0` errors and `10` existing warnings; typecheck; root test; WeChat build; and `git diff --check`.
+  Terra returned `READY_FOR_CONTROLLER_REVIEW`; no PR has been created, approved or merged.
 
 ## Baseline evidence
 
@@ -349,14 +364,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns I18 independent Review, GitHub orchestration and all merge decisions.
-- Terra XHigh: assigned I18 implementation under the frozen #27 contract.
+- Terra XHigh: completed I18 implementation under the frozen #27 contract; awaiting controller review.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Terra implements #27 test-first on the frozen allowlist and returns a complete result package.
-2. Sol inspects actual code, reruns the matrix and issues a formal Review before any PR/merge.
-3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
+1. Sol inspects the actual I18 diff, reruns the required matrix and issues a formal Review before any
+   PR/merge.
+2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
 
@@ -375,8 +390,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - TP-D029 resolves I16's sunset evidence boundary as the earliest value across each route-day's trusted
   I14 samples. If any necessary sunset cannot be calculated, the result is unavailable unless a known
   hard no-go independently applies.
-- I17 does not make the advice path trusted by itself. Until I18 implementation merges, client
-  `baseData` remains a documented compatibility input and end-to-end trust is incomplete.
+- I18 has deliberately removed the client-`baseData` compatibility fallback from its working branch.
+  It remains subject to Sol review and merge; reintroducing a dual-trust fallback would violate #27.
 - Deployment and real-device validation remain outside the Goal.
 
 ## Forbidden actions during I18 implementation
@@ -387,5 +402,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra implements the frozen I18 contract with genuine RED/GREEN evidence and returns the result package
-to Sol for independent code Review. No implementation PR is opened before local Review.
+Sol performs an independent I18 code Review and reruns the required evidence. Terra must not open,
+approve or merge an implementation PR unless the controller directs it after that review.

@@ -296,7 +296,7 @@ export default class Index extends Component {
           this.setState({ loading: false, error: '路线确认失败，请重新查询' })
           return
         }
-        this._showBaseAndFetchAdvice(result.data, params)
+        this._showBaseAndFetchAdvice(result.data, result.queryId, params, generation)
       },
       fail: (err) => {
         if (this._unmounted || generation !== this._requestGeneration) return
@@ -360,7 +360,7 @@ export default class Index extends Component {
     this.setState({ funnyMsg: FUNNY_MESSAGES[0] })
   }
 
-  _showBaseAndFetchAdvice(base, params) {
+  _showBaseAndFetchAdvice(base, queryId, params, generation) {
     const baseSafetyResult = buildBaseSafetyResult(base.gearRules)
     this.setState({
       loading: false,
@@ -391,7 +391,7 @@ export default class Index extends Component {
     }, 1800)
     this.setState({ adviceStage: this._adviceSteps[0] })
     this._startFunnyRotation()
-    this._fetchAdvice({ ...params, route: params.route || base.route, baseData: base })
+    this._fetchAdvice(queryId, params, generation)
   }
 
   _submitBase(params) {
@@ -456,7 +456,7 @@ export default class Index extends Component {
           this.setState({ loading: false, error: '路线查询失败' })
           return
         }
-        this._showBaseAndFetchAdvice(result.data, params)
+        this._showBaseAndFetchAdvice(result.data, result.queryId, params, generation)
       },
       fail: (err) => {
         if (this._unmounted || generation !== this._requestGeneration) return
@@ -466,15 +466,25 @@ export default class Index extends Component {
     })
   }
 
-  _fetchAdvice(params) {
+  _fetchAdvice(queryId, historyParams, generation) {
     Taro.cloud.callFunction({
       name: 'getAdvice',
-      data: { ...params, mode: 'advice' },
+      data: { mode: 'advice', queryId },
       success: (res) => {
-        if (this._unmounted) return
+        if (this._unmounted || generation !== this._requestGeneration) return
         if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
         if (this._funnyTimer) clearInterval(this._funnyTimer)
         const result = res.result
+        if (result && result.phase === 'error' && result.code === 'query_context_unavailable') {
+          this.setState((prev) => ({
+            adviceLoading: false,
+            funnyMsg: '',
+            daysBounce: false,
+            error: result.message,
+            result: { ...prev.result },
+          }))
+          return
+        }
         if (result && result.phase === 'advice') {
           const d = result.data
           const degraded = result.degraded === true
@@ -494,7 +504,7 @@ export default class Index extends Component {
              meta: { ...prev.result.meta, ...d.meta },
            },
          }), () => this._saveCache())
-         this._saveHistory(params, {
+         this._saveHistory(historyParams, {
             risks: d.risks || [],
             degraded,
             meta: { ...((this.state.result && this.state.result.meta) || {}), ...d.meta },
@@ -514,7 +524,7 @@ export default class Index extends Component {
         }
       },
       fail: (err) => {
-        if (this._unmounted) return
+        if (this._unmounted || generation !== this._requestGeneration) return
         if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
         if (this._funnyTimer) clearInterval(this._funnyTimer)
         this.setState((prev) => ({
@@ -707,6 +717,8 @@ export default class Index extends Component {
               <Text>薯仔脑子暂时短路了，以下为基础参考 🥔</Text>
             </View>
           )}
+
+          {error && <View className="error-box"><Text>{error}</Text></View>}
 
           {adviceLoading && (
             <View className="status-bar">
