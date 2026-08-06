@@ -1,28 +1,17 @@
 # 当前活动任务
 
-- Task ID: `M1-CHECKPOINT`
-- Planned next Issue: `#13` — `https://github.com/JettxonHo/trekking-potato/issues/13`
-- Title: 固化 M1 完成状态并批准 I04 合同
-- Status: `CONTROLLER_REVIEW`
-- Mode: `REVIEW`
-- Owner and reviewer: Sol XHigh
-- Branch: `codex/m1-checkpoint`
-- Base: `main` at `6ee02c9`
+- Task ID: `I04`
+- GitHub Issue: `#13` — `https://github.com/JettxonHo/trekking-potato/issues/13`
+- Title: 建立判别式云函数响应契约
+- Status: `READY_FOR_EXECUTOR`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh (authorized Luna fallback)
+- Reviewer: Sol XHigh
+- Branch: `codex/i04-response-contract`
+- Base: `main` at `900b79e`
 - Goal: `TP-BETA-001`
 
-本文件当前记录的是控制端检查点，不能作为 I04 实现授权。检查点 PR 合并后，Sol
-XHigh 必须用真实 merge commit 更新 GitHub #13 和本文件、创建
-`codex/i04-response-contract`，然后才能向 Terra XHigh 分派。下面内容是已经冻结但
-尚未激活的 I04 合同。
-
-## Checkpoint scope
-
-- `GOAL.md`、`README.md`
-- `docs/architecture.md`、`docs/current-status.md`、`docs/decision-log.md`
-- `docs/development-plan.md`、`docs/issue-and-pr-workflow.md`
-- `docs/testing-strategy.md`、`docs/tasks/ACTIVE_TASK.md`
-
-检查点只同步治理、状态和下一任务合同，不修改业务代码。
+PR #39 已合并且 GitHub #13 已写回真实 base；本文件现在是 I04 的实现授权。
 
 ## Objective
 

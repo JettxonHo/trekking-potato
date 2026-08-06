@@ -30,16 +30,17 @@ I02 的离线集成测试使用 `scripts/fixtures/open-meteo-forecast.js` 和
 HTTPS GET 会使测试失败；`wx-server-sdk` 在加载云函数模块时替换为 mock。该测试覆盖
 `tripDays` 1、2、3 和内置路线的 `trek` / `climb` 类型；它不调用 DeepSeek。
 
-三个可单独运行的稳定契约脚本为：
+可单独运行的稳定验证脚本包括：
 
 ```bash
-node scripts/route-type-contract-test.js   # 93/0
-node scripts/weather-contract-test.js      # 86/0
-node scripts/unit-test.js                  # 55/0
-node scripts/e2e-local.js                   # 离线 E2E，56/0
+node scripts/route-type-contract-test.js
+node scripts/weather-contract-test.js
+node scripts/unit-test.js
+node scripts/response-contract-test.js
+node scripts/e2e-local.js
 ```
 
-I04 增加 `test:response` 并纳入根 `test`。它覆盖每一种 `phase` 构造、error 的
+I04 的 `test:response` 已纳入根 `test`。它覆盖每一种 `phase` 构造、error 的
 `code/message/retryable`、互斥字段，以及当前 handler 的 missing/auth/invalid、
 confirmation、route-type、base、advice/degraded 出口。断言兼容字段时只验证迁移
 一致性，不把这些字段确立为最终 API。

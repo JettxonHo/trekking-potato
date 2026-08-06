@@ -4,15 +4,15 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M2 Correctness`
-- Active task: `M1-CHECKPOINT / I04 contract approval`
-- Branch: `codex/m1-checkpoint`
-- Base: `main` at `6ee02c9`
+- Active task: `I04 / GitHub #13 / READY_FOR_CONTROLLER_REVIEW`
+- Branch: `codex/i04-response-contract`
+- Base: `main` at `900b79e`
 - Planning PR: `#9` — merged
-- Checkpoint PR: `#39` — open; merge remains gated by its latest-head GitHub `quality`
+- Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 
 Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
-I04 is the only business task being prepared for execution; I05 and later Issues remain Backlog
-until their dependencies and exact contracts are approved.
+I04 is the only business task awaiting Sol XHigh controller review; I05 and later Issues remain
+Backlog until their dependencies and exact contracts are approved.
 
 ## Completed
 
@@ -31,6 +31,11 @@ until their dependencies and exact contracts are approved.
   force pushes and branch deletion are disabled. Extra GitHub approval count remains zero because
   independent approval is performed by Sol XHigh.
 - M1 Engineering gate was closed after I01–I03 completion.
+- M1 checkpoint and the frozen I04 contract passed independent Review and merged in PR #39.
+- I04 response-contract implementation was committed as `37c9be3`; its offline
+  `test:response` exercises public handler exits and minimal frontend phase consumption. The
+  first Sol review changes are addressed on `codex/i04-response-contract`, which is again
+  `READY_FOR_CONTROLLER_REVIEW`.
 
 ## Baseline evidence
 
@@ -41,27 +46,27 @@ until their dependencies and exact contracts are approved.
 - `node scripts/e2e-local.js`: offline fixture/mock E2E, 56 pass / 0 fail; covers
   `tripDays` 1/2/3 and current `trek` / `climb` route types without Open-Meteo,
   CloudBase or DeepSeek access.
+- `node scripts/response-contract-test.js`: offline public-handler and frontend-source contract
+  test for I04 response phases, error envelopes, compatibility consistency and phase branches.
 - I01 on Node 24.18.0 + npm 10.9.2: fresh-cache root `ci` and three-project `bootstrap` pass using official npm registry locks.
 - I02 on Node 24.18.0 + Corepack npm 10.9.2: root `lint` (0 errors; 10 existing
   unused-variable warnings), `typecheck`, `test`, `test:integration` and
   `build:weapp` pass; global `taro` is not required.
 - PR #38 GitHub-hosted `quality`: all 12 steps passed in 50 seconds using the same root commands.
 
-All four passing counts were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
+The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
 ## Agent assignments
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: authorized implementation fallback; may receive I04 only after its exact contract
-  and checkpoint PR are merged.
-- Sol XHigh: owns the I04 public-contract migration design and independent Review.
+- Terra XHigh: authorized implementation fallback; completed I04 and first review fixes.
+- Sol XHigh: owns the I04 public-contract migration design and is reviewing the current branch.
 
 ## Open work
 
-1. Merge the M1 checkpoint and I04 contract activation PR.
-2. Create `codex/i04-response-contract` from the resulting `main` and dispatch GitHub #13 to Terra XHigh.
-3. Sol XHigh reviews implementation and CI before any merge or I05 activation.
+1. Sol XHigh reviews the I04 response-contract implementation and latest-head CI before any
+   merge or I05 activation.
 
 ## Blockers and risks
 
@@ -80,4 +85,4 @@ All four passing counts were rerun during M1 verification. Local Markdown links 
 
 ## Next action
 
-Merge this checkpoint, then implement only the I04 contract in GitHub #13.
+Sol XHigh reviews the current I04 result package; no I05 activation occurs before approval.

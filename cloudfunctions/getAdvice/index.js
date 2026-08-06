@@ -2,9 +2,9 @@
  * 徒步薯 - 核心云函数 getAdvice（P5 咽喉切片）
  *
  * 流程（分步加载 P5.3）：
- *   mode='base': resolveLocation → Promise.all([fetchWeather, calcSunEvents]) → 返回（~3-5s）
+ *   mode='prepare': resolveLocation → Promise.all([fetchWeather, calcSunEvents]) → base phase（~3-5s）
  *   mode='advice': 接收 base 数据 → callLLM → schema 校验 → 降级（~30-40s，独立超时窗口）
- *   无 mode（兼容）: 全链路一次跑完
+ *   mode='base': prepare 的迁移别名；缺失或未知 mode 返回 invalid_mode
  *
  * 关键设计：
  * - Promise.all 并行天气+天文（省2-5s）
@@ -23,6 +23,13 @@ const { calcSunEvents } = require('./sun-events')
 const { getGearRules } = require('./gear-rules')
 const { buildMessages, buildDegradedResponse } = require('./prompt')
 const { isKnownRouteType, validateRouteTypeContract } = require('./route-type')
+const {
+  errorResponse,
+  confirmationResponse,
+  routeTypeRequiredResponse,
+  baseResponse,
+  adviceResponse,
+} = require('./response-contract')
 
 // LLM API 配置（DeepSeek，OpenAI 兼容格式）
 // 切换原因：智谱 GLM 对微信云函数 IP 服务端限流（DNS/TCP/TLS 正常但服务端挂着不响应）
@@ -178,24 +185,16 @@ function buildRuleBasedAdvice(gearRules, weather) {
  */
 function mapLocationResolutionFailure(locResult) {
   if (locResult && locResult.error === 'invalid_route_type') {
-    return {
-      ok: false,
-      error: 'invalid_route_type',
-      message: locResult.message || '内置路线类型数据异常',
-    }
+    return errorResponse('invalid_route_type', locResult.message || '内置路线类型数据异常')
   }
 
-  return {
-    ok: false,
-    error: 'location_failed',
-    message: (locResult && locResult.message) || '未找到位置',
-  }
+  return errorResponse('location_failed', (locResult && locResult.message) || '未找到位置')
 }
 
 /**
 * 云函数主入口
  */
-exports.main = async (event, context) => {
+async function main(event, context) {
   const startTime = Date.now()
   const { route, date, level, days, mode } = event
 
@@ -203,12 +202,17 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
   if (!openid) {
-    return { ok: false, error: 'no_auth', message: '无法获取用户身份' }
+    return errorResponse('no_auth', '无法获取用户身份')
+  }
+
+  // I04：生产首请求固定为 prepare；base 仅作为兼容别名，缺失或未知 mode 不再回退全链路。
+  if (mode !== 'prepare' && mode !== 'base' && mode !== 'advice') {
+    return errorResponse('invalid_mode', '请求模式无效')
   }
 
   // 1. 输入校验
   if (!route || !date || !level) {
-    return { ok: false, error: 'missing_params', message: '缺少必要参数（route/date/level）' }
+    return errorResponse('missing_params', '缺少必要参数（route/date/level）')
   }
 
   // ========== 分步加载：mode='advice' 时跳过 geo/weather，直接用前端传来的数据跑 GLM ==========
@@ -220,12 +224,12 @@ exports.main = async (event, context) => {
   // 拒绝布尔、数组、对象及带空格/前导零/小数/指数/符号等字符串；不对任意类型做 Number() 强制转换
   const tripDays = parseTripDaysInput(days)
   if (tripDays === null) {
-    return { ok: false, error: 'invalid_trip_days', message: '行程天数必须为 1 至 7 天' }
+    return errorResponse('invalid_trip_days', '行程天数必须为 1 至 7 天')
   }
 
   // TP-P0-002：在地理编码和天气请求前验证出发日期格式（复用 weather.js 的校验函数）
   if (!isValidIsoDate(date)) {
-    return { ok: false, error: 'invalid_date', message: '出发日期格式无效' }
+    return errorResponse('invalid_date', '出发日期格式无效')
   }
 
   // 2. 地理编码：手动坐标优先，否则走 resolveLocation
@@ -233,7 +237,7 @@ exports.main = async (event, context) => {
   if (event.manualLat && event.manualLon) {
     // TP-P0-003：手动坐标必须由用户明确选择路线类型，不得硬编码 trek
     if (!isKnownRouteType(event.routeType)) {
-      return { ok: false, error: 'invalid_route_type', message: '请选择有效的路线类型' }
+      return errorResponse('invalid_route_type', '请选择有效的路线类型')
     }
     // 用户手动输入坐标兜底（搜不到路线名时）
     let elev = event.manualElevation
@@ -264,11 +268,9 @@ exports.main = async (event, context) => {
   // 如果需要用户确认（编辑距离匹配），返回确认请求
   // TP-P0-003：候选携带路线类型与来源，供确认展示；确认交互闭环由 TP-P0-004 处理
   if (loc.needsConfirm && loc.matchType === 'editDistance') {
-    return {
-      ok: true,
-      needsConfirm: true,
-      message: `你输入的"${route}"可能是指"${loc.name}"（${loc.location}），请确认`,
-      data: {
+    return confirmationResponse(
+      `你输入的"${route}"可能是指"${loc.name}"（${loc.location}），请确认`,
+      {
         name: loc.name,
         lat: loc.lat,
         lon: loc.lon,
@@ -277,26 +279,19 @@ exports.main = async (event, context) => {
         routeTypeSource: loc.typeSource,
         matchType: loc.matchType,
       },
-    }
+    )
   }
 
   // TP-P0-003：类型未知（外部地理编码/旧 UGC 记录）不得进入规则层，
   // 必须返回明确状态要求用户选择路线类型；不得默认成 trek 继续查询
   if (!isKnownRouteType(loc.type)) {
-    return {
-      ok: false,
-      error: 'route_type_required',
-      message: '无法从可信数据确认路线类型，请选择路线类型后继续',
-      needsRouteType: true,
-      data: {
-        name: loc.name,
-        lat: loc.lat,
-        lon: loc.lon,
-        elevation: loc.elevation,
-        location: loc.location,
-        routeTypeOptions: ['trek', 'climb', 'tour'],
-      },
-    }
+    return routeTypeRequiredResponse({
+      name: loc.name,
+      lat: loc.lat,
+      lon: loc.lon,
+      elevation: loc.elevation,
+      location: loc.location,
+    })
   }
 
   // 3. 坐标转换（GCJ-02 → WGS84，用于天气和天文查询）
@@ -317,7 +312,7 @@ exports.main = async (event, context) => {
     })
   } catch (e) {
     if (e && e.code === 'invalid_route_type') {
-      return { ok: false, error: 'invalid_route_type', message: '路线类型无效，请重新选择' }
+      return errorResponse('invalid_route_type', '路线类型无效，请重新选择')
     }
     throw e
   }
@@ -332,118 +327,32 @@ exports.main = async (event, context) => {
   // 可附带请求窗口，但不暴露 Open-Meteo 原始 reason。网络超时等非契约错误保持既有降级行为。
   const DETERMINISTIC_WEATHER_ERRORS = ['invalid_date', 'invalid_trip_days', 'out_of_range', 'weather_data_invalid']
   if (!weatherResult.ok && DETERMINISTIC_WEATHER_ERRORS.includes(weatherResult.error)) {
-    const errorResponse = { ok: false, error: weatherResult.error, message: weatherResult.message }
-    if (weatherResult.requestedStartDate) errorResponse.requestedStartDate = weatherResult.requestedStartDate
-    if (weatherResult.requestedEndDate) errorResponse.requestedEndDate = weatherResult.requestedEndDate
-    return errorResponse
+    const weatherErrorFields = {}
+    if (weatherResult.requestedStartDate) weatherErrorFields.requestedStartDate = weatherResult.requestedStartDate
+    if (weatherResult.requestedEndDate) weatherErrorFields.requestedEndDate = weatherResult.requestedEndDate
+    return errorResponse(weatherResult.error, weatherResult.message, weatherErrorFields)
   }
 
- const weather = weatherResult.ok ? weatherResult.data : null
+  const weather = weatherResult.ok ? weatherResult.data : null
 
- // ========== 分步加载：mode='base' 时到此为止，秒回天气数据 ==========
- if (mode === 'base') {
-   return {
-     ok: true,
-     phase: 'base',
-     data: {
-       route: loc.name,
-       date,
-       level,
-       days: tripDays,
-       elevation: loc.elevation,
-       location: loc.location,
-       coords: { lat: loc.lat, lon: loc.lon },
-       // TP-P0-003：base response 显式携带可信路线类型与来源，
-       // 不能只依赖 gearRules.routeType
-       routeType: loc.type,
-       routeTypeSource: loc.typeSource,
-       weather,
-       sunEvents,
-       gearRules,
-       meta: { elapsed: Date.now() - startTime, source: 'base' },
-     },
-   }
- }
-
- // 6. 调 GLM 生成建议
- const meta = {
-    generatedAt: new Date().toISOString(),
-    weatherSource: 'Open-Meteo',
-    llmModel: LLM_MODEL,
+  // 此时只可能是 prepare 或兼容别名 base；advice 已在地理/天气前返回。
+  return baseResponse({
+    route: loc.name,
+    date,
+    level,
+    days: tripDays,
     elevation: loc.elevation,
-    coords: { lat: loc.lat, lon: loc.lon },
     location: loc.location,
-    elapsed: 0,
-  }
-
-  let advice
-  let degraded = false
-  let degradedReason = ''
-
-  try {
-    const messages = buildMessages({
-      route: loc.name,
-      date,
-      level,
-      days: tripDays,
-      weather,
-      gearRules,
-      sunEvents,
-      microclimate: weather ? { humidity: null, windMs: weather.days[0] && weather.days[0].windMs, dewPointSpread: null } : null,
-      // TP-P0-003：Prompt 显式接收可信路线类型与来源
-      routeType: loc.type,
-      routeTypeSource: loc.typeSource,
-    })
-
-    console.log('[getAdvice] 调用 DeepSeek, prompt messages:', messages.length)
-    advice = await callLLM(messages)
-    meta.llmModel = LLM_MODEL
-    console.log('[getAdvice] DeepSeek 返回成功, keys:', Object.keys(advice).join(','))
-
-    // Schema 校验
-    const validation = validateAndFill(advice)
-    if (!validation.valid) {
-      console.warn('[getAdvice] Schema 校验失败:', validation.errors.join(', '))
-      console.warn('[getAdvice] GLM 原始返回:', JSON.stringify(advice).substring(0, 500))
-      degraded = true
-      degradedReason = 'AI 输出格式异常'  // 脱敏
-    }
-    advice = validation.advice
-  } catch (e) {
-    console.error('[getAdvice] DeepSeek 调用失败:', e.message)
-    degraded = true
-    degradedReason = 'AI 服务暂时不可用'  // 脱敏：不向客户端暴露 e.message
-  }
-
-  // 7. 降级处理
-  if (degraded) {
-    // 双模型都失败时，用本地规则兜底（装备/风险非空，比空降级更有用）
-    const ruleAdvice = buildRuleBasedAdvice(gearRules, weather)
-    const degradedResponse = buildDegradedResponse(weather, sunEvents, meta)
-    degradedResponse.data.gear = ruleAdvice.gear
-    degradedResponse.data.risks = ruleAdvice.risks
-    degradedResponse.data.notes = ruleAdvice.notes
-    degradedResponse.data.degradedReason = ruleAdvice.degradedReason
-    degradedResponse.data.meta.elapsed = Date.now() - startTime
-    degradedResponse.data.meta.degradedReason = degradedReason
-    return degradedResponse
-  }
-
-  // 8. 正常返回
-  // photoTiming 用 suncalc 确定性计算覆盖 LLM 复述（时刻更准，且保证含 terrainCaveat）
-  if (sunEvents) {
-    advice.photoTiming = Object.assign({}, advice.photoTiming, sunEvents)
-  }
-  meta.elapsed = Date.now() - startTime
-
-  return {
-    ok: true,
-    degraded: false,
-    data: {
-      ...advice,
-      meta,
-    },
-  }
+    coords: { lat: loc.lat, lon: loc.lon },
+    // TP-P0-003：base response 显式携带可信路线类型与来源，
+    // 不能只依赖 gearRules.routeType
+    routeType: loc.type,
+    routeTypeSource: loc.typeSource,
+    weather,
+    sunEvents,
+    gearRules,
+    meta: { elapsed: Date.now() - startTime, source: 'base' },
+  })
 }
 
 /**
@@ -496,7 +405,7 @@ async function handleAdvice(event, startTime) {
   // 校验 baseData 结构，防止客户端篡改注入
   if (!validateBaseData(baseData)) {
     console.warn('[getAdvice:advice] baseData 结构校验失败，拒绝执行')
-    return { ok: false, error: 'invalid_base_data', message: '基础数据异常，请重新查询' }
+    return errorResponse('invalid_base_data', '基础数据异常，请重新查询')
   }
 
   // 从 baseData 恢复上下文（避免重复查 geo/weather）
@@ -562,7 +471,7 @@ async function handleAdvice(event, startTime) {
     degradedResponse.data.degradedReason = ruleAdvice.degradedReason
     degradedResponse.data.meta.elapsed = Date.now() - startTime
     degradedResponse.data.meta.degradedReason = degradedReason
-    return degradedResponse
+    return adviceResponse(degradedResponse.data, true)
   }
 
   // photoTiming 用 suncalc 确定性计算覆盖 LLM 复述
@@ -571,16 +480,20 @@ async function handleAdvice(event, startTime) {
   }
   meta.elapsed = Date.now() - startTime
 
-  return {
-    ok: true,
-    phase: 'advice',
-    degraded: false,
-    data: {
-      ...advice,
-      weather,   // 回传天气（前端需要合并）
-      sunEvents,
-      meta,
-    },
+  return adviceResponse({
+    ...advice,
+    weather,   // 回传天气（前端需要合并）
+    sunEvents,
+    meta,
+  }, false)
+}
+
+exports.main = async (event, context) => {
+  try {
+    return await main(event || {}, context)
+  } catch (error) {
+    console.error('[getAdvice] 未处理错误:', error && error.message)
+    return errorResponse('internal_error', '服务暂时不可用')
   }
 }
 

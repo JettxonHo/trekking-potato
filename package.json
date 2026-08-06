@@ -6,9 +6,10 @@
     "bootstrap": "corepack npm@10.9.2 ci --prefix taro-app && corepack npm@10.9.2 ci --prefix cloudfunctions/getAdvice && corepack npm@10.9.2 ci --prefix cloudfunctions/history",
     "build:weapp": "npm --prefix taro-app run build:weapp",
     "lint": "eslint .",
-    "test": "npm run test:route && npm run test:weather && npm run test:unit",
+    "test": "npm run test:route && npm run test:weather && npm run test:unit && npm run test:response",
     "test:integration": "node scripts/e2e-local.js",
     "test:route": "node scripts/route-type-contract-test.js",
+    "test:response": "node scripts/response-contract-test.js",
     "test:weather": "node scripts/weather-contract-test.js",
     "test:unit": "node scripts/unit-test.js",
     "typecheck": "tsc --project tsconfig.quality.json"
