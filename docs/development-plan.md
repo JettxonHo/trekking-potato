@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M2 / I06 implementation`
+- Status: `ACTIVE — M3 / I07 contract design`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -54,6 +54,7 @@ I01–I03 已分别通过 PR #36、#37、#38 合并，M1 已关闭。I04 通过 
 GitHub #13。I05 由父 Issue #14 跟踪，拆为串行 #41（I05a 服务端候选/confirm）和
 #42（I05b 前端闭环）：规划 PR #43、实现 PR #44/#45 均已合并，父子 Issues 已关闭。
 I06 规划 PR #46 已合并为 `bf7ac83`，#15 在该真实 base 激活并交给 Terra XHigh。
+实现 PR #47 通过两轮 Sol Review 和 latest-head `quality`，合并为 `57ab44c`；M2 已关闭。
 以下 M1 合同保留为历史记录。
 
 ### I01 — 统一工具链、固定依赖与锁文件

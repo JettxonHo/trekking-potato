@@ -7,8 +7,8 @@
 - Release boundary: code-ready for closed beta; no deployment or publication
 
 The controller approved planning PR #9 on `2026-08-06`. M1 completed through PRs #36–#38;
-I04 and I05 completed through PRs #40 and #43–#45. The reviewed I06 contract merged in PR #46;
-the Goal is active at M2 with I06 ready for bounded implementation.
+I04–I06 completed through PRs #40 and #43–#47. M2 Correctness is complete; the Goal is active at
+M3 with the I07 route-domain contract under controller design before implementation.
 
 ## 1. Objective
 
@@ -38,8 +38,8 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | Milestone | Status | Issues | Done when |
 |---|---|---|---|
 | M1 Engineering gate | Complete | I01–I03 | Fresh install, unified commands, CI and PR protection work |
-| M2 Correctness | Active | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
-| M3 Route domain | Pending | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
+| M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
+| M3 Route domain | Active | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
 | M4 Weather and verdict | Pending | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Pending | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Pending | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |

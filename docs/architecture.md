@@ -322,8 +322,8 @@ AI 内部 schema 只允许：
 I06 implementation on `codex/i06-safety-advice` follows this boundary with
 `cloudfunctions/getAdvice/safety-advice.js`: handler paths construct only the three documented
 `aiOutcome` cases, then attach `degradedReason` only to server `meta`. The implementation passed a
-two-round independent Sol XHigh review and remains pending PR/CI/merge; it does not establish
-I17/I18 server-owned base trust.
+two-round independent Sol XHigh review and merged in PR #47; it does not establish I17/I18
+server-owned base trust.
 
 ## 9. 前端状态
 

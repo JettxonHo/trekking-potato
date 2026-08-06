@@ -3,10 +3,10 @@
 - Updated: `2026-08-06`
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
-- Active milestone: `M2 Correctness`
-- Active task: `I06 / GitHub #15 / READY_FOR_PR`
-- Branch: `codex/i06-safety-advice`
-- Base: `main` at `bf7ac83`
+- Active milestone: `M3 Route domain`
+- Active task: `I07-CONTRACT / GitHub #16 / CONTROLLER_CONTRACT_DESIGN`
+- Branch: `codex/i07-route-domain-contract`
+- Base: `main` at `57ab44c`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -14,10 +14,11 @@
 - I05a PR: `#44` — merged; GitHub #41 closed and #42 unblocked
 - I05b PR: `#45` — merged; GitHub #42 and parent #14 closed
 - I06 planning PR: `#46` — merged; latest-head `quality` passed
+- I06 implementation PR: `#47` — merged; GitHub #15 and M2 closed
 
-Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
-I04 and I05 are complete. I06 contract Review and planning PR are complete; the bounded Terra XHigh
-implementation passed two-round Sol XHigh Review and is ready for PR on `main@bf7ac83`.
+Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 contract design is the only
+active task; no M3 implementation is authorized until its design, Issue contract and planning PR are
+independently reviewed and merged.
 
 ## Completed
 
@@ -73,6 +74,8 @@ implementation passed two-round Sol XHigh Review and is ready for PR on `main@bf
 - The second independent implementation Review returned `APPROVED`: transport/HTTP failures remain
   `ai_unavailable`, response envelope/content parse failures are `ai_output_invalid`, and the new
   tests are sensitive to both failure classes, full-input mutation and AI-only risk leakage.
+- I06 implementation PR #47 matched reviewed head `d558bf5`, passed latest-head GitHub `quality`,
+  and squash merged as `57ab44c`; GitHub #15 and milestone M2 were closed.
 
 ## Baseline evidence
 
@@ -104,14 +107,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: authorized implementation fallback; assigned I06 / #15.
-- Sol XHigh: owns I06 contract, task routing and independent Review.
-- I06 read-only design agents: three alternatives complete; no code or task authority.
+- Terra XHigh: authorized implementation fallback; no I07 implementation assignment before contract merge.
+- Sol XHigh: owns I07 product/domain contract, task routing and independent Review.
+- I07 design agents: not yet assigned; all design work is read-only.
 
 ## Open work
 
-1. Sol XHigh commits the approved I06 implementation and publishes its focused PR.
-2. Merge only after latest-head GitHub `quality` succeeds and the PR still matches the reviewed commit.
+1. Audit current route data/read paths and produce three I07 interface alternatives.
+2. Freeze the chosen schema, legacy adapter, validation seam, migration boundary, tests and exact allowlist.
+3. Independently review and merge an I07 contract-only planning PR before assigning Terra.
 
 ## Blockers and risks
 
@@ -122,12 +126,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Five route variants still require field-level A/B evidence during I08–I12.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I06 implementation
+## Forbidden actions during I07 contract design
 
-- TP-VERDICT-1、RouteVariant、queryId/TTL、历史/UGC 或 I20 reducer/service implementation
-- Public phase/error changes, dependencies, deployment, database mutation, UGC deletion or production configuration
-- Files outside the GitHub #15 and ACTIVE_TASK implementation allowlist
+- Any business-code, test-code, dependency or runtime configuration change
+- Pilot route records I08–I12, stable search I13, weather/verdict/queryId/history/UI implementation
+- Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Publish the approved I06 implementation PR and wait for latest-head GitHub `quality` before merge.
+Complete the I07 Design It Twice audit, update GitHub #16 and freeze its implementation contract.

@@ -1,69 +1,50 @@
 # 当前活动任务
 
-- Task ID: `I06`
-- GitHub Issue: `#15` — `https://github.com/JettxonHo/trekking-potato/issues/15`
-- Title: 合并确定性安全结果并限制 AI 权限
-- Status: `READY_FOR_PR`
+- Task ID: `I07-CONTRACT`
+- GitHub Issue: `#16` — `https://github.com/JettxonHo/trekking-potato/issues/16`
+- Title: 路线领域模型与旧数据适配任务合同
+- Status: `CONTROLLER_CONTRACT_DESIGN`
 - Mode: `REVIEW_ONLY`
-- Owner: Terra XHigh (authorized Luna fallback)
+- Owner: Sol XHigh
 - Reviewer: Sol XHigh
-- Branch: `codex/i06-safety-advice`
-- Base: `main` at `bf7ac83`
+- Branch: `codex/i07-route-domain-contract`
+- Base: `main` at `57ab44c`
 - Goal: `TP-BETA-001`
 
-GitHub #15 与本文件共同冻结实施合同；独立合同 Review 与规划 PR #46 均已完成。实现
-已通过两轮 Sol XHigh Review，第一轮两项 finding 已修复。仅允许控制端提交、发布 PR，
-并在 latest-head `quality` 通过后决定合并；实现 Agent不得再扩大修改。
+I07 尚处于控制端设计阶段。GitHub #16 仍是 preliminary backlog，不能直接交给 Terra。
+本阶段只允许只读代码审计和下列规划文档变更。
 
 ## Objective
 
-以一个纯安全投影边界保证 AI 成功、输出无效、调用失败或传输失败时，现有
-确定性装备和风险均不可被删除或覆盖；同时严格阻止任务侵入 I15、I17/I18 或 I20。
+定义 Place/Route/RouteVariant 的最小深模块接口、旧 BUILTIN_ROUTES/UGC 适配边界、
+字段验证和来源/运行状态语义，使 I08–I13 可以在冻结 schema 上独立开发，同时不提前
+写入五条试点数据或改变当前搜索行为。
 
-## Executor allowlist
+## Planning allowlist
 
-- `cloudfunctions/getAdvice/safety-advice.js`（新增）
-- `cloudfunctions/getAdvice/index.js`
-- `cloudfunctions/getAdvice/prompt.js`
-- `taro-app/src/pages/index/index.jsx`
-- `scripts/advice-safety-contract-test.js`（新增）
-- `scripts/response-contract-test.js`
-- `scripts/e2e-local.js`（仅现有 advice 降级 fixture 必须同步时）
-- `package.json`（仅新增 `test:safety` 并纳入 `test`，不得改依赖）
+- `GOAL.md`
 - `docs/architecture.md`
+- `docs/development-plan.md`
 - `docs/testing-strategy.md`
+- `docs/decision-log.md`
 - `docs/current-status.md`
+- `docs/tasks/ACTIVE_TASK.md`
 
 ## Frozen contract
 
-- 实施阶段只新增一个无 I/O 的 `projectSafetyAdvice` 纯模块；Prompt/LLM/计时保留在现有
-  编排层，公共 `phase` 信封不变。
-- AI 仅能提供 recommended/optional 装备追加、既有风险解释和 notes。输出必须从白名单
-  重建，不允许 raw spread/deep merge。
-- available/invalid/unavailable 的内部 union、AI schema、风险记录、说明标签/顺序和
-  `data.meta.degradedReason` 唯一位置均以架构文档与 GitHub #15 的精确定义为准。
-- 确定性装备分类/顺序/内容和风险集合/等级/规则建议不可改；weather/sunEvents 只取
-  base。AI 无效和不可用均保留完整确定性结果并使用稳定但不同的 degradedReason。
-- 页面 base 到达后立即显示 `gearRules`，advice loading/transport failure 不得清空它；
-  不提前建立 I20 reducer/service。
-- I06 只保证现有 base 相对 AI 的权威性，不宣称客户端 `baseData` 已可信，不实现最终
-  verdict/queryId/RouteVariant。
-- LLM 前必须验证最低装备/风险/规则提示的完整结构及 weather/sunEvents 的 object/null
-  形态；Prompt 只从该 baseData 派生，不读取 event 重复事实。
+- I07 只建立领域 schema、纯目录/适配模块和验证契约，不写 I08–I12 的五条试点数据。
+- 旧 175 条 BUILTIN_ROUTES 必须继续可搜索并适配为 place-only/legacy 能力，不伪造
+  RouteVariant、来源等级、路线最高点或逐日 stage。
+- 不迁移或删除数据库，不改变公共响应、confirm ID、天气、装备、AI、历史或前端行为。
+- Schema 必须为 I08–I13 提供稳定 ID、引用完整性、verified/place-only/blocked 能力和
+  来源追踪，但不增加哈希、外部依赖或机械评分。
+- 精确模块接口、文件 allowlist、错误行为和测试 seam 必须经三方案设计与独立 Review 后
+  才能冻结；本文件当前不是实施授权。
 
 ## Verification
 
-```bash
-corepack npm@10.9.2 run lint
-corepack npm@10.9.2 run typecheck
-corepack npm@10.9.2 run test:safety
-corepack npm@10.9.2 run test:response
-corepack npm@10.9.2 test
-corepack npm@10.9.2 run test:integration
-corepack npm@10.9.2 run build:weapp
-git diff --check
-```
+本规划阶段只运行只读审计、Markdown 一致性检查和 `git diff --check`。实施命令与新增测试
+入口必须在 GitHub #16 合同冻结后再写入。
 
-默认测试完全离线。Terra 可决定模块内私有 helper 名称和 fixture 组织；任何公共响应、
-依赖、allowlist、字段所有权或跨 Issue 变化必须停止并升级。完成后返回修改文件、测试、
-偏差、实现级决策、限制和重点 Review 位置，不得 push、创建/合并 PR 或自批。
+禁止实现试探。若现有 175 条数据无法在不伪造路线事实的情况下适配，必须把冲突写入
+合同并由 Sol 选择迁移边界；涉及数据迁移、公共契约或产品取舍时升级人工确认。

@@ -114,3 +114,17 @@
 - Why: 原始合并和 Prompt 约束都无法形成可测试的权限边界；大适配器会把 I06 扩成编排
   重构；调用方零散修补容易让正常与降级路径漂移。单入口纯投影让策略局部、可验证且不
   提前侵入 I17/I18 或 I20。
+
+## 2026-08-06 — TP-D018 M2 正确性里程碑完成
+
+- Status: Accepted
+- Decision: I04–I06 已完成并关闭 M2。公共响应以 `phase` 判别；模糊输入必须由稳定候选
+  ID 确认；AI advice 只能通过单入口白名单投影补充解释，正常、无效输出、服务不可用和
+  前端传输失败均保留现有确定性装备与风险。LLM 可达但输出/信封不可解析为
+  `ai_output_invalid`，传输/HTTP/服务失败为 `ai_unavailable`。
+- Evidence: PR #40、#43–#47；I04–I06 Issues 已关闭；latest-head GitHub `quality` 与本地
+  lint/typecheck/test/integration/build 通过。
+- Limitation: 当前 baseData 仍由客户端回传；I06 只建立 AI 相对 base 的只读边界，真正
+  服务端可信上下文仍属于 I17/I18。
+- Why: M2 的三个用户可观察正确性不变量均已独立测试和 Review，剩余信任与领域能力有
+  清晰后续 Issue，不应把 M2 完成与 I17/I18 混为一谈。
