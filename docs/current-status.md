@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
-- Active task: `I15 / GitHub #24 / IMPLEMENTATION_ACTIVE`
+- Active task: `I15 / GitHub #24 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/i15-weather-verdict`
 - Base: `main` at `8a4d2c4`
 - Planning PR: `#9` — merged
@@ -184,6 +184,11 @@ I15's approved weather-only rule contract is active for bounded Terra implementa
   remained forbidden until the planning PR passed latest-head CI and merged.
 - I15 planning PR #56 matched approved head `925c09c`, passed latest-head GitHub `quality` in 54 seconds
   and squash merged as `8a4d2c4`. The exact implementation allowlist and contract in #24 are now active.
+- I15 implementation adds the isolated `evaluateWeatherVerdict` pure module and its offline contract
+  test. The test crossed I14's injected hourly-weather boundary before the evaluator, recorded one
+  genuine missing-module RED, then passed GREEN coverage for every frozen threshold, combination,
+  accumulation, representative-selection, sorting, message, immutability and non-complete-boundary
+  rule. The full local command matrix is green; the task awaits Sol XHigh's independent code Review.
 
 ## Baseline evidence
 
@@ -204,6 +209,9 @@ I15's approved weather-only rule contract is active for bounded Terra implementa
   reference/itinerary/sample-count failures, input isolation and `getById` miss semantics.
 - `node scripts/route-data-contract-test.js`: I10a aggregated data contract for 175 legacy Places,
   one Wutai Route, one tier A blocked Variant, zero full Variants, and focused evidence/field failures.
+- `node scripts/weather-verdict-contract-test.js`: I15 weather-only contract. It derives complete
+  snapshots via injected I14 transport, verifies all TP-VERDICT-1 weather rules and leaves I16
+  composition paths outside its scope.
 - `node scripts/confirmation-contract-test.js`: offline I05a contract for canonical/alias and
   candidate-stage matching, four-field candidate exposure, `candidate_not_found`, confirm server
   fact recovery, zero pre-confirm side effects and disabled UGC substring auto-hit; I05b source
@@ -221,14 +229,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: completed #23/I14 Review/merge and now owns #24/I15 contract and merge decision.
-- Terra XHigh: proposed I15 implementation owner after the contract planning PR merges.
+- Terra XHigh: completed I15's bounded implementation and returned it for Sol XHigh Review.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Terra implements I15 test-first on the exact activated branch and returns a result package.
-2. Sol independently reviews actual code/tests, requires fixes if needed, and merges only after latest-head CI.
-3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
+1. Sol independently reviews I15's actual code/tests, requires fixes if needed, and merges only after
+   latest-head CI.
+2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
 
@@ -254,4 +262,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra implements I15 under #24; Sol performs independent Review before any PR merge.
+Sol performs independent I15 Review before any PR creation or merge.

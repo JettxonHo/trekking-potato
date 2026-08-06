@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M4 / I15 implementation; M3 full routes source-blocked`
+- Status: `ACTIVE — M4 / I15 ready for controller review; M3 full routes source-blocked`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -171,6 +171,10 @@ I14 已在 PR #55 通过 Sol 独立 Review 和 latest-head CI，squash 合并为
 - 原因以 day+code 去重，保留更危险或最早代表性事实，并按冻结顺序稳定输出。
 - 精确接口、原因码、边界矩阵、allowlist 和 TDD 以 GitHub #24 与当前
   `docs/tasks/ACTIVE_TASK.md` 为准。
+
+I15 implementation is now ready for Sol XHigh Review. It contains only the pure evaluator, its
+offline I14-derived contract test and the root test entry; it does not expose a public handler or
+implement I16 composition.
 
 ## 10. 合并顺序与里程碑门
 

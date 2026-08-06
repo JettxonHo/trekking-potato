@@ -3,7 +3,7 @@
 - Task ID: `I15`
 - GitHub Issue: `#24`
 - Title: 冻结 TP-VERDICT-1 小时天气规则引擎合同
-- Status: `IMPLEMENTATION_ACTIVE`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -14,8 +14,9 @@
 ## Current authorization
 
 I15 规划 PR #56 已通过独立 Terra XHigh 两轮 Review 和 latest-head GitHub `quality`，并
-squash 合并为 `8a4d2c4`。Terra XHigh 现在仅获授权在本文 allowlist 和冻结合同内 test-first
-实现；不得改变阈值、reason 契约、I15/I16 边界或自行批准/合并 PR。
+squash 合并为 `8a4d2c4`。Terra XHigh 已在本文 allowlist 和冻结合同内完成 test-first
+实现；不得改变阈值、reason 契约、I15/I16 边界或自行批准/合并 PR。当前等待 Sol XHigh
+独立 Review。
 
 ## Mandatory context
 
