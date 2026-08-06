@@ -45,7 +45,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M1 Engineering gate | Complete | I01–I03 | Fresh install, unified commands, CI and PR protection work |
 | M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
 | M3 Route domain | Active — full routes source-blocked | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
-| M4 Weather and verdict | Active — I14 complete; I15 contract | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
+| M4 Weather and verdict | Active — I14 complete; I15 implementation | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Pending | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Pending | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
