@@ -281,3 +281,22 @@
 - Why: 最早采样点日落是现有可信事实内可解释且保守的 envelope。缺少任一点时不能证明
   最早值，明确 unavailable 比假装安全或虚构危险更诚实；硬 no-go 仍优先，避免数据缺失掩盖
   已知禁行或新手独攀事实。分离 `reasons` 与 `dataIssues` 让 UI 后续能准确解释风险和可用性。
+
+## 2026-08-06 — TP-D030 I17 短期上下文与渐进可信迁移
+
+- Status: Accepted
+- Decision: I17 拆为 I17a 深存储模块和 I17b base 接线。使用 Node
+  `crypto.randomUUID()` 生成 `tctx_<uuid>`，以 `_openid` 绑定，逻辑 TTL 固定 30 分钟；不
+  使用哈希/SHA、签名、碰撞查询循环、自动删除或生产 TTL/index 配置。当前生产解析仍是
+  legacy place path，因此存储和返回的 BaseData 以加法方式明确为 place-only：保留 legacy
+  字段供 I18 过渡，同时补齐 request/route/reference-weather/null-verdict/minimum-gear/source
+  结构。I17 只创建上下文，I18 才从它恢复 advice 并移除客户端 `baseData` 权限。
+- Alternatives: 在 I17 一次性改成 queryId-only advice；等 M3 五条路线全部解阻；复用 history
+  集合；只存旧 baseData 而不标明 place-only；加入签名/hash/复杂 TTL 清理；存储失败仍返回
+  没有 queryId 的成功 base。
+- Why: 两个子任务各自可独立证明，且不会把存储正确性、公共切换和 Prompt 改造混成一个 PR。
+  place-only 投影诚实反映当前数据能力，又让服务端快照具备最终 BaseData 的迁移字段。短时
+  记录无需迁移或清理才能保证逻辑过期；创建失败不能伪装成功，否则 I18 无法安全继续。
+- Review clarification: I17a 的同一个深模块独占从当前 server-only legacy BaseData 白名单到
+  TrustedBaseData 的投影；`create({openid, legacyBaseData})` 在内部构造、存储并返回该快照。
+  I17b 不得在 handler 另写 builder。这样 #60 能独立证明精确投影，#61 只证明生命周期接线。

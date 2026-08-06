@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M4 / I16 contract review; M3 full routes source-blocked`
+- Status: `ACTIVE — M5 / I17 contract review; M3 full routes source-blocked`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -42,7 +42,7 @@ I19 + I23 → I24 → I25
 | I14 | #23 | 多点小时天气 | 活动窗口契约 |
 | I15 | #24 | TP-VERDICT-1 | 纯规则和原因码 |
 | I16 | #25 | 攀登支持、日落和数据不足 | 输入与组合规则 |
-| I17 | #26 | 服务端 TripContext | queryId + 所有权/过期 |
+| I17 | #26 parent; #60/#61 | 服务端 TripContext | I17a store + I17b base 接线 |
 | I18 | #27 | 移除可信 baseData 回传 | advice 仅 queryId |
 | I19 | #28 | 私人历史和停用 UGC | read/delete/clear only |
 | I20 | #29 | 前端 reducer 与服务层 | 显式状态和竞态保护 |
@@ -196,3 +196,21 @@ root test entry; it does not expose a public handler or implement I16 compositio
 每个里程碑最后一个 PR 合并后更新 `GOAL.md` 和 `docs/current-status.md`。I05a 与 I05b
 已按串行顺序分别 Review/合并并关闭父 #14。M3 路线的字段来源合同未冻结不得并行该数据；
 M7 前不做重复全局 Review。
+
+## 12. I17 冻结合同摘要
+
+- I17 parent #26 拆为串行 #60 I17a（深存储模块）和 #61 I17b（prepare/confirm 接线）；父
+  Issue 只在两者合并后关闭。
+- I17a 使用 Node `crypto.randomUUID()` 生成 `tctx_<uuid>`，以 `_openid` 绑定，逻辑 TTL
+  精确 30 分钟。记录写入 `trip_contexts`，不使用哈希、签名、重试循环、清理任务或生产配置。
+  同一深模块把当前服务端 legacy BaseData 白名单投影为 TrustedBaseData；I17b 只传入现有
+  server facts 并原样使用返回快照，不在 handler 复制投影。
+- 当前 handler 尚未接 I13 verified routes；snapshot 因而诚实加法投影为 place-only：保留
+  legacy base 字段供 I18 兼容，同时新增 request/route/weather/result/gear/source 结构。I16
+  生成 `verdict=null/dataStatus=place_only`，不得伪造完整路线结论。
+- I17b 只在成功 server base 后写一次，base 顶层返回 `queryId/expiresAt`。存储失败返回可重试
+  `context_unavailable`，不返回半成品 base。
+- I17 不让 advice 读取 context；当前 client `baseData` 临时路径保留并明确不可信。I18 才完成
+  queryId-only 切换并统一公开的不存在/越权/过期语义。
+- 精确接口、record/snapshot shape、allowlist、TDD 和矩阵以 #26/#60/#61 与当前
+  `docs/tasks/ACTIVE_TASK.md` 为准。

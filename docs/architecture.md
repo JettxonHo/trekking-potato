@@ -263,18 +263,43 @@ I04 先把当前云函数的所有出口统一到上述 `phase` 判别方式，�
 
 ## 5. TripContext
 
-逻辑有效期约 30 分钟：
+I17 split: #60 implements the injected storage service; #61 wires successful base creation. The
+service owns ID generation, snapshot construction, persistence, ownership and logical expiry:
 
-```text
-queryId, openid, expiresAt
-normalizedRequest
-routeSnapshot
-weatherSnapshot
-deterministicResult
-sourceMetadata
+```js
+createTripContextStore({ collection, now?, createQueryId? })
+  -> { create({openid, legacyBaseData}), read({openid, queryId}) }
 ```
 
-使用随机 ID，不使用哈希。过期和所有权检查是必要边界；Beta 不增加复杂令牌签名或存量迁移。过期记录可由后续运维清理，但逻辑过期必须立即生效。
+Default IDs use `tctx_${crypto.randomUUID()}`. Logical lifetime is exactly 30 minutes; equality with
+`expiresAt` is expired. No hash, signature, collision lookup loop, read-time deletion, scheduled cleanup,
+native TTL or production index is required for correctness.
+
+Stored documents use:
+
+```text
+schemaVersion, _openid, queryId, createdAt, expiresAt, snapshot
+```
+
+The current runtime has not integrated I13's verified RouteVariant catalog. The I17a store therefore
+owns one private projection from the current server-created legacy base allowlist
+(`route/date/level/days/elevation/location/coords/routeType/routeTypeSource/weather/sunEvents/gearRules/meta`)
+to an honest transitional `TrustedBaseData`. Arbitrary extra keys are not copied. The projection
+preserves those legacy fields for I18's prompt/safety compatibility and additively provides
+`requestSummary`, place-only `routeSnapshot`, reference-point `weatherSnapshot`, I16's null/place-only
+`deterministicResult`, `minimumGear` and `sourceMetadata`. I17b only passes `legacyBaseData` into this
+service and uses its returned snapshot unchanged; the handler does not own a second projection. This
+does not claim route-hourly weather or a full route verdict.
+
+The exact snapshot returned in `base.data` is the snapshot persisted by the store. Create/read boundaries
+deep-copy it so later caller or mock/SDK mutation does not change another view. Unknown, foreign and
+expired reads are internally distinguishable but return no snapshot; I18 will map all three to one public
+non-leaking unavailable error.
+
+I17b adds `queryId/expiresAt` at the top level of successful base responses. A write failure returns the
+retryable public `context_unavailable` error and no partial base. I17 deliberately leaves advice on its
+legacy client-`baseData` path; only I18 may read TripContext in the public handler and remove that client
+authority.
 
 ## 6. 小时天气
 
@@ -564,7 +589,11 @@ history 仅保存当前 openid 的私人查询摘要，支持读取、单项删�
 
 - 输入错误（不可重试，需修改输入）：`invalid_date`、`invalid_trip_days`、`invalid_start_time`、`invalid_route_type`、`missing_climb_support`。
 - 解析错误：`route_not_found`、`candidate_not_found`；`route_type_required` 是独立 phase，不是 error code。
-- 上下文错误：`context_expired`、`context_not_found`、`context_forbidden`，均需重新 prepare；不向其他用户泄露上下文内容。
+- 上下文错误分阶段：I17 仅在创建失败时公开 `context_unavailable`（`retryable=true`），且不
+  返回半成品 base；`context_expired`、`context_not_found`、`context_forbidden` 只是存储模块
+  的内部可测状态，不得公开。I18 将不存在、他人所属和过期统一公开为
+  `query_context_unavailable`（`retryable=false`，需重新 prepare），不泄露上下文是否存在或
+  属于谁。
 - Advice：`ai_unavailable` 可重试，且不影响已经显示的 BaseData。
 - 天气：`out_of_range`、`weather_unavailable`、`weather_data_invalid` 放在 BaseData weather 状态中，`verdict=null`，允许重新 prepare。
 - 未分类服务端失败：`internal_error`，默认不可在原请求上无限重试。
