@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M2 / I06 contract review`
+- Status: `ACTIVE — M2 / I06 implementation`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -53,8 +53,8 @@ I19 + I23 → I24 → I25
 I01–I03 已分别通过 PR #36、#37、#38 合并，M1 已关闭。I04 通过 PR #40 合并并关闭
 GitHub #13。I05 由父 Issue #14 跟踪，拆为串行 #41（I05a 服务端候选/confirm）和
 #42（I05b 前端闭环）：规划 PR #43、实现 PR #44/#45 均已合并，父子 Issues 已关闭。
-I06 以 `main@deb3a8c` 为规划基线，先冻结投影接口与测试合同；规划 PR 合并后才可在真实
-base 激活 #15 并交给 Terra XHigh。以下 M1 合同保留为历史记录。
+I06 规划 PR #46 已合并为 `bf7ac83`，#15 在该真实 base 激活并交给 Terra XHigh。
+以下 M1 合同保留为历史记录。
 
 ### I01 — 统一工具链、固定依赖与锁文件
 

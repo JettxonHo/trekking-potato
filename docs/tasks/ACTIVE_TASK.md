@@ -1,33 +1,38 @@
 # 当前活动任务
 
-- Task ID: `I06-CONTRACT`
+- Task ID: `I06`
 - GitHub Issue: `#15` — `https://github.com/JettxonHo/trekking-potato/issues/15`
-- Title: 确定性安全投影任务合同
-- Status: `PLANNING_PR_READY`
+- Title: 合并确定性安全结果并限制 AI 权限
+- Status: `READY_FOR_PR`
 - Mode: `REVIEW_ONLY`
-- Owner: Sol XHigh
+- Owner: Terra XHigh (authorized Luna fallback)
 - Reviewer: Sol XHigh
-- Branch: `codex/i06-safety-merge-contract`
-- Base: `main` at `deb3a8c`
+- Branch: `codex/i06-safety-advice`
+- Base: `main` at `bf7ac83`
 - Goal: `TP-BETA-001`
 
-GitHub #15 与本文件共同冻结实施合同；独立合同 Review 已 `APPROVED`。在本规划 PR 合并
-并写入真实 base 前，仍不得进入 IMPLEMENTATION，也不得把 I06 交给 Terra。
+GitHub #15 与本文件共同冻结实施合同；独立合同 Review 与规划 PR #46 均已完成。实现
+已通过两轮 Sol XHigh Review，第一轮两项 finding 已修复。仅允许控制端提交、发布 PR，
+并在 latest-head `quality` 通过后决定合并；实现 Agent不得再扩大修改。
 
 ## Objective
 
-确认 I06 以一个纯安全投影边界保证 AI 成功、输出无效、调用失败或传输失败时，现有
+以一个纯安全投影边界保证 AI 成功、输出无效、调用失败或传输失败时，现有
 确定性装备和风险均不可被删除或覆盖；同时严格阻止任务侵入 I15、I17/I18 或 I20。
 
-## Planning allowlist
+## Executor allowlist
 
-- `GOAL.md`
+- `cloudfunctions/getAdvice/safety-advice.js`（新增）
+- `cloudfunctions/getAdvice/index.js`
+- `cloudfunctions/getAdvice/prompt.js`
+- `taro-app/src/pages/index/index.jsx`
+- `scripts/advice-safety-contract-test.js`（新增）
+- `scripts/response-contract-test.js`
+- `scripts/e2e-local.js`（仅现有 advice 降级 fixture 必须同步时）
+- `package.json`（仅新增 `test:safety` 并纳入 `test`，不得改依赖）
 - `docs/architecture.md`
-- `docs/development-plan.md`
 - `docs/testing-strategy.md`
-- `docs/decision-log.md`
 - `docs/current-status.md`
-- `docs/tasks/ACTIVE_TASK.md`
 
 ## Frozen contract
 
@@ -48,8 +53,17 @@ GitHub #15 与本文件共同冻结实施合同；独立合同 Review 已 `APPRO
 
 ## Verification
 
-规划阶段只验证 Markdown 一致性和 `git diff --check`。实施阶段的完整验证命令与文件
-allowlist 必须先写入 GitHub #15，再在真实合并基线上激活。
+```bash
+corepack npm@10.9.2 run lint
+corepack npm@10.9.2 run typecheck
+corepack npm@10.9.2 run test:safety
+corepack npm@10.9.2 run test:response
+corepack npm@10.9.2 test
+corepack npm@10.9.2 run test:integration
+corepack npm@10.9.2 run build:weapp
+git diff --check
+```
 
-本阶段禁止业务代码与测试代码修改。若独立 Review 发现纯投影不能在不改公共响应或扩大
-Issue 的情况下成立，状态改为 `BLOCKED` 并交回 Sol XHigh；不得以实现试探替代合同决策。
+默认测试完全离线。Terra 可决定模块内私有 helper 名称和 fixture 组织；任何公共响应、
+依赖、allowlist、字段所有权或跨 Issue 变化必须停止并升级。完成后返回修改文件、测试、
+偏差、实现级决策、限制和重点 Review 位置，不得 push、创建/合并 PR 或自批。
