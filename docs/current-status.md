@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
-- Active task: `I14 / GitHub #23 / CONTRACT_APPROVED — PLANNING_PR_PENDING`
-- Branch: `codex/i14-hourly-weather-contract`
-- Base: `main` at `9021f31`
+- Active task: `I14 / GitHub #23 / IMPLEMENTATION_ACTIVE`
+- Branch: `codex/i14-hourly-weather`
+- Base: `main` at `ea64e28`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -19,6 +19,7 @@
 - I07 implementation PR: `#49` — merged; GitHub #16 closed
 - M3 source-gate PR: `#52` — merged; #50 activated, #17/#18/#20/#21/#51 blocked
 - I10a implementation PR: `#53` — merged; GitHub #50 closed
+- I14 planning PR: `#54` — merged; GitHub #23 implementation activated
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
@@ -149,7 +150,11 @@ this does not authorize I13, real full-route data or production integration.
   added WMO/probability/non-negative guards with representative tests. A final synchronization check
   also required direct assertions for normalized units and deterministic output order.
 - The final independent Review read both the actual diff and live #23, returned `APPROVED`, and found
-  no remaining P0–P2 issue or human decision. No implementation file has been modified or authorized.
+  no remaining P0–P2 issue or human decision. At that review checkpoint no implementation file had
+  been modified or authorized.
+- I14 planning PR #54 matched approved head `0da38c8`, passed latest-head GitHub `quality` in 51
+  seconds, and squash merged as `ea64e28`. Implementation is now authorized only on the exact
+  allowlist and internal union frozen in #23.
 
 ## Baseline evidence
 
@@ -186,15 +191,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: owns #23/I14 architecture, contract, planning PR and implementation Review.
-- Terra XHigh: proposed implementation owner after the I14 contract PR merges; not yet authorized.
+- Sol XHigh: owns #23/I14 architecture, contract, independent implementation Review and merge decision.
+- Terra XHigh: active I14 implementation owner on `codex/i14-hourly-weather`.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Run the pure planning branch quality matrix, create/review/merge the I14 planning PR.
-2. Activate an implementation branch from its exact merged main commit, then
-   dispatch Terra XHigh test-first.
+1. Terra XHigh implements #23 test-first within the exact allowlist and returns a result package.
+2. Sol reviews actual code/tests, verifies latest-head CI and decides merge.
 3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -213,12 +217,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   snowfall thresholds interact with activity-only windows; Sol will freeze that in I15's contract.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I14 contract design
+## Forbidden actions during I14 implementation
 
-- Any implementation code, test fixture, dependency or lockfile change before the planning PR merges
+- Any file outside the activated #23 allowlist, dependency or lockfile change
 - Real route data, stable search I13, verdict/queryId/history/UI or public handler implementation
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Create and merge the approved I14 planning PR. Do not start implementation before it merges.
+Terra XHigh implements #23; Sol independently reviews before any merge.

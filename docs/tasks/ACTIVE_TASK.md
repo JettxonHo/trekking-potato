@@ -1,21 +1,21 @@
 # 当前活动任务
 
-- Task ID: `I14-CONTRACT`
+- Task ID: `I14`
 - GitHub Issue: `#23`
 - Title: 冻结多采样点小时天气与活动窗口合同
-- Status: `CONTRACT_APPROVED — PLANNING_PR_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Proposed implementation owner: Terra XHigh
-- Branch: `codex/i14-hourly-weather-contract`
-- Base: `main` at `9021f31`
+- Status: `IMPLEMENTATION_ACTIVE`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
+- Branch: `codex/i14-hourly-weather`
+- Base: `main` at `ea64e28`
 - Goal: `TP-BETA-001`
 
 ## Current authorization
 
-本分支只允许文档、Issue 合同和状态同步，不允许实现代码、fixture、依赖或锁文件修改。
-合同通过独立 Review、planning PR 的 latest-head CI 并合并后，Sol 才能从新的 main 创建
-`codex/i14-hourly-weather`，把状态改为 `IMPLEMENTATION_ACTIVE` 并分派 Terra XHigh。
+规划 PR #54 已通过独立 Review、latest-head CI 并合并为 `ea64e28`。Terra XHigh 现在可以
+在本文 implementation allowlist 内 test-first 实现；不得修改公共合同、依赖、lockfile 或
+非范围。Terra 不得批准或合并自己的 PR。
 
 ## Mandatory context
 
@@ -33,7 +33,7 @@
 天气，只保留每日统一当地出发时间至该 stage 最大预计时长所覆盖的小时桶，并返回可供
 I15/I16 消费的完整或不足状态。I14 不产生 verdict，不接入现有生产 handler。
 
-## Implementation allowlist after activation
+## Implementation allowlist
 
 - `cloudfunctions/getAdvice/hourly-weather.js`（新增纯计划/投影模块）
 - `cloudfunctions/getAdvice/weather.js`（仅新增 Open-Meteo hourly adapter 与内部入口）
