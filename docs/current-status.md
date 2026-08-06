@@ -7,6 +7,8 @@
 - Active task: `TP-PLAN-001`
 - Branch: `codex/tp-beta-planning`
 - Base: latest `main` after merged PR #8
+- Planning commit: `633aefb`
+- Planning PR: `#9` — `https://github.com/JettxonHo/trekking-potato/pull/9`
 
 Status semantics: product and architecture documents marked `APPROVED` describe decisions explicitly authorized in the controller's implementation request. `PLANNING_REVIEW` means this repository artifact and Goal activation gate still await controller review; it is not permission to start business coding.
 
@@ -38,10 +40,9 @@ All four passing counts were rerun on the planning branch. Local Markdown links 
 
 ## Open work
 
-1. Commit, push and open the planning PR.
-2. Present documents and Goal for controller confirmation.
-3. After approval, merge planning PR, activate Goal and create I01–I25 Issues.
-4. Dispatch I01 to Terra XHigh only after the coding gate opens.
+1. Present PR #9 documents and Goal for controller confirmation.
+2. After approval, merge PR #9, activate Goal and create I01–I25 Issues.
+3. Dispatch I01 to Terra XHigh only after the coding gate opens.
 
 ## Blockers and risks
 

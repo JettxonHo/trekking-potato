@@ -7,6 +7,7 @@
 - Owner: Sol XHigh
 - Branch: `codex/tp-beta-planning`
 - Goal: `TP-BETA-001`
+- Planning PR: `#9` — `https://github.com/JettxonHo/trekking-potato/pull/9`
 
 ## Objective
 
