@@ -257,36 +257,50 @@ export default class Index extends Component {
     this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, showManualCoords: false, loadingStage: '薯仔正在查询路线位置...' })
     Taro.cloud.callFunction({
       name: 'getAdvice',
-      data: { ...params, mode: 'base' },
+      data: { ...params, mode: 'prepare' },
       success: (res) => {
         if (this._unmounted) return
         const result = res.result
-        if (!result || !result.ok) {
+        if (!result) {
+          this.setState({ loading: false, error: '路线查询失败' })
+          return
+        }
+        if (result.phase === 'confirmation') {
+          // I04：确认交互在 I05 实现；当前仅提示用户修改输入后重试，绝不进入 base/advice。
+          this.setState({ loading: false, error: result.message || '请确认路线名称后重试' })
+          return
+        }
+        if (result.phase === 'route_type_required') {
           // TP-P0-003：类型未知不是普通失败——保存已解析位置，预填手动坐标弹窗，
           // 打开路线类型选择；不自动选择 trek
-          if (result && result.error === 'route_type_required' && result.needsRouteType && result.data) {
-            const pd = result.data
-            this.setState({
-              loading: false,
-              showManualCoords: true,
-              // TP-P0-003 REVIEW_FIX：外部位置预填后激活手动可信上下文
-              manualContextActive: true,
-              pendingResolvedLocation: {
-                name: pd.name,
-                lat: pd.lat,
-                lon: pd.lon,
-                elevation: pd.elevation,
-                location: pd.location,
-              },
-              manualLat: pd.lat != null ? String(pd.lat) : '',
-              manualLon: pd.lon != null ? String(pd.lon) : '',
-              manualElev: pd.elevation != null ? String(pd.elevation) : '',
-              manualRouteType: '',
-            })
-            return
-          }
-          const isLocationFail = result && result.error === 'location_failed'
-          this.setState({ loading: false, error: (result && result.message) || '路线查询失败', showManualCoords: isLocationFail })
+          const pd = result.data
+          this.setState({
+            loading: false,
+            showManualCoords: true,
+            // TP-P0-003 REVIEW_FIX：外部位置预填后激活手动可信上下文
+            manualContextActive: true,
+            pendingResolvedLocation: {
+              name: pd.name,
+              lat: pd.lat,
+              lon: pd.lon,
+              elevation: pd.elevation,
+              location: pd.location,
+            },
+            manualLat: pd.lat != null ? String(pd.lat) : '',
+            manualLon: pd.lon != null ? String(pd.lon) : '',
+            manualElev: pd.elevation != null ? String(pd.elevation) : '',
+            manualRouteType: '',
+          })
+          return
+        }
+        if (result.phase === 'error') {
+          const error = result.code
+          const isLocationFail = error === 'location_failed'
+          this.setState({ loading: false, error: result.message || '路线查询失败', showManualCoords: isLocationFail })
+          return
+        }
+        if (result.phase !== 'base') {
+          this.setState({ loading: false, error: '路线查询失败' })
           return
         }
         const base = result.data
@@ -338,8 +352,9 @@ export default class Index extends Component {
         if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
         if (this._funnyTimer) clearInterval(this._funnyTimer)
         const result = res.result
-        if (result && result.ok) {
+        if (result && result.phase === 'advice') {
           const d = result.data
+          const degraded = result.degraded === true
           this.setState((prev) => ({
             adviceLoading: false,
             funnyMsg: '',
@@ -349,7 +364,7 @@ export default class Index extends Component {
               gear: d.gear || prev.result.gear,
               risks: d.risks || [],
               notes: d.notes || [],
-              degraded: d.degraded === true,
+              degraded,
               photoTiming: d.photoTiming || prev.result.photoTiming,
               disclaimer: d.disclaimer,
              meta: { ...prev.result.meta, ...d.meta },
@@ -357,12 +372,12 @@ export default class Index extends Component {
          }), () => this._saveCache())
          this._saveHistory(params, {
             risks: d.risks || [],
-            degraded: d.degraded === true,
+            degraded,
             meta: { ...((this.state.result && this.state.result.meta) || {}), ...d.meta },
           })
         } else {
           this.setState({ adviceLoading: false, funnyMsg: '',
-    daysBounce: false, error: 'AI 建议生成失败' })
+    daysBounce: false, error: (result && result.phase === 'error' && result.message) || 'AI 建议生成失败' })
         }
       },
       fail: (err) => {

@@ -36,10 +36,11 @@ HTTPS GET 会使测试失败；`wx-server-sdk` 在加载云函数模块时替换
 node scripts/route-type-contract-test.js   # 93/0
 node scripts/weather-contract-test.js      # 86/0
 node scripts/unit-test.js                  # 55/0
+node scripts/response-contract-test.js     # I04 response phase，离线
 node scripts/e2e-local.js                   # 离线 E2E，56/0
 ```
 
-I04 增加 `test:response` 并纳入根 `test`。它覆盖每一种 `phase` 构造、error 的
+I04 的 `test:response` 已纳入根 `test`。它覆盖每一种 `phase` 构造、error 的
 `code/message/retryable`、互斥字段，以及当前 handler 的 missing/auth/invalid、
 confirmation、route-type、base、advice/degraded 出口。断言兼容字段时只验证迁移
 一致性，不把这些字段确立为最终 API。
