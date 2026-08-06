@@ -12,9 +12,9 @@ M3 with I07 merged through PRs #48/#49. Field-level source audit found that none
 pilot variants can yet satisfy the frozen A/B geometry contract. The independently supportable
 Wutai blocked record was delivered by I10a/PR #53; other full variants remain source-blocked rather
 than using invented values. I14's contract and implementation merged through PRs #54/#55; #23 is
-closed. I15 and I16 merged through PRs #57/#59; M4 is complete. I17 planning merged in PR #62 and
-I17a is active on #60; I17b remains blocked until I17a merges. The
-will establish the server-owned short-lived TripContext boundary before I18 makes advice queryId-only.
+closed. I15 and I16 merged through PRs #57/#59; M4 is complete. I17 planning merged in PR #62;
+I17a is active on #60 and I17b remains blocked until it merges. Together they establish the
+server-owned short-lived TripContext boundary before I18 makes advice queryId-only.
 
 ## 1. Objective
 
