@@ -3,12 +3,12 @@
 - Task ID: `I18`
 - GitHub Issue: `#27`
 - Title: 移除客户端可信 BaseData 回传并让 advice 仅接收 queryId
-- Status: `APPROVED — PLANNING_PR_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Reviewer: independent Terra XHigh
-- Branch: `codex/i18-query-context-contract`
-- Base: `main` at `46752c0`
+- Status: `ACTIVE — IMPLEMENTATION`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
+- Branch: `codex/i18-query-context-implementation`
+- Base: `main` at `270e442`
 - Goal: `TP-BETA-001`
 
 ## 当前授权
@@ -17,9 +17,9 @@ I17 规划及实现 PR #62–#65 已合并，父 Issue #26 与子 Issues #60/#61
 成功的 `prepare` / `confirm` 后创建短期、绑定 `openid` 的 TripContext，但 `advice` 仍读取
 客户端回传的 `baseData`，所以可信闭环尚未完成。
 
-当前只授权 Sol XHigh 冻结 I18 合同、同步文档与 Issue，并提交纯规划 PR。规划合同经过独立
-Review、最新 head CI 和人工既有 Goal 授权范围内的合并后，才可切换为 `IMPLEMENTATION` 并
-交给 Terra XHigh。规划阶段不得修改业务代码、测试代码、依赖或 GitHub 工作流。
+I18 规划 PR #66 已通过独立 Review 与 latest-head GitHub `quality`（57 秒），并 squash
+merged as `270e442`。当前授权 Terra XHigh 按本合同实施 I18；不得改动合同、扩大范围、批准
+或合并自己的 PR。Sol XHigh 保留独立 Review、返工指令与合并判断。
 
 ## 必读上下文
 
