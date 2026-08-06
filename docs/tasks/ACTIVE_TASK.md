@@ -65,7 +65,7 @@ XHigh 必须用真实 merge commit 更新 GitHub #13 和本文件、创建
    `confirmation | route_type_required | base | advice | error`。
    I04 的运行时形状冻结为：
    - `confirmation { phase, message, data }`（兼容 `ok/needsConfirm` 可选）
-   - `route_type_required { phase, displayName, allowedTypes, data? }`
+   - `route_type_required { phase, displayName, allowedTypes, data }`
      （兼容 `ok/error/needsRouteType` 可选）
    - `base { phase, data }`（兼容 `ok` 可选）
    - `advice { phase, degraded, data }`（兼容 `ok` 可选）
