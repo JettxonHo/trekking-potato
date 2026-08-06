@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
-- Active task: `I16 / GitHub #25 / IMPLEMENTATION`
+- Active task: `I16 / GitHub #25 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/i16-trip-verdict`
 - Base: `main` at `8412535`
 - Planning PR: `#9` — merged
@@ -30,7 +30,8 @@ field-level audit still blocks every full pilot variant, so M3 cannot close. TP-
 independent M4 weather/verdict foundation to proceed using only I07's frozen shape and synthetic
 fixtures; this does not authorize I13, real full-route data or production integration. I14 and I15
 are complete. I16's trip-level composition contract passed independent Review and planning PR #58
-merged. Bounded Terra implementation is active; public handler integration remains forbidden.
+merged. Bounded Terra implementation is complete and awaits Sol XHigh's independent Review; public
+handler integration remains forbidden.
 
 ## Completed
 
@@ -212,6 +213,11 @@ merged. Bounded Terra implementation is active; public handler integration remai
   implementable without changing I14/I15 or requesting human direction.
 - I16 planning PR #58 matched approved head `1347037`, passed latest-head GitHub `quality` in 50
   seconds and squash merged as `8412535`. The exact allowlist and contract in #25 are now active.
+- I16 implementation recorded a genuine missing-module RED, then added only the pure trip composition
+  module, the frozen local sunset adapter and an offline I14/I15-crossing contract test. Its final local
+  matrix passes the I16/I15/I14/legacy weather/route-domain contracts, root test, integration (56/0),
+  lint (0 errors; 10 existing warnings), typecheck, WeChat build and `git diff --check`. It is
+  `READY_FOR_CONTROLLER_REVIEW`; no public handler, route data, dependency or frontend change occurred.
 
 ## Baseline evidence
 
@@ -257,7 +263,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Complete bounded I16 test-first implementation, then return it for Sol XHigh code Review.
+1. Sol XHigh independently reviews the bounded I16 implementation and reruns its quality matrix before
+   any implementation PR is created.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -287,5 +294,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra implements the frozen #25 contract test-first and returns a result package. Sol independently
-reviews actual code and reruns the full quality matrix before any implementation PR is created.
+Sol independently reviews the bounded I16 implementation and reruns the full quality matrix before any
+implementation PR is created.

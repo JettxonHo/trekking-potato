@@ -66,4 +66,25 @@ function calcSunEvents(lat, lon, dateStr) {
   }
 }
 
-module.exports = { calcSunEvents }
+/**
+ * I16's narrow astronomical boundary. It preserves the existing broader
+ * photo-timing export while giving trip composition a stable, local-only
+ * sunset union in the project's fixed timezone.
+ *
+ * @param {{ date?: any, coordinate?: { coordinateSystem?: any, lat?: any, lon?: any } }} [input]
+ */
+function getSunsetReference({ date, coordinate } = {}) {
+  if (!coordinate
+    || coordinate.coordinateSystem !== 'WGS84'
+    || typeof coordinate.lat !== 'number'
+    || typeof coordinate.lon !== 'number') {
+    return { ok: false, code: 'sunset_unavailable' }
+  }
+  const events = calcSunEvents(coordinate.lat, coordinate.lon, date)
+  if (!events || !/^([01]\d|2[0-3]):[0-5]\d$/.test(events.sunset || '')) {
+    return { ok: false, code: 'sunset_unavailable' }
+  }
+  return { ok: true, timezone: 'Asia/Shanghai', sunsetLocal: events.sunset }
+}
+
+module.exports = { calcSunEvents, getSunsetReference }

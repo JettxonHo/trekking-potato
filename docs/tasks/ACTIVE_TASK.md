@@ -3,7 +3,7 @@
 - Task ID: `I16`
 - GitHub Issue: `#25`
 - Title: 冻结攀登支持、日落、提前量与数据不足组合合同
-- Status: `IMPLEMENTATION`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -18,8 +18,9 @@ merged as `ade3bdd`; GitHub #24 is closed. Sol XHigh is authorized to freeze I16
 composition contract and tests before implementation. This planning branch may change only durable
 contracts and governance state. An independent Terra XHigh reviewed the actual seven-document diff
 and synchronized GitHub #25, returning `APPROVED` with no P0–P2 finding. Planning PR #58 then passed
-latest-head GitHub `quality` and squash merged as `8412535`. Terra XHigh is now authorized to perform
-the bounded test-first implementation on this branch; it cannot change or approve the contract.
+latest-head GitHub `quality` and squash merged as `8412535`. Terra XHigh completed the bounded
+test-first implementation on this branch and returned it for Sol XHigh's independent Review; it cannot
+change or approve the contract.
 
 ## Mandatory context
 
