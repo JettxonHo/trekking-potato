@@ -1,15 +1,28 @@
 # 当前活动任务
 
-- Task ID: `I04`
-- GitHub Issue: `#13` — `https://github.com/JettxonHo/trekking-potato/issues/13`
-- Title: 建立判别式云函数响应契约
-- Status: `READY_FOR_EXECUTOR`
-- Mode: `IMPLEMENTATION`
-- Owner: Terra XHigh (authorized Luna fallback)
-- Reviewer: Sol XHigh
-- Branch: `codex/i04-response-contract`
-- Base: latest `main` after the M1 checkpoint PR
+- Task ID: `M1-CHECKPOINT`
+- Planned next Issue: `#13` — `https://github.com/JettxonHo/trekking-potato/issues/13`
+- Title: 固化 M1 完成状态并批准 I04 合同
+- Status: `CONTROLLER_REVIEW`
+- Mode: `REVIEW`
+- Owner and reviewer: Sol XHigh
+- Branch: `codex/m1-checkpoint`
+- Base: `main` at `6ee02c9`
 - Goal: `TP-BETA-001`
+
+本文件当前记录的是控制端检查点，不能作为 I04 实现授权。检查点 PR 合并后，Sol
+XHigh 必须用真实 merge commit 更新 GitHub #13 和本文件、创建
+`codex/i04-response-contract`，然后才能向 Terra XHigh 分派。下面内容是已经冻结但
+尚未激活的 I04 合同。
+
+## Checkpoint scope
+
+- `GOAL.md`、`README.md`
+- `docs/architecture.md`、`docs/current-status.md`、`docs/decision-log.md`
+- `docs/development-plan.md`、`docs/issue-and-pr-workflow.md`
+- `docs/testing-strategy.md`、`docs/tasks/ACTIVE_TASK.md`
+
+检查点只同步治理、状态和下一任务合同，不修改业务代码。
 
 ## Objective
 
@@ -58,9 +71,20 @@
    - `advice { phase, degraded, data }`（兼容 `ok` 可选）
    - `error { phase, code, message, retryable }`（兼容 `ok/error` 可选，日期窗口可选）
 3. `phase='error'` 必须含非空 `code`、用户可见 `message` 和 boolean `retryable`。
-   现有 error 路径保持原错误码；需要修改输入或重新 prepare 的错误为 false。
+   现有 error 路径保持原错误码；固定映射为：
+   - `weather_data_invalid: true`
+   - `no_auth`、`missing_params`、`invalid_mode`、`invalid_trip_days`、`invalid_date`、
+     `invalid_route_type`、`location_failed`、`out_of_range`、`invalid_base_data`、
+     `internal_error`: `false`
+   本表之外不得由实现 Agent 新增或改判；发现遗漏 code 必须升级。
 4. 当前模糊命中映射为 `confirmation`，类型待选映射为
    `route_type_required`；后者不是 error。不得为二者伪造 candidate ID 或 queryId。
+   - 在 I05 前，前端收到 `confirmation` 后只展示返回 `message` 并允许用户修改后
+     重新提交；不得读取 base 字段、调用 advice、写缓存或写历史。
+   - `route_type_required` 在 I04 迁移期必须同时包含顶层 `displayName`、
+     `allowedTypes=['trek','climb','tour']`，以及现有前端所需的 `data`：
+     `name/lat/lon/elevation/location/routeTypeOptions`。前端按 phase 进入现有类型选择
+     流程，不得默认类型或触发 advice。
 5. base 与 advice 成功出口分别为 `base` 和 `advice`；AI 降级仍是可展示的
    `advice`，不得映射成 error。
 6. 兼容字段 `ok/error/needsConfirm/needsRouteType/data` 可以保留，并与新信封一致；
@@ -112,7 +136,7 @@ git diff --check
 ## Executor autonomy
 
 - 可决定构造器函数名、JSDoc 类型和测试 helper 组织方式。
-- 可按当前错误语义确定各已有 code 的 retryable 值，并在结果包列出映射。
+- 可决定如何在代码中集中表达已冻结的 retryable 映射，但不得改变映射值。
 - 不得改变 phase 集合、公共 mode、错误码、业务 payload、依赖或后续 Issue 边界。
 
 ## Escalation conditions

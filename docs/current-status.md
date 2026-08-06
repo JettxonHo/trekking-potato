@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M2 Correctness`
-- Active task: `I04 / GitHub #13` contract activation
+- Active task: `M1-CHECKPOINT / I04 contract approval`
 - Branch: `codex/m1-checkpoint`
 - Base: `main` at `6ee02c9`
 - Planning PR: `#9` — merged
