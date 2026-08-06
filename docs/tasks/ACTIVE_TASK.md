@@ -3,12 +3,12 @@
 - Task ID: `I16`
 - GitHub Issue: `#25`
 - Title: 冻结攀登支持、日落、提前量与数据不足组合合同
-- Status: `APPROVED — PLANNING_PR_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Reviewer: independent Terra XHigh
-- Branch: `codex/i16-trip-verdict-contract`
-- Base: `main` at `ade3bdd`
+- Status: `APPROVED — PR_PENDING`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
+- Branch: `codex/i16-trip-verdict`
+- Base: `main` at `8412535`
 - Goal: `TP-BETA-001`
 
 ## Current authorization
@@ -17,8 +17,18 @@ I15 implementation PR #57 passed Sol XHigh Review and latest-head GitHub `qualit
 merged as `ade3bdd`; GitHub #24 is closed. Sol XHigh is authorized to freeze I16's internal
 composition contract and tests before implementation. This planning branch may change only durable
 contracts and governance state. An independent Terra XHigh reviewed the actual seven-document diff
-and synchronized GitHub #25, returning `APPROVED` with no P0–P2 finding. No business implementation
-is authorized until the planning PR passes latest-head CI and merges.
+and synchronized GitHub #25, returning `APPROVED` with no P0–P2 finding. Planning PR #58 then passed
+latest-head GitHub `quality` and squash merged as `8412535`. Terra XHigh completed the bounded
+test-first implementation on this branch and returned it for Sol XHigh's independent Review; it cannot
+change or approve the contract.
+
+Sol's first implementation Review found no P0/P1 production defect and requested only two focused
+test-sensitivity fixes. The REVIEW_FIX establishes an Asia/Shanghai-versus-UTC midnight tracer and
+executes the default local sunset adapter path without pinning astronomical minutes. The bounded fix is
+ready for Sol's second independent Review; it does not change production behavior or this contract.
+Sol then inspected the actual fix and independently reran the complete quality matrix. All checks
+passed, the two test gaps are closed, and the implementation is `APPROVED`; only latest-head GitHub
+`quality` remains before merge.
 
 ## Mandatory context
 
