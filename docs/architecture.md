@@ -62,10 +62,16 @@ I05a 冻结服务端匹配/confirm，I05b 完成前端选择/取消/编辑。临
 ``builtin-route:${canonicalName}``，不使用数组下标、哈希或额外数据库；canonical name
 未改名时稳定，跨目录永久 ID 仍属于 I13。
 
-- canonical exact 直达；不存在 canonical exact 时，唯一 alias exact 可直达；重复 alias、
-  prefix/contains 和编辑距离只返回最多五个确定排序候选。
+- canonical exact 直达；不存在 canonical exact 时，唯一 alias exact 可直达。候选阶段按
+  `重复 alias exact → prefix → contains → fuzzy` 执行，只使用第一个非空阶段：先按
+  candidate ID 去重，再排序，最后截取最多五条。alias/prefix/contains 阶段按
+  canonicalName 的 Unicode code point 顺序；fuzzy 先按最小编辑距离、再按同一名称顺序。
+  prefix 指 query 与 canonical/alias 任一方以另一方开头；contains 指 prefix 未命中后
+  任一方包含另一方；fuzzy 保持长度至少 4 且编辑距离 `<=2`。
 - I05 候选只含 `candidateId/canonicalName/region/routeType`，不暴露坐标、海拔或天气。
-  I07 再以加法补齐 `entityKind/capability/fixedDays`，不得由 I05 伪造领域身份。
+  字段固定映射为 `canonicalName=name`、`region=location`、`routeType=type`；region 在
+  I05 只用于原文展示，不推导或新建行政区 schema。I07 再以加法补齐
+  `entityKind/capability/fixedDays`，不得由 I05 伪造领域身份。
 - `confirm` 只消费 `candidateId/date/level/days`，并从服务端目录重建事实。额外客户端
   route、坐标、类型、天气或 baseData 均不参与确认。
 - 未知、畸形或已移除 ID 返回 `candidate_not_found`。无状态 I05 不声称提供 TTL；

@@ -23,6 +23,7 @@
 - `docs/decision-log.md`
 - `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
+- `docs/tasks/completed/TP-P0-004-investigation.md`（仅补 superseded 注记）
 - GitHub parent #14 and child #41/#42 contracts
 
 ## Frozen split

@@ -63,15 +63,21 @@ prefix/contains/fuzzy 候选、稳定 ID、candidate_not_found、confirm 只读�
 
 ### 路线确认
 
-- 规范名和别名直接解析。
-- 模糊、前缀只返回候选。
-- 候选展示 ID 之外的名称、地区、类型、天数。
+- I05 过渡期：全局规范名精确直达；无规范名命中时唯一别名精确直达；重复别名、
+  前缀、包含和模糊只返回候选。
+- I05 候选只展示 ID、`canonicalName=name`、`region=location` 和 `routeType=type`；
+  不展示坐标、海拔、天气或客户端可修改的路线事实。
+- I05 候选只取第一个非空匹配阶段，去重/排序后最多五条；确认只提交 ID。
 - 确认前无天气、规则、AI、缓存、历史。
 - 确认提交 candidate ID，服务端恢复可信事实。
+- 取消、修改和新提交清除 I05 候选；迟到 prepare/confirm 不覆盖新状态。
+- `route_type_required` 不与 confirmation 混淆。
+
+### I07 后最终候选
+
+- 候选在 I05 四字段上以加法补齐 `entityKind`、`capability` 和典型天数。
 - place-only 确认保留并校验用户 1–7 天；RouteVariant 忽略自由天数并使用 fixedDays。
 - candidate 只允许 route_variant/full 或 place/place_only 两种组合。
-- 取消或修改输入清除候选。
-- `route_type_required` 不与 confirmation 混淆。
 - I05 无状态 candidate ID 只验证未知/已移除记录；TTL 与 openid 归属在 I17 验证。
 
 ### 路线模型
