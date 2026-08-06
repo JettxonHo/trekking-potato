@@ -4,18 +4,19 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M2 Correctness`
-- Active task: `I05b / GitHub #42 / READY_FOR_CONTROLLER_REVIEW`
-- Branch: `codex/i05b-frontend-confirmation`
-- Base: `main` at `1a76bc0`
+- Active task: `I06-CONTRACT / GitHub #15 / PLANNING_PR_READY`
+- Branch: `codex/i06-safety-merge-contract`
+- Base: `main` at `deb3a8c`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
 - I05 planning PR: `#43` — merged
 - I05a PR: `#44` — merged; GitHub #41 closed and #42 unblocked
+- I05b PR: `#45` — merged; GitHub #42 and parent #14 closed
 
 Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
-I04 and I05a are complete. I05b is implemented and awaiting Sol XHigh review; I06 and later Issues
-remain Backlog until dependencies and exact contracts are approved.
+I04 and I05 are complete. I06 contract Review is `APPROVED`; implementation remains blocked until
+the planning PR is merged and #15 is activated on that real base.
 
 ## Completed
 
@@ -37,19 +38,25 @@ remain Backlog until dependencies and exact contracts are approved.
 - M1 checkpoint and the frozen I04 contract passed independent Review and merged in PR #39.
 - I04 response-contract implementation was committed as `37c9be3`; its offline
   `test:response` exercises public handler exits and minimal frontend phase consumption. The
-  first Sol review changes are addressed on `codex/i04-response-contract`, which is again
-  `READY_FOR_CONTROLLER_REVIEW`.
+  first Sol review changes were addressed before its second Review.
 - I04 passed Sol XHigh second review and latest-head `quality`, merged in PR #40 as `34170ba`,
   and GitHub #13 was closed.
 - I05 was split into parent #14 with backend child #41 and frontend child #42 to keep each PR
-  independently verifiable; #42 is blocked by #41.
+  independently verifiable; #42 remained blocked until #41 merged.
 - I05 planning passed independent Review after one fix round and merged in PR #43 as `a73b840`;
   #41 was activated on that real base.
 - I05a passed Sol XHigh Review and latest-head `quality`, merged in PR #44 as `1a76bc0`, and
   GitHub #41 was closed. I05b was unblocked on that real base.
-- I05b implemented the page-local candidate selection Popup, frozen minimal confirm request and
-  prepare/confirm-only generation guard on `codex/i05b-frontend-confirmation`; it is awaiting
-  Sol XHigh review.
+- I05b passed Sol XHigh Review and latest-head `quality`, merged in PR #45 as `deb3a8c`; GitHub
+  #42 and parent #14 were closed.
+- Three read-only I06 interface explorations compared a minimal pure merge, a full orchestration
+  adapter and a caller-oriented producer. Sol selected the scoped single-entry pure projection in
+  TP-D017; no I06 business code has been dispatched or modified.
+- The first independent I06 contract Review returned `CHANGES_REQUESTED`; Goal status, exact AI
+  union/schema, risk/note projection, degradedReason placement and pre-LLM base validation were
+  synchronized before re-review.
+- The second independent contract Review returned `APPROVED`; all four first-round findings are
+  closed and no human escalation is required.
 
 ## Baseline evidence
 
@@ -64,7 +71,8 @@ remain Backlog until dependencies and exact contracts are approved.
   test for I04 response phases, error envelopes, compatibility consistency and phase branches.
 - `node scripts/confirmation-contract-test.js`: offline I05a contract for canonical/alias and
   candidate-stage matching, four-field candidate exposure, `candidate_not_found`, confirm server
-  fact recovery, zero pre-confirm side effects and disabled UGC substring auto-hit.
+  fact recovery, zero pre-confirm side effects and disabled UGC substring auto-hit; I05b source
+  checks cover selection/cancel/edit and prepare/confirm generation protection.
 - I01 on Node 24.18.0 + npm 10.9.2: fresh-cache root `ci` and three-project `bootstrap` pass using official npm registry locks.
 - I02 on Node 24.18.0 + Corepack npm 10.9.2: root `lint` (0 errors; 10 existing
   unused-variable warnings), `typecheck`, `test`, `test:integration` and
@@ -77,12 +85,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: authorized implementation fallback; assigned I05b / #42.
-- Sol XHigh: owns I05 contracts, task routing and independent Review.
+- Terra XHigh: authorized implementation fallback; no I06 implementation assignment until contract merge.
+- Sol XHigh: owns I06 contract, task routing and independent Review.
+- I06 read-only design agents: three alternatives complete; no code or task authority.
 
 ## Open work
 
-1. Sol XHigh reviews I05b UI flow, tests and latest-head CI before closing parent #14.
+1. Create, verify and merge the I06 contract-only planning PR.
+2. Update #15 and this pointer to a real implementation base, then dispatch Terra XHigh.
 
 ## Blockers and risks
 
@@ -93,13 +103,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Five route variants still require field-level A/B evidence during I08–I12.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I05b
+## Forbidden actions during I06 contract review
 
-- Backend candidate/match/confirm contract changes
-- I20 reducer/service, global store or broad advice/history race refactor
-- Route schema, queryId/TTL, verdict/weather/rule/history/UGC changes, deployment or dependencies
-- Deployment, database mutation, UGC deletion or production configuration
+- Any business-code, test-code, dependency or runtime configuration change
+- TP-VERDICT-1、RouteVariant、queryId/TTL、历史/UGC 或 I20 reducer/service implementation
+- Public response changes, deployment, database mutation, UGC deletion or production configuration
 
 ## Next action
 
-Review GitHub #42; I06 remains blocked until parent #14 is reviewed and closed.
+Create the contract-only planning PR; only after it is merged may #15 become
+`READY_FOR_EXECUTOR` on the resulting `main` commit.
