@@ -22,6 +22,11 @@ latest-head GitHub `quality` and squash merged as `8412535`. Terra XHigh complet
 test-first implementation on this branch and returned it for Sol XHigh's independent Review; it cannot
 change or approve the contract.
 
+Sol's first implementation Review found no P0/P1 production defect and requested only two focused
+test-sensitivity fixes. The REVIEW_FIX establishes an Asia/Shanghai-versus-UTC midnight tracer and
+executes the default local sunset adapter path without pinning astronomical minutes. The bounded fix is
+ready for Sol's second independent Review; it does not change production behavior or this contract.
+
 ## Mandatory context
 
 Follow the complete reading order in `AGENTS.md`, then read:

@@ -218,6 +218,12 @@ handler integration remains forbidden.
   matrix passes the I16/I15/I14/legacy weather/route-domain contracts, root test, integration (56/0),
   lint (0 errors; 10 existing warnings), typecheck, WeChat build and `git diff --check`. It is
   `READY_FOR_CONTROLLER_REVIEW`; no public handler, route data, dependency or frontend change occurred.
+- Sol's first I16 implementation Review found no P0/P1 production defect, but returned
+  `CHANGES_REQUESTED` for two test-sensitivity gaps. The bounded REVIEW_FIX moves the fixture clock
+  across the Shanghai/UTC midnight and proves a UTC-sliced implementation fails by adding a spurious
+  day-one forecast warning; it also exercises the real local sunset adapter and default I16 path without
+  locking astronomical minutes. No production behavior changed. The focused and complete local matrices
+  are green again, so I16 is returned as `READY_FOR_CONTROLLER_REVIEW` for Sol's second Review.
 
 ## Baseline evidence
 

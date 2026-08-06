@@ -7,10 +7,13 @@
 const assert = require('node:assert/strict')
 const { createRouteCatalog } = require('../cloudfunctions/getAdvice/domain/route-catalog')
 const { fetchRouteWeather } = require('../cloudfunctions/getAdvice/hourly-weather')
+const { getSunsetReference } = require('../cloudfunctions/getAdvice/sun-events')
 const { clone, makeCatalogInput, makeHourlyResponse } = require('./fixtures/open-meteo-hourly')
 const { evaluateTripVerdict } = require('../cloudfunctions/getAdvice/trip-verdict')
 
-const FIXTURE_NOW = new Date('2026-08-06T15:30:00.000Z')
+// 2026-08-07 in Shanghai but still 2026-08-06 in UTC. This keeps the
+// lead-time assertion sensitive to implementations that slice UTC dates.
+const FIXTURE_NOW = new Date('2026-08-06T16:30:00.000Z')
 
 function getParam(url, name) {
   return new URL(url).searchParams.get(name)
@@ -183,7 +186,7 @@ async function testInsufficientAndIndependentClimbNoGo() {
 }
 
 async function testWeatherPreservationClimbAndLeadTime() {
-  const complete = await routeWeather()
+  const complete = await routeWeather({ date: '2026-08-11' })
   assert.equal(complete.dataStatus, 'complete')
   const i15Reason = weatherReason()
   const evaluatorCalls = []
@@ -212,10 +215,10 @@ async function testWeatherPreservationClimbAndLeadTime() {
       severity: 'caution',
       at: {
         day: 2,
-        date: '2026-08-11',
+        date: '2026-08-12',
         samplePointId: null,
-        startLocal: '2026-08-11T07:30',
-        endLocalExclusive: '2026-08-11T09:30',
+        startLocal: '2026-08-12T07:30',
+        endLocalExclusive: '2026-08-12T09:30',
       },
       observed: { leadDays: 5, thresholdDays: 5 },
       message: '预报提前量较长，临近出发需重新确认',
@@ -253,6 +256,20 @@ async function testWeatherPreservationClimbAndLeadTime() {
       assert.equal(matrix.reasons.some((reason) => reason.code === 'technical_climb'), !(level === '小白' && climbSupport === 'solo_or_unsure'))
     }
   }
+
+  const noviceWithWeather = evaluateTripVerdict({
+    routeContext: fullContext('climb'),
+    request: request({ level: '小白', climbSupport: 'solo_or_unsure' }),
+    weatherSnapshot: complete,
+  }, {
+    evaluateWeatherVerdict: () => ({ verdict: 'caution', dataStatus: 'complete', reasons: [i15Reason] }),
+    getSunsetReference: sunsetBySample({}, []),
+  })
+  assert.deepEqual(
+    noviceWithWeather.reasons.slice(0, 2).map((reason) => reason.code),
+    ['novice_climb_solo_or_unsure', 'rain_or_snow'],
+  )
+  assert.equal(noviceWithWeather.reasons.some((reason) => reason.code === 'technical_climb'), false)
 }
 
 async function testSunsetBoundariesAndDataIssues() {
@@ -352,12 +369,25 @@ async function testSunsetBoundariesAndDataIssues() {
   assert.equal(weatherNoGo.dataStatus, 'insufficient')
 }
 
-async function testDefaultI15AndImmutability() {
-  const complete = await routeWeather({ date: '2026-08-06' })
+async function testDefaultAdaptersAndImmutability() {
+  const complete = await routeWeather({ date: '2026-08-07' })
   const input = {
     routeContext: fullContext(), request: request(), weatherSnapshot: complete,
   }
   const before = clone(input)
+  const firstWindow = complete.evaluatedWindows[0]
+  const reference = getSunsetReference({
+    date: firstWindow.date,
+    coordinate: firstWindow.samples[0].requestCoordinate,
+  })
+  assert.equal(reference.ok, true)
+  assert.equal(reference.timezone, 'Asia/Shanghai')
+  assert.match(reference.sunsetLocal, /^([01]\d|2[0-3]):[0-5]\d$/)
+
+  const defaultPath = evaluateTripVerdict(input)
+  assert.equal(defaultPath.dataStatus, 'complete')
+  assert.deepEqual(defaultPath.dataIssues, [])
+
   const sunsets = []
   const options = { getSunsetReference: sunsetBySample({}, sunsets) }
   const first = evaluateTripVerdict(input, options)
@@ -372,7 +402,7 @@ async function main() {
   await testInsufficientAndIndependentClimbNoGo()
   await testWeatherPreservationClimbAndLeadTime()
   await testSunsetBoundariesAndDataIssues()
-  await testDefaultI15AndImmutability()
+  await testDefaultAdaptersAndImmutability()
   console.log('PASS: I16 trip-verdict contract')
 }
 
