@@ -3,7 +3,7 @@
 - Task ID: `I17a`
 - GitHub Issue: `#60` (parent `#26`)
 - Title: 建立 TripContext 服务端存储核心
-- Status: `READY_FOR_CONTROLLER_REVIEW`
+- Status: `APPROVED — PR_PENDING`
 - Mode: `REVIEW_FIX`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -20,7 +20,11 @@ contract Review returned `CHANGES_REQUESTED` for one ownership ambiguity, one st
 paragraph and two focused test gaps. All four were corrected and synchronized; the second independent
 Review returned `APPROVED` with no remaining P0–P2 finding. Planning PR #62 then passed latest-head
 GitHub `quality` and squash merged as `bc23dbe`. I17a/#60 is now authorized exactly within its allowlist;
-I17b/#61 remains blocked until I17a merges.
+I17b/#61 remains blocked until I17a merges. Terra completed I17a test-first. Sol's first implementation
+Review returned `CHANGES_REQUESTED` for one malformed-record boundary; the focused fix now rejects an
+unparsable `createdAt` and non-`beta_base_v1` snapshot without nested rule revalidation. Sol inspected
+the actual fix, reran the full quality matrix and returned `APPROVED`; latest-head GitHub CI is the only
+remaining merge gate.
 
 ## Mandatory context
 

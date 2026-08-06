@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I17a / #60 / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `I17a / #60 / APPROVED — PR_PENDING`
 - Branch: `codex/i17a-trip-context-store`
 - Base: `main` at `bc23dbe`
 - Planning PR: `#9` — merged
@@ -256,6 +256,10 @@ client-baseData compatible and explicitly untrusted until I18.
   `found`. The bounded `REVIEW_FIX` first recorded both sensitive RED cases, then added only those two
   stored-record checks. It does not revalidate I14–I16 nested data; the focused test and complete local
   matrix are green again, so #60 is returned as `READY_FOR_CONTROLLER_REVIEW`.
+- Sol's second I17a Review inspected the actual REVIEW_FIX, confirmed the previous corrupt-record probe
+  now returns `store_unavailable`, and independently reran trip-context, root test, integration (56/0),
+  lint (0 errors; 10 existing warnings), typecheck, WeChat build and diff checks. All passed; result is
+  `APPROVED — PR_PENDING` with only latest-head GitHub `quality` remaining.
 
 ## Baseline evidence
 
@@ -301,8 +305,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol independently reviews #60's actual diff and validation evidence; only an `APPROVED` result may
-   proceed to PR, latest-head CI and merge.
+1. Open #60's implementation PR, require latest-head GitHub `quality`, then merge only if the approved
+   diff is unchanged.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -334,5 +338,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol reviews #60's implementation handoff. I17b/#61 remains blocked until I17a passes Sol Review,
-latest-head CI and merge.
+Open #60's approved implementation PR and wait for latest-head CI. I17b/#61 remains blocked until I17a
+merges.
