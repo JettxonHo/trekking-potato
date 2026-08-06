@@ -6,8 +6,8 @@
 - Active milestone: `M1 Engineering gate`
 - Active task: `I01 / GitHub #10`
 - Control branch: `codex/tp-beta-activation`
-- I01 branch: `codex/i01-toolchain-locks` (to be created after activation merge)
-- Base: `main` at `faee685`
+- I01 branch: `codex/i01-toolchain-locks` (active)
+- Base: `main` at `809e4fd`
 - Planning PR: `#9` — merged
 
 Status semantics: planning is approved and TP-BETA-001 is active. Only I01 is Ready; I02 is blocked by I01, and all business Issues remain gated by M1.
@@ -20,7 +20,7 @@ Status semantics: planning is approved and TP-BETA-001 is active. Only I01 is Re
 - Governance v2, Goal and durable planning documents drafted on the planning branch.
 - Independent Terra XHigh planning review completed with final `APPROVED` after all requested contract fixes.
 - Controller approved and Sol XHigh squash merged planning PR #9.
-- Goal activated; 8 governance labels, M1–M7 milestones and GitHub Issues #10–#34 were created.
+- Goal activated in PR #35; 8 governance labels, M1–M7 milestones and GitHub Issues #10–#34 were created.
 
 ## Baseline evidence
 
@@ -29,7 +29,9 @@ Status semantics: planning is approved and TP-BETA-001 is active. Only I01 is Re
 - `node scripts/unit-test.js`: 55 pass / 0 fail
 - `node scripts/security-test.js`: 15 pass / 0 fail
 - `node scripts/e2e-local.js`: blocked by missing `wx-server-sdk` in the current checkout
-- Taro build: unavailable before dependency installation; global `taro` is not installed
+- I01 on Node 24.18.0 + npm 10.9.2: `corepack npm ci` and `corepack npm run bootstrap`
+  both pass; the latter installs all three independent subprojects.
+- Taro build: deferred to I02; global `taro` is not required.
 
 All four passing counts were rerun on the planning branch. Local Markdown links and `git diff --check` also pass.
 
@@ -37,18 +39,20 @@ All four passing counts were rerun on the planning branch. Local Markdown links 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: authorized implementation fallback; assigned I01 after activation state merges.
-- I01 is the only implementation task prepared for dispatch.
+- Terra XHigh: authorized implementation fallback; completed I01 implementation validation.
+- I01 is ready for Sol XHigh's independent PR review.
 
 ## Open work
 
-1. Merge the activation status PR.
-2. Create `codex/i01-toolchain-locks` from the resulting `main`.
-3. Dispatch GitHub #10 to Terra XHigh and independently review its PR.
+1. Sol XHigh independently reviews GitHub #10's I01 PR.
+2. After I01 merges, prepare and dispatch I02 (#11).
 
 ## Blockers and risks
 
-- Root toolchain, locks and CI do not yet exist; they are M1 work, not planning-document claims.
+- Root toolchain and four lockfiles are ready for I01 review; CI remains I03 work.
+- Node 24 随附的 npm 11 与 `@nutui/nutui-react-taro@3.0.20` 的不可解析可选依赖
+  存在锁文件校验不兼容：npm 11 生成锁时省略该包、`npm ci` 又报缺失。I01 已按
+  GitHub #10 的控制端决策固定 npm 10.9.2，并以 `engine-strict` 拒绝错误 npm。
 - Five route variants still require field-level A/B evidence during I08–I12.
 - Deployment and real-device validation remain outside the Goal.
 
@@ -60,4 +64,4 @@ All four passing counts were rerun on the planning branch. Local Markdown links 
 
 ## Next action
 
-Complete I01 (#10), then prepare and dispatch I02 (#11).
+Sol XHigh reviews I01 (#10); after merge, prepare and dispatch I02 (#11).

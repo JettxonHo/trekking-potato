@@ -1,0 +1,17 @@
+{
+  "name": "trekking-potato",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "bootstrap": "corepack npm@10.9.2 ci --prefix taro-app && corepack npm@10.9.2 ci --prefix cloudfunctions/getAdvice && corepack npm@10.9.2 ci --prefix cloudfunctions/history",
+    "test": "npm run test:route && npm run test:weather && npm run test:unit",
+    "test:route": "node scripts/route-type-contract-test.js",
+    "test:weather": "node scripts/weather-contract-test.js",
+    "test:unit": "node scripts/unit-test.js"
+  },
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": "24.x",
+    "npm": "10.9.2"
+  }
+}

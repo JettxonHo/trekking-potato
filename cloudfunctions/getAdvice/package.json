@@ -4,7 +4,7 @@
   "description": "徒步薯核心云函数",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "latest",
+    "wx-server-sdk": "4.0.2",
     "suncalc": "^1.9.0"
   }
 }
