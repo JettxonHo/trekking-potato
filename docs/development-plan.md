@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M3 / I07 approved for PR`
+- Status: `ACTIVE — M3 / I08–I12 contract design`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -121,6 +121,9 @@ I06 规划 PR #46 已合并为 `bf7ac83`，#15 在该真实 base 激活并交给
   测试策略列出的 namespace、引用、日程和采样数量负例均已直接覆盖。状态恢复为
   `READY_FOR_CONTROLLER_REVIEW`。Sol 第二次 Review 和完整本地矩阵均通过，结果为
   `APPROVED`；在实现 PR 合并前，I08–I12 仍不得启动。
+- I07 实现 PR #49 以 reviewed head `19c3fee` 通过 latest-head `quality`，squash merged 为
+  `ea3b869`，GitHub #16 已关闭。Source/Place/Route/full-or-blocked Variant schema 现已冻结；
+  I08–I12 必须先完成逐路线来源审阅与独立文件合同，再开始数据实现。
 
 ## 6. Issue 合同生成规则
 

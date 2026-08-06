@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M3 Route domain`
-- Active task: `I07 / GitHub #16 / APPROVED`
-- Branch: `codex/i07-route-domain`
-- Base: `main` at `7d43b1d`
+- Active task: `M3-DATA-CONTRACTS / GitHub #17–#21 / CONTROLLER_CONTRACT_DESIGN`
+- Branch: `codex/i08-i12-route-data-contracts`
+- Base: `main` at `ea3b869`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -16,9 +16,11 @@
 - I06 planning PR: `#46` — merged; latest-head `quality` passed
 - I06 implementation PR: `#47` — merged; GitHub #15 and M2 closed
 - I07 planning PR: `#48` — merged; GitHub #16 remains open for implementation
+- I07 implementation PR: `#49` — merged; GitHub #16 closed
 
-Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 implementation passed its
-second independent Sol Review and is approved for PR/CI; no I08–I13 work is authorized before merge.
+Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 is complete and M3 is at
+source/data contract design for I08–I12; no route-data implementation is authorized until its exact
+route sources, file boundary and acceptance contract are independently reviewed and merged.
 
 ## Completed
 
@@ -98,6 +100,9 @@ second independent Sol Review and is approved for PR/CI; no I08–I13 work is au
 - Sol 的第二次 I07 实现 Review 直接检查了实际模块、测试与文档，并亲自重跑
   `test:route-domain`、lint、typecheck、root test、integration、WeChat build 和 diff check；
   全部通过。Review 结果为 `APPROVED`，当前仅等待实现 PR 的 latest-head CI 与合并。
+- I07 implementation PR #49 matched reviewed head `19c3fee`, passed latest-head GitHub `quality`,
+  and squash merged as `ea3b869`; GitHub #16 closed. The production search path remains unchanged
+  by design, and M3 proceeds to source-backed pilot records.
 
 ## Baseline evidence
 
@@ -132,16 +137,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Terra XHigh: delivered the bounded I07 test-first implementation and one bounded review fix on
-  `codex/i07-route-domain`; Sol second Review is `APPROVED`.
-- Sol XHigh: owns I07 product/domain contract, task routing and independent Review.
-- I07 design/review agents: three alternatives and two independent contract Review rounds complete.
+- Terra XHigh: no active implementation assignment while route-data contracts are under design.
+- Sol XHigh: owns I08–I12 source qualification, task contracts, file partitioning and Review.
+- Route-source research agents: not yet assigned; all source work is read-only until contracts merge.
 
 ## Open work
 
-1. Commit the reviewed I07 implementation and create its focused PR.
-2. Confirm the PR head matches the reviewed commit and latest-head GitHub `quality` passes.
-3. Squash merge, close #16, update the M3 checkpoint, then freeze the first route-data contract.
+1. Verify authoritative/current sources for each of the five fixed pilot variants and Wutai restriction.
+2. Freeze a shared data-test seam plus exact I08–I12 file, field, evidence and acceptance contracts.
+3. Independently review/merge the contract PR, then start I08; only later independent files may run two-way parallel.
 
 ## Blockers and risks
 
@@ -152,12 +156,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Five route variants still require field-level A/B evidence during I08–I12.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I07 implementation
+## Forbidden actions during route-data contract design
 
-- Any file outside the I07 allowlist, dependency/lockfile change, or production runtime integration
-- Pilot route records I08–I12, stable search I13, weather/verdict/queryId/history/UI implementation
+- Any route data, test harness, runtime code, dependency or lockfile implementation
+- Stable search I13, weather/verdict/queryId/history/UI implementation
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Create the approved I07 implementation PR; no I08–I13 task may start before merge.
+Audit source coverage and freeze the first route-data contracts; do not write pilot data yet.

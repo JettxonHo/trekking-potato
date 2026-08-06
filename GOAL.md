@@ -8,7 +8,8 @@
 
 The controller approved planning PR #9 on `2026-08-06`. M1 completed through PRs #36–#38;
 I04–I06 completed through PRs #40 and #43–#47. M2 Correctness is complete; the Goal is active at
-M3 with the I07 route-domain contract merged in PR #48 and its bounded implementation active.
+M3 with I07 merged through PRs #48/#49; the five source-backed route-data contracts are now under
+controller design before I08 implementation.
 
 ## 1. Objective
 

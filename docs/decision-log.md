@@ -143,3 +143,13 @@
 - Why: cold catalog 让 I08–I12 在冻结 schema 上独立验证，同时保持 I05 公共契约零变化；
   搜索接入本来属于 I13。blocked 强填 full 字段或转换 legacy 自由文本都会制造并不存在的
   安全事实。schema、adapter 与测试是一个可独立验收目标，无需为机械规模拆分。
+
+## 2026-08-06 — TP-D020 I07 路线领域目录完成
+
+- Status: Accepted
+- Decision: PR #49 落地单一 cold `createRouteCatalog`、175 条 legacy place-only adapter、
+  full/blocked 判别记录、字段证据和离线契约测试；不接生产搜索。namespace 必须有非空稳定
+  后缀，但不生成 slug、不使用哈希。I07 关闭，I08–I12 可在真实 schema 上冻结数据合同。
+- Evidence: Planning PR #48、implementation PR #49、GitHub #16；两轮合同 Review、两轮实现
+  Review；local lint/typecheck/test/integration/build 与 latest-head GitHub `quality` 通过。
+- Why: 领域事实和旧地点提示已经可由同一深模块诚实区分，且搜索切换仍清晰留在 I13。
