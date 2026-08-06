@@ -81,7 +81,7 @@ function formatLocal(date, totalMinutes) {
 
 function buildStageWindow(stage, date, startMinutes) {
   const durationHoursMax = stage.durationHours.max
-  const endMinutes = startMinutes + durationHoursMax * 60
+  const endMinutes = startMinutes + Math.ceil(durationHoursMax * 60)
   const firstBucketStart = Math.floor(startMinutes / 60) * 60
   const lastBucketStart = Math.ceil(endMinutes / 60) * 60 - 60
   const buckets = []
@@ -166,7 +166,10 @@ function readSampleHours(response, plan) {
   if (isExplicitOutOfRange(response)) {
     return { ok: false, reason: { samplePointId: plan.sample.id, code: 'out_of_range', retryable: false } }
   }
-  if (!response || response.error === true || response.timezone !== TIMEZONE || !hasExpectedUnits(response.hourly_units)) {
+  if (response && response.error === true) {
+    return { ok: false, reason: { samplePointId: plan.sample.id, code: 'weather_unavailable', retryable: true } }
+  }
+  if (!response || response.timezone !== TIMEZONE || !hasExpectedUnits(response.hourly_units)) {
     return { ok: false, reason: { samplePointId: plan.sample.id, code: 'weather_data_invalid', retryable: true } }
   }
   const hourly = response.hourly

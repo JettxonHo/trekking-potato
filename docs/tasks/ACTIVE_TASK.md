@@ -312,3 +312,9 @@ Issue 中提前扫描整日。Sol 必须在 I15 合同中单独解决。
   existing warnings), typecheck, root test, offline integration (56/0), WeChat build and diff check.
 - Sol review should focus on hourly valid-time mapping, atomic insufficient projection and the absence
   of any I13/I15/I16 or public-handler wiring.
+- Sol's first implementation Review requested two P1 fixes. A catalog-valid `durationHours.max=4.125`
+  now conservatively projects to an integer-minute local end while preserving `durationHoursMax=4.125`;
+  an explicit non-range upstream `{ error: true }` now returns retryable `weather_unavailable` without
+  exposing its reason. The hourly contract also invokes the exported weather-module injected entry once.
+- The review-fix local matrix passed hourly-weather, weather (86/0), route-domain, lint (0 errors; 10
+  existing warnings), typecheck, root test, offline integration (56/0), WeChat build and diff check.

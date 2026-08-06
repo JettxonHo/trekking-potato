@@ -161,6 +161,12 @@ ready for Sol XHigh's independent review; it has not been approved or merged.
   catalog/weather fixtures and offline contract. The final local matrix passes `test:hourly-weather`,
   legacy weather (86/0), route-domain, lint (0 errors; 10 pre-existing warnings), typecheck, root test,
   integration (56/0), WeChat build and `git diff --check`. It remains `READY_FOR_CONTROLLER_REVIEW`.
+- Sol's first I14 implementation Review returned `CHANGES_REQUESTED` for two P1 boundary cases: a
+  catalog-valid sub-minute fractional duration produced a non-normalized local audit time, and a
+  non-range Open-Meteo service error was classified as invalid data. The bounded REVIEW_FIX now rounds
+  duration minutes conservatively upward while retaining the original duration field, maps only explicit
+  non-range upstream errors to retryable `weather_unavailable`, and directly covers the weather-module
+  injected entry. The complete local matrix is green again; I14 remains `READY_FOR_CONTROLLER_REVIEW`.
 
 ## Baseline evidence
 

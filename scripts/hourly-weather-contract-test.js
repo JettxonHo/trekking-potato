@@ -14,6 +14,7 @@ const {
   makeHourlyResponse,
 } = require('./fixtures/open-meteo-hourly')
 const { fetchRouteWeather } = require('../cloudfunctions/getAdvice/hourly-weather')
+const { fetchRouteWeather: fetchRouteWeatherFromWeather } = require('../cloudfunctions/getAdvice/weather')
 
 const HOURLY_PARAMETER = HOURLY_FIELDS.join(',')
 const FIXED_NOW = new Date('2026-08-06T00:00:00.000Z')
@@ -215,6 +216,32 @@ async function testExactEndAndCrossMidnight() {
   ])
 }
 
+async function testFractionalDurationUsesConservativeMinuteProjection() {
+  const input = makeCatalogInput()
+  const fixtureVariant = input.variants[0]
+  fixtureVariant.fixedDays = 1
+  fixtureVariant.stages = [clone(fixtureVariant.stages[0])]
+  fixtureVariant.stages[0].durationHours = { min: 2, max: 4.125 }
+  fixtureVariant.stages[0].weatherSamplePointIds = ['sample-b']
+  const variant = createRouteCatalog(input).getById('variant:hourly-fixture')
+
+  const result = await fetchRouteWeather(
+    { variant, date: '2026-08-06', startTimeLocal: '07:30' },
+    { now: FIXED_NOW, requestJson: async (url) => responseFor(url) },
+  )
+
+  assert.equal(result.dataStatus, 'complete')
+  assert.equal(result.evaluatedWindows[0].durationHoursMax, 4.125, 'audit retains the I07 duration value')
+  assert.equal(result.evaluatedWindows[0].endLocalExclusive, '2026-08-06T11:38', 'fractional I07 duration is conservatively normalized to a full local minute')
+  assert.deepEqual(result.evaluatedWindows[0].samples[0].hours.map((hour) => hour.bucketStartLocal), [
+    '2026-08-06T07:00',
+    '2026-08-06T08:00',
+    '2026-08-06T09:00',
+    '2026-08-06T10:00',
+    '2026-08-06T11:00',
+  ], 'fractional-duration window retains all and only intersecting whole-hour buckets')
+}
+
 async function testExternalFailuresAreAtomic() {
   const variant = getFixtureVariant()
   const singleSampleVariant = clone(variant)
@@ -281,6 +308,16 @@ async function testExternalFailuresAreAtomic() {
   assert.equal(calls.length, 3, 'a necessary sample failure does not skip the other requested samples')
   assertInsufficient(unavailable, [{ samplePointId: 'sample-a', code: 'weather_unavailable', retryable: true }])
 
+  const serviceFailure = await fetchRouteWeather(
+    { variant: singleSampleVariant, date: '2026-08-06', startTimeLocal: '07:30' },
+    {
+      now: FIXED_NOW,
+      requestJson: async () => ({ error: true, reason: 'Service temporarily unavailable' }),
+    },
+  )
+  assertInsufficient(serviceFailure, [{ samplePointId: 'sample-b', code: 'weather_unavailable', retryable: true }])
+  assert.equal(JSON.stringify(serviceFailure).includes('Service temporarily unavailable'), false, 'service reason is not exposed')
+
   const mixedCalls = []
   const mixedResponses = []
   const mixed = await fetchRouteWeather(
@@ -323,11 +360,27 @@ async function testRequestBoundaryAndNoCloudBaseLoad() {
   assert.equal(calls, 0, 'invalid route-weather requests make no upstream request')
 }
 
+async function testWeatherModuleInternalEntry() {
+  const variant = getFixtureVariant()
+  const calls = []
+  const result = await fetchRouteWeatherFromWeather(
+    { variant, date: '2026-08-06', startTimeLocal: '07:30' },
+    {
+      now: FIXED_NOW,
+      requestJson: async (url) => { calls.push(url); return responseFor(url) },
+    },
+  )
+  assert.equal(result.dataStatus, 'complete', 'weather.js internal entry delegates injected adapter to the frozen hourly union')
+  assert.equal(calls.length, 3, 'weather.js entry preserves the unique-sample request boundary')
+}
+
 async function main() {
   await testCompleteSnapshotAndRequests()
   await testExactEndAndCrossMidnight()
+  await testFractionalDurationUsesConservativeMinuteProjection()
   await testExternalFailuresAreAtomic()
   await testRequestBoundaryAndNoCloudBaseLoad()
+  await testWeatherModuleInternalEntry()
   console.log('PASS: I14 hourly-weather contract')
 }
 
