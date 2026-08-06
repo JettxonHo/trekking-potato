@@ -493,7 +493,7 @@ exports.main = async (event, context) => {
     return await main(event || {}, context)
   } catch (error) {
     console.error('[getAdvice] 未处理错误:', error && error.message)
-    return errorResponse('internal_error', '服务暂时不可用，请稍后重试')
+    return errorResponse('internal_error', '服务暂时不可用')
   }
 }
 

@@ -115,6 +115,7 @@ function assertError(response, code, retryable) {
   const expectedRetryable = retryable === true
   assert(response.phase === 'error', code + ' 必须返回 phase=error，实际=' + JSON.stringify(response))
   assert(response.code === code, code + ' 必须返回同名 code，实际=' + JSON.stringify(response))
+  assert(typeof response.message === 'string' && response.message.trim().length > 0, code + ' 必须返回非空用户可见 message，实际=' + JSON.stringify(response))
   assert(response.retryable === expectedRetryable, code + ' retryable 不符合冻结映射，实际=' + JSON.stringify(response))
   assert(response.ok === false && response.error === code, code + ' 的兼容字段必须一致，实际=' + JSON.stringify(response))
   assert(!Object.prototype.hasOwnProperty.call(response, 'data'), code + ' 不得携带 data，实际=' + JSON.stringify(response))
@@ -218,6 +219,13 @@ function pageMethod(source, name, nextName) {
   return source.slice(start, end)
 }
 
+function sourceBranch(source, startMarker, endMarker) {
+  const start = source.indexOf(startMarker)
+  const end = source.indexOf(endMarker, start + startMarker.length)
+  assert(start >= 0 && end > start, '未找到前端分支边界: ' + startMarker)
+  return source.slice(start, end)
+}
+
 async function main() {
   const getAdvice = require('../cloudfunctions/getAdvice/index')
   const response = await getAdvice.main({
@@ -259,7 +267,11 @@ async function main() {
   assert(routeTypeRequired.phase === 'route_type_required', '未知路线类型必须返回 phase=route_type_required，实际=' + JSON.stringify(routeTypeRequired))
   assert(routeTypeRequired.displayName === '契约测试外部山峰', 'route_type_required 必须提供 displayName，实际=' + JSON.stringify(routeTypeRequired))
   assert(JSON.stringify(routeTypeRequired.allowedTypes) === JSON.stringify(['trek', 'climb', 'tour']), 'route_type_required 必须提供固定 allowedTypes，实际=' + JSON.stringify(routeTypeRequired))
-  assert(routeTypeRequired.data && JSON.stringify(routeTypeRequired.data.routeTypeOptions) === JSON.stringify(['trek', 'climb', 'tour']), 'route_type_required data 必须保留选项，实际=' + JSON.stringify(routeTypeRequired))
+  const routeTypeData = routeTypeRequired.data
+  const requiredRouteTypeFields = ['name', 'lat', 'lon', 'elevation', 'location', 'routeTypeOptions']
+  assert(routeTypeData && requiredRouteTypeFields.every((field) => Object.prototype.hasOwnProperty.call(routeTypeData, field)), 'route_type_required data 必须包含迁移期全部字段，实际=' + JSON.stringify(routeTypeRequired))
+  assert(typeof routeTypeData.name === 'string' && typeof routeTypeData.lat === 'number' && typeof routeTypeData.lon === 'number' && typeof routeTypeData.location === 'string', 'route_type_required data 的位置字段必须完整，实际=' + JSON.stringify(routeTypeRequired))
+  assert(JSON.stringify(routeTypeData.routeTypeOptions) === JSON.stringify(['trek', 'climb', 'tour']), 'route_type_required data 必须保留选项，实际=' + JSON.stringify(routeTypeRequired))
   assert(routeTypeRequired.ok === false && routeTypeRequired.error === 'route_type_required' && routeTypeRequired.needsRouteType === true, 'route_type_required 兼容字段必须一致，实际=' + JSON.stringify(routeTypeRequired))
   assert(weatherRequestCount === weatherBeforeRouteType, 'route_type_required 必须在天气查询前返回')
   assertExclusivePhaseFields(routeTypeRequired)
@@ -287,6 +299,7 @@ async function main() {
   throwOnAuthLookup = true
   const internalError = await getAdvice.main({ mode: 'prepare' })
   assertError(internalError, 'internal_error')
+  assert(!internalError.message.includes('重试'), 'internal_error 不得以 retryable=false 的同时承诺重试，实际=' + JSON.stringify(internalError))
   throwOnAuthLookup = false
 
   const invalidDays = await getAdvice.main({
@@ -348,12 +361,26 @@ async function main() {
   const pageSource = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
   const submitBaseSource = pageMethod(pageSource, '_submitBase(params)', '_fetchAdvice(params)')
   const fetchAdviceSource = pageMethod(pageSource, '_fetchAdvice(params)', 'onBack =')
+  const confirmationBranch = sourceBranch(
+    submitBaseSource,
+    "if (result.phase === 'confirmation')",
+    "if (result.phase === 'route_type_required')",
+  )
+  const routeTypeBranch = sourceBranch(
+    submitBaseSource,
+    "if (result.phase === 'route_type_required')",
+    "if (result.phase === 'error')",
+  )
   assert(submitBaseSource.includes("mode: 'prepare'"), '前端首请求必须使用 mode=prepare')
   assert(!submitBaseSource.includes("mode: 'base'"), '前端不得继续主动发送 mode=base')
   assert(!/result\.ok/.test(submitBaseSource), '前端 prepare 消费不得按兼容 ok 分支')
   assert(submitBaseSource.includes("result.phase === 'confirmation'"), '前端必须处理 confirmation 阶段')
   assert(submitBaseSource.includes("result.phase === 'route_type_required'"), '前端必须处理 route_type_required 阶段')
   assert(submitBaseSource.includes("result.phase !== 'base'"), '前端必须只从 base 阶段启动 advice')
+  assert(confirmationBranch.includes("error: result.message || '请确认路线名称后重试'") && confirmationBranch.includes('return'), 'confirmation 只能展示 message 后返回')
+  assert(!/_fetchAdvice|_saveCache|_saveHistory/.test(confirmationBranch), 'confirmation 分支不得触发 advice、缓存或历史')
+  assert(routeTypeBranch.includes('showManualCoords: true') && routeTypeBranch.includes('pendingResolvedLocation') && routeTypeBranch.includes('return'), 'route_type_required 只能进入现有路线类型选择流程后返回')
+  assert(!/_fetchAdvice|_saveCache|_saveHistory/.test(routeTypeBranch), 'route_type_required 分支不得触发 advice、缓存或历史')
   assert(!/result\.ok/.test(fetchAdviceSource), '前端 advice 消费不得按兼容 ok 分支')
   assert(fetchAdviceSource.includes("result.phase === 'advice'"), '前端必须只消费 advice 阶段的建议')
 
