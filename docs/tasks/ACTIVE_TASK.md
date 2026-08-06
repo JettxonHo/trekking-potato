@@ -3,7 +3,7 @@
 - Task ID: `I16`
 - GitHub Issue: `#25`
 - Title: 冻结攀登支持、日落、提前量与数据不足组合合同
-- Status: `READY_FOR_CONTROLLER_REVIEW`
+- Status: `APPROVED — PR_PENDING`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -26,6 +26,9 @@ Sol's first implementation Review found no P0/P1 production defect and requested
 test-sensitivity fixes. The REVIEW_FIX establishes an Asia/Shanghai-versus-UTC midnight tracer and
 executes the default local sunset adapter path without pinning astronomical minutes. The bounded fix is
 ready for Sol's second independent Review; it does not change production behavior or this contract.
+Sol then inspected the actual fix and independently reran the complete quality matrix. All checks
+passed, the two test gaps are closed, and the implementation is `APPROVED`; only latest-head GitHub
+`quality` remains before merge.
 
 ## Mandatory context
 

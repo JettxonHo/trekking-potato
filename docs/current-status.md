@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
-- Active task: `I16 / GitHub #25 / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `I16 / GitHub #25 / APPROVED — PR_PENDING`
 - Branch: `codex/i16-trip-verdict`
 - Base: `main` at `8412535`
 - Planning PR: `#9` — merged
@@ -30,8 +30,8 @@ field-level audit still blocks every full pilot variant, so M3 cannot close. TP-
 independent M4 weather/verdict foundation to proceed using only I07's frozen shape and synthetic
 fixtures; this does not authorize I13, real full-route data or production integration. I14 and I15
 are complete. I16's trip-level composition contract passed independent Review and planning PR #58
-merged. Bounded Terra implementation is complete and awaits Sol XHigh's independent Review; public
-handler integration remains forbidden.
+merged. Bounded Terra implementation passed Sol XHigh's second Review and awaits its implementation
+PR/latest-head CI; public handler integration remains forbidden.
 
 ## Completed
 
@@ -224,6 +224,10 @@ handler integration remains forbidden.
   day-one forecast warning; it also exercises the real local sunset adapter and default I16 path without
   locking astronomical minutes. No production behavior changed. The focused and complete local matrices
   are green again, so I16 is returned as `READY_FOR_CONTROLLER_REVIEW` for Sol's second Review.
+- Sol's second Review inspected the implementation and REVIEW_FIX, confirmed the UTC-date mutation
+  fails the new boundary test, then independently reran I16/I15/I14 focused tests and the complete
+  root/integration/lint/typecheck/WeChat-build/diff matrix. All passed; result is
+  `APPROVED — PR_PENDING`.
 
 ## Baseline evidence
 
@@ -269,8 +273,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol XHigh independently reviews the bounded I16 implementation and reruns its quality matrix before
-   any implementation PR is created.
+1. Create the approved I16 implementation PR and merge only after latest-head GitHub `quality` passes.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -300,5 +303,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol independently reviews the bounded I16 implementation and reruns the full quality matrix before any
-implementation PR is created.
+Create the approved I16 implementation PR; merge only if latest-head GitHub `quality` passes and the
+reviewed head remains unchanged.
