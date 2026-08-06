@@ -1,14 +1,14 @@
 # 当前活动任务
 
-- Task ID: `I17a`
-- GitHub Issue: `#60` (parent `#26`)
-- Title: 建立 TripContext 服务端存储核心
-- Status: `APPROVED — PR_PENDING`
-- Mode: `REVIEW_FIX`
+- Task ID: `I17b`
+- GitHub Issue: `#61` (parent `#26`)
+- Title: 将 prepare 与 confirm 接入 TripContext
+- Status: `IMPLEMENTATION`
+- Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
-- Branch: `codex/i17a-trip-context-store`
-- Base: `main` at `bc23dbe`
+- Branch: `codex/i17b-trip-context-wiring`
+- Base: `main` at `910c00d`
 - Goal: `TP-BETA-001`
 
 ## Current authorization
@@ -19,12 +19,12 @@ split the parent into independently reviewable children. The first independent
 contract Review returned `CHANGES_REQUESTED` for one ownership ambiguity, one stale public-error
 paragraph and two focused test gaps. All four were corrected and synchronized; the second independent
 Review returned `APPROVED` with no remaining P0–P2 finding. Planning PR #62 then passed latest-head
-GitHub `quality` and squash merged as `bc23dbe`. I17a/#60 is now authorized exactly within its allowlist;
-I17b/#61 remains blocked until I17a merges. Terra completed I17a test-first. Sol's first implementation
+GitHub `quality` and squash merged as `bc23dbe`. Terra completed I17a test-first. Sol's first implementation
 Review returned `CHANGES_REQUESTED` for one malformed-record boundary; the focused fix now rejects an
 unparsable `createdAt` and non-`beta_base_v1` snapshot without nested rule revalidation. Sol inspected
-the actual fix, reran the full quality matrix and returned `APPROVED`; latest-head GitHub CI is the only
-remaining merge gate.
+the actual fix, reran the full quality matrix and returned `APPROVED`. PR #63 passed latest-head
+GitHub `quality`, squash merged as `910c00d`, and closed #60. I17b/#61 is now authorized exactly within
+its allowlist on that base; I18 remains blocked.
 
 ## Mandatory context
 

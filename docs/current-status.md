@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I17a / #60 / APPROVED — PR_PENDING`
-- Branch: `codex/i17a-trip-context-store`
-- Base: `main` at `bc23dbe`
+- Active task: `I17b / #61 / IMPLEMENTATION`
+- Branch: `codex/i17b-trip-context-wiring`
+- Base: `main` at `910c00d`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -25,13 +25,14 @@
 - I15 implementation PR: `#57` — merged; GitHub #24 closed
 - I16 planning PR: `#58` — merged; GitHub #25 implementation activated
 - I16 implementation PR: `#59` — merged; GitHub #25 and M4 closed
-- I17 planning PR: `#62` — merged; GitHub #60 implementation is ready for Sol XHigh Review
+- I17 planning PR: `#62` — merged
+- I17a implementation PR: `#63` — merged; GitHub #60 closed; #61 activated
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is now complete through I14–I16 without authorizing I13 or real full-route data. M5 is active at
-I17a Review. I17 will establish server-owned short-lived contexts in #60/#61; advice remains
+I17b implementation. I17 will establish server-owned short-lived contexts in #60/#61; advice remains
 client-baseData compatible and explicitly untrusted until I18.
 
 ## Completed
@@ -260,6 +261,9 @@ client-baseData compatible and explicitly untrusted until I18.
   now returns `store_unavailable`, and independently reran trip-context, root test, integration (56/0),
   lint (0 errors; 10 existing warnings), typecheck, WeChat build and diff checks. All passed; result is
   `APPROVED — PR_PENDING` with only latest-head GitHub `quality` remaining.
+- I17a PR #63 matched approved head `e7eb232`, passed latest-head GitHub `quality` in 41 seconds and
+  squash merged as `910c00d`; #60 closed. The store core is now available to #61, whose only purpose is
+  base-response lifecycle wiring. #61 is active on a fresh branch and I18 remains blocked.
 
 ## Baseline evidence
 
@@ -300,13 +304,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns I17 parent/child contracts, independent Review and merge decisions.
-- Terra XHigh: assigned #60 I17a within the frozen store-only allowlist.
+- Terra XHigh: assigned #61 I17b within the frozen handler-wiring allowlist.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Open #60's implementation PR, require latest-head GitHub `quality`, then merge only if the approved
-   diff is unchanged.
+1. Terra implements #61 test-first; Sol independently reviews lifecycle writes, public response
+   metadata, zero-write exits and trust-boundary tests.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -330,13 +334,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   compatibility input; #60/#61 must not claim that the end-to-end trust boundary is complete.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I17a implementation
+## Forbidden actions during I17b implementation
 
-- Handler/response/mock changes assigned to I17b; dependency, lockfile or CloudBase production config
+- TripContext read/advice cutover assigned to I18; dependency, lockfile or CloudBase production config
 - I18 queryId-only advice, I19 history/UGC, real route data, frontend or deployment
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Open #60's approved implementation PR and wait for latest-head CI. I17b/#61 remains blocked until I17a
-merges.
+Commit the I17b activation handshake and dispatch #61 to Terra XHigh. I18 remains blocked until #61
+passes Sol Review, latest-head CI and merge.
