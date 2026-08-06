@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M4 Weather and verdict` (M3 full routes remain source-blocked)
-- Active task: `I16 / GitHub #25 / APPROVED — PLANNING_PR_PENDING`
-- Branch: `codex/i16-trip-verdict-contract`
-- Base: `main` at `ade3bdd`
+- Active task: `I16 / GitHub #25 / IMPLEMENTATION`
+- Branch: `codex/i16-trip-verdict`
+- Base: `main` at `8412535`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -23,13 +23,14 @@
 - I14 implementation PR: `#55` — merged; GitHub #23 closed
 - I15 planning PR: `#56` — merged; GitHub #24 implementation activated
 - I15 implementation PR: `#57` — merged; GitHub #24 closed
+- I16 planning PR: `#58` — merged; GitHub #25 implementation activated
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent M4 weather/verdict foundation to proceed using only I07's frozen shape and synthetic
 fixtures; this does not authorize I13, real full-route data or production integration. I14 and I15
-are complete. I16's trip-level composition contract passed independent Review; implementation is not
-authorized before its planning PR passes latest-head CI and merges.
+are complete. I16's trip-level composition contract passed independent Review and planning PR #58
+merged. Bounded Terra implementation is active; public handler integration remains forbidden.
 
 ## Completed
 
@@ -209,6 +210,8 @@ authorized before its planning PR passes latest-head CI and merges.
   #25. It returned `APPROVED` with no P0–P2 finding; the existing normalized blocked boundary,
   proportional TypeError guards, data-issue ordering and all-sample earliest-sunset policy are
   implementable without changing I14/I15 or requesting human direction.
+- I16 planning PR #58 matched approved head `1347037`, passed latest-head GitHub `quality` in 50
+  seconds and squash merged as `8412535`. The exact allowlist and contract in #25 are now active.
 
 ## Baseline evidence
 
@@ -249,12 +252,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: completed #24/I15 Review/merge and owns #25/I16 contract and merge decision.
-- Terra XHigh: completed two read-only I16 contract/test audits; implementation is not yet assigned.
+- Terra XHigh: assigned the bounded I16 test-first implementation on `codex/i16-trip-verdict`.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Independently review and merge the I16 planning contract, then activate bounded Terra implementation.
+1. Complete bounded I16 test-first implementation, then return it for Sol XHigh code Review.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -276,13 +279,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   hard no-go independently applies.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I16 contract review
+## Forbidden actions during I16 implementation
 
-- Business implementation before the contract PR merges; dependency or lockfile changes
+- Any file outside the #25 implementation allowlist; dependency or lockfile changes
 - Real route data, I13, I17/queryId/history/UI or public handler implementation
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Open the approved I16 planning PR. Activate Terra implementation only after the reviewed contract
-passes latest-head GitHub `quality` and merges.
+Terra implements the frozen #25 contract test-first and returns a result package. Sol independently
+reviews actual code and reruns the full quality matrix before any implementation PR is created.

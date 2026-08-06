@@ -3,12 +3,12 @@
 - Task ID: `I16`
 - GitHub Issue: `#25`
 - Title: 冻结攀登支持、日落、提前量与数据不足组合合同
-- Status: `APPROVED — PLANNING_PR_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Reviewer: independent Terra XHigh
-- Branch: `codex/i16-trip-verdict-contract`
-- Base: `main` at `ade3bdd`
+- Status: `IMPLEMENTATION`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
+- Branch: `codex/i16-trip-verdict`
+- Base: `main` at `8412535`
 - Goal: `TP-BETA-001`
 
 ## Current authorization
@@ -17,8 +17,9 @@ I15 implementation PR #57 passed Sol XHigh Review and latest-head GitHub `qualit
 merged as `ade3bdd`; GitHub #24 is closed. Sol XHigh is authorized to freeze I16's internal
 composition contract and tests before implementation. This planning branch may change only durable
 contracts and governance state. An independent Terra XHigh reviewed the actual seven-document diff
-and synchronized GitHub #25, returning `APPROVED` with no P0–P2 finding. No business implementation
-is authorized until the planning PR passes latest-head CI and merges.
+and synchronized GitHub #25, returning `APPROVED` with no P0–P2 finding. Planning PR #58 then passed
+latest-head GitHub `quality` and squash merged as `8412535`. Terra XHigh is now authorized to perform
+the bounded test-first implementation on this branch; it cannot change or approve the contract.
 
 ## Mandatory context
 
