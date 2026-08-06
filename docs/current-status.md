@@ -31,7 +31,7 @@ are verified.
 - `node scripts/weather-contract-test.js`: 86 pass / 0 fail
 - `node scripts/unit-test.js`: 55 pass / 0 fail
 - `node scripts/security-test.js`: 15 pass / 0 fail
-- `node scripts/e2e-local.js`: offline fixture/mock E2E, 53 pass / 0 fail; covers
+- `node scripts/e2e-local.js`: offline fixture/mock E2E, 56 pass / 0 fail; covers
   `tripDays` 1/2/3 and current `trek` / `climb` route types without Open-Meteo,
   CloudBase or DeepSeek access.
 - I01 on Node 24.18.0 + npm 10.9.2: fresh-cache root `ci` and three-project `bootstrap` pass using official npm registry locks.

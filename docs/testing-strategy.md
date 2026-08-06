@@ -36,7 +36,7 @@ HTTPS GET 会使测试失败；`wx-server-sdk` 在加载云函数模块时替换
 node scripts/route-type-contract-test.js   # 93/0
 node scripts/weather-contract-test.js      # 86/0
 node scripts/unit-test.js                  # 55/0
-node scripts/e2e-local.js                   # 离线 E2E，53/0
+node scripts/e2e-local.js                   # 离线 E2E，56/0
 ```
 
 ## 3. 测试层级
@@ -99,6 +99,11 @@ node scripts/e2e-local.js                   # 离线 E2E，53/0
 - 页面卸载后不继续更新状态。
 
 ## 5. PR 验证要求
+
+GitHub Actions workflow `quality` runs for every pull request. Its sole job is
+also named `quality`; it uses Node 24, Corepack npm 10.9.2, and the npm cache
+keyed from the root, Taro, and two CloudBase function lockfiles. The workflow
+runs the complete M1 command sequence above without changing those commands.
 
 PR 描述列出实际命令、退出码和结果摘要。无法运行的命令必须写明原因及影响，不能写成通过。Sol XHigh 会阅读测试本身，不能只凭通过数量批准。
 

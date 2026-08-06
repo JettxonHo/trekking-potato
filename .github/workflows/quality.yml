@@ -1,0 +1,53 @@
+name: quality
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            taro-app/package-lock.json
+            cloudfunctions/getAdvice/package-lock.json
+            cloudfunctions/history/package-lock.json
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Verify pinned npm
+        run: corepack npm@10.9.2 --version
+
+      - name: Install root dependencies
+        run: corepack npm@10.9.2 ci
+
+      - name: Install project dependencies
+        run: corepack npm@10.9.2 run bootstrap
+
+      - name: Lint
+        run: corepack npm@10.9.2 run lint
+
+      - name: Type check
+        run: corepack npm@10.9.2 run typecheck
+
+      - name: Run unit and contract tests
+        run: corepack npm@10.9.2 test
+
+      - name: Run integration tests
+        run: corepack npm@10.9.2 run test:integration
+
+      - name: Build WeChat mini-program
+        run: corepack npm@10.9.2 run build:weapp
