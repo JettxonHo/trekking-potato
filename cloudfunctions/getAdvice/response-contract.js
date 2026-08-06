@@ -5,6 +5,7 @@
  */
 const ERROR_RETRYABLE = Object.freeze({
   weather_data_invalid: true,
+  context_unavailable: true,
   no_auth: false,
   missing_params: false,
   invalid_mode: false,
@@ -60,8 +61,19 @@ function routeTypeRequiredResponse(data) {
   }
 }
 
-function baseResponse(data) {
-  return { phase: 'base', data, ok: true }
+function baseResponse(data, context) {
+  if (!context || typeof context.queryId !== 'string' || context.queryId.length === 0
+    || typeof context.expiresAt !== 'string' || context.expiresAt.length === 0) {
+    throw new TypeError('base response requires trusted context metadata')
+  }
+
+  return {
+    phase: 'base',
+    queryId: context.queryId,
+    expiresAt: context.expiresAt,
+    data,
+    ok: true,
+  }
 }
 
 function adviceResponse(data, degraded) {

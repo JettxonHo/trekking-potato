@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I17b / #61 / IMPLEMENTATION`
+- Active task: `I17b / #61 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/i17b-trip-context-wiring`
 - Base: `main` at `910c00d`
 - Planning PR: `#9` — merged
@@ -32,8 +32,8 @@ Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I1
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is now complete through I14–I16 without authorizing I13 or real full-route data. M5 is active at
-I17b implementation. I17 will establish server-owned short-lived contexts in #60/#61; advice remains
-client-baseData compatible and explicitly untrusted until I18.
+I17b controller review. I17 now has a server-owned short-lived context creation candidate in #60/#61;
+advice remains client-baseData compatible and explicitly untrusted until I18.
 
 ## Completed
 
@@ -264,6 +264,14 @@ client-baseData compatible and explicitly untrusted until I18.
 - I17a PR #63 matched approved head `e7eb232`, passed latest-head GitHub `quality` in 41 seconds and
   squash merged as `910c00d`; #60 closed. The store core is now available to #61, whose only purpose is
   base-response lifecycle wiring. #61 is active on a fresh branch and I18 remains blocked.
+- I17b recorded a genuine RED because `baseResponse` accepted a base result without trusted context
+  metadata. Its GREEN creates the I17a store only after server geo/weather/rules complete, writes once
+  via `trip_contexts.doc(queryId).set({data: record})`, returns the stored projection unchanged with
+  top-level `queryId/expiresAt`, and maps one write failure to retryable `context_unavailable` without
+  partial data. Stateful response/confirmation mocks prove prepare/base/confirm lifecycle writes,
+  zero-write exits, zero handler reads and client-spoof isolation. I17b's complete local matrix is
+  green and it is `READY_FOR_CONTROLLER_REVIEW`; no advice/queryId cutover, frontend, dependency,
+  production configuration or I17a-store modification occurred.
 
 ## Baseline evidence
 
@@ -291,6 +299,10 @@ client-baseData compatible and explicitly untrusted until I18.
   candidate-stage matching, four-field candidate exposure, `candidate_not_found`, confirm server
   fact recovery, zero pre-confirm side effects and disabled UGC substring auto-hit; I05b source
   checks cover selection/cancel/edit and prepare/confirm generation protection.
+- I17b extends `test:response` and `test:confirmation` with strict stateful `trip_contexts` mocks:
+  successful lifecycle writes and returned metadata, write-failure public error/no partial base,
+  zero-write exits, zero handler reads and confirm spoof isolation. The complete local matrix passes:
+  root test, integration 56/0, lint 0 errors/10 existing warnings, typecheck, WeChat build and diff check.
 - I01 on Node 24.18.0 + npm 10.9.2: fresh-cache root `ci` and three-project `bootstrap` pass using official npm registry locks.
 - I02 on Node 24.18.0 + Corepack npm 10.9.2: root `lint` (0 errors; 10 existing
   unused-variable warnings), `typecheck`, `test`, `test:integration` and
@@ -309,8 +321,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Terra implements #61 test-first; Sol independently reviews lifecycle writes, public response
-   metadata, zero-write exits and trust-boundary tests.
+1. Sol independently reviews #61 lifecycle writes, public response metadata, zero-write exits and
+   trust-boundary tests; Terra addresses only any requested scoped changes.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -342,5 +354,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Commit the I17b activation handshake and dispatch #61 to Terra XHigh. I18 remains blocked until #61
-passes Sol Review, latest-head CI and merge.
+Sol reviews the I17b candidate. I18 remains blocked until #61 passes Sol Review, latest-head CI and
+merge.

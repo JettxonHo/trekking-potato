@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M5 / I17b implementation; M3 full routes source-blocked`
+- Status: `ACTIVE — M5 / I17b controller review pending; M3 full routes source-blocked`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -212,5 +212,7 @@ M7 前不做重复全局 Review。
   `context_unavailable`，不返回半成品 base。
 - I17 不让 advice 读取 context；当前 client `baseData` 临时路径保留并明确不可信。I18 才完成
   queryId-only 切换并统一公开的不存在/越权/过期语义。
+- I17b implementation candidate has completed its local contract and quality matrix. It awaits Sol
+  XHigh's independent code Review; this does not authorize I18 or close parent #26.
 - 精确接口、record/snapshot shape、allowlist、TDD 和矩阵以 #26/#60/#61 与当前
   `docs/tasks/ACTIVE_TASK.md` 为准。

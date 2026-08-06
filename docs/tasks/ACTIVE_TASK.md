@@ -3,8 +3,8 @@
 - Task ID: `I17b`
 - GitHub Issue: `#61` (parent `#26`)
 - Title: 将 prepare 与 confirm 接入 TripContext
-- Status: `IMPLEMENTATION`
-- Mode: `IMPLEMENTATION`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
+- Mode: `REVIEW_PENDING`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
 - Branch: `codex/i17b-trip-context-wiring`
@@ -25,6 +25,11 @@ unparsable `createdAt` and non-`beta_base_v1` snapshot without nested rule reval
 the actual fix, reran the full quality matrix and returned `APPROVED`. PR #63 passed latest-head
 GitHub `quality`, squash merged as `910c00d`, and closed #60. I17b/#61 is now authorized exactly within
 its allowlist on that base; I18 remains blocked.
+
+I17b recorded a genuine contract RED for missing context metadata, then added only the handler wiring
+and focused CloudBase mock coverage. Its local full matrix is green. The implementation is now
+`READY_FOR_CONTROLLER_REVIEW`; Sol must independently inspect the actual diff and test evidence before
+any PR, CI conclusion or merge. I18 remains blocked.
 
 ## Mandatory context
 
