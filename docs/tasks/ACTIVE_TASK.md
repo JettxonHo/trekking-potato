@@ -3,8 +3,8 @@
 - Task ID: `I18`
 - GitHub Issue: `#27`
 - Title: 移除客户端可信 BaseData 回传并让 advice 仅接收 queryId
-- Status: `READY_FOR_CONTROLLER_REVIEW`
-- Mode: `REVIEW`
+- Status: `CHANGES_REQUESTED — REVIEW_FIX`
+- Mode: `REVIEW_FIX`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
 - Branch: `codex/i18-query-context-implementation`
@@ -13,17 +13,25 @@
 
 ## 当前授权
 
-I17 规划及实现 PR #62–#65 已合并，父 Issue #26 与子 Issues #60/#61 已关闭。服务端现在会在
-成功的 `prepare` / `confirm` 后创建短期、绑定 `openid` 的 TripContext，但 `advice` 仍读取
-客户端回传的 `baseData`，所以可信闭环尚未完成。
+I17 规划及实现 PR #62–#65 已合并，父 Issue #26 与子 Issues #60/#61 已关闭。I17 基线会在
+成功的 `prepare` / `confirm` 后创建短期、绑定 `openid` 的 TripContext；当前 I18 工作分支已
+把 advice 原子切换为读取该服务端快照，但尚未通过 Sol Review 或合并。
 
 I18 规划 PR #66 已通过独立 Review 与 latest-head GitHub `quality`（57 秒），并 squash
 merged as `270e442`。当前授权 Terra XHigh 按本合同实施 I18；不得改动合同、扩大范围、批准
 或合并自己的 PR。Sol XHigh 保留独立 Review、返工指令与合并判断。
 
-执行记录：Terra 已按本合同完成 RED → 服务端切换 → 前端切换 → 本地质量矩阵，并返回
-`READY_FOR_CONTROLLER_REVIEW`（implementation commit `c5b2201`）。当前只允许 Sol XHigh 检查
-实际 diff、测试证据和文档同步；尚未创建、批准或合并 implementation PR。
+执行记录：Terra 已按本合同完成首轮 RED → 服务端切换 → 前端切换 → 本地质量矩阵
+（implementation commit `c5b2201`）。Sol 与额外独立审计返回 `CHANGES_REQUESTED`：
+
+1. 候选 confirm 的本地 params 没有 route，成功 advice 后 `_saveHistory` 会保存“未知路线”。
+   只在成功 base 后构造 `{ ...params, route: params.route || base.route }` 的本地 historyParams；
+   不改变 confirm/advice 网络体，不保存 queryId，并补确认→advice→history 回归。
+2. 云函数文件头仍把 advice 描述为接收 base 数据，需改为服务端 TripContext 快照。
+3. 补一条未认证 advice 的零 context read 聚焦断言，证明冻结的认证顺序。
+
+当前重新授权 Terra XHigh 仅处理上述 REVIEW_FIX，重新运行完整矩阵并返回。尚未创建、批准或
+合并 implementation PR。
 
 ## 必读上下文
 

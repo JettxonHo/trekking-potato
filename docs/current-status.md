@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I18 / #27 / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `I18 / #27 / CHANGES_REQUESTED — REVIEW_FIX`
 - Branch: `codex/i18-query-context-implementation`
 - Base: `main` at `270e442`
 - Implementation commit: `c5b2201` (`feat: trust advice context by query id`); PR: not created
@@ -322,6 +322,12 @@ not accepted or merged until Sol XHigh completes an independent review.
   `0` errors and `10` existing warnings; typecheck; root test; WeChat build; and `git diff --check`.
   Terra returned `READY_FOR_CONTROLLER_REVIEW` at implementation commit `c5b2201`; no PR has been
   created, approved or merged.
+- Sol reran the full matrix and inspected the actual code. An additional independent audit found one P1
+  that existing tests missed: confirm history params contain no route, so the I18 local-history split
+  would save a successful confirmed route as “未知路线”. Review is `CHANGES_REQUESTED`; the fix is
+  limited to restoring `base.route` in local historyParams without changing either network request.
+  Two P2 cleanups also apply: update the stale cloud-function header and explicitly prove unauthenticated
+  advice performs zero context reads. Remote #27 must mirror this Review state.
 
 ## Baseline evidence
 
@@ -366,14 +372,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns I18 independent Review, GitHub orchestration and all merge decisions.
-- Terra XHigh: completed I18 implementation under the frozen #27 contract; awaiting controller review.
+- Terra XHigh: assigned the bounded I18 REVIEW_FIX after Sol `CHANGES_REQUESTED`.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Sol inspects the actual I18 diff, reruns the required matrix and issues a formal Review before any
-   PR/merge.
-2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
+1. Terra fixes the confirmed-route history regression and two P2 contract drifts, then reruns the matrix.
+2. Sol inspects the actual fix diff and reruns focused/full validation before any PR/merge.
+3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
 
@@ -404,5 +410,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol performs an independent I18 code Review and reruns the required evidence. Terra must not open,
-approve or merge an implementation PR unless the controller directs it after that review.
+Terra completes only the recorded REVIEW_FIX and returns a new result package. Sol then re-reviews the
+actual diff; no implementation PR may be opened or merged before an explicit `APPROVED`.
