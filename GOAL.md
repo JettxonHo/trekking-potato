@@ -12,9 +12,9 @@ M3 with I07 merged through PRs #48/#49. Field-level source audit found that none
 pilot variants can yet satisfy the frozen A/B geometry contract. The independently supportable
 Wutai blocked record was delivered by I10a/PR #53; other full variants remain source-blocked rather
 than using invented values. I14's contract and implementation merged through PRs #54/#55; #23 is
-closed. I15 and I16 merged through PRs #57/#59; M4 is complete. I17 planning merged in PR #62;
-I17a is active on #60 and I17b remains blocked until it merges. Together they establish the
-server-owned short-lived TripContext boundary before I18 makes advice queryId-only.
+closed. I15 and I16 merged through PRs #57/#59; M4 is complete. I17 planning merged in PR #62 and
+I17a merged in PR #63; I17b is active on #61. Together they establish the server-owned short-lived
+TripContext boundary before I18 makes advice queryId-only.
 
 ## 1. Objective
 
@@ -48,7 +48,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
 | M3 Route domain | Active — full routes source-blocked | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
-| M5 Trust and privacy | Active — I17a implementation | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
+| M5 Trust and privacy | Active — I17b implementation | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Pending | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 

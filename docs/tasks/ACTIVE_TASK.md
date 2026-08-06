@@ -1,14 +1,14 @@
 # 当前活动任务
 
-- Task ID: `I17a`
-- GitHub Issue: `#60` (parent `#26`)
-- Title: 建立 TripContext 服务端存储核心
+- Task ID: `I17b`
+- GitHub Issue: `#61` (parent `#26`)
+- Title: 将 prepare 与 confirm 接入 TripContext
 - Status: `APPROVED — PR_PENDING`
-- Mode: `REVIEW_FIX`
+- Mode: `REVIEW_PENDING`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
-- Branch: `codex/i17a-trip-context-store`
-- Base: `main` at `bc23dbe`
+- Branch: `codex/i17b-trip-context-wiring`
+- Base: `main` at `910c00d`
 - Goal: `TP-BETA-001`
 
 ## Current authorization
@@ -19,12 +19,27 @@ split the parent into independently reviewable children. The first independent
 contract Review returned `CHANGES_REQUESTED` for one ownership ambiguity, one stale public-error
 paragraph and two focused test gaps. All four were corrected and synchronized; the second independent
 Review returned `APPROVED` with no remaining P0–P2 finding. Planning PR #62 then passed latest-head
-GitHub `quality` and squash merged as `bc23dbe`. I17a/#60 is now authorized exactly within its allowlist;
-I17b/#61 remains blocked until I17a merges. Terra completed I17a test-first. Sol's first implementation
+GitHub `quality` and squash merged as `bc23dbe`. Terra completed I17a test-first. Sol's first implementation
 Review returned `CHANGES_REQUESTED` for one malformed-record boundary; the focused fix now rejects an
 unparsable `createdAt` and non-`beta_base_v1` snapshot without nested rule revalidation. Sol inspected
-the actual fix, reran the full quality matrix and returned `APPROVED`; latest-head GitHub CI is the only
-remaining merge gate.
+the actual fix, reran the full quality matrix and returned `APPROVED`. PR #63 passed latest-head
+GitHub `quality`, squash merged as `910c00d`, and closed #60. I17b/#61 is now authorized exactly within
+its allowlist on that base; I18 remains blocked.
+
+I17b recorded a genuine contract RED for missing context metadata, then added only the handler wiring
+and focused CloudBase mock coverage. Its local full matrix is green. The implementation is now
+`READY_FOR_CONTROLLER_REVIEW`; Sol must independently inspect the actual diff and test evidence before
+any PR, CI conclusion or merge. I18 remains blocked.
+
+Controller-only governance note: before dispatch, Sol commit `6eacf76` updated `GOAL.md` only to record
+I17a's merge and I17b's activation. This is a separately authored project-status checkpoint under Sol's
+governance duty, not part of Terra's implementation allowlist or an authorization for Terra to edit
+`GOAL.md`. Terra commit `97372dd` remains inside the I17b allowlist below.
+
+Sol's implementation Review found no P0/P1. The first independent audit raised only the controller-
+checkpoint attribution P2 above; after the explicit commit-boundary clarification, its second Review
+returned `APPROVED` with no remaining P0–P2 finding. Sol independently reran the full quality matrix.
+The implementation is `APPROVED`; latest-head GitHub CI is the only remaining merge gate.
 
 ## Mandatory context
 
@@ -184,6 +199,9 @@ those current legacy fields for compatibility, and additively contains:
 ## I17a task contract — #60
 
 ### Allowlist
+
+The following executor allowlist applies to Terra. Sol's already-recorded controller-only Goal status
+checkpoint above is reviewed separately and does not expand it.
 
 - `cloudfunctions/getAdvice/trip-context.js` (new)
 - `scripts/trip-context-contract-test.js` (new)

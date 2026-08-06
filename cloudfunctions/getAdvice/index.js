@@ -25,6 +25,7 @@ const { getGearRules } = require('./gear-rules')
 const { buildMessages } = require('./prompt')
 const { projectSafetyAdvice } = require('./safety-advice')
 const { isKnownRouteType, validateRouteTypeContract } = require('./route-type')
+const { createTripContextStore } = require('./trip-context')
 const {
   errorResponse,
   confirmationResponse,
@@ -301,8 +302,7 @@ async function main(event, context) {
 
   const weather = weatherResult.ok ? weatherResult.data : null
 
-  // 此时只可能是 prepare 或兼容别名 base；advice 已在地理/天气前返回。
-  return baseResponse({
+  const legacyBaseData = {
     route: loc.name,
     date,
     level,
@@ -318,6 +318,20 @@ async function main(event, context) {
     sunEvents,
     gearRules,
     meta: { elapsed: Date.now() - startTime, source: 'base' },
+  }
+
+  // 此时只可能是 prepare、兼容别名 base 或有效 confirm；所有既有服务端事实完成后才写入。
+  const tripContextStore = createTripContextStore({
+    collection: cloud.database().collection('trip_contexts'),
+  })
+  const created = await tripContextStore.create({ openid, legacyBaseData })
+  if (created.kind !== 'created') {
+    return errorResponse('context_unavailable', '暂时无法保存本次查询，请重试')
+  }
+
+  return baseResponse(created.snapshot, {
+    queryId: created.queryId,
+    expiresAt: created.expiresAt,
   })
 }
 

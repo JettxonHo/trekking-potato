@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I17a / #60 / APPROVED — PR_PENDING`
-- Branch: `codex/i17a-trip-context-store`
-- Base: `main` at `bc23dbe`
+- Active task: `I17b / #61 / APPROVED — PR_PENDING`
+- Branch: `codex/i17b-trip-context-wiring`
+- Base: `main` at `910c00d`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -25,14 +25,15 @@
 - I15 implementation PR: `#57` — merged; GitHub #24 closed
 - I16 planning PR: `#58` — merged; GitHub #25 implementation activated
 - I16 implementation PR: `#59` — merged; GitHub #25 and M4 closed
-- I17 planning PR: `#62` — merged; GitHub #60 implementation is ready for Sol XHigh Review
+- I17 planning PR: `#62` — merged
+- I17a implementation PR: `#63` — merged; GitHub #60 closed; #61 activated
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is now complete through I14–I16 without authorizing I13 or real full-route data. M5 is active at
-I17a Review. I17 will establish server-owned short-lived contexts in #60/#61; advice remains
-client-baseData compatible and explicitly untrusted until I18.
+I17b controller review. I17 now has a server-owned short-lived context creation candidate in #60/#61;
+advice remains client-baseData compatible and explicitly untrusted until I18.
 
 ## Completed
 
@@ -260,6 +261,26 @@ client-baseData compatible and explicitly untrusted until I18.
   now returns `store_unavailable`, and independently reran trip-context, root test, integration (56/0),
   lint (0 errors; 10 existing warnings), typecheck, WeChat build and diff checks. All passed; result is
   `APPROVED — PR_PENDING` with only latest-head GitHub `quality` remaining.
+- I17a PR #63 matched approved head `e7eb232`, passed latest-head GitHub `quality` in 41 seconds and
+  squash merged as `910c00d`; #60 closed. The store core is now available to #61, whose only purpose is
+  base-response lifecycle wiring. #61 is active on a fresh branch and I18 remains blocked.
+- I17b recorded a genuine RED because `baseResponse` accepted a base result without trusted context
+  metadata. Its GREEN creates the I17a store only after server geo/weather/rules complete, writes once
+  via `trip_contexts.doc(queryId).set({data: record})`, returns the stored projection unchanged with
+  top-level `queryId/expiresAt`, and maps one write failure to retryable `context_unavailable` without
+  partial data. Stateful response/confirmation mocks prove prepare/base/confirm lifecycle writes,
+  zero-write exits, zero handler reads and client-spoof isolation. I17b's complete local matrix is
+  green and it is `READY_FOR_CONTROLLER_REVIEW`; no advice/queryId cutover, frontend, dependency,
+  production configuration or I17a-store modification occurred.
+- The first independent I17b audit found no code/test P0 or P1 and one governance-only P2: the branch
+  diff contains Sol's pre-dispatch `GOAL.md` activation checkpoint although that file is not in Terra's
+  executor allowlist. The contract now records commit `6eacf76` as a separately authored controller-
+  only status update; Terra commit `97372dd` remains within its allowlist. The corrected governance
+  boundary passed second independent Review with `APPROVED` and no remaining P0–P2 finding.
+- Sol inspected the actual handler/response/mock diff and independently reran response, confirmation,
+  trip-context, root test, integration (56/0), lint (0 errors; 10 existing warnings), typecheck, WeChat
+  build and diff checks. All passed; I17b is `APPROVED — PR_PENDING` with only latest-head GitHub
+  `quality` remaining.
 
 ## Baseline evidence
 
@@ -287,6 +308,10 @@ client-baseData compatible and explicitly untrusted until I18.
   candidate-stage matching, four-field candidate exposure, `candidate_not_found`, confirm server
   fact recovery, zero pre-confirm side effects and disabled UGC substring auto-hit; I05b source
   checks cover selection/cancel/edit and prepare/confirm generation protection.
+- I17b extends `test:response` and `test:confirmation` with strict stateful `trip_contexts` mocks:
+  successful lifecycle writes and returned metadata, write-failure public error/no partial base,
+  zero-write exits, zero handler reads and confirm spoof isolation. The complete local matrix passes:
+  root test, integration 56/0, lint 0 errors/10 existing warnings, typecheck, WeChat build and diff check.
 - I01 on Node 24.18.0 + npm 10.9.2: fresh-cache root `ci` and three-project `bootstrap` pass using official npm registry locks.
 - I02 on Node 24.18.0 + Corepack npm 10.9.2: root `lint` (0 errors; 10 existing
   unused-variable warnings), `typecheck`, `test`, `test:integration` and
@@ -300,13 +325,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns I17 parent/child contracts, independent Review and merge decisions.
-- Terra XHigh: assigned #60 I17a within the frozen store-only allowlist.
+- Terra XHigh: assigned #61 I17b within the frozen handler-wiring allowlist.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Open #60's implementation PR, require latest-head GitHub `quality`, then merge only if the approved
-   diff is unchanged.
+1. Open #61's implementation PR, require latest-head GitHub `quality`, then merge only if the approved
+   head is unchanged.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -330,13 +355,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   compatibility input; #60/#61 must not claim that the end-to-end trust boundary is complete.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I17a implementation
+## Forbidden actions during I17b implementation
 
-- Handler/response/mock changes assigned to I17b; dependency, lockfile or CloudBase production config
+- TripContext read/advice cutover assigned to I18; dependency, lockfile or CloudBase production config
 - I18 queryId-only advice, I19 history/UGC, real route data, frontend or deployment
 - Deployment, database mutation, UGC deletion, migration or production configuration
 
 ## Next action
 
-Open #60's approved implementation PR and wait for latest-head CI. I17b/#61 remains blocked until I17a
+Open #61's approved implementation PR and wait for latest-head CI. I18 remains blocked until #61
 merges.

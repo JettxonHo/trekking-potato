@@ -12,13 +12,51 @@ const originalLlmKey = process.env.LLM_KEY
 
 let openid = 'offline-response-contract-user'
 let throwOnAuthLookup = false
+let contextWriteFailure = false
+let contextWriteAttempts = 0
+let contextReadCount = 0
+const contextWrites = []
+
+function copy(value) {
+  return JSON.parse(JSON.stringify(value))
+}
+
+function tripContextCollection() {
+  return {
+    doc(queryId) {
+      if (typeof queryId !== 'string' || queryId.length === 0) {
+        throw new Error('TripContext document id 必须为非空字符串')
+      }
+      return {
+        async set(payload) {
+          contextWriteAttempts++
+          if (!payload || Object.keys(payload).length !== 1 || !Object.prototype.hasOwnProperty.call(payload, 'data')) {
+            throw new Error('TripContext 只允许 set({ data: record })')
+          }
+          if (contextWriteFailure) throw new Error('offline TripContext write failure')
+          contextWrites.push({ collection: 'trip_contexts', queryId, record: copy(payload.data) })
+          return { _id: queryId }
+        },
+      }
+    },
+    where() {
+      contextReadCount++
+      throw new Error('I17 handler 不得读取 TripContext')
+    },
+  }
+}
+
 const cloudbaseMock = {
   DYNAMIC_CURRENT_ENV: 'offline-response-contract',
   init() {},
   database: () => ({
-    collection: () => ({
-      limit: () => ({ get: async () => ({ data: [] }) }),
-    }),
+    collection(name) {
+      if (name === 'trip_contexts') return tripContextCollection()
+      if (name === 'routes') {
+        return { limit: () => ({ get: async () => ({ data: [] }) }) }
+      }
+      throw new Error('response-contract-test 不允许 CloudBase collection: ' + name)
+    },
   }),
   getWXContext: () => {
     if (throwOnAuthLookup) throw new Error('offline auth lookup failure')
@@ -113,6 +151,16 @@ function assert(condition, message) {
   if (!condition) throw new Error(message)
 }
 
+function assertThrows(callback, message) {
+  let thrown = false
+  try {
+    callback()
+  } catch (_error) {
+    thrown = true
+  }
+  assert(thrown, message)
+}
+
 function assertError(response, code, retryable) {
   const expectedRetryable = retryable === true
   assert(response.phase === 'error', code + ' 必须返回 phase=error，实际=' + JSON.stringify(response))
@@ -152,6 +200,10 @@ function assertExclusivePhaseFields(response) {
 
   if (response.phase === 'base') {
     assert(response.data, 'base 必须包含 data')
+    assert(typeof response.queryId === 'string' && response.queryId.length > 0, 'base 必须在顶层包含 queryId')
+    assert(typeof response.expiresAt === 'string' && response.expiresAt.length > 0, 'base 必须在顶层包含 expiresAt')
+    assert(!Object.prototype.hasOwnProperty.call(response.data, 'queryId'), 'base data 不得重复包含 queryId')
+    assert(!Object.prototype.hasOwnProperty.call(response.data, 'expiresAt'), 'base data 不得重复包含 expiresAt')
     assert(!Object.prototype.hasOwnProperty.call(response, 'degraded'), 'base 不得携带 degraded')
     assert(!Object.prototype.hasOwnProperty.call(response, 'message'), 'base 不得携带 message')
     assert(!Object.prototype.hasOwnProperty.call(response, 'displayName'), 'base 不得携带 displayName')
@@ -233,6 +285,9 @@ function sourceBranch(source, startMarker, endMarker) {
 }
 
 async function main() {
+  const { baseResponse } = require('../cloudfunctions/getAdvice/response-contract')
+  assertThrows(() => baseResponse({ route: '武功山' }), 'baseResponse 必须拒绝缺少可信上下文元数据的调用')
+
   const getAdvice = require('../cloudfunctions/getAdvice/index')
   const response = await getAdvice.main({
     mode: 'unsupported-mode',
@@ -292,12 +347,32 @@ async function main() {
   assert(base.phase === 'base' && base.ok === true, 'prepare 成功必须返回 phase=base，实际=' + JSON.stringify(base))
   assert(base.data && base.data.route === '武功山' && base.data.routeType === 'trek', 'base 必须保留可信路线数据，实际=' + JSON.stringify(base))
   assertExclusivePhaseFields(base)
+  assert(contextWrites.length === 1, '成功 prepare 必须只持久化一次 TripContext')
+  assert(contextWrites[0].collection === 'trip_contexts' && contextWrites[0].queryId === base.queryId, 'prepare 的 TripContext 必须写入 queryId 对应文档')
+  assert(contextWrites[0].record._openid === openid, 'TripContext 必须绑定当前服务端 openid')
+  assert(JSON.stringify(contextWrites[0].record.snapshot) === JSON.stringify(base.data), 'base data 必须直接使用已持久化的可信快照')
 
+  const writesBeforeBaseAlias = contextWrites.length
   const baseAlias = await getAdvice.main({
     mode: 'base', route: '武功山', date: '2026-08-07', level: '中级',
   })
   assert(baseAlias.phase === 'base' && baseAlias.ok === true, 'base 必须仅作为 prepare 的兼容别名，实际=' + JSON.stringify(baseAlias))
+  assertExclusivePhaseFields(baseAlias)
+  assert(contextWrites.length === writesBeforeBaseAlias + 1, '兼容 base 必须只持久化一次 TripContext')
+  assert(contextWrites[contextWrites.length - 1].queryId === baseAlias.queryId, '兼容 base 必须返回对应持久化文档的 queryId')
 
+  const writesBeforeUnavailable = contextWrites.length
+  const attemptsBeforeUnavailable = contextWriteAttempts
+  contextWriteFailure = true
+  const unavailable = await getAdvice.main({
+    mode: 'prepare', route: '武功山', date: '2026-08-07', level: '中级',
+  })
+  contextWriteFailure = false
+  assertError(unavailable, 'context_unavailable', true)
+  assert(!Object.prototype.hasOwnProperty.call(unavailable, 'queryId') && !Object.prototype.hasOwnProperty.call(unavailable, 'expiresAt'), 'TripContext 写入失败不得返回上下文元数据')
+  assert(contextWriteAttempts === attemptsBeforeUnavailable + 1 && contextWrites.length === writesBeforeUnavailable, '失败写入不得留下可用 TripContext 快照')
+
+  const writesAfterBaseOutcomes = contextWrites.length
   openid = ''
   const noAuth = await getAdvice.main({ mode: 'prepare' })
   assertError(noAuth, 'no_auth')
@@ -502,6 +577,8 @@ async function main() {
   const riskCard = sourceBranch(pageSource, '<Text className="card-title">风险提示</Text>', '<Text className="card-title">晨昏光影时刻</Text>')
   assert(!gearCard.includes('adviceLoading ?'), 'advice loading 不得用 skeleton 遮挡已有装备')
   assert(!riskCard.includes('adviceLoading ?'), 'advice loading 不得用 skeleton 遮挡已有风险')
+  assert(contextWrites.length === writesAfterBaseOutcomes, '非 base 分支不得写入 TripContext')
+  assert(contextReadCount === 0, 'I17 handler 不得读取 TripContext')
 
   console.log('PASS: 后端与前端响应阶段契约')
 }

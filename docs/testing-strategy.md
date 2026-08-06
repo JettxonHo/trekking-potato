@@ -195,9 +195,10 @@ collection; no network or real database is used.
   reference-point weather, null verdict, minimum gear and source metadata; no full-route fact appears.
 - Handler lifecycle: successful prepare/base alias/confirm each write exactly once through
   `collection('trip_contexts').doc(queryId).set({data: record})`, expose matching top-level ID/expiry and
-  reuse the store's returned projection unchanged. The mock rejects a wrong collection or write
-  operation. Confirmation, route-type-required, auth/validation/weather errors and advice write zero
-  contexts; I17 performs zero context reads in advice.
+  reuse the store's returned projection unchanged. `baseResponse` rejects a call that lacks context
+  metadata. The mock rejects a wrong collection or write operation. Confirmation, route-type-required,
+  auth/validation/weather errors and advice write zero contexts; I17 performs zero context reads in
+  the handler.
 - Write failure returns retryable `context_unavailable` with no partial base. Client-spoofed safety facts
   do not enter the stored snapshot. Existing advice still consumes client baseData until I18, and the
   test names that as a compatibility limitation rather than trusted behavior.

@@ -296,9 +296,11 @@ deep-copy it so later caller or mock/SDK mutation does not change another view. 
 expired reads are internally distinguishable but return no snapshot; I18 will map all three to one public
 non-leaking unavailable error.
 
-I17b adds `queryId/expiresAt` at the top level of successful base responses. A write failure returns the
-retryable public `context_unavailable` error and no partial base. I17 deliberately leaves advice on its
-legacy client-`baseData` path; only I18 may read TripContext in the public handler and remove that client
+I17b creates the injected `trip_contexts` collection store only after the existing server BaseData is
+complete, then returns its created snapshot unchanged as `base.data` with `queryId/expiresAt` at the top
+level. A write failure returns the retryable public `context_unavailable` error and no partial base. The
+I17 handler performs no TripContext read. I17 deliberately leaves advice on its legacy
+client-`baseData` path; only I18 may read TripContext in the public handler and remove that client
 authority.
 
 ## 6. 小时天气
