@@ -39,6 +39,11 @@ node scripts/unit-test.js                  # 55/0
 node scripts/e2e-local.js                   # 离线 E2E，56/0
 ```
 
+I04 增加 `test:response` 并纳入根 `test`。它覆盖每一种 `phase` 构造、error 的
+`code/message/retryable`、互斥字段，以及当前 handler 的 missing/auth/invalid、
+confirmation、route-type、base、advice/degraded 出口。断言兼容字段时只验证迁移
+一致性，不把这些字段确立为最终 API。
+
 ## 3. 测试层级
 
 - 单元：路线匹配、Schema、坐标、天气解析、活动窗口、结论、装备合并、reducer。

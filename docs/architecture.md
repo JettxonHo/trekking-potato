@@ -90,6 +90,25 @@ base               { phase, queryId, expiresAt, data: BaseData }
 error              { phase, code, message, retryable }
 ```
 
+### I04 迁移边界
+
+I04 先把当前云函数的所有出口统一到上述 `phase` 判别方式，并让前端只按
+`phase` 和 error 的 `code` 分支。为避免把 I05、I07、I17 和 I18 偷渡进同一 PR：
+
+- `prepare` 成为第一阶段规范 mode；现有 `base` mode 作为内部迁移别名保留到 I20，
+  但生产前端从 I04 起不再发送它。缺失或未知 mode 返回 `invalid_mode`，不再执行
+  隐式同步全流程。
+- I04 的 `confirmation` 只封装当前模糊命中资料；服务端稳定 `candidateId`、最终
+  `candidates[]` 结构和 `confirm` 请求由 I05 实现。
+- I04 的 `base` 仍是当前 BaseData；`queryId`、`expiresAt` 和最终快照结构由
+  I07、I14–I17 分阶段补齐。
+- I04 的 `advice` 暂时仍接收当前 `baseData`；I17 建立可信上下文，I18 移除该输入。
+- 兼容字段 `ok`、`error`、`needsConfirm`、`needsRouteType` 和旧 `data` 在 I04
+  可以保留，但它们不是新前端的分支依据；删除时机由 I20 在调用面收敛后决定。
+
+这是渐进迁移规则，不改变本节上方的最终契约。任何临时字段都不得被当作新的
+长期公共事实，也不得伪造尚不存在的 candidate ID 或 queryId。
+
 ### Confirm
 
 ```js

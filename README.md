@@ -12,7 +12,7 @@
 
 ## 项目状态
 
-项目正在执行 `TP-BETA-001` 开发前规划门，目标是交付代码层面的核心闭测就绪版本。风速单位、行程日期窗口和路线类型贯穿已经完成；路线确认、路线变体、小时天气、确定性结论、可信上下文、私人历史收敛和工程门禁仍在 Goal 内。
+项目正在执行 `TP-BETA-001`，目标是交付代码层面的核心闭测就绪版本。M1 工程门禁已经完成，当前进入 M2 正确性阶段；路线确认、路线变体、小时天气、确定性结论、可信上下文和私人历史收敛仍在 Goal 内。
 
 - 当前产品入口：`taro-app/`
 - 云函数：`cloudfunctions/getAdvice/`、`cloudfunctions/history/`
@@ -122,6 +122,8 @@ corepack npm@10.9.2 run build:weapp
 `tripDays` 与 `routeType` 契约；它不会访问真实 Open-Meteo、CloudBase 或 DeepSeek。
 `lint` 以 ESLint flat config 检查云函数、Taro 源码和脚本，`typecheck` 用 TypeScript
 的 `allowJs`、`checkJs`、`noEmit` 与 `skipLibCheck` 检查两个云函数和 Taro 源码。
+每个 Pull Request 还会运行同一组 GitHub `quality` 检查；`main` 要求通过 PR 和
+该检查才能合并，并禁止 force push 与删除。
 
 ## 目录
 

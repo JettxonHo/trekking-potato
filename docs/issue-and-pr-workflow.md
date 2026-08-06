@@ -57,9 +57,9 @@ PR 模板使用 `Refs #<issue>` 关联 Issue，不得使用 `Closes`
 - 该 workflow 使用 Node 24、Corepack npm 10.9.2 与四份锁文件驱动的 npm 缓存，并运行
   root `ci`、`bootstrap`、`lint`、`typecheck`、`test`、`test:integration` 和
   `build:weapp`。
-- I03 PR 合并且 `quality` 通过后，只能由 Sol XHigh 为 `main` 应用并回读最小保护：
-  必须通过 PR、必须通过 `quality`、禁止 force push 和禁止删除。实现
-  Agent 不应用保护、不合并 PR、不关闭 #12。
+- I03 已完成：Sol XHigh 在 PR #38 的 `quality` 通过并合并后为 `main` 应用且回读了
+  最小保护。当前规则为必须通过 PR、必须通过严格 `quality`、禁止 force push 和
+  禁止删除。实现 Agent 不管理分支保护，也不合并自己的 PR。
 
 ## 5. 执行 Agent 自检
 
