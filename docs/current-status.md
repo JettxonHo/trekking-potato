@@ -251,6 +251,11 @@ client-baseData compatible and explicitly untrusted until I18.
   It performs no handler, response, mock, frontend, dependency, configuration or production-data work.
   The completed local matrix is green; #60 is `READY_FOR_CONTROLLER_REVIEW` and awaits Sol's actual-diff
   review before any PR, CI or merge.
+- Sol's first I17a implementation Review returned `CHANGES_REQUESTED` for one malformed-record P1:
+  an unparsable `createdAt` or a snapshot without `schemaVersion='beta_base_v1'` could previously reach
+  `found`. The bounded `REVIEW_FIX` first recorded both sensitive RED cases, then added only those two
+  stored-record checks. It does not revalidate I14–I16 nested data; the focused test and complete local
+  matrix are green again, so #60 is returned as `READY_FOR_CONTROLLER_REVIEW`.
 
 ## Baseline evidence
 

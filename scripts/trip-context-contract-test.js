@@ -242,6 +242,36 @@ async function testReadOwnershipExpiryAndIsolation() {
   assert.equal(memory.calls.delete, 0)
 }
 
+async function testMalformedStorageRecords() {
+  const invalidCreatedAt = createMemoryCollection()
+  const createdAtStore = createTripContextStore({
+    collection: invalidCreatedAt.collection,
+    createQueryId: () => 'tctx_44444444-4444-4444-8444-444444444444',
+  })
+  const createdAtContext = await createdAtStore.create({
+    openid: 'openid-owner', legacyBaseData: makeLegacyBaseData(),
+  })
+  invalidCreatedAt.records.get(createdAtContext.queryId).createdAt = 'not-a-date'
+  assert.deepEqual(
+    await createdAtStore.read({ openid: 'openid-owner', queryId: createdAtContext.queryId }),
+    { kind: 'store_unavailable' },
+  )
+
+  const invalidSnapshot = createMemoryCollection()
+  const snapshotStore = createTripContextStore({
+    collection: invalidSnapshot.collection,
+    createQueryId: () => 'tctx_55555555-5555-4555-8555-555555555555',
+  })
+  const snapshotContext = await snapshotStore.create({
+    openid: 'openid-owner', legacyBaseData: makeLegacyBaseData(),
+  })
+  invalidSnapshot.records.get(snapshotContext.queryId).snapshot.schemaVersion = 'not_beta_base_v1'
+  assert.deepEqual(
+    await snapshotStore.read({ openid: 'openid-owner', queryId: snapshotContext.queryId }),
+    { kind: 'store_unavailable' },
+  )
+}
+
 async function testAvailabilityAndTrustedGuard() {
   const failingWrite = createMemoryCollection({ failWrite: true })
   const writeStore = createTripContextStore({ collection: failingWrite.collection })
@@ -270,6 +300,7 @@ async function testAvailabilityAndTrustedGuard() {
 async function main() {
   await testCreatedRecordAndTrustedSnapshot()
   await testReadOwnershipExpiryAndIsolation()
+  await testMalformedStorageRecords()
   await testAvailabilityAndTrustedGuard()
   console.log('PASS: I17a TripContext storage contract')
 }

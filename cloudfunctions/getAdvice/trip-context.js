@@ -102,6 +102,8 @@ function isStoredRecord(value, queryId) {
     && hasText(value.createdAt)
     && hasText(value.expiresAt)
     && isPlainObject(value.snapshot)
+    && value.snapshot.schemaVersion === 'beta_base_v1'
+    && !Number.isNaN(new Date(value.createdAt).getTime())
     && !Number.isNaN(new Date(value.expiresAt).getTime())
 }
 

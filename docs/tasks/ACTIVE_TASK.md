@@ -4,7 +4,7 @@
 - GitHub Issue: `#60` (parent `#26`)
 - Title: 建立 TripContext 服务端存储核心
 - Status: `READY_FOR_CONTROLLER_REVIEW`
-- Mode: `IMPLEMENTATION`
+- Mode: `REVIEW_FIX`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
 - Branch: `codex/i17a-trip-context-store`
