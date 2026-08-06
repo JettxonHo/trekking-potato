@@ -6,7 +6,9 @@
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
 
-The controller approved planning PR #9 on `2026-08-06`. M1 completed through PRs #36–#38; the Goal is now active at M2, starting with I04.
+The controller approved planning PR #9 on `2026-08-06`. M1 completed through PRs #36–#38;
+I04 and I05 completed through PRs #40 and #43–#45. The Goal is active at M2 with the I06
+contract under controller review; implementation has not started.
 
 ## 1. Objective
 
@@ -14,7 +16,10 @@ Deliver a reproducible, reviewable WeChat mini-program that uses verified route 
 
 ## 2. Background and current state
 
-The Taro app and two CloudBase functions are the current product. Wind units, trip date windows, and route type propagation are fixed. Fuzzy confirmation, route variants, hourly evaluation, trusted second-stage context, private-only history, explicit UI state, and engineering gates remain.
+The Taro app and two CloudBase functions are the current product. Engineering gates, wind units,
+trip date windows, route type propagation, and fuzzy confirmation are complete. Deterministic safety
+projection is next; route variants, hourly evaluation, trusted second-stage context, private-only
+history, and explicit UI state remain.
 
 Current verified baselines are route type `93/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 

@@ -38,6 +38,7 @@ node scripts/weather-contract-test.js
 node scripts/unit-test.js
 node scripts/response-contract-test.js
 node scripts/confirmation-contract-test.js
+node scripts/advice-safety-contract-test.js
 node scripts/e2e-local.js
 ```
 
@@ -51,6 +52,19 @@ prefix/contains/fuzzy 候选、稳定 ID、candidate_not_found、confirm 只读�
 确认前零天气/规则/AI 副作用。I05b 在同一命令补充页面源码契约：候选显示、最小
 confirm 请求、空/畸形候选失败、取消/编辑清理，以及仅 prepare/confirm 的组件私有
 单调 generation；不借此建立 I20 reducer/service。
+
+I06 新增离线 `test:safety` 并纳入根 `test`。它首先直接验证纯投影接口：恶意 AI
+payload 不能删除、移动、改名或覆盖确定性装备和风险，不能注入 verdict、路线、天气或
+meta；允许的 recommended/optional 追加按精确 item 去重；风险解释只能匹配现有风险并
+按固定 risk/advice/“AI 说明”格式拼接；ruleNotes、AI notes 和降级提示按冻结顺序输出；
+`invalid` 与 `unavailable` 均保留完整确定性内容，只在
+`data.meta.degradedReason` 返回不同稳定原因；输入对象保持不变。handler 集成用例还必须
+证明正常冲突输出和 AI 失败共享同一确定性核心，缺失/畸形装备数组、装备条目、
+fatalRisks、ruleNotes 或 weather/sunEvents 形态时返回 `invalid_base_data` 且 LLM 零调用，
+Prompt 不读取 event 中重复的路线事实。页面源码契约验证 base 立即以同一固定格式初始化
+最低装备/风险、加载态不遮挡它们，以及 advice 传输失败保留前一结果。全部测试离线，不
+调用真实 DeepSeek、CloudBase 或天气服务；还要断言纯投影 data 的固定字段集合、固定
+disclaimer 以及 caller-only meta，防止未知 AI 字段通过新出口回流。
 
 ## 3. 测试层级
 

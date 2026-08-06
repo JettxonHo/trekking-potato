@@ -100,3 +100,17 @@
 - Decision: I05 拆为串行 I05a（#41 服务端候选/confirm）和 I05b（#42 前端闭环），父 #14 只在两者完成后关闭。I05 使用 ``builtin-route:${canonicalName}`` 作为无状态临时 ID，不用 index、哈希或额外存储；canonical exact 全局优先，唯一 alias exact 可直达，重复 alias/prefix/contains/fuzzy 必须确认。真实 TTL/归属留 I17，永久目录 ID 留 I13。
 - Alternatives: 一个跨后端/UI的大 PR；数组下标 ID；提前建立候选数据库；所有 alias 一律确认。
 - Why: 两次合并可独立验证信任边界和交互；canonical name 当前唯一且比 index 稳定；额外存储会侵入 I17；唯一可信 alias 直达符合既有架构并避免无价值确认。
+
+## 2026-08-06 — TP-D017 I06 单入口安全投影
+
+- Status: Accepted
+- Decision: I06 使用一个无 I/O 的纯 `projectSafetyAdvice` 边界，从确定性
+  `gearRules/weather/sunEvents` 和判别式 AI outcome 白名单重建 advice。AI 只允许追加
+  recommended/optional 装备、匹配既有风险的显式解释和 notes；正常、无效输出和不可用
+  路径共享同一投影。前端在 base 后立即显示现有确定性装备/风险，AI 加载或传输失败不
+  清空它们。此处的确定性数据只对 AI 只读；客户端 `baseData` 信任问题仍由 I17/I18 处理。
+- Alternatives: 对原始 AI 输出做深合并；只修改 Prompt；把 Prompt、LLM 调用、校验、
+  投影和公共响应全部吸收到一个新适配器；仅在调用方零散覆盖受保护字段。
+- Why: 原始合并和 Prompt 约束都无法形成可测试的权限边界；大适配器会把 I06 扩成编排
+  重构；调用方零散修补容易让正常与降级路径漂移。单入口纯投影让策略局部、可验证且不
+  提前侵入 I17/I18 或 I20。

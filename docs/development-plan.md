@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M2 / I04`
+- Status: `ACTIVE — M2 / I06 contract review`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -52,8 +52,9 @@ I19 + I23 → I24 → I25
 
 I01–I03 已分别通过 PR #36、#37、#38 合并，M1 已关闭。I04 通过 PR #40 合并并关闭
 GitHub #13。I05 由父 Issue #14 跟踪，拆为串行 #41（I05a 服务端候选/confirm）和
-#42（I05b 前端闭环）。规划 PR #43 已合并；#41 通过 PR #44 合并为 `1a76bc0`，#42
-已在该真实 base 上激活。以下 M1 合同保留为历史记录。
+#42（I05b 前端闭环）：规划 PR #43、实现 PR #44/#45 均已合并，父子 Issues 已关闭。
+I06 以 `main@deb3a8c` 为规划基线，先冻结投影接口与测试合同；规划 PR 合并后才可在真实
+base 激活 #15 并交给 Terra XHigh。以下 M1 合同保留为历史记录。
 
 ### I01 — 统一工具链、固定依赖与锁文件
 
@@ -88,12 +89,25 @@ GitHub #13。I05 由父 Issue #14 跟踪，拆为串行 #41（I05a 服务端候�
 - 验收：PR 运行统一 `quality` check；main 规则与上述固定配置一致；模板包含关联 Issue、方案、范围、测试、风险、兼容、回滚、遗留项。
 - 交付：配置、线上验证证据、PR。
 
-## 4. Issue 合同生成规则
+## 4. I06 冻结合同摘要
 
-I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补齐文件 allowlist、精确验收、测试命令和当前基准提交。I05a/I05b 的冻结合同在 GitHub #41/#42；规划 PR 合并后仍需写回各自真实基准才可 Ready。不得用本表的一句话目标直接分派。
+- 一项 Issue、一个实现 PR：后端白名单投影和前端立即显示最低装备共同构成“AI 成败不
+  影响确定性内容”的同一用户可观察不变量，不再人为拆分。
+- 新增单一纯投影模块；LLM/Prompt/计时仍在现有云函数编排层。正常、AI schema 无效和
+  AI 不可用三条路径必须使用同一投影。
+- AI 只追加 recommended/optional 装备、匹配既有风险的解释和 notes；不能决定
+  essential、风险集合/等级/规则建议、weather、sunEvents、route、verdict 或 meta。
+- 页面在 base 阶段立即用 `gearRules` 初始化装备和风险；loading 或 advice 传输失败不得
+  清空这些内容。本任务不建立 reducer/service。
+- 实现 allowlist、精确 schema、验收与命令以 GitHub #15 和
+  `docs/tasks/ACTIVE_TASK.md` 为准；任何公共响应、依赖或跨 Issue 扩张必须升级。
 
-## 5. 合并顺序与里程碑门
+## 5. Issue 合同生成规则
+
+I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补齐文件 allowlist、精确验收、测试命令和当前基准提交。I05a/I05b 的冻结合同与真实基准已作为历史保存在 GitHub #41/#42；后续任务不得用本表的一句话目标直接分派。
+
+## 6. 合并顺序与里程碑门
 
 每个里程碑最后一个 PR 合并后更新 `GOAL.md` 和 `docs/current-status.md`。I05a 与 I05b
-串行、分别 Review/合并，父 #14 在两者完成后关闭。M3 数据 schema 未冻结不得并行
-路线数据；M7 前不做重复全局 Review。
+已按串行顺序分别 Review/合并并关闭父 #14。M3 数据 schema 未冻结不得并行路线数据；
+M7 前不做重复全局 Review。

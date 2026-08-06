@@ -240,6 +240,85 @@ freezing_level_height
 
 规则层的最低装备、基础风险、结论和原因码为不可删除集合。AI 可增加非关键项目和解释，但不能删除、降级、改名或覆盖确定性项。AI schema 无效或调用失败时返回规则结果和明确 degraded 状态。
 
+### I06 过渡投影边界
+
+I06 在 TP-VERDICT-1、RouteVariant 和可信 `queryId` 落地前，先收紧当前 advice 编排中
+AI 相对于既有 `gearRules/weather/sunEvents` 的权限。这里的“可信”仅表示这些字段对 AI
+只读，不表示客户端 `baseData` 已成为服务端可信事实；后者仍由 I17/I18 解决。
+
+新增一个无 I/O 的单入口纯模块：
+
+```js
+projectSafetyAdvice({ gearRules, weather, sunEvents, aiOutcome })
+  -> { data, degraded, degradedReason }
+```
+
+`data` 固定只含 `gear/risks/notes/photoTiming/microclimate/disclaimer/weather/sunEvents`；
+caller 再附加 server meta。模块不生成 `weatherWindow`、route meta 或公共响应信封。
+
+`aiOutcome` 是精确的内部判别式 union：
+
+```js
+{ status: 'available', value: AiExplanation }
+{ status: 'invalid' }
+{ status: 'unavailable' }
+```
+
+未知 status 属于编程错误并抛给顶层 `internal_error`。`available.value` 必须包含下方全部
+容器和数组，空数组合法；已知字段或任一条目的形态错误时整个 outcome 变为 `invalid`。
+数组条目中的文本必须是 trim 后非空字符串；未知字段直接丢弃，不因越权字段存在而逐项
+增加错误分支。云函数入口继续负责 Prompt、LLM 调用、计时和公共响应封装；投影模块只从
+白名单字段重新构造结果，不对原始 AI 对象做浅合并或展开。
+
+AI 内部 schema 只允许：
+
+```js
+{
+  gearAdditions: {
+    recommended: [{ item, reason }],
+    optional: [{ item, reason }]
+  },
+  riskExplanations: [{ risk, explanation }],
+  notes: [String]
+}
+```
+
+- 确定性 `essential/recommended/optional` 的内容、分类和顺序保持不变；AI 只能在
+  recommended/optional 尾部追加。以 trim 后的 item 精确去重，任一确定性分类命中时
+  确定性项获胜；不做模糊同义词或额外哈希。
+- 风险集合、顺序和身份只来自 `gearRules.fatalRisks` 字符串。每个 `name` 固定投影为
+  `{ risk: name + '风险', level: '致命', advice: '本风险由海拔/季节规则判定，请查阅专业路书获取具体应对措施' }`。
+  AI 只能为 trim 后移除一个末尾“风险”即可精确匹配的现有 name 追加
+  `；AI 说明：${explanation.trim()}`；AI 独有风险丢弃。前端 base 阶段使用同一固定记录，
+  但不含 AI 说明。
+- `gearRules.ruleNotes` 依次输出为 `规则提示：${note.trim()}`；合法 AI notes 随后依次输出为
+  `AI 说明：${note.trim()}`。invalid/unavailable 则在规则提示之后追加同一条
+  `AI 说明暂不可用，当前仅展示确定性规则结果。`，差异只由 degradedReason 表达。
+- weather/sunEvents 只来自当前 base；photoTiming 只由 sunEvents 生成，microclimate
+  只由 weather 生成，disclaimer 固定为
+  `装备和风险由确定性规则生成，AI 仅补充解释。出行前请核实官方气象、路线开放状态和现场条件；户外活动有风险。`。
+  AI 提供的 verdict、dataStatus、
+  reasons、route、weather、sunEvents、meta、gearRules 或 degraded 字段均被丢弃。
+- `invalid` 与 `unavailable` 都返回完整确定性内容并标记 degraded，原因分别为
+  `ai_output_invalid` 与 `ai_unavailable`。不为此新增公共 error code；不合法 base 仍使用
+  已有 `invalid_base_data`，未预期的编程错误仍为 `internal_error`。
+- 投影的 degradedReason 由 caller 仅写入现有 `data.meta.degradedReason`；非降级时该字段
+  省略。公共响应继续只在 advice 顶层使用现有 `degraded` 布尔值，不再生成第二个
+  `data.degradedReason`。
+- 投影不得修改输入对象。正常 AI 和降级路径必须经过同一投影，不维护两套安全合并规则。
+- advice Prompt 只从已通过本期结构校验的 baseData 派生，不再混入 event 中重复的
+  route/date/level/days；请求字段暂不删除，真正的服务端所有权仍属于 I17/I18。
+
+调用 LLM 前必须确认 `gearRules.essential/recommended/optional` 均为数组且每项是
+`{ item, reason }` 非空字符串对象，`fatalRisks` 与 `ruleNotes` 均为字符串数组，weather
+和 sunEvents 各自只能为 object 或 null；否则返回现有 `invalid_base_data` 且 LLM 调用
+次数为零。不扩展为深层天气语义审计；I14 负责最终小时天气 schema。
+
+前端收到 base 后立即从现有 `gearRules` 显示最低装备和致命风险；`advice_loading` 只表示
+解释仍在生成，不得用骨架屏遮掉已经存在的确定性内容。advice 成功后使用服务端投影的完整
+结果；AI schema 无效、调用失败或 advice 传输失败时保留先前确定性内容并显示降级状态。
+页面内只做 I06 所需的局部初始化，不提前引入 I20 reducer/service 或全局状态库。
+
 ## 9. 前端状态
 
 纯 reducer 管理：
