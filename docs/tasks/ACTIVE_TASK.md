@@ -1,50 +1,48 @@
 # 当前活动任务
 
-- Task ID: `I01`
-- GitHub Issue: `#10` — `https://github.com/JettxonHo/trekking-potato/issues/10`
-- Title: 统一工具链、固定依赖与锁文件
+- Task ID: `I02`
+- GitHub Issue: `#11` — `https://github.com/JettxonHo/trekking-potato/issues/11`
+- Title: 修复离线 E2E 并建立本地质量命令
 - Status: `READY_FOR_EXECUTOR`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh (authorized Luna fallback)
 - Reviewer: Sol XHigh
-- Branch: `codex/i01-toolchain-locks`
-- Base: activation PR merge commit on `main`
+- Branch: `codex/i02-quality-commands`
+- Base: `main` at `868c181`
 - Goal: `TP-BETA-001`
 
 ## Objective
 
-使全新检出可确定性安装，并从根目录运行现有测试；建立 Node 24、固定依赖和锁文件基础。
+让离线集成测试与根级 lint、typecheck、test、test:integration、build:weapp 命令真实可运行，且任何失败都以非零状态暴露。
 
 ## Allowlist
 
-- 新增根 `package.json`
-- 新增 `.node-version`
-- 根 `.gitignore`
-- `taro-app/package.json`
-- `cloudfunctions/getAdvice/package.json`
-- `cloudfunctions/history/package.json`
-- 根及三个子项目共四个 `package-lock.json`
-- `README.md`
-- `docs/current-status.md`
+- 根 `package.json` 与 `package-lock.json`
+- `scripts/e2e-local.js`
+- 新增 `eslint.config.js`
+- 新增 `tsconfig.quality.json`（或同等单一 JS typecheck 配置）
+- `scripts/fixtures/**` 与 `scripts/mocks/**`
+- `README.md`、`docs/testing-strategy.md`、`docs/current-status.md`
+- 生产文件仅允许在 `cloudfunctions/getAdvice/**/*.js`、`cloudfunctions/history/**/*.js`、`taro-app/src/**/*.{js,jsx}` 增加无行为变化的 JSDoc/类型注释，并在 PR 单独列出
 
 ## Out of scope
 
-- 业务逻辑、UI 和云函数行为
-- CI 与 GitHub 配置
-- Taro 升级
-- 测试框架或重大依赖
-- 部署、发布和数据操作
+- 改变业务行为迁就旧测试或修改公共接口
+- 默认运行 live 网络、DeepSeek、deep-audit 或 redteam-audit
+- Jest、Vitest、机械覆盖率线或新的全局状态/框架
+- Taro、NutUI、Node/npm 策略变更
+- CI、部署、发布和数据操作
 
 ## Acceptance
 
-- `npm ci && npm run bootstrap` 可安装根和三个子项目。
-- 不依赖全局 Taro。
-- 根命令可调度现有测试。
-- 路线 93/0、天气 86/0、单元 55/0 保持通过。
-- diff 不包含业务行为变化。
+- 根级 `lint`、`typecheck`、`test`、`test:integration`、`build:weapp` 都是可执行的真实命令。
+- E2E 使用 fixture/mock，不访问 live Open-Meteo、CloudBase 或 DeepSeek，并使用当前 `tripDays`、`routeType` 契约。
+- 失败命令返回非零，不隐藏失败。
+- 不为通过测试改变业务行为。
 
 ## Verification
 
-- 完整合同以 GitHub #10 为准。
-- 必跑：`npm ci`、`npm run bootstrap`、根测试调度命令、三个现有测试脚本。
+- 完整合同以 GitHub #11 为准。
+- 使用 I01 固定的 Node 24.18.0 与 Corepack npm 10.9.2。
+- 必跑五个根质量命令和三个原始基线脚本。
 - 执行 Agent 交付状态只能为 `READY_FOR_CONTROLLER_REVIEW`。
