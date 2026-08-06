@@ -1,34 +1,33 @@
 # 当前活动任务
 
-- Task ID: `I07-CONTRACT`
+- Task ID: `I07`
 - GitHub Issue: `#16` — `https://github.com/JettxonHo/trekking-potato/issues/16`
 - Title: 路线领域模型与旧数据适配任务合同
-- Status: `CONTRACT_APPROVED`
-- Mode: `REVIEW_ONLY`
-- Owner: Sol XHigh
+- Status: `READY`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
 - Reviewer: Sol XHigh
-- Branch: `codex/i07-route-domain-contract`
-- Base: `main` at `57ab44c`
+- Branch: `codex/i07-route-domain`
+- Base: `main` at `7d43b1d`
 - Goal: `TP-BETA-001`
 
-I07 的三方案设计和两轮独立合同 Review 已完成，最终结果为 `APPROVED`。GitHub #16 在
-规划 PR 合并前仍不能交给 Terra；本阶段只允许创建/验证规划 PR 和下列规划文档变更。
+I07 的三方案设计和两轮独立合同 Review 已完成，最终结果为 `APPROVED`；规划 PR #48 已
+通过 latest-head `quality` 并合并。现在授权 Terra XHigh 严格按本合同实施，不能改变产品、
+schema、运行时边界、依赖策略或验收标准，也不能批准或合并自己的 PR。
 
 ## Objective
 
-审查并冻结 Source/Place/Route/RouteVariant 的最小深模块接口、旧 BUILTIN_ROUTES 适配
-边界、字段验证和来源/运行状态语义，使 I08–I13 可以在冻结 schema 上独立开发，同时不
-提前写入五条试点数据或改变当前搜索行为。
+实现 Source/Place/Route/RouteVariant 的最小深模块、旧 BUILTIN_ROUTES 诚实适配、字段/
+引用/来源校验和敏感契约测试，使 I08–I13 可以在冻结 schema 上独立开发，同时不提前
+写入五条试点数据或改变当前搜索行为。
 
-## Planning allowlist
+## Required reading
 
 - `GOAL.md`
 - `docs/architecture.md`
-- `docs/development-plan.md`
 - `docs/testing-strategy.md`
-- `docs/decision-log.md`
-- `docs/current-status.md`
-- `docs/tasks/ACTIVE_TASK.md`
+- `docs/development-plan.md`
+- GitHub #16
 
 ## Frozen contract
 
@@ -206,7 +205,7 @@ Review 中判断。
 blocked 分支不得携带 full 专属字段；legacy Place 固定 `sourceIds=[]`，不得携带
 elevation、bestSeason、note 或伪造的 Source。
 
-## Implementation allowlist after planning PR merge
+## Implementation allowlist
 
 - `cloudfunctions/getAdvice/domain/route-catalog.js`（新增）
 - `scripts/route-domain-contract-test.js`（新增）
@@ -238,7 +237,7 @@ elevation、bestSeason、note 或伪造的 Source。
 
 ## Verification
 
-规划 Review 阶段运行 Markdown 一致性检查和 `git diff --check`。实施阶段必须运行：
+实施 Agent 必须运行：
 
 ```bash
 corepack npm@10.9.2 run test:route-domain

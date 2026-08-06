@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M3 / I07 contract approved`
+- Status: `ACTIVE — M3 / I07 implementation`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
