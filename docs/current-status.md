@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M2 Correctness`
-- Active task: `I05b / GitHub #42 / READY_FOR_EXECUTOR`
+- Active task: `I05b / GitHub #42 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/i05b-frontend-confirmation`
 - Base: `main` at `1a76bc0`
 - Planning PR: `#9` — merged
@@ -14,8 +14,8 @@
 - I05a PR: `#44` — merged; GitHub #41 closed and #42 unblocked
 
 Status semantics: planning is approved and TP-BETA-001 is active. I01–I03 and M1 are complete.
-I04 and I05a are complete. I05b is the only implementation task Ready; I06 and later Issues remain
-Backlog until dependencies and exact contracts are approved.
+I04 and I05a are complete. I05b is implemented and awaiting Sol XHigh review; I06 and later Issues
+remain Backlog until dependencies and exact contracts are approved.
 
 ## Completed
 
@@ -47,6 +47,9 @@ Backlog until dependencies and exact contracts are approved.
   #41 was activated on that real base.
 - I05a passed Sol XHigh Review and latest-head `quality`, merged in PR #44 as `1a76bc0`, and
   GitHub #41 was closed. I05b was unblocked on that real base.
+- I05b implemented the page-local candidate selection Popup, frozen minimal confirm request and
+  prepare/confirm-only generation guard on `codex/i05b-frontend-confirmation`; it is awaiting
+  Sol XHigh review.
 
 ## Baseline evidence
 
@@ -79,8 +82,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Terra XHigh implements the exact frontend contract in GitHub #42.
-2. Sol XHigh reviews actual UI flow, tests and latest-head CI before closing parent #14.
+1. Sol XHigh reviews I05b UI flow, tests and latest-head CI before closing parent #14.
 
 ## Blockers and risks
 
@@ -100,4 +102,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Implement only GitHub #42; I06 remains blocked until parent #14 is reviewed and closed.
+Review GitHub #42; I06 remains blocked until parent #14 is reviewed and closed.

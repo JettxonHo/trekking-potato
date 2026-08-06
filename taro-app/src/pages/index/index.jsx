@@ -66,6 +66,9 @@ export default class Index extends Component {
     showHistory: false,
     historyList: [],
     historyLoading: false,
+    showCandidatePopup: false,
+    candidates: [],
+    candidateSnapshot: null,
   }
 
   componentDidMount() {
@@ -115,6 +118,8 @@ export default class Index extends Component {
 
   onRouteInput = (e) => {
     const nextRoute = e.detail.value
+    this._nextRequestGeneration()
+    const clearedCandidates = this._clearCandidateConfirmation()
     // TP-P0-003 REVIEW_FIX：用户修改路线文本后必须清除全部手动上下文，
     // 包括 manualContextActive，避免旧坐标与路线类型被串用
     if (this.state.manualContextActive || this.state.pendingResolvedLocation || this.state.manualRouteType || this.state.manualLat || this.state.manualLon) {
@@ -126,10 +131,11 @@ export default class Index extends Component {
         manualLat: '',
         manualLon: '',
         manualElev: '',
+        ...clearedCandidates,
       })
       return
     }
-    this.setState({ route: nextRoute })
+    this.setState({ route: nextRoute, ...clearedCandidates })
   }
   onDateChange = (e) => this.setState({ date: e.detail.value })
 
@@ -198,6 +204,89 @@ export default class Index extends Component {
     this._submitBase({ route: route.trim(), date, level, days: tripDays })
   }
 
+  _nextRequestGeneration() {
+    this._requestGeneration = (this._requestGeneration || 0) + 1
+    return this._requestGeneration
+  }
+
+  _clearCandidateConfirmation() {
+    return { showCandidatePopup: false, candidates: [], candidateSnapshot: null }
+  }
+
+  _isValidCandidate(candidate) {
+    return !!candidate
+      && typeof candidate.candidateId === 'string' && candidate.candidateId.length > 0
+      && typeof candidate.canonicalName === 'string' && candidate.canonicalName.length > 0
+      && typeof candidate.region === 'string' && candidate.region.length > 0
+      && !!ROUTE_TYPE_TEXT[candidate.routeType]
+  }
+
+  onCandidateClose = () => {
+    this._nextRequestGeneration()
+    this.setState(this._clearCandidateConfirmation())
+  }
+
+  onCandidateSelect = (candidateId) => {
+    const { candidates, candidateSnapshot } = this.state
+    const candidate = candidates.find((item) => item.candidateId === candidateId)
+    const snapshot = candidateSnapshot
+    if (!this._isValidCandidate(candidate) || !snapshot || typeof snapshot.date !== 'string' || typeof snapshot.level !== 'string' || !snapshot.days) {
+      this._nextRequestGeneration()
+      this.setState({ error: '候选路线信息异常，请修改输入后重试', ...this._clearCandidateConfirmation() })
+      return
+    }
+
+    const generation = this._nextRequestGeneration()
+    const params = { candidateId, date: snapshot.date, level: snapshot.level, days: snapshot.days }
+    this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, loadingStage: '薯仔正在确认路线...', ...this._clearCandidateConfirmation() })
+    Taro.cloud.callFunction({
+      name: 'getAdvice',
+      data: { mode: 'confirm', ...params },
+      success: (res) => {
+        if (this._unmounted || generation !== this._requestGeneration) return
+        const result = res.result
+        if (!result) {
+          this.setState({ loading: false, error: '路线确认失败，请重新查询' })
+          return
+        }
+        if (result.phase === 'route_type_required') {
+          const pd = result.data
+          this.setState({
+            loading: false,
+            showManualCoords: true,
+            manualContextActive: true,
+            pendingResolvedLocation: {
+              name: pd.name,
+              lat: pd.lat,
+              lon: pd.lon,
+              elevation: pd.elevation,
+              location: pd.location,
+            },
+            manualLat: pd.lat != null ? String(pd.lat) : '',
+            manualLon: pd.lon != null ? String(pd.lon) : '',
+            manualElev: pd.elevation != null ? String(pd.elevation) : '',
+            manualRouteType: '',
+          })
+          return
+        }
+        if (result.phase === 'error') {
+          this.setState({ loading: false, error: result.message || '路线确认失败，请重新查询' })
+          return
+        }
+        if (result.phase !== 'base') {
+          this.setState({ loading: false, error: '路线确认失败，请重新查询' })
+          return
+        }
+        this._showBaseAndFetchAdvice(result.data, params)
+      },
+      fail: (err) => {
+        if (this._unmounted || generation !== this._requestGeneration) return
+        this.setState({ loading: false, error: '云函数调用失败，请检查 getAdvice 是否已部署' })
+        console.error('[徒步薯] confirm callFunction fail', err)
+      }
+    })
+  }
+
   // TP-P0-003：手动坐标路线类型选择（Picker 索引 → 枚举值）
   onManualRouteTypeChange = (e) => {
     const idx = parseInt(e.detail.value, 10)
@@ -252,22 +341,66 @@ export default class Index extends Component {
     this.setState({ funnyMsg: FUNNY_MESSAGES[0] })
   }
 
+  _showBaseAndFetchAdvice(base, params) {
+    this.setState({
+      loading: false,
+      showResult: true,
+      result: {
+        weatherWindow: base.weather,
+        photoTiming: base.sunEvents,
+        gear: { essential: [], recommended: [], optional: [] },
+        risks: [],
+        notes: [],
+        meta: {
+          elevation: base.elevation,
+          location: base.location,
+          coords: base.coords,
+          // TP-P0-003：结果保存可信路线类型与来源
+          routeType: base.routeType,
+          routeTypeSource: base.routeTypeSource,
+        },
+      },
+     adviceLoading: true,
+    }, () => this._saveCache())
+    this._adviceSteps = ['薯仔正在分析天气窗口...', '薯仔正在匹配装备清单...', '薯仔正在评估风险等级...', '薯仔正在生成行前建议...']
+    this._adviceStepIdx = 0
+    this._adviceStepTimer = setInterval(() => {
+      if (this._unmounted || !this.state.adviceLoading) { clearInterval(this._adviceStepTimer); return }
+      this._adviceStepIdx = (this._adviceStepIdx + 1) % this._adviceSteps.length
+      this.setState({ adviceStage: this._adviceSteps[this._adviceStepIdx] })
+    }, 1800)
+    this.setState({ adviceStage: this._adviceSteps[0] })
+    this._startFunnyRotation()
+    this._fetchAdvice({ ...params, route: params.route || base.route, baseData: base })
+  }
+
   _submitBase(params) {
     this._unmounted = false
-    this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, showManualCoords: false, loadingStage: '薯仔正在查询路线位置...' })
+    const generation = this._nextRequestGeneration()
+    this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, showManualCoords: false, loadingStage: '薯仔正在查询路线位置...', ...this._clearCandidateConfirmation() })
     Taro.cloud.callFunction({
       name: 'getAdvice',
       data: { ...params, mode: 'prepare' },
       success: (res) => {
-        if (this._unmounted) return
+        if (this._unmounted || generation !== this._requestGeneration) return
         const result = res.result
         if (!result) {
           this.setState({ loading: false, error: '路线查询失败' })
           return
         }
         if (result.phase === 'confirmation') {
-          // I04：确认交互在 I05 实现；当前仅提示用户修改输入后重试，绝不进入 base/advice。
-          this.setState({ loading: false, error: result.message || '请确认路线名称后重试' })
+          const candidates = Array.isArray(result.candidates) ? result.candidates : []
+          if (candidates.length < 1 || candidates.length > 5 || !candidates.every((candidate) => this._isValidCandidate(candidate))) {
+            this.setState({ loading: false, error: '候选路线信息异常，请修改输入后重试', ...this._clearCandidateConfirmation() })
+            return
+          }
+          this.setState({
+            loading: false,
+            error: null,
+            showCandidatePopup: true,
+            candidates,
+            candidateSnapshot: { date: params.date, level: params.level, days: params.days },
+          })
           return
         }
         if (result.phase === 'route_type_required') {
@@ -303,40 +436,10 @@ export default class Index extends Component {
           this.setState({ loading: false, error: '路线查询失败' })
           return
         }
-        const base = result.data
-        this.setState({
-          loading: false,
-          showResult: true,
-          result: {
-            weatherWindow: base.weather,
-            photoTiming: base.sunEvents,
-            gear: { essential: [], recommended: [], optional: [] },
-            risks: [],
-            notes: [],
-            meta: {
-              elevation: base.elevation,
-              location: base.location,
-              coords: base.coords,
-              // TP-P0-003：结果保存可信路线类型与来源
-              routeType: base.routeType,
-              routeTypeSource: base.routeTypeSource,
-            },
-          },
-         adviceLoading: true,
-        }, () => this._saveCache())
-        this._adviceSteps = ['薯仔正在分析天气窗口...', '薯仔正在匹配装备清单...', '薯仔正在评估风险等级...', '薯仔正在生成行前建议...']
-        this._adviceStepIdx = 0
-        this._adviceStepTimer = setInterval(() => {
-          if (this._unmounted || !this.state.adviceLoading) { clearInterval(this._adviceStepTimer); return }
-          this._adviceStepIdx = (this._adviceStepIdx + 1) % this._adviceSteps.length
-          this.setState({ adviceStage: this._adviceSteps[this._adviceStepIdx] })
-        }, 1800)
-        this.setState({ adviceStage: this._adviceSteps[0] })
-        this._startFunnyRotation()
-        this._fetchAdvice({ ...params, baseData: base })
+        this._showBaseAndFetchAdvice(result.data, params)
       },
       fail: (err) => {
-        if (this._unmounted) return
+        if (this._unmounted || generation !== this._requestGeneration) return
         this.setState({ loading: false, error: '云函数调用失败，请检查 getAdvice 是否已部署' })
         console.error('[徒步薯] base callFunction fail', err)
       }
@@ -537,7 +640,7 @@ export default class Index extends Component {
   }
 
   render() {
-    const { route, date, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, pendingResolvedLocation, showHistory, historyList, historyLoading } = this.state
+    const { route, date, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, pendingResolvedLocation, showHistory, historyList, historyLoading, showCandidatePopup, candidates } = this.state
     const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
     const funnyMsg = this.state.funnyMsg
 
@@ -791,6 +894,21 @@ export default class Index extends Component {
           <Text className="potato-doodle">╭( ・ㅂ・)و</Text>
           <Text className="potato-doodle-hint">系好鞋带再出发</Text>
         </View>
+
+        <Popup visible={showCandidatePopup} position="bottom" round onClose={this.onCandidateClose} className="candidate-popup">
+          <View className="candidate-popup-content">
+            <Text className="candidate-popup-title">请选择要查询的路线</Text>
+            <Text className="candidate-popup-hint">薯仔不替你猜，选好后再继续查天气和装备</Text>
+            {candidates.map((candidate) => (
+              <View key={candidate.candidateId} className="candidate-row quirky-active" onClick={() => this.onCandidateSelect(candidate.candidateId)}>
+                <Text className="candidate-name">{candidate.canonicalName}</Text>
+                <Text className="candidate-region">{candidate.region}</Text>
+                <Text className="candidate-type">{ROUTE_TYPE_TEXT[candidate.routeType]}</Text>
+              </View>
+            ))}
+            <Button block className="candidate-cancel-btn" onClick={this.onCandidateClose}>取消</Button>
+          </View>
+        </Popup>
 
         <Popup visible={showManualCoords} position="bottom" round onClose={() => this.setState({ showManualCoords: false })} className="manual-popup">
           <View className="manual-popup-content">

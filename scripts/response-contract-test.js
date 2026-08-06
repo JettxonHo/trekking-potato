@@ -379,7 +379,7 @@ async function main() {
   assert(submitBaseSource.includes("result.phase === 'confirmation'"), '前端必须处理 confirmation 阶段')
   assert(submitBaseSource.includes("result.phase === 'route_type_required'"), '前端必须处理 route_type_required 阶段')
   assert(submitBaseSource.includes("result.phase !== 'base'"), '前端必须只从 base 阶段启动 advice')
-  assert(confirmationBranch.includes("error: result.message || '请确认路线名称后重试'") && confirmationBranch.includes('return'), 'confirmation 只能展示 message 后返回')
+  assert(confirmationBranch.includes('showCandidatePopup: true') && confirmationBranch.includes('candidateSnapshot: { date: params.date, level: params.level, days: params.days }') && confirmationBranch.includes('return'), 'confirmation 必须保存候选快照并打开独立候选 Popup 后返回')
   assert(!/_fetchAdvice|_saveCache|_saveHistory/.test(confirmationBranch), 'confirmation 分支不得触发 advice、缓存或历史')
   assert(routeTypeBranch.includes('showManualCoords: true') && routeTypeBranch.includes('pendingResolvedLocation') && routeTypeBranch.includes('return'), 'route_type_required 只能进入现有路线类型选择流程后返回')
   assert(!/_fetchAdvice|_saveCache|_saveHistory/.test(routeTypeBranch), 'route_type_required 分支不得触发 advice、缓存或历史')
