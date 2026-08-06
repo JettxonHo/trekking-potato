@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I17b / #61 / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `I17b / #61 / APPROVED — PR_PENDING`
 - Branch: `codex/i17b-trip-context-wiring`
 - Base: `main` at `910c00d`
 - Planning PR: `#9` — merged
@@ -272,6 +272,15 @@ advice remains client-baseData compatible and explicitly untrusted until I18.
   zero-write exits, zero handler reads and client-spoof isolation. I17b's complete local matrix is
   green and it is `READY_FOR_CONTROLLER_REVIEW`; no advice/queryId cutover, frontend, dependency,
   production configuration or I17a-store modification occurred.
+- The first independent I17b audit found no code/test P0 or P1 and one governance-only P2: the branch
+  diff contains Sol's pre-dispatch `GOAL.md` activation checkpoint although that file is not in Terra's
+  executor allowlist. The contract now records commit `6eacf76` as a separately authored controller-
+  only status update; Terra commit `97372dd` remains within its allowlist. The corrected governance
+  boundary passed second independent Review with `APPROVED` and no remaining P0–P2 finding.
+- Sol inspected the actual handler/response/mock diff and independently reran response, confirmation,
+  trip-context, root test, integration (56/0), lint (0 errors; 10 existing warnings), typecheck, WeChat
+  build and diff checks. All passed; I17b is `APPROVED — PR_PENDING` with only latest-head GitHub
+  `quality` remaining.
 
 ## Baseline evidence
 
@@ -321,8 +330,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol independently reviews #61 lifecycle writes, public response metadata, zero-write exits and
-   trust-boundary tests; Terra addresses only any requested scoped changes.
+1. Open #61's implementation PR, require latest-head GitHub `quality`, then merge only if the approved
+   head is unchanged.
 2. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -354,5 +363,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol reviews the I17b candidate. I18 remains blocked until #61 passes Sol Review, latest-head CI and
-merge.
+Open #61's approved implementation PR and wait for latest-head CI. I18 remains blocked until #61
+merges.

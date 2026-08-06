@@ -3,7 +3,7 @@
 - Task ID: `I17b`
 - GitHub Issue: `#61` (parent `#26`)
 - Title: 将 prepare 与 confirm 接入 TripContext
-- Status: `READY_FOR_CONTROLLER_REVIEW`
+- Status: `APPROVED — PR_PENDING`
 - Mode: `REVIEW_PENDING`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -30,6 +30,16 @@ I17b recorded a genuine contract RED for missing context metadata, then added on
 and focused CloudBase mock coverage. Its local full matrix is green. The implementation is now
 `READY_FOR_CONTROLLER_REVIEW`; Sol must independently inspect the actual diff and test evidence before
 any PR, CI conclusion or merge. I18 remains blocked.
+
+Controller-only governance note: before dispatch, Sol commit `6eacf76` updated `GOAL.md` only to record
+I17a's merge and I17b's activation. This is a separately authored project-status checkpoint under Sol's
+governance duty, not part of Terra's implementation allowlist or an authorization for Terra to edit
+`GOAL.md`. Terra commit `97372dd` remains inside the I17b allowlist below.
+
+Sol's implementation Review found no P0/P1. The first independent audit raised only the controller-
+checkpoint attribution P2 above; after the explicit commit-boundary clarification, its second Review
+returned `APPROVED` with no remaining P0–P2 finding. Sol independently reran the full quality matrix.
+The implementation is `APPROVED`; latest-head GitHub CI is the only remaining merge gate.
 
 ## Mandatory context
 
@@ -189,6 +199,9 @@ those current legacy fields for compatibility, and additively contains:
 ## I17a task contract — #60
 
 ### Allowlist
+
+The following executor allowlist applies to Terra. Sol's already-recorded controller-only Goal status
+checkpoint above is reviewed separately and does not expand it.
 
 - `cloudfunctions/getAdvice/trip-context.js` (new)
 - `scripts/trip-context-contract-test.js` (new)

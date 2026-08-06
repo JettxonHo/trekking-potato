@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M5 / I17b controller review pending; M3 full routes source-blocked`
+- Status: `ACTIVE — M5 / I17b PR pending; M3 full routes source-blocked`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
