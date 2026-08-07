@@ -3,7 +3,7 @@
 - Task ID: `I19`
 - GitHub Issue: `#28`
 - Title: 实现私人历史、清空历史并停用公共 UGC 主路径
-- Status: `IMPLEMENTATION`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -23,6 +23,15 @@ squash merged as `72ab196`。当前授权 Terra XHigh 在本合同 allowlist 内
 两名独立 Terra XHigh 已复核当前合同为 `APPROVED`，无剩余 P0–P2、无需人工确认。Review
 曾要求并已关闭三项：以 `stats.removed` 冻结条件删除结果、补保存失败同参重试/删除不冒泡
 回归，以及修正开发计划中的旧操作摘要。
+
+## 实现交付状态
+
+Terra 已在 allowlist 内完成原子实现，并保留所有真实 `routes`/`history` 数据。真实 RED 先后证明：
+旧 list 会泄露数据库字段，旧 geocode 即使最终 AMap 回退也会读取 public `routes`；最小 GREEN
+分别改为显式 HistoryItem DTO 与零 public-routes 访问。聚焦 history/route/confirmation/response、
+integration（56/0）、lint、typecheck 与 root test 已通过。WeChat build 在本地 runner 中完成时输出
+macOS `system-configuration` background panic，但 runner 不公开退出码；没有改依赖、锁文件或构建配置
+来掩盖它。交付等待 Sol XHigh 的独立 Review，非自我批准或合并。
 
 ## 必读上下文
 

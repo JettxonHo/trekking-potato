@@ -459,6 +459,10 @@
 /* 历史记录 PageContainer 半屏弹窗 */
 .history-sheet { padding: 24rpx 40rpx 40rpx; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; }
 .history-drag-bar { width: 64rpx; height: 8rpx; background: #e5e5ea; border-radius: 4rpx; margin: 0 auto 24rpx; }
+.history-title-row { display: flex; align-items: center; justify-content: space-between; }
+.history-clear { font-size: 26rpx; color: #ff3b30; padding: 12rpx 0 12rpx 24rpx; }
+.history-error-box { background: rgba(255, 59, 48, 0.08); border-radius: 12rpx; padding: 16rpx 20rpx; margin: 0 0 16rpx; }
+.history-error-box text { color: #ff3b30; font-size: 24rpx; line-height: 1.5; }
 .history-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .history-empty {
   display: block;
@@ -473,9 +477,11 @@
 }
 .history-item:last-child { border-bottom: none; }
 .history-item-main { display: flex; flex-direction: column; gap: 4rpx; }
+.history-item-actions { display: flex; align-items: center; justify-content: space-between; gap: 24rpx; }
 .history-route { font-size: 30rpx; font-weight: 600; color: #1d1d1f; letter-spacing: 0.5rpx; }
 .history-meta { font-size: 24rpx; color: #86868b; }
 .history-summary { display: block; margin-top: 8rpx; font-size: 24rpx; color: #aeaeb2; line-height: 1.5; }
+.history-delete { flex-shrink: 0; color: #ff3b30; font-size: 24rpx; padding: 16rpx 0 16rpx 24rpx; }
 .potato-doodle { font-size: 28rpx; color: #1a1a1a; opacity: 0.12; letter-spacing: 2rpx; }
 .potato-doodle-hint { font-size: 20rpx; color: #aeaeb2; opacity: 0.5; letter-spacing: 1rpx; }
 

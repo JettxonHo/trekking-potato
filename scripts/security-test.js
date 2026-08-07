@@ -1,285 +1,198 @@
 /**
- * 徒步薯 - 红蓝对抗安全测试
+ * I19 private history contract test.
  *
- * 红队攻击向量：
- *   1. 越权读取：用户 A 尝试 list -> 不应看到用户 B 的记录
- *   2. 越权删除：用户 A 尝试 delete 用户 B 的记录 -> 应被拦截
- *   3. 伪造身份：云函数上下文无 openid -> 应拒绝
- *   4. 篡改参数：注入超长字符串 / __proto__ 污染 -> 应被白名单拦截
- *   5. 空查询：不传参数 / 错误 mode -> 不应崩溃
- *
- * 用法: node scripts/security-test.js
+ * The handler is exercised through its public Cloud Function interface with a
+ * small in-memory CloudBase seam. It deliberately rejects routes collection
+ * access so the legacy UGC tombstones cannot accidentally keep a live path.
  */
 
-// ===== mock wx-server-sdk =====
+const Module = require('module')
 
-const mockData = {
-  history: [],
-  routes: [],
+const ALLOWED_HISTORY_FIELDS = [
+  'id', 'route', 'date', 'days', 'level', 'elevation', 'location', 'summary',
+  'degraded', 'coords', 'routeType', 'routeTypeSource',
+]
+
+const store = { history: [], routes: [{ _id: 'legacy-route', name: '旧公共路线' }] }
+let openid = ''
+let nextId = 1
+let failingOperation = null
+
+function copy(value) {
+  return JSON.parse(JSON.stringify(value))
 }
 
-let currentOpenid = ''
-
-function makeChainable(collection) {
-  let queryFilter = {}
-  let queryOrder = null
-  let queryLimit = 100
-
-  const chain = {
-    where(filter) { queryFilter = filter || {}; return chain },
-    orderBy(field, dir) { queryOrder = { field, dir }; return chain },
-    limit(n) { queryLimit = n; return chain },
+function historyCollection() {
+  let filter = {}
+  let limit = 100
+  let order = null
+  return {
+    where(value) { filter = value || {}; return this },
+    orderBy(field, direction) { order = { field, direction }; return this },
+    limit(value) { limit = value; return this },
     async get() {
-      let rows = mockData[collection].filter(function (r) {
-        return Object.keys(queryFilter).every(function (k) { return r[k] === queryFilter[k] })
+      if (failingOperation === 'get') throw new Error('offline history get')
+      let records = store.history.filter((record) => Object.keys(filter).every((key) => record[key] === filter[key]))
+      if (order) records = records.slice().sort((left, right) => {
+        const leftValue = left[order.field] instanceof Date ? left[order.field].getTime() : 0
+        const rightValue = right[order.field] instanceof Date ? right[order.field].getTime() : 0
+        return order.direction === 'desc' ? rightValue - leftValue : leftValue - rightValue
       })
-      if (queryOrder) {
-        rows.sort(function (a, b) {
-          var va = (a[queryOrder.field] || 0).getTime ? a[queryOrder.field].getTime() : 0
-          var vb = (b[queryOrder.field] || 0).getTime ? b[queryOrder.field].getTime() : 0
-          return queryOrder.dir === 'desc' ? vb - va : va - vb
-        })
-      }
-      return { data: rows.slice(0, queryLimit) }
+      return { data: copy(records.slice(0, limit)) }
     },
     async add({ data }) {
-      var doc = { _id: 'id_' + Math.random().toString(36).slice(2, 10), _openid: currentOpenid, ...data }
-      mockData[collection].push(doc)
-      return { _id: doc._id }
+      if (failingOperation === 'add') throw new Error('offline history add')
+      const record = { _id: `history-${nextId++}`, ...copy(data) }
+      store.history.push(record)
+      return { _id: record._id }
     },
-    doc(id) {
-      return {
-        async get() {
-          var found = mockData[collection].find(function (r) { return r._id === id })
-          return { data: found || null }
-        },
-        async remove() {
-          var idx = mockData[collection].findIndex(function (r) { return r._id === id })
-          if (idx >= 0) mockData[collection].splice(idx, 1)
-          return { stats: { removed: idx >= 0 ? 1 : 0 } }
-        },
-        async update({ data }) {
-          var found = mockData[collection].find(function (r) { return r._id === id })
-          if (found) Object.assign(found, data)
-          return { stats: { updated: found ? 1 : 0 } }
-        },
-      }
+    async remove() {
+      if (failingOperation === 'remove') throw new Error('offline history remove')
+      const before = store.history.length
+      store.history = store.history.filter((record) => !Object.keys(filter).every((key) => record[key] === filter[key]))
+      return { stats: { removed: before - store.history.length } }
     },
   }
-  return chain
 }
 
 const mockSdk = {
-  init: function () {},
-  DYNAMIC_CURRENT_ENV: 'test-env',
-  getWXContext: function () {
-    return { OPENID: currentOpenid }
-  },
-  database: function () {
+  DYNAMIC_CURRENT_ENV: 'test',
+  init() {},
+  getWXContext() { return { OPENID: openid } },
+  database() {
     return {
-      collection: function (name) { return makeChainable(name) },
-      serverDate: function () { return new Date() },
+      collection(name) {
+        if (name === 'history') return historyCollection()
+        if (name === 'routes') throw new Error('I19 history handler must not access routes')
+        throw new Error(`unexpected collection: ${name}`)
+      },
+      serverDate() { return new Date('2026-08-07T00:00:00.000Z') },
     }
   },
 }
 
-// hijack require so cloud function loads our mock sdk
-const Module = require('module')
-const origResolve = Module._resolveFilename
-Module._resolveFilename = function (request) {
-  if (request === 'wx-server-sdk') return 'wx-server-sdk-mock'
-  return origResolve.apply(this, arguments)
+const originalResolve = Module._resolveFilename
+Module._resolveFilename = function resolveFilename(request) {
+  if (request === 'wx-server-sdk') return 'wx-server-sdk-i19-history-test'
+  return originalResolve.apply(this, arguments)
 }
-require.cache['wx-server-sdk-mock'] = {
-  id: 'wx-server-sdk-mock',
-  filename: 'wx-server-sdk-mock',
+require.cache['wx-server-sdk-i19-history-test'] = {
+  id: 'wx-server-sdk-i19-history-test',
+  filename: 'wx-server-sdk-i19-history-test',
   loaded: true,
   exports: mockSdk,
 }
 
-// ===== load cloud function =====
-const handler = require('../cloudfunctions/history/index.js')
+const history = require('../cloudfunctions/history/index.js')
 
-// ===== test framework =====
-let passed = 0
-let failed = 0
-
-async function test(name, fn) {
-  try {
-    await fn()
-    console.log('  \x1b[32mPASS\x1b[0m: ' + name)
-    passed++
-  } catch (e) {
-    console.log('  \x1b[31mFAIL\x1b[0m: ' + name + ' -> ' + e.message)
-    failed++
-  }
-}
-
-function expect(condition, message) {
+function assert(condition, message) {
   if (!condition) throw new Error(message)
 }
 
-// ===== seed test data =====
-function seed() {
-  mockData.history = [
-    { _id: 'h1', _openid: 'user_A', route: '武功山', date: '2026-07-01', days: 2, level: '中级', createdAt: new Date('2026-07-01T10:00:00') },
-    { _id: 'h2', _openid: 'user_A', route: '黄山', date: '2026-07-03', days: 1, level: '小白', createdAt: new Date('2026-07-02T08:00:00') },
-    { _id: 'h3', _openid: 'user_B', route: '四姑娘山', date: '2026-07-05', days: 3, level: '老手', createdAt: new Date('2026-07-03T09:00:00') },
-    { _id: 'h4', _openid: 'user_B', route: '贡嘎', date: '2026-07-08', days: 5, level: '老手', createdAt: new Date('2026-07-04T07:00:00') },
-  ]
+function reset() {
+  store.history = []
+  store.routes = [{ _id: 'legacy-route', name: '旧公共路线' }]
+  nextId = 1
+  failingOperation = null
 }
 
-// ===== attack scenarios =====
+async function run() {
+  console.log('\n=== I19 private history contract ===\n')
+  reset()
 
-async function runAttacks() {
-  console.log('\n\x1b[36m=== 红蓝对抗安全测试 ===\x1b[0m\n')
+  openid = 'user-A'
+  const savedByA = await history.main({
+    mode: 'save', route: '武功山', date: '2026-08-08', days: 2, level: '中级',
+    summary: '确定性摘要', _openid: 'user-B', queryId: 'tctx_must_not_persist',
+  }, {})
+  assert(savedByA.ok === true && typeof savedByA.id === 'string', 'save must create a private history item')
+  assert(store.history.length === 1 && store.history[0]._openid === 'user-A', 'client-supplied openid must not override server identity')
+  assert(store.history[0].queryId === undefined, 'history must not persist queryId')
 
-  console.log('\x1b[33m[攻击1] 越权读取 — 用户 A 查询历史，不应看到用户 B 的记录\x1b[0m')
-  seed()
-  currentOpenid = 'user_A'
-  await test('list 仅返回 user_A 的 2 条记录', async () => {
-    var res = await handler.main({ mode: 'list' }, {})
-    expect(res.ok === true, '应返回 ok')
-    expect(res.data.length === 2, '应只有 2 条，实际 ' + res.data.length)
-    res.data.forEach(function (r) {
-      expect(r._openid === 'user_A', '泄露了 user_B 的记录: ' + r.route)
-    })
-  })
+  openid = 'user-B'
+  const savedByB = await history.main({
+    mode: 'save', route: '四姑娘山', date: '2026-08-09', days: 3, level: '老手',
+  }, {})
+  assert(savedByB.ok === true, 'second user save must succeed')
 
-  currentOpenid = 'user_B'
-  await test('user_B 切换后只能看到自己的 2 条', async () => {
-    var res = await handler.main({ mode: 'list' }, {})
-    expect(res.data.length === 2, '应只有 2 条，实际 ' + res.data.length)
-    res.data.forEach(function (r) {
-      expect(r._openid === 'user_B', '泄露了 user_A 的记录: ' + r.route)
-    })
-  })
+  openid = 'user-A'
+  const listA = await history.main({ mode: 'list', limit: 20, _openid: 'user-B' }, {})
+  assert(listA.ok === true && listA.data.length === 1 && listA.data[0].route === '武功山', 'list must only return current openid history')
+  assert(JSON.stringify(Object.keys(listA.data[0]).sort()) === JSON.stringify(ALLOWED_HISTORY_FIELDS.slice().sort()), 'list must return only the explicit HistoryItem DTO')
+  assert(!('_id' in listA.data[0]) && !('_openid' in listA.data[0]) && !('queryId' in listA.data[0]), 'HistoryItem must not expose database or context fields')
 
-  console.log('\n\x1b[33m[攻击2] 越权删除 — 用户 A 尝试删用户 B 的记录\x1b[0m')
-  seed()
-  currentOpenid = 'user_A'
-  await test('user_A 删除 user_B 的 h3 应被拒绝', async () => {
-    var res = await handler.main({ mode: 'delete', id: 'h3' }, {})
-    expect(res.ok === false, '删除应失败但成功了')
-    expect(res.error === 'not_owner', '应返回 not_owner，实际 ' + res.error)
-    var stillExists = mockData.history.find(function (r) { return r._id === 'h3' })
-    expect(stillExists, '记录被越权删除了!')
-  })
+  openid = 'user-B'
+  const listB = await history.main({ mode: 'list' }, {})
+  assert(listB.ok === true && listB.data.length === 1 && listB.data[0].route === '四姑娘山', 'user B must only see user B history')
+  assert(store.routes.length === 1 && store.routes[0].name === '旧公共路线', 'history operations must preserve existing routes data')
 
-  await test('user_A 删除自己的 h1 应成功', async () => {
-    var res = await handler.main({ mode: 'delete', id: 'h1' }, {})
-    expect(res.ok === true, '应删除成功')
-    var gone = mockData.history.find(function (r) { return r._id === 'h1' })
-    expect(!gone, '记录应该已被删除')
-  })
+  console.log('PASS: private save/list ownership and DTO contract')
 
-  console.log('\n\x1b[33m[攻击3] 伪造身份 — 无 openid 上下文\x1b[0m')
-  seed()
-  currentOpenid = ''
-  await test('无 openid 时 list 应拒绝', async () => {
-    var res = await handler.main({ mode: 'list' }, {})
-    expect(res.ok === false, '应被拒绝')
-    expect(res.error === 'no_auth', '应返回 no_auth')
-  })
-
-  await test('无 openid 时 delete 应拒绝', async () => {
-    var res = await handler.main({ mode: 'delete', id: 'h1' }, {})
-    expect(res.ok === false, '应被拒绝')
-    expect(res.error === 'no_auth', '应返回 no_auth')
-  })
-
-  console.log('\n\x1b[33m[攻击4] 篡改参数 — 注入攻击\x1b[0m')
-  seed()
-  currentOpenid = 'user_A'
-  await test('save 注入额外字段不应写入数据库记录', async () => {
-    mockData.history = []
-    currentOpenid = 'user_A'
-    var malicious = {
-      mode: 'save',
-      route: '白名单测试',
-      date: '2026-07-01',
-      admin: true,
-      poisoned: true,
-    }
-    var res = await handler.main(malicious, {})
-    expect(res.ok === true, 'save 应成功')
-    var saved = mockData.history.find(function (r) { return r.route === '白名单测试' })
-    expect(saved, '记录应已写入')
-    expect(saved.admin === undefined, '白名单外字段 admin 被写入了数据库!')
-    expect(saved.poisoned === undefined, '白名单外字段 poisoned 被写入了数据库!')
-  })
-
-  await test('save 超长 route 应被截断至 50 字符', async () => {
-    var longRoute = 'A'.repeat(500)
-    var res = await handler.main({ mode: 'save', route: longRoute, date: '2026-07-01' }, {})
-    expect(res.ok === true, '应成功')
-    var saved = mockData.history.find(function (r) { return r.route && r.route.length === 50 })
-    expect(saved, '超长 route 未被截断')
-  })
-
-  await test('save 超长 summary 应被截断', async () => {
-    var longSummary = 'X'.repeat(10000)
-    var res = await handler.main({ mode: 'save', route: '截断测试', date: '2026-07-01', summary: longSummary }, {})
-    expect(res.ok === true, '应成功')
-    var saved = mockData.history.find(function (r) { return r.summary && r.summary.length === 120 })
-    expect(saved, '超长 summary 未被截断')
-  })
-
-  console.log('\n\x1b[33m[攻击5] 异常输入 — 空/错误参数不应崩溃\x1b[0m')
-  seed()
-  currentOpenid = 'user_A'
-  await test('未知 mode 应返回 invalid_mode', async () => {
-    var res = await handler.main({ mode: 'hack' }, {})
-    expect(res.ok === false, '应失败')
-    expect(res.error === 'invalid_mode', '应返回 invalid_mode')
-  })
-
-  await test('空 event 不应崩溃', async () => {
-    var res = await handler.main({}, {})
-    expect(res.ok === false, '应失败')
-    expect(res.error === 'invalid_mode', '应返回 invalid_mode')
-  })
-
-  await test('delete 无 id 应返回 missing_id', async () => {
-    var res = await handler.main({ mode: 'delete' }, {})
-    expect(res.ok === false, '应失败')
-    expect(res.error === 'missing_id', '应返回 missing_id')
-  })
-
-  await test('save 无 route/date 不应崩溃（走默认值）', async () => {
-    var res = await handler.main({ mode: 'save' }, {})
-    expect(res.ok === true, '应有默认值兜底')
-  })
-
-  console.log('\n\x1b[33m[攻击6] saveRoute 地理围栏 — 异地重名保护\x1b[0m')
-  mockData.routes = [
-    { _id: 'r1', name: '白云山', lat: 23.16, lon: 113.30, elevation: 300, location: '广东', aliases: [] },
+  reset()
+  store.history = [
+    { _id: 'history-A', _openid: 'user-A', route: '武功山', date: '2026-08-08', days: 2, level: '中级' },
+    { _id: 'history-B', _openid: 'user-B', route: '四姑娘山', date: '2026-08-09', days: 3, level: '老手' },
   ]
-  await test('1km 内同名路线不新增（去重）', async () => {
-    var res = await handler.main({ mode: 'saveRoute', route: '白云山', lat: 23.1605, lon: 113.3005, elevation: 310, location: '广东' }, {})
-    expect(res.ok === true, '应成功')
-    expect(res.action === 'merged', '应合并而非新增，实际 ' + res.action)
-    expect(mockData.routes.length === 1, '不应新增记录')
+  openid = 'user-A'
+  const deleted = await history.main({ mode: 'delete', id: 'history-A' }, {})
+  assert(JSON.stringify(deleted) === JSON.stringify({ ok: true }), 'owned conditional delete must succeed only after one removal')
+  assert(!store.history.some((record) => record._id === 'history-A'), 'owned record must be removed')
+  const foreignDelete = await history.main({ mode: 'delete', id: 'history-B' }, {})
+  const unknownDelete = await history.main({ mode: 'delete', id: 'history-unknown' }, {})
+  assert(JSON.stringify(foreignDelete) === JSON.stringify(unknownDelete), 'foreign and unknown deletion must expose the same response')
+  assert(foreignDelete.error === 'history_not_found' && foreignDelete.retryable === false, 'zero conditional deletion must be history_not_found')
+  assert(store.history.some((record) => record._id === 'history-B'), 'foreign record must remain after delete attempt')
+
+  const cleared = await history.main({ mode: 'clear' }, {})
+  assert(JSON.stringify(cleared) === JSON.stringify({ ok: true, removed: 0 }), 'empty clear must succeed with removed:0')
+  store.history.push({ _id: 'history-A2', _openid: 'user-A', route: '贡嘎', date: '2026-08-10', days: 1, level: '中级' })
+  const clearedOne = await history.main({ mode: 'clear' }, {})
+  assert(JSON.stringify(clearedOne) === JSON.stringify({ ok: true, removed: 1 }), 'clear must return the actual current-user removal count')
+  assert(store.history.length === 1 && store.history[0]._id === 'history-B', 'clear must not remove another user history')
+  assert(store.routes.length === 1 && store.routes[0].name === '旧公共路线', 'clear must not change existing routes data')
+  console.log('PASS: conditional delete and clear ownership contract')
+
+  reset()
+  openid = 'user-A'
+  const unavailable = []
+  failingOperation = 'add'
+  unavailable.push(await history.main({ mode: 'save', route: '武功山', date: '2026-08-08' }, {}))
+  failingOperation = 'get'
+  unavailable.push(await history.main({ mode: 'list' }, {}))
+  failingOperation = 'remove'
+  unavailable.push(await history.main({ mode: 'delete', id: 'history-A' }, {}))
+  unavailable.push(await history.main({ mode: 'clear' }, {}))
+  failingOperation = null
+  unavailable.forEach((result) => {
+    assert(result.error === 'history_unavailable' && result.retryable === true, 'each storage failure must use retryable history_unavailable')
+    assert(result.message === '历史服务暂时不可用，请稍后重试', 'storage failure must not leak raw errors')
   })
 
-  await test('5km 外同名路线应追加地区后缀', async () => {
-    var res = await handler.main({ mode: 'saveRoute', route: '白云山', lat: 30.60, lon: 104.07, elevation: 500, location: '四川省成都市' }, {})
-    expect(res.ok === true, '应成功')
-    expect(res.action === 'created', '应新增带后缀的记录')
-    expect(res.data.name.includes('-'), '应有地区后缀: ' + res.data.name)
-  })
+  const disabledSaveRoute = await history.main({ mode: 'saveRoute', route: '旧公共路线' }, {})
+  const disabledListRoutes = await history.main({ mode: 'listRoutes', keyword: '旧公共路线' }, {})
+  assert(disabledSaveRoute.error === 'ugc_disabled' && disabledSaveRoute.retryable === false, 'saveRoute must be an authenticated ugc_disabled tombstone')
+  assert(JSON.stringify(disabledSaveRoute) === JSON.stringify(disabledListRoutes), 'legacy UGC tombstones must use one public response')
+  assert(store.routes.length === 1, 'legacy UGC tombstones must not access or mutate routes')
+  console.log('PASS: storage errors and public UGC tombstones')
 
-  console.log('\n\x1b[36m=== 红蓝对抗总结 ===\x1b[0m')
-  console.log('PASS: ' + passed + ', FAIL: ' + failed)
-  if (failed > 0) {
-    console.log('\x1b[31m存在安全漏洞，请修复！\x1b[0m')
-    process.exit(1)
-  } else {
-    console.log('\x1b[32m防线完整，所有攻击已被拦截\x1b[0m')
+  const invalidSave = await history.main({ mode: 'save', route: ' ', date: '' }, {})
+  const missingId = await history.main({ mode: 'delete' }, {})
+  const invalidMode = await history.main({ mode: 'client-secret-mode' }, {})
+  for (const result of [invalidSave, missingId, invalidMode]) {
+    assert(result.ok === false && typeof result.error === 'string' && typeof result.message === 'string' && result.retryable === false, 'input and mode errors must use the common non-retryable envelope')
   }
+  assert(invalidSave.error === 'invalid_history_input' && missingId.error === 'missing_id' && invalidMode.error === 'invalid_mode', 'history input and mode errors must use frozen codes')
+  assert(!invalidMode.message.includes('client-secret-mode'), 'invalid mode must not echo client input')
+
+  openid = ''
+  const noAuth = await history.main({ mode: 'list' }, {})
+  assert(noAuth.error === 'no_auth' && noAuth.retryable === false, 'all history modes must reject missing server identity')
+  console.log('PASS: common error envelope and server-only authentication')
 }
 
-runAttacks().catch(function (e) {
-  console.error('测试执行异常:', e)
-  process.exit(1)
-})
+run()
+  .finally(() => { Module._resolveFilename = originalResolve })
+  .catch((error) => {
+    console.error('FAIL:', error.message)
+    process.exitCode = 1
+  })

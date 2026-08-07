@@ -12,8 +12,7 @@ const path = require('path')
 const openMeteoFixture = require('./fixtures/open-meteo-forecast')
 
 let openid = 'offline-confirmation-user'
-let ugcFixture = []
-let ugcGetCalls = 0
+let routeCollectionAccesses = 0
 let weatherRequests = 0
 let llmRequests = 0
 let gearRuleCalls = 0
@@ -54,14 +53,8 @@ const cloudbaseMock = {
     collection(name) {
       if (name === 'trip_contexts') return tripContextCollection()
       if (name === 'routes') {
-        return {
-          limit: () => ({
-            get: async () => {
-              ugcGetCalls++
-              return { data: ugcFixture }
-            },
-          }),
-        }
+        routeCollectionAccesses++
+        throw new Error('I19 must not read public routes')
       }
       throw new Error('confirmation-contract-test 不允许 CloudBase collection: ' + name)
     },
@@ -213,7 +206,7 @@ async function main() {
   const maxFive = resolveBuiltinRouteQuery('前缀', maxFiveFixture)
   assert(maxFive.kind === 'confirmation' && maxFive.candidates.length === 5, '候选必须去重、排序后最多返回五条')
 
-  const beforeConfirmation = { weatherRequests, llmRequests, ugcGetCalls, gearRuleCalls }
+  const beforeConfirmation = { weatherRequests, llmRequests, routeCollectionAccesses, gearRuleCalls }
   const contextWritesBeforeConfirmation = contextWrites.length
   const confirmation = await getAdvice.main({ mode: 'prepare', route: '卖理浩径', date: '2026-08-07', level: '中级' })
   assert(confirmation.phase === 'confirmation' && confirmation.ok === true && confirmation.needsConfirm === true, '模糊 prepare 必须返回 confirmation')
@@ -224,22 +217,22 @@ async function main() {
     assert(JSON.stringify(Object.keys(candidate).sort()) === JSON.stringify(expectedFields), 'candidate 只能暴露四个冻结字段')
     assert(candidate.candidateId === `builtin-route:${candidate.canonicalName}`, 'candidateId 必须跨查询稳定')
   }
-  assert(weatherRequests === beforeConfirmation.weatherRequests && llmRequests === beforeConfirmation.llmRequests && ugcGetCalls === beforeConfirmation.ugcGetCalls && gearRuleCalls === beforeConfirmation.gearRuleCalls, 'confirmation 必须在天气、规则、AI 和 UGC 读取前返回')
+  assert(weatherRequests === beforeConfirmation.weatherRequests && llmRequests === beforeConfirmation.llmRequests && routeCollectionAccesses === beforeConfirmation.routeCollectionAccesses && gearRuleCalls === beforeConfirmation.gearRuleCalls, 'confirmation 必须在天气、规则、AI 和公共 routes 读取前返回')
   assert(contextWrites.length === contextWritesBeforeConfirmation, 'confirmation 不得写入 TripContext')
 
-  const beforeUnknown = { weatherRequests, llmRequests, ugcGetCalls, gearRuleCalls }
+  const beforeUnknown = { weatherRequests, llmRequests, routeCollectionAccesses, gearRuleCalls }
   const contextWritesBeforeInvalidConfirm = contextWrites.length
   const unknown = await getAdvice.main({
     mode: 'confirm', candidateId: 'builtin-route:不存在', date: '2026-08-07', level: '中级', route: '伪造路线', routeType: 'climb', manualLat: 1, manualLon: 2,
   })
   assert(unknown.phase === 'error' && unknown.code === 'candidate_not_found' && unknown.retryable === false, '未知 candidate 必须返回不可重试 candidate_not_found')
   assert(unknown.message === '候选路线已失效，请重新查询', 'candidate_not_found 必须使用冻结用户提示')
-  assert(weatherRequests === beforeUnknown.weatherRequests && llmRequests === beforeUnknown.llmRequests && ugcGetCalls === beforeUnknown.ugcGetCalls && gearRuleCalls === beforeUnknown.gearRuleCalls, '未知 confirm 不得触发天气、规则、AI 或历史/UGC 读取')
+  assert(weatherRequests === beforeUnknown.weatherRequests && llmRequests === beforeUnknown.llmRequests && routeCollectionAccesses === beforeUnknown.routeCollectionAccesses && gearRuleCalls === beforeUnknown.gearRuleCalls, '未知 confirm 不得触发天气、规则、AI 或公共 routes 读取')
   assert(contextWrites.length === contextWritesBeforeInvalidConfirm, '未知 confirm 不得写入 TripContext')
 
   const malformed = await getAdvice.main({ mode: 'confirm', candidateId: {}, date: '2026-08-07', level: '中级' })
   assert(malformed.phase === 'error' && malformed.code === 'candidate_not_found' && malformed.retryable === false, '畸形 candidateId 必须返回不可重试 candidate_not_found')
-  assert(weatherRequests === beforeUnknown.weatherRequests && llmRequests === beforeUnknown.llmRequests && ugcGetCalls === beforeUnknown.ugcGetCalls && gearRuleCalls === beforeUnknown.gearRuleCalls, '畸形 confirm 不得触发天气、规则、AI 或历史/UGC 读取')
+  assert(weatherRequests === beforeUnknown.weatherRequests && llmRequests === beforeUnknown.llmRequests && routeCollectionAccesses === beforeUnknown.routeCollectionAccesses && gearRuleCalls === beforeUnknown.gearRuleCalls, '畸形 confirm 不得触发天气、规则、AI 或公共 routes 读取')
   assert(contextWrites.length === contextWritesBeforeInvalidConfirm, '畸形 confirm 不得写入 TripContext')
 
   const missingCandidate = await getAdvice.main({ mode: 'confirm', date: '2026-08-07', level: '中级' })
@@ -266,9 +259,10 @@ async function main() {
   assert(validContext.queryId !== 'tctx_client_spoof', '客户端 queryId 不得决定服务端存储文档')
 
   process.env.AMAP_KEY = 'offline-confirmation-key'
-  ugcFixture = [{ name: 'I05a UGC 长路线', lat: 30.1, lon: 120.1, elevation: 900, location: '测试省', type: 'trek' }]
-  const ugcSubstring = await resolveLocation('I05a UGC')
-  assert(ugcSubstring.ok && ugcSubstring.data.source.startsWith('高德POI'), 'UGC substring 自动命中必须关闭，改走 AMap')
+  const routeReadsBeforeAmap = routeCollectionAccesses
+  const amapFallback = await resolveLocation('I19 公共路线关闭回归')
+  assert(amapFallback.ok && amapFallback.data.source.startsWith('高德POI'), '内置未命中必须直接走 AMap')
+  assert(routeCollectionAccesses === routeReadsBeforeAmap, 'geocode 内置未命中不得读取公共 routes')
 
   const pageSource = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
   assert(pageSource.includes('showCandidatePopup'), '前端必须为 confirmation 使用独立候选 Popup')

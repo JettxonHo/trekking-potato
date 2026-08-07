@@ -32,6 +32,7 @@ const ROUTE_TYPE_SOURCE_TEXT = {
 }
 const DETERMINISTIC_RISK_ADVICE = '本风险由海拔/季节规则判定，请查阅专业路书获取具体应对措施'
 const AI_UNAVAILABLE_NOTE = 'AI 说明暂不可用，当前仅展示确定性规则结果。'
+const HISTORY_SAVE_ERROR = '历史未保存，不影响本次结果'
 
 function buildBaseSafetyResult(gearRules) {
   const rules = gearRules || {}
@@ -85,6 +86,7 @@ export default class Index extends Component {
     showHistory: false,
     historyList: [],
     historyLoading: false,
+    historyError: null,
     showCandidatePopup: false,
     candidates: [],
     candidateSnapshot: null,
@@ -338,19 +340,6 @@ export default class Index extends Component {
       manualElevation: elev > 0 ? elev : undefined,
       routeType: manualRouteType,
     })
-    // UGC 路线共创：手动坐标查询成功后，静默落库供后续用户搜索
-    Taro.cloud.callFunction({
-      name: 'history',
-      data: {
-        mode: 'saveRoute',
-        route: route.trim() || '手动坐标',
-        lat, lon,
-       elevation: elev > 0 ? elev : undefined,
-       location: route.trim() || 'UGC',
-       type: manualRouteType,
-      },
-      fail: () => {},
-    })
   }
 
   _startFunnyRotation() {
@@ -490,10 +479,11 @@ export default class Index extends Component {
         if (result && result.phase === 'advice') {
           const d = result.data
           const degraded = result.degraded === true
+          let historyResult
           this.setState((prev) => ({
             adviceLoading: false,
             funnyMsg: '',
-    daysBounce: false,
+            daysBounce: false,
             result: {
               ...prev.result,
               gear: d.gear || prev.result.gear,
@@ -503,15 +493,19 @@ export default class Index extends Component {
               weatherWindow: d.weather || prev.result.weatherWindow,
               photoTiming: d.photoTiming || prev.result.photoTiming,
               disclaimer: d.disclaimer,
-             meta: { ...prev.result.meta, ...d.meta },
-           },
-         }), () => this._saveCache())
-         this._saveHistory(historyParams, {
-            risks: d.risks || [],
-            degraded,
-            meta: { ...((this.state.result && this.state.result.meta) || {}), ...d.meta },
+              meta: { ...prev.result.meta, ...d.meta },
+            },
+          }), () => {
+            historyResult = {
+              risks: d.risks || [],
+              degraded,
+              meta: { ...((this.state.result && this.state.result.meta) || {}), ...d.meta },
+            }
+            this._saveCache()
+            this._saveHistory(historyParams, historyResult)
           })
         } else {
+          let historyResult
           this.setState((prev) => ({
             adviceLoading: false,
             funnyMsg: '',
@@ -522,24 +516,41 @@ export default class Index extends Component {
               degraded: true,
               notes: [...(prev.result.notes || []), AI_UNAVAILABLE_NOTE],
             },
-          }), () => this._saveCache())
+          }), () => {
+            historyResult = {
+              risks: (this.state.result && this.state.result.risks) || [],
+              degraded: true,
+              meta: (this.state.result && this.state.result.meta) || {},
+            }
+            this._saveCache()
+            this._saveHistory(historyParams, historyResult)
+          })
         }
       },
       fail: (err) => {
         if (this._unmounted || generation !== this._requestGeneration) return
         if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
         if (this._funnyTimer) clearInterval(this._funnyTimer)
+        let historyResult
         this.setState((prev) => ({
           adviceLoading: false,
           funnyMsg: '',
-    daysBounce: false,
+          daysBounce: false,
           result: {
             ...prev.result,
             degraded: true,
             notes: [...(prev.result.notes || []), AI_UNAVAILABLE_NOTE],
           },
-        }), () => this._saveCache())
-       console.error('[徒步薯] advice callFunction fail', err)
+        }), () => {
+          historyResult = {
+            risks: (this.state.result && this.state.result.risks) || [],
+            degraded: true,
+            meta: (this.state.result && this.state.result.meta) || {},
+          }
+          this._saveCache()
+          this._saveHistory(historyParams, historyResult)
+        })
+        console.error('[徒步薯] advice callFunction fail', err)
       }
     })
   }
@@ -572,23 +583,7 @@ export default class Index extends Component {
   }
 
   // ===== 历史记录 =====
-  // 防写风暴：hash 对比，相同参数不重复写库
   _saveHistory(params, resultData) {
-    // TP-P0-003 REVIEW_FIX：去重键加入路线类型、类型来源与坐标身份，
-    // 同一路线不同类型、同名不同坐标不得被去重
-    const hash = [
-      params.route,
-      params.date,
-      params.days,
-      params.level,
-      resultData.meta && resultData.meta.routeType,
-      resultData.meta && resultData.meta.routeTypeSource,
-      resultData.meta && resultData.meta.coords && resultData.meta.coords.lat,
-      resultData.meta && resultData.meta.coords && resultData.meta.coords.lon,
-    ].join('|')
-    if (this._lastHistoryHash === hash) return
-    this._lastHistoryHash = hash
-
     const risks = resultData.risks || []
     const summary = risks.length > 0
       ? risks[0].risk + (risks.length > 1 ? ' 等' + risks.length + '项风险' : '')
@@ -611,7 +606,11 @@ export default class Index extends Component {
         summary,
         degraded: resultData.degraded === true,
       },
-      fail: () => {},  // 静默失败，不阻塞用户
+      success: (res) => {
+        const result = res.result
+        this.setState({ historyError: result && result.ok ? null : HISTORY_SAVE_ERROR })
+      },
+      fail: () => this.setState({ historyError: HISTORY_SAVE_ERROR }),
     })
   }
 
@@ -627,19 +626,66 @@ export default class Index extends Component {
   }
 
   onHistoryTap = () => {
-    this.setState({ showHistory: true, historyLoading: true, historyList: [] })
+    this.setState({ showHistory: true, historyLoading: true, historyError: null })
     Taro.cloud.callFunction({
       name: 'history',
       data: { mode: 'list', limit: 20 },
       success: (res) => {
         if (this._unmounted) return
         const result = res.result
-        this.setState({ historyLoading: false, historyList: (result && result.ok && result.data) || [] })
+        if (result && result.ok) {
+          this.setState({ historyLoading: false, historyList: result.data || [], historyError: null })
+          return
+        }
+        this.setState({ historyLoading: false, historyError: (result && result.message) || '历史暂时无法读取，请重试' })
       },
       fail: () => {
         if (this._unmounted) return
-        this.setState({ historyLoading: false })
+        this.setState({ historyLoading: false, historyError: '历史暂时无法读取，请重试' })
       }
+    })
+  }
+
+  onDeleteHistory = (id, event) => {
+    event.stopPropagation()
+    Taro.cloud.callFunction({
+      name: 'history',
+      data: { mode: 'delete', id },
+      success: (res) => {
+        const result = res.result
+        if (result && result.ok) {
+          this.setState((prev) => ({
+            historyList: prev.historyList.filter((item) => item.id !== id),
+            historyError: null,
+          }))
+          return
+        }
+        this.setState({ historyError: (result && result.message) || '历史删除失败，请重试' })
+      },
+      fail: () => this.setState({ historyError: '历史删除失败，请重试' }),
+    })
+  }
+
+  onClearHistory = () => {
+    Taro.showModal({
+      title: '清空历史',
+      content: '确认清空全部历史查询吗？',
+      success: (modal) => {
+        if (!modal.confirm) return
+        Taro.cloud.callFunction({
+          name: 'history',
+          data: { mode: 'clear' },
+          success: (res) => {
+            const result = res.result
+            if (result && result.ok) {
+              this.setState({ historyList: [], historyError: null })
+              return
+            }
+            this.setState({ historyError: (result && result.message) || '历史清空失败，请重试' })
+          },
+          fail: () => this.setState({ historyError: '历史清空失败，请重试' }),
+        })
+      },
     })
   }
 
@@ -682,7 +728,7 @@ export default class Index extends Component {
   }
 
   render() {
-    const { route, date, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, pendingResolvedLocation, showHistory, historyList, historyLoading, showCandidatePopup, candidates } = this.state
+    const { route, date, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, pendingResolvedLocation, showHistory, historyList, historyLoading, historyError, showCandidatePopup, candidates } = this.state
     const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
     const funnyMsg = this.state.funnyMsg
 
@@ -721,6 +767,7 @@ export default class Index extends Component {
           )}
 
           {error && <View className="error-box"><Text>{error}</Text></View>}
+          {historyError && <View className="history-error-box"><Text>{historyError}</Text></View>}
 
           {adviceLoading && (
             <View className="status-bar">
@@ -962,21 +1009,28 @@ export default class Index extends Component {
           <PageContainer show={true} position="bottom" round={true} overlay={true} closeOnSlideDown={true} onAfterLeave={() => this.setState({ showHistory: false })} customStyle="height: 70vh;">
             <View className="history-sheet" catchMove>
               <View className="history-drag-bar" />
-            <Text className="manual-popup-title">历史查询</Text>
+              <View className="history-title-row">
+                <Text className="manual-popup-title">历史查询</Text>
+                {historyList.length > 0 && <Text className="history-clear" onClick={this.onClearHistory}>清空</Text>}
+              </View>
+              {historyError && <View className="history-error-box"><Text>{historyError}</Text></View>}
               <ScrollView scrollY={true} className="history-scroll" catchMove={true} enhanced={true} showScrollbar={false}>
                 {historyLoading ? (
                   <Text className="history-empty">薯仔正在翻账本...</Text>
                 ) : historyList.length === 0 ? (
                   <Text className="history-empty">还没有记录，去查一次路线吧</Text>
                 ) : (
-                  historyList.map((item, i) => (
-                    <View key={i} className="history-item quirky-active" onClick={() => this.onRestoreHistory(item)}>
+                  historyList.map((item) => (
+                    <View key={item.id} className="history-item quirky-active" onClick={() => this.onRestoreHistory(item)}>
                       <View className="history-item-main">
                         <Text className="history-route">{item.route}</Text>
                         <Text className="history-meta">{item.date} · {item.days}天 · {item.level}</Text>
                         {item.elevation && <Text className="history-meta">📍 {item.elevation}m</Text>}
                       </View>
-                      <Text className="history-summary">{item.summary || ''}</Text>
+                      <View className="history-item-actions">
+                        <Text className="history-summary">{item.summary || ''}</Text>
+                        <Text className="history-delete" onClick={(event) => this.onDeleteHistory(item.id, event)}>删除</Text>
+                      </View>
                     </View>
                   ))
                 )}

@@ -7,13 +7,13 @@
  * 覆盖：
  * 1. 内置路线数据集类型审计（总数/各类型计数/无缺失/无非法）
  * 2. 各匹配路径保留类型（exact / 别名 / editDistance + needsConfirm）
- * 3. resolveLocation 内置/UGC/高德分支的 type 与 typeSource（mock wx-server-sdk 与 https）
+ * 3. resolveLocation 内置/高德分支的 type 与 typeSource（公共 UGC 已停用）
  * 4. route-type.js 类型模块严格性（不接受大小写/空白/任意字符串变体）
  * 5. getGearRules 对 trek/climb/tour/unknown/banana/undefined 的确定性行为
  * 6. buildMessages 显式路线类型、来源与硬约束
  * 7. advice 阶段 baseData 路线类型结构一致性（纯函数 validateRouteTypeContract）
  * 8. REVIEW_FIX：地理解析失败映射纯函数（invalid_route_type 不被改写）
- * 9. REVIEW_FIX：前端静态契约（手动可信上下文、缓存、历史恢复与去重键）
+ * 9. REVIEW_FIX：前端静态契约（手动可信上下文、缓存、历史恢复与可重试保存）
  *
  * 仅使用 Node 内置模块；wx-server-sdk 通过 require 缓存 mock，不安装依赖。
  * 用法: node scripts/route-type-contract-test.js
@@ -23,7 +23,6 @@
 const fs = require('fs')
 const path = require('path')
 const Module = require('module')
-let ugcFixture = []
 const WX_MOCK_ID = 'mock-wx-server-sdk'
 require.cache[WX_MOCK_ID] = {
   id: WX_MOCK_ID,
@@ -34,7 +33,7 @@ require.cache[WX_MOCK_ID] = {
     DYNAMIC_CURRENT_ENV: 'mock-env',
     database: () => ({
       collection: () => ({
-        limit: () => ({ get: async () => ({ data: ugcFixture }) }),
+        limit: () => ({ get: async () => ({ data: [] }) }),
         doc: () => ({ get: async () => ({ data: null }), update: async () => ({}), remove: async () => ({}) }),
         add: async () => ({ _id: 'mock-id' }),
       }),
@@ -148,16 +147,7 @@ async function main() {
     const rlFuzzy = await resolveLocation('卖理浩径')
     assert('编辑距离解析只返回 builtin 候选而不泄露路线事实', rlFuzzy.ok && rlFuzzy.data.needsConfirm === true && rlFuzzy.data.matchType === 'fuzzy' && Array.isArray(rlFuzzy.data.candidates) && rlFuzzy.data.candidates.length === 1 && rlFuzzy.data.candidates[0].routeType === 'trek', JSON.stringify(rlFuzzy.data).substring(0, 200))
 
-    console.log('\n=== 3b. resolveLocation UGC 分支 ===')
-    ugcFixture = [{ name: '契约测试UGC新路线', lat: 30.1, lon: 120.1, elevation: 900, location: '测试省', type: 'climb' }]
-    const rlUgcTyped = await resolveLocation('契约测试UGC新路线')
-    assert('UGC 记录合法类型透传 type=climb/typeSource=ugc', rlUgcTyped.ok && rlUgcTyped.data.type === 'climb' && rlUgcTyped.data.typeSource === 'ugc', JSON.stringify(rlUgcTyped.data).substring(0, 200))
-    ugcFixture = [{ name: '契约测试UGC旧记录', lat: 30.2, lon: 120.2, elevation: 700, location: '测试省' }]
-    const rlUgcUntyped = await resolveLocation('契约测试UGC旧记录')
-    assert('UGC 旧记录无类型 → type=unknown/typeSource=unknown（不默认 trek）', rlUgcUntyped.ok && rlUgcUntyped.data.type === 'unknown' && rlUgcUntyped.data.typeSource === 'unknown', JSON.stringify(rlUgcUntyped.data).substring(0, 200))
-    ugcFixture = []
-
-    console.log('\n=== 3c. resolveLocation 高德分支 ===')
+    console.log('\n=== 3b. resolveLocation 高德分支（公共 UGC 已停用）===')
     installHttpMock([
       { status: '1', pois: [{ name: '契约测试外部山峰', location: '116.50,40.20', typecode: '110200', cityname: '北京市', adname: '怀柔区' }] },
       { elevation: [1234] },
@@ -165,6 +155,8 @@ async function main() {
     const rlAmap = await resolveLocation('契约测试外部山峰甲')
     assert('高德 POI → type=unknown（高德无可信类型）', rlAmap.ok && rlAmap.data.type === 'unknown', JSON.stringify(rlAmap.data).substring(0, 200))
     assert('高德 POI → typeSource=amap 且保留 matchType', rlAmap.ok && rlAmap.data.typeSource === 'amap' && rlAmap.data.matchType === 'amap', JSON.stringify(rlAmap.data).substring(0, 200))
+    const geocodeSource = fs.readFileSync(path.join(__dirname, '..', 'cloudfunctions', 'getAdvice', 'geocode.js'), 'utf8')
+    assert('geocode 不再读取 routes 或公开 UGC', !geocodeSource.includes("collection('routes')") && !geocodeSource.includes('UGC共创路线库'))
     installHttpMock([])
 
     console.log('\n=== 4. 类型模块严格性 ===')
@@ -330,10 +322,9 @@ async function main() {
     assert('非 user 来源清空手动坐标字段', /manualLat:\s*isManualRecord\s*\?[^:]*:\s*''/.test(restoreBody) && /manualLon:\s*isManualRecord\s*\?[^:]*:\s*''/.test(restoreBody), restoreBody.substring(0, 300))
 
     const saveHistoryBody = extractBody(jsx, /_saveHistory\(params,\s*resultData\)\s*\{/)
-    assert('历史去重键包含 routeType', /meta\.routeType[^(]*[,}\]]/.test(saveHistoryBody) && /routeType/.test(saveHistoryBody), saveHistoryBody.substring(0, 200))
-    assert('历史去重键包含 routeTypeSource', /meta\.routeTypeSource/.test(saveHistoryBody), saveHistoryBody.substring(0, 200))
-    assert('历史去重键包含坐标 lat/lon', /coords\.lat/.test(saveHistoryBody) && /coords\.lon/.test(saveHistoryBody), saveHistoryBody.substring(0, 200))
-    assert('历史去重键使用稳定分隔符 join', /\.join\('\|'\)/.test(saveHistoryBody), saveHistoryBody.substring(0, 200))
+    assert('历史保存保留 routeType 与 routeTypeSource', /routeType:.*meta\.routeType/.test(saveHistoryBody) && /routeTypeSource:.*meta\.routeTypeSource/.test(saveHistoryBody), saveHistoryBody.substring(0, 400))
+    assert('历史保存保留坐标', /coords:.*meta\.coords/.test(saveHistoryBody), saveHistoryBody.substring(0, 400))
+    assert('历史保存不再用 hash 锁死同参重试', !/_lastHistoryHash|const hash|\.join\('\|'\)/.test(saveHistoryBody), saveHistoryBody.substring(0, 400))
   } finally {
     https.get = originalGet
     Module._resolveFilename = originalResolveFilename

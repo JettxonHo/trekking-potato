@@ -12,7 +12,6 @@ const { isKnownRouteType } = require('./route-type')
 const { gcj02ToWgs84 } = require('./coordinates')
 const cloud = require('wx-server-sdk')
 cloud.init(/** @type {any} */ ({ env: cloud.DYNAMIC_CURRENT_ENV }))
-const ugcDb = cloud.database()
 
 /**
  * HTTPS GET 请求封装
@@ -126,36 +125,6 @@ async function resolveLocation(route) {
         typeSource: 'builtin',
       },
     }
-  }
-
-  // 1.5 UGC 共创路线库查询（其他用户手动输入并沉淀的路线）
-  // TP-P0-003：UGC 记录携带合法类型时透传；旧记录缺失或非法类型时归为 unknown，
-  // 由调用层要求用户明确选择，不得默认成 trek
-  const ugcTypeFields = (r) => {
-    if (isKnownRouteType(r && r.type)) {
-      return { type: r.type, typeSource: 'ugc' }
-    }
-    return { type: 'unknown', typeSource: 'unknown' }
-  }
-  try {
-    const ugcRes = /** @type {{ data?: any[] }} */ (await ugcDb.collection('routes').limit(500).get())
-    const ugcRoutes = ugcRes.data || []
-    for (const r of ugcRoutes) {
-      // 名称精确匹配或别名匹配
-      if (r.name === route) {
-        return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc', ...ugcTypeFields(r) } }
-      }
-      if (r.aliases && Array.isArray(r.aliases)) {
-        for (const a of r.aliases) {
-          if (a && a === route) {
-            return { ok: true, data: { name: r.name, lat: r.lat, lon: r.lon, elevation: r.elevation || null, source: 'UGC共创路线库', location: r.location || '', matchType: 'ugc', ...ugcTypeFields(r) } }
-          }
-        }
-      }
-    }
-  } catch (e) {
-    // UGC 查询失败不阻塞，继续走高德 POI
-    console.warn('[geocode] UGC 路线库查询失败:', e.message)
   }
 
   // 2. 高德 POI 搜索

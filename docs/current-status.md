@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I19 / #28 / IMPLEMENTATION`
+- Active task: `I19 / #28 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/i19-private-history-implementation`
 - Base: `main` at `72ab196`
 - Implementation assignment: Terra XHigh
@@ -382,6 +382,12 @@ semantics and non-destructive public UGC shutdown.
   After GitHub reported recovery, attempt 3 completed every quality step in 50 seconds and PR #68 merged
   as `72ab196`. GitHub auto-closed #28 from wording in the planning PR; Sol reopened it because I19
   implementation remains active.
+- I19 implementation recorded real RED coverage for the old history DTO leak and geocode public-routes
+  access, then completed the private history DTO/ownership/delete/clear contract, authenticated UGC
+  tombstones, zero geocode UGC reads, and the frontend local history error/delete/clear/degraded-save
+  paths. Focused tests, root test, integration (56/0), lint and typecheck are green. The local WeChat
+  build process completes after emitting a macOS `system-configuration` background panic but does not
+  expose an exit code through this runner; no dependency or build-config change was made to conceal it.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -395,10 +401,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Terra records real RED coverage, implements the frozen I19 contract, and runs the full matrix.
-2. Sol independently reviews actual code and tests; bounded findings return to Terra.
-3. Open and merge the implementation PR only after latest-head quality and explicit Sol `APPROVED`.
-4. Continue source acquisition independently; never fill blocked full variants with adjacent data.
+1. Sol independently reviews I19 code, RED/GREEN evidence and the runner build note; bounded findings return to Terra.
+2. Open and merge the implementation PR only after latest-head quality and explicit Sol `APPROVED`.
+3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
 
@@ -431,5 +436,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra executes the frozen I19 contract with RED/GREEN evidence and the complete validation matrix, then
-returns a structured result package for Sol XHigh independent Review.
+Sol reviews the I19 structured result package and independently decides whether the build-runner note
+requires a bounded follow-up before the implementation PR is opened.
