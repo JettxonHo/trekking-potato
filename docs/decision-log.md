@@ -349,3 +349,16 @@
 - Why: 两个小深模块分别集中状态复杂度和远程协议，而页面仍是唯一编排调用方；额外 controller
   只有一个消费者且会过早增加生命周期接口。保留旧 flags 会制造双重真相，全面重写又会扩大
   回归面。该边界能直接测试 base-first、竞态与 I18 信任约束，同时不偷做后续产品体验。
+
+## 2026-08-07 — TP-D034 I21 不合并死输入中间态
+
+- Status: Accepted
+- Decision: I21 保持一个 I13 之后的原子垂直任务，不拆分为可先合并的纯前端控件或
+  纯后端强制字段。I13 的生产 resolver 必须先从服务端 catalog 恢复 entity/capability/
+  routeType/fixedDays。之后 I21 在同一个 PR 接通 UI、prepare/confirm、校验、确认快照与
+  TripContext requestSummary，复用 I20 状态，不新增第 11 个状态。
+- Alternatives: 在 I13 前先加 time/support UI；后端先拒绝缺少新字段的当前客户端；从
+  legacy 名称或候选 routeType 推断 full Variant 和固定天数；为 support 新增临时流程状态。
+- Why: 前端先行会收集服务端忽略的假输入，后端先行会破坏当前主路径；legacy 数据不能诚实
+  表达 full/place-only 或 fixedDays。原子接线是唯一既不伪造路线事实、又不产生 main 协议
+  不兼容窗口的可独立验收单元。
