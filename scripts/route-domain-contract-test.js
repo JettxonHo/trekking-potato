@@ -181,6 +181,21 @@ function testValidBranchesAndCopies() {
   assert.equal(catalog.places[0].referenceCoordinate.lat, 30, 'catalog 不得共享 place 坐标对象')
 }
 
+function testReviewedTrackSourceKind() {
+  const input = makeFixture()
+  input.variants = [input.variants[0]]
+  input.sources[0].supports = input.sources[0].supports.filter((support) => (
+    support.entityId === 'variant:fixture-full'
+  ))
+  input.sources[0].tier = 'B'
+  input.sources[0].kind = 'reviewed_track'
+
+  const catalog = createRouteCatalog(input)
+
+  assert.equal(catalog.sources[0].tier, 'B', 'reviewed_track 必须保留 tier B 证据等级')
+  assert.equal(catalog.sources[0].kind, 'reviewed_track', 'reviewed_track 必须作为内部 Source kind 被接受')
+}
+
 function testLegacyAdapter() {
   assert.equal(BUILTIN_ROUTES.length, 175, 'I07 基线必须仍有 175 条 legacy 记录')
   const legacyInput = clone(BUILTIN_ROUTES)
@@ -310,6 +325,7 @@ function testSensitiveFailures() {
 
 function main() {
   testValidBranchesAndCopies()
+  testReviewedTrackSourceKind()
   testLegacyAdapter()
   testSensitiveFailures()
   console.log('PASS: I07 路线领域目录契约')

@@ -2,12 +2,12 @@
 
 - Updated: `2026-08-07`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — I10c DANGLING CONTRACT APPROVED`
-- Active milestone: `M3 Route domain` (four full reviewed-track Variants merged; fifth contract approved)
-- Active task: `I10c / #77 / CONTRACT_APPROVED — PLANNING_PR_PENDING`
-- Branch: `codex/i10c-dangling-kml-contract`
-- Base: `main` at `fe0ef24`
-- Assignment: Sol XHigh owns contract and independent Review; Terra XHigh is not assigned until planning merges
+- Goal status: `ACTIVE — I10c APPROVED / PR_PENDING`
+- Active milestone: `M3 Route domain` (four full reviewed-track Variants merged; fifth approved, PR pending)
+- Active task: `I10c / #77 / APPROVED — PR_PENDING`
+- Branch: `codex/77-dangling-track-data`
+- Base: `main` at `3983102`
+- Assignment: Terra XHigh implements the frozen contract; Sol XHigh owns independent Review and merge decision
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -57,15 +57,26 @@
   conversion: 3,326 complete coordinate/elevation/time tuples, no route-breaking discontinuity,
   `19.067km / +1009.4m / -955.8m / 12.18h`, 4341m track high and two WGS84 weather samples.
   Route identity is `党岭村—葫芦海—卓雍措一日往返`; exact current management status remains
-  `unknown`. TP-D043 and the implementation contract are under independent Review; no business code
-  is modified on this branch.
-- I10c contract-branch validation passes root test, integration `56/0`, lint `0 errors / 10 existing
-  warnings`, typecheck and `git diff --check`. The sandbox WeChat build reproduced the known macOS
-  `system-configuration` NULL-object panic; the same command on the host compiled successfully with
-  Taro 4.0.9 Webpack in 3.40 seconds. Current route/weather/unit baselines are `91/0`, `86/0`, `55/0`.
+  `unknown`. The implementation adds only the additive internal `reviewed_track` enum, one
+  de-identified static fragment and exact route-domain/route-data assertions; it stores no raw KML,
+  personal timestamps, full point sequence or production parser.
+- I10c recorded two real REDs: the old enum rejected a valid `reviewed_track` source, then the registered
+  route-data require returned `MODULE_NOT_FOUND` before the fragment existed. The minimum GREEN preserves
+  `reviewed_gpx`, restores I12's established 11-Source fragment view and fixes the final aggregate at
+  `14 Sources / 175 Places / 6 Routes / 6 Variants / 5 full / 1 blocked`. Final validation passes
+  route-domain, route-data, root test, integration `56/0`, lint `0 errors / 10 existing warnings`,
+  typecheck, host WeChat build and `git diff --check`; it is `READY_FOR_CONTROLLER_REVIEW`.
+- Sol inspected the actual seven-file implementation diff and independently reran route-domain,
+  route-data, root test, integration `56/0`, lint `0 errors / 10 existing warnings`, typecheck,
+  `git diff --check` and host WeChat build; all passed. A second independent Sol then re-read code,
+  tests and live #77 and also returned `APPROVED`, with no P0–P3 finding. I10c is `PR_PENDING` and still
+  requires latest-head GitHub `quality` before merge.
 - I10c independent contract re-review inspected the latest local diff and live GitHub #77 after four
   synchronization fixes. Result: `APPROVED`, with no P0–P3 finding. The reviewed-track enum, ordered
   supports, stable IDs, 14/175/6/6 aggregate and privacy/unknown boundaries are ready for the planning PR.
+- I10c planning PR #86 matched approved contract head `9505b5e`, passed latest-head GitHub quality in
+  49 seconds and squash merged as `3983102`. The implementation branch was created from that exact main;
+  no business-code edit preceded the Terra handoff.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1 and M2 are complete. I07 and I10a are complete. Four reviewed community tracks are merged as full
@@ -565,15 +576,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns the community-GPX replan, route contracts, task activation and independent Review.
-- No implementation Agent is assigned until #77's Dangling contract is approved and the planning PR merges.
+- Terra XHigh: completed #77's frozen implementation contract; it was independently approved.
 - Terra XHigh source agents: completed official-source audits, GPX Review, the external request packet
   and a read-only replacement-Variant mapping review.
 
 ## Open work
 
-1. Create, validate and merge the approved planning PR for #77's Dangling KML contract.
-2. From merged `main`, dispatch the exact contract to Terra XHigh on `codex/77-dangling-track-data`.
-3. After implementation Sol Review and merge, activate I13; all five full Variants gate it until then.
+1. Push #77's approved branch and create the focused implementation PR.
+2. Require latest-head `quality`; merge only if the reviewed head and CI head match.
+3. After implementation PR quality and merge, activate I13; all five full Variants gate it until then.
 
 ## Blockers and risks
 
@@ -584,8 +595,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Four supplied GPX files are suitable for their actual route identities, not the superseded exact
   pilots. Each implementation must use the reviewed derivation method and must not retain old names,
   days or geometry.
-- The fifth plannable Variant input is no longer missing. Its KML passed review, but #77 remains an
-  implementation dependency until the contract and data PRs merge.
+- The fifth plannable Variant input is no longer missing. Its KML passed review and the static data change
+  awaits independent Review; #77 remains an I13 dependency until the approved implementation PR merges.
 - Community tracks cannot establish `open`. The static full records use `operationalStatus='unknown'` unless
   a precise official management fact is found; unknown is disclosed and does not mean open.
 - I10a remains deliberately narrow: broader restriction scope still requires the missing official
@@ -610,6 +621,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Push the approved planning branch, open and merge its PR after latest-head quality, then dispatch the
-frozen implementation to Terra XHigh. Keep #22/#30 blocked
+Push the approved #77 implementation, open its PR and merge only after latest-head quality. Keep #22/#30 blocked
 until #77 and all five full Variant PRs are complete.

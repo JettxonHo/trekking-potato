@@ -3,13 +3,12 @@
 - Task ID: `I10c`
 - GitHub Issue: `#77`
 - Title: 录入党岭村—葫芦海—卓雍措 reviewed-track 第五试点
-- Status: `CONTRACT_APPROVED — PLANNING_PR_PENDING`
-- Mode: `INVESTIGATION`
+- Status: `APPROVED — PR_PENDING`
+- Mode: `IMPLEMENTATION`
 - Owner: Sol XHigh
-- Implementation Agent: 未分配；合同合并后交 Terra XHigh
-- Contract branch: `codex/i10c-dangling-kml-contract`
-- Planned implementation branch: `codex/77-dangling-track-data`
-- Base: `main` at `fe0ef24`
+- Implementation Agent: Terra XHigh
+- Branch: `codex/77-dangling-track-data`
+- Base: `main` at `3983102`
 - Goal: `TP-BETA-001`
 
 ## 1. 目标与背景
@@ -209,6 +208,7 @@ Terra 可自行决定测试 helper 名称、断言组织和不改变冻结值的
 
 ## 9. 当前下一步
 
-独立 Sol XHigh Review 已返回 `APPROVED`，P0–P3 均无剩余 finding。下一步创建规划 PR；只有
-该 PR 通过 latest-head CI 并合并后，才把实现交给 Terra XHigh，并在新实现分支上将状态切换为
-`IMPLEMENTATION`。
+独立 Sol XHigh Review 已返回 `APPROVED`，P0–P3 均无剩余 finding。规划 PR #86 通过
+latest-head quality 并 squash merged 为 `3983102`。Terra XHigh 已按本合同完成握手、两步真实
+RED/GREEN、实现、验证和结果包。主控 Sol 与第二独立 Sol 复审均返回 `APPROVED`，P0–P3 无
+finding；现在创建实现 PR，并以 latest-head `quality` 作为合并前最后门禁。

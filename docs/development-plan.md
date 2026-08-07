@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — I10c DANGLING CONTRACT APPROVED; I20 COMPLETE; I21 BLOCKED_BY_I13`
+- Status: `ACTIVE — I10c DANGLING APPROVED / PR_PENDING; I20 COMPLETE; I21 BLOCKED_BY_I13`
 - Updated: `2026-08-07`
 
 ## 1. 依赖图
@@ -159,7 +159,8 @@ I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补�
   blocker. The supplied KML passed quality, identity, privacy and management review; its exact contract is
   `docs/research/dangling-kml-audit-2026-08-07.md` and `docs/tasks/ACTIVE_TASK.md`. Implementation may start
   only after the approved contract's planning PR merges. Independent Review returned `APPROVED` with no
-  P0–P3 findings.
+  P0–P3 findings; planning PR #86 passed latest-head quality and merged as `3983102`, so Terra XHigh may
+  implement on `codex/77-dangling-track-data`.
 
 ## 8. I14 冻结合同摘要
 
