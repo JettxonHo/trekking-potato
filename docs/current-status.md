@@ -3,11 +3,11 @@
 - Updated: `2026-08-07`
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE — COMMUNITY_GPX_REPLAN`
-- Active milestone: `M3 Route domain` (four route tracks selected; fifth waits #77)
-- Active task: `I12 / #21 / APPROVED — PR_PENDING`
-- Branch: `codex/i12-gongga-community-gpx`
-- Base: `main` at `4a9577f`
-- Implementation assignment: Terra XHigh on approved contract head `a635082`; Sol XHigh reviews and merges
+- Active milestone: `M3 Route domain` (four full community-GPX Variants merged; fifth waits #77)
+- Active task: `I10c / #77 / BLOCKED — AWAITING_FIFTH_COMMUNITY_GPX`
+- Branch: `codex/i10c-fifth-gpx-intake`
+- Base: `main` at `25750df`
+- Assignment: Sol XHigh owns intake and evidence review; no implementation Agent is assigned
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -48,10 +48,15 @@
   GitHub `quality` passed
 - I11 implementation PR: `#81` — squash merged as `4a9577f`; GitHub #20 closed; latest-head
   GitHub `quality` passed
+- I12 implementation PR: `#82` — squash merged as `25750df`; GitHub #21 closed; latest-head
+  GitHub `quality` passed
+- I10c intake checkpoint: #77 remains blocked only on one new GPX; its exact input and review contract
+  passed independent Sol XHigh Review after two documentation clarifications. Root test, integration
+  (56/0), lint (0 errors; 10 existing warnings), typecheck, host WeChat build and diff check pass.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
-M1 and M2 are complete. I07 and I10a are complete. Four reviewed community tracks can now receive
-route-data contracts; #77 still blocks the fifth full pilot, so M3 cannot close. TP-D024 permits the
+M1 and M2 are complete. I07 and I10a are complete. Four reviewed community tracks are merged as full
+RouteVariants; #77 still blocks the fifth full pilot, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is complete through I14–I16 without authorizing I13 or real full-route data. M5 is complete: I17
 creates server-owned short-lived contexts, I18 completed the atomic queryId-only advice cutover, and
@@ -372,10 +377,10 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
 - `node scripts/route-domain-contract-test.js`: I07 cold catalog contract for valid full/blocked
   fixtures, 175 legacy place-only adaptation, nonempty namespace suffix/error namespace, evidence/
   reference/itinerary/sample-count failures, input isolation and `getById` miss semantics.
-- `node scripts/route-data-contract-test.js`: I08/I10a aggregated data contract for 3 Sources, 175 legacy
-  Places, 2 Routes and 2 Variants: one tier B reviewed-GPX Wugong full Variant plus one tier A Wutai
-  blocked Variant. It directly checks the Wugong two-day samples, totals, WGS84 points, unknown state and
-  evidence, while the Wutai-specific assertions retain their blocked-only catalog view.
+- `node scripts/route-data-contract-test.js`: I08/I09/I10a/I11/I12 aggregated data contract for 11 Sources,
+  175 legacy Places, 5 Routes and 5 Variants: four tier B reviewed-GPX full Variants plus one tier A Wutai
+  blocked Variant. Route-specific assertions lock each full Variant's evidence, stages, totals, WGS84 samples
+  and status boundary while preserving the earlier pilots' established aggregate views.
 - `node scripts/weather-verdict-contract-test.js`: I15 weather-only contract. It derives complete
   snapshots via injected I14 transport, verifies all TP-VERDICT-1 weather rules and leaves I16
   composition paths outside its scope.
@@ -536,8 +541,8 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   sandbox WeChat build reproduced the known `system-configuration` NULL-object panic; no build configuration
   changed. Sol then reran `build:weapp` on the host, where Taro 4.0.9 Webpack compiled successfully.
   Sol and a second independent Sol XHigh inspected implementation commit `e7510de` and returned `APPROVED`
-  with no P0–P3 findings. I12 is `APPROVED — PR_PENDING`; only the PR's latest-head Actions quality run
-  remains before merge.
+  with no P0–P3 findings. Latest-head Actions `quality` run 42 passed; PR #82 squash merged as
+  `25750df` and GitHub #21 closed. No dependency or build configuration was changed.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -546,14 +551,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns the community-GPX replan, route contracts, task activation and independent Review.
-- Terra XHigh: assigned I12/#21 on `codex/i12-gongga-community-gpx` under approved contract head `a635082`.
+- No implementation Agent is assigned while #77 awaits the fifth GPX.
 - Terra XHigh source agents: completed official-source audits, GPX Review, the external request packet
   and a read-only replacement-Variant mapping review.
 
 ## Open work
 
-1. Create I12's PR and require its latest-head Actions quality run before merge.
-2. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
+1. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
+2. Sol audits that file and freezes a route-specific implementation contract before dispatching Terra.
 
 ## Blockers and risks
 
@@ -590,5 +595,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Create I12's PR from approved implementation commit `e7510de`, then require latest-head Actions quality
-before merge. Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.
+Wait for one additional GPX meeting #77's intake requirements. Then Sol must audit its actual route,
+official management boundary, geometry, activity days and metadata before writing a separate implementation
+contract. Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.
