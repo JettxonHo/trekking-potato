@@ -1,34 +1,17 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `ACTIVE — M3 I13 APPROVED_PR_PENDING`
+- Status: `ACTIVE — M6 I21 CONTRACT_APPROVED / IMPLEMENTATION_PAUSED`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
 
-The controller approved planning PR #9 on `2026-08-06`. M1 completed through PRs #36–#38;
-I04–I06 completed through PRs #40 and #43–#47. M2 Correctness is complete; the Goal is active at
-M3 with I07 merged through PRs #48/#49. Field-level source audit found that none of the five full
-pilot variants can yet satisfy the frozen A/B geometry contract. The independently supportable
-Wutai blocked record was delivered by I10a/PR #53; other full variants remain source-blocked rather
-than using invented values. I14's contract and implementation merged through PRs #54/#55; #23 is
-closed. I15 and I16 merged through PRs #57/#59; M4 is complete. I17 planning, both children and its
-completion checkpoint merged through PRs #62–#65; parent #26 is closed. Successful base results now
-create server-owned short-lived TripContexts. I18's queryId-only planning and implementation merged
-through PRs #66/#67; #27 is closed. I19 planning PR #68 merged as `72ab196` after independent Review
-and latest-head quality. I19 implementation PR #69 merged as `b7c17ea`; #28 and M5 are closed.
-I20 planning and implementation merged through PRs #70/#71; #29 is closed. M6 is now waiting at
-I21 because its trusted RouteVariant input path depends on the active I13 resolver.
-The human retained all five exact pilots in TP-D037. A second high-trust recovery pass found no
-public official track/elevation package capable of completing any full Variant; the exact external
-requests are recorded in `docs/research/exact-route-source-recovery-2026-08-07.md`.
-The human then approved TP-D039: official/operator material governs management and restriction facts,
-while a Sol-reviewed community track may independently provide geometry for the route it actually
-records. Four supplied tracks have been reviewed, implemented and merged through PRs #79–#82 as four
-full replacement Variants; the Wutai summit track remains non-plannable under the official restriction,
-and #77 delivered the reviewed user-owned KML as a one-day Dangling Village–Hulu Sea–Zhuoyongcuo
-out-and-back through PR #87. All five full Variants and the Wutai blocked record are now merged;
-I13 is active to build the permanent-ID production catalog resolver.
+The controller approved planning PR #9 on `2026-08-06`. M1–M5 are complete. Under TP-D039,
+official/operator material governs management and restriction facts while Sol-reviewed community tracks
+may provide geometry for the routes they actually record. Five full reviewed-track Variants and one Wutai
+blocked record are merged through PRs #79–#82/#87. I13's permanent-ID catalog resolver merged through
+PRs #88/#89 as `c5d7d7c`, closing #22 and M3. I20's reducer/service seam merged through PRs #70/#71.
+M6 is now at I21 contract review. The human has paused implementation until the explicit command `继续`.
 
 ## 1. Objective
 
@@ -42,9 +25,10 @@ safety composition, trusted second-stage context and private-only history are co
 community tracks are merged as full RouteVariants; the fifth route's planning PR #86 froze its contract,
 and implementation PR #87 passed main-controller and second independent Sol Review plus latest-head
 quality, then squash merged as `4c17f45` and closed #77. The RouteVariant-backed input/result experience
-remains. I20's explicit
-reducer and getAdvice service seam is complete. I13 now owns the production catalog and pure resolver;
-I21 remains blocked until that resolver is merged and can be atomically connected to the public flow.
+remains. I20's explicit reducer and getAdvice service seam is complete. I13 now owns the production catalog
+and pure resolver;
+I21's dependency is satisfied. Its public cutover contract may be reviewed and frozen, but no implementation
+Agent may be activated until the human says `继续`.
 
 Current verified baselines are route type `91/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 
@@ -64,15 +48,17 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 |---|---|---|---|
 | M1 Engineering gate | Complete | I01–I03 | Fresh install, unified commands, CI and PR protection work |
 | M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
-| M3 Route domain | Active — I13 approved; implementation PR pending | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
+| M3 Route domain | Complete | I07–I13 | Domain model, five sourced variants, blocked record and permanent resolver are merged |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
-| M6 Core UX | Blocked — I20 complete; I21 waits I13 | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
+| M6 Core UX | Active — I21 contract approved; implementation paused | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10a's
 official Wutai blocked record remains complete; the former small-pilgrimage full route is superseded,
-and #77 delivered the reviewed KML-backed fifth plannable pilot. I13 is the only remaining M3 Issue.
+and #77 delivered the reviewed KML-backed fifth plannable pilot. I13 PR #89 merged as `c5d7d7c` and
+closed #22, completing M3. I21 is being planned but implementation is paused pending the human command
+`继续`.
 
 ## 6. Agent routing
 

@@ -569,3 +569,33 @@
 - Why: 当前 handler 仍使用单点日天气、自由 days 和 place-only TripContext，前端也尚未提供技术
   攀登所需输入。提前接 resolver 不能诚实生成 full base，而合并 I13/I21 会失去独立可验证边界。
   纯 resolver 先冻结可信身份和匹配语义，随后由 I21 原子完成公共行为切换。
+
+## 2026-08-07 — TP-D045 I21 输入、快照与过渡展示边界
+
+- Status: Accepted by Sol; independently reviewed and approved; implementation paused by human
+- Decision: I21 使用单一垂直 PR 接通 I13/I14/I16、TripContext 和现有十状态 UI。每日时间默认
+  `08:00`；技术攀登支持选择器始终可见并默认 `solo_or_unsure`，但只对 trusted full climb 强制。
+  place-only/manual climb 不升级为 full，也不强制 support。
+- Target behavior: full 使用 fixedDays；place-only 严格 1–7 并要求用户 routeType；blocked 校验
+  date/time/level 后以 days/support null 直接 no-go、零天气。full gear 的高度/纬度取可信路线最高点
+  与最高海拔 reviewed sample；blocked minimum gear 为空。
+- Data: TripContext 直接深拷贝 handler 的 structured BaseData。full weatherSnapshot 原样保存 I14；
+  reference place 使用明确 wrapper；blocked 为 null。为避免 I21 到 I22 之间破坏现有结果/AI，可由
+  同一服务端事实生成兼容展示投影，但不得形成第二可信路径。
+- Contract: 新增 `invalid_level/invalid_start_time/missing_climb_support/route_not_found`；删除已超过
+  I20 迁移期的 public `mode='base'` alias。confirmation input 包含全部五项输入，不新增 reducer 状态。
+- Alternatives: 新增第十一状态；后端或前端先行；隐藏 support 直到解析后再发第二次输入请求；继续
+  hard-code place-only TripContext；保留 base alias；由 legacy activity hint 决定类型。
+- Why: 默认值保守且可修改，避免死输入和额外状态；structured snapshot 让 I18 advice 继续只信
+  queryId，兼容投影只解决短暂展示迁移，不改变领域事实。
+- Follow-up: `route_type_required` 用 `catalog_place/amap_place/manual_place` 判别 union；三者分别
+  再次 confirm 永久 candidate ID、只以原 route 重做服务端解析、或再次 prepare 用户自己的坐标。
+  因此 routeTypeSource 可诚实映射为 user/amap/user。I21 的来源元数据只保存现有 Source IDs，不在
+  resolver 缺少 Source records 时伪造展示资料。
+- Compatibility detail: structured fields remain authoritative, but compatibility aliases are generated from
+  the same orchestration rather than pretending every legacy field is recoverable from the reduced structure.
+  The same gear evaluation yields minimumGear and gearRules; full daily summaries derive only from complete I14
+  hours; full/blocked sunEvents are null. This avoids modifying prompt/safety in an input-flow Issue.
+- Manual boundary: partial, non-number, non-finite or out-of-range manual coordinates/elevation return the single
+  non-retryable `invalid_manual_place` code before downstream calls. This is the real client boundary, not a
+  general defensive framework.

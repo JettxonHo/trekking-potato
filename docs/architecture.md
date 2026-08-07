@@ -260,15 +260,19 @@ I05 的四字段、单点天气和 place-only 快照；在 I13 直接切换会�
 ### Prepare
 
 ```js
-{ mode: 'prepare', routeQuery?, routeVariantId?, manualPlace?, routeType?, date,
-  startTimeLocal, level, days?, climbSupport? }
+{ mode: 'prepare', route, date, startTimeLocal, level, days?, climbSupport?,
+  manualLat?, manualLon?, manualElevation?, routeType? }
 ```
 
 - 已验证变体使用固定天数，忽略自由 `days`。
-- 地点级或手动坐标允许 1–7 天，但只返回有限结果。
+- 地点级或手动坐标要求 1–7 天，但只返回有限结果。
 - `level` 固定为现有枚举：`小白 | 中级 | 老手`。
-- `climbSupport` 仅对 climb 必填：`solo_or_unsure | experienced_team | professional_guide`。
-- 外部地理编码无法提供可信类型时，前端使用原 `routeQuery + 用户选择的 routeType` 重新 prepare；服务端重新解析位置，不接受客户端回传的解析坐标。手动坐标属于用户输入和来源 C，同样只产生地点级结果。
+- `climbSupport` 仅对可信 full climb 必填：`solo_or_unsure | experienced_team | professional_guide`。
+- 外部地理编码无法提供可信类型时，前端使用原 `route + 用户选择的 routeType` 重新 prepare；
+  服务端重新解析位置。用户显式进入手动坐标 fallback 时可提交 manualLat/manualLon/elevation，但该数据
+  始终属于来源 C，只产生地点级结果，不能成为候选 ID 或 Variant 事实。
+- `date` 不得早于 `Asia/Shanghai` 当日；full 忽略任意客户端 days，place-only/manual 缺失或非法 days
+  返回 `invalid_trip_days`，blocked 将其归一为 null。
 
 解析行为：唯一精确 RouteVariant 可直达 base；Place 只有一个 verified 变体时可解析该变体；Place 有多个 verified 变体时返回这些变体供确认；无 verified 变体的旧 Place 只能返回 place-only base。模糊匹配返回显式 candidate union：
 
@@ -291,10 +295,27 @@ Candidate 不变量：`entityKind='route_variant'` 时 `capability` 必为 `full
 
 ```text
 confirmation       { phase, candidates[] }
-route_type_required{ phase, displayName, allowedTypes[] }
+route_type_required{ phase, displayName, allowedTypes[], data: discriminated place follow-up }
 base               { phase, queryId, expiresAt, data: BaseData }
 error              { phase, code, message, retryable }
 ```
+
+I21 后 `route_type_required` 精确为：
+
+```js
+{
+  phase: 'route_type_required',
+  displayName,
+  allowedTypes: ['trek', 'climb', 'tour'],
+  data:
+    | { resolutionKind: 'catalog_place', candidateId, name, region, input, routeTypeOptions }
+    | { resolutionKind: 'amap_place', route, name, location, input, routeTypeOptions }
+    | { resolutionKind: 'manual_place', route, name, location, lat, lon, elevation, input, routeTypeOptions }
+}
+```
+
+catalog 选择后再次 confirm；AMap 只用原 route+类型再次 prepare 并由服务端重解析；manual 才回传
+用户自己提供的坐标再次 prepare。`input` 固定含 date/startTimeLocal/level/days/climbSupport。
 
 ### I04 迁移边界
 
@@ -329,23 +350,32 @@ I04 先把当前云函数的所有出口统一到上述 `phase` 判别方式，�
 
 ```js
 {
-  requestSummary: { date, startTimeLocal, level, days, climbSupport? },
+  schemaVersion: 'beta_base_v1',
+  requestSummary: { date, startTimeLocal, level, days, climbSupport },
   routeSnapshot: {
-    entityKind, capability, placeId?, routeId?, routeVariantId?,
-    canonicalName, region, routeType, fixedDays?, stages?
+    entityKind, capability, placeId, routeId, routeVariantId,
+    canonicalName, region, routeType, fixedDays, stages,
+    referenceCoordinate, referenceElevationM, restriction
   },
-  weatherSnapshot: {
-    status: 'available' | 'unavailable',
-    reason?: 'out_of_range' | 'weather_unavailable' | 'weather_data_invalid',
-    retryable, samples?, fetchedAt?, source?
-  } | null,
+  weatherSnapshot: RouteHourlyWeather | ReferencePointWeather | null,
   deterministicResult: { verdict, dataStatus, reasons, dataIssues, evaluatedWindows },
   minimumGear: { essential, recommended, optional },
-  sourceMetadata: { routeSources, weatherSource?, checkedAt }
+  sourceMetadata: { routeSourceIds, routeTypeSource, weatherSource, checkedAt }
 }
 ```
 
-`dataStatus` 的事实源是 `deterministicResult`。weather unavailable 是可展示的有限 base，不是伪装成通用 error。
+`RouteHourlyWeather` 是 I14 的原始 `ok:true + dataStatus:complete|insufficient` shape；
+`ReferencePointWeather` 是 `{status:'available'|'unavailable', scope:'reference_point', ...}` wrapper；
+blocked 为 `null`。`dataStatus` 的事实源是 `deterministicResult`。weather unavailable 是可展示的有限
+base，不是伪装成通用 error。
+
+所有固定结构的不适用字段明确为 null，包括 requestSummary.climbSupport：full climb 为用户选项，
+其他类型/能力为 null。full 有三层永久 ID；place-only 的 routeId/routeVariantId/fixedDays/stages/
+restriction 为 null；blocked 保留三层 ID 和 restriction，但 fixedDays/stages/reference weather 为 null。
+
+I21 的 `routeSourceIds` 只汇总已验证 Route/Variant/restriction 上的现有 Source ID，去重并稳定排序；
+resolver 不携带完整 Source 记录，因此 I21 不伪造标题或发布者。I22 若需要展示完整来源，必须建立独立的
+可信 Source lookup，而不是从客户端或 ID 文本推导。
 
 ### Advice
 
@@ -707,6 +737,58 @@ I20 也不定义通用 RECOVER 事件；错误只保留 code/message/retryable �
 恢复动作时，凡会启动异步请求都必须先推进 token。
 
 I21 是 I13 后的原子垂直接线，不能在 resolver 缺失时只合并前端控件或只强制后端字段。
+
+### I21 原子公共切换
+
+I13 合并后，I21 将公共 `prepare/confirm` 从 I05 legacy 路径一次切换到 I13 resolver。`prepare`
+先解析 query；`confirm` 只用永久或兼容 candidate ID 恢复 target。confirmation 与所有输入错误在
+天气、规则、AI、TripContext 和 history 前返回。
+
+- full：服务端忽略客户端 days，采用 Variant fixedDays；调用 I14 hourly weather 与 I16，保存完整
+  Place/Route/Variant IDs、stages、startTimeLocal、climbSupport 和确定性结果。
+- place-only：用户必须选择 routeType，days 严格 1–7；只允许参考点天气/通用装备，I16 固定
+  `verdict=null/dataStatus=place_only`，不得使用 legacy activity hint。
+- blocked：date/startTimeLocal/level 仍严格校验，days/climbSupport 归一为 null；不查天气、不调用
+  I15/日落，I16 输出官方 blocked no-go；minimumGear 三个数组为空。
+- external/manual：保持 place-only；manual climb 不因类型名升级为 full，也不强制 climbSupport。
+
+公共错误新增 `invalid_level`、`invalid_start_time`、`invalid_manual_place`、
+`missing_climb_support`、`route_not_found`；均在副作用前返回。旧 `mode='base'` alias 在 I21 删除，
+缺失/未知/base 都返回 `invalid_mode`。
+
+`route_type_required.data` 以 `resolutionKind='catalog_place'|'amap_place'|'manual_place'` 区分后续
+动作。catalog 只返回 candidate ID 并再次 confirm；AMap 只返回原 route 并由服务端重新解析；manual
+才回传用户提交的坐标。三者复用 `awaiting_route_type`，不增加流程状态。
+
+TripContext `create` 改为 `create({openid, trustedBaseData})`，深拷贝 handler 已构造的 trusted BaseData
+并保存，不再从 legacy BaseData
+二次猜测。`weatherSnapshot` 对 full 原样保存 I14 complete/insufficient shape；place-only 保存明确的
+reference-point wrapper；blocked 为 null。I21 可提供一个由同一 trusted BaseData 派生的兼容展示投影，
+只用于当前 I20 renderer/AI 解释，不能接受客户端事实或成为第二套领域契约。
+
+I21 的 structured fields 是权威字段。为让现有 I20 renderer 与 I18 advice 在 I22 结果页改造前继续
+工作，BaseData 可在顶层保留 `route/date/level/days/elevation/location/coords/routeType/
+routeTypeSource/weather/sunEvents/gearRules/meta` 兼容别名。这些字段必须由同一次服务端编排单向生成，
+不得再次查询、读取客户端 BaseData 或反向参与领域结论。minimumGear 与 gearRules 共享同一次装备
+规则输出；full complete weather 只从 I14 hours 聚合当前 renderer 所需的日摘要，insufficient/blocked
+为 null；full/blocked sunEvents 为 null，place-only 才保留参考点日天气/日照。blocked 的兼容风险只从
+official_route_blocked 原因生成。I22/I24 负责移除或最终收敛。
+
+兼容日摘要按 route day 展平所有样点小时，取 floor 最低温、ceil 最高温、最高降水概率与最高持续
+风速；forecast_lead_time 决定“参考”标签。兼容 meta 只有 `source/capability/dataStatus`。place-only
+缺少 elevation 时先用现有 elevation lookup；失败则 route fact 和 weather 保持 unavailable，仅以海拔 0
+作为不对外声明的通用装备中性输入，并明确加入地点级未评估路线海拔的 rule note。
+
+`trip-base.js` 精确导出 `createTripBaseBuilder(dependencies)`；工厂结果只含
+`build({target,request})`。依赖为 route/reference weather、sun events、I16、gear rules 和 clock；resolver
+留在 handler，不注入 builder。builder 只返回内部 `built|invalid` union，不返回公共 envelope、不落库、
+不调用 AI。
+
+builder 输入 target 只允许：I13 `route_variant/full`、I13 `route_variant/blocked`，或 handler 规范化的
+`place/place_only`。place-only 增加内部 `origin='catalog'|'amap'|'manual'`；catalog 保留永久 place ID，
+amap/manual 的 candidateId/place ID 为 null，只携带已验证参考点。`routeTypeSource` 固定映射为：
+full/blocked=`builtin`，catalog/manual 用户选择=`user`，外部地理编码且用户确认=`amap`。builder 不接受
+其他 capability/entityKind 组合。
 它必须在同一个主分支兼容变更中把 UI、`prepare/confirm`、服务端校验、确认快照与
 TripContext `requestSummary` 接通。服务端 resolver 恢复的 `entityKind/capability/routeType/fixedDays`
 是决定固定天数、place-only 1–7 天和 climb support 要求的唯一事实源；前端不从名称或
@@ -743,8 +825,10 @@ history 数据保留，不迁移、不删除。
 
 ## 11. 错误语义
 
-- 输入错误（不可重试，需修改输入）：`invalid_date`、`invalid_trip_days`、`invalid_start_time`、`invalid_route_type`、`missing_climb_support`。
-- 解析错误：`route_not_found`、`candidate_not_found`；`route_type_required` 是独立 phase，不是 error code。
+- 输入错误（不可重试，需修改输入）：`invalid_date`、`invalid_trip_days`、`invalid_level`、
+  `invalid_start_time`、`invalid_route_type`、`invalid_manual_place`、`missing_climb_support`。
+- I21 解析错误统一为 `route_not_found`；I05 的 `candidate_not_found` 仅是历史过渡契约。
+  `route_type_required` 是独立 phase，不是 error code。
 - 上下文错误：创建或读取存储失败公开 `context_unavailable`（`retryable=true`）；创建失败不
   返回半成品 base。`context_expired`、`context_not_found`、`context_forbidden` 只是存储模块
   内部状态。I18 将不存在、他人所属和过期统一公开为 `query_context_unavailable`

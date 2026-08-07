@@ -63,7 +63,8 @@
 前四条 GPX 质量与身份审计见 `docs/research/user-gpx-audit-2026-08-07.md`；第五条用户自有 KML
 审计见 `docs/research/dangling-kml-audit-2026-08-07.md`。#77 已通过规划 PR #86 和实现 PR #87
 完成独立 Review、latest-head quality 与合并；五条 full Variants 和五台 blocked 记录均已在 main。
-I13 已进入永久 ID resolver 合同阶段。
+I13 永久 ID resolver 已通过 PRs #88/#89 合并并关闭 #22；M3 已完成。I21 正在冻结公共输入接线
+合同，业务实现按人工要求暂停至明确的 `继续` 指令。
 
 ## 6. 隐私与信任
 

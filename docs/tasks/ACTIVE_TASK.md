@@ -1,205 +1,269 @@
 # 当前活动任务
 
-- Task ID: `I13`
-- GitHub Issue: `#22`
-- Title: 实现稳定 ID 的地点、路线与变体解析器
-- Status: `APPROVED — PR_PENDING`
-- Mode: `IMPLEMENTATION`
+- Task ID: `I21`
+- GitHub Issue: `#30`
+- Title: 实现搜索、确认与行程输入流程
+- Status: `CONTRACT_APPROVED — PLANNING_PR_PENDING / IMPLEMENTATION_PAUSED`
+- Mode: `IMPLEMENTATION`（尚未激活）
 - Owner: Sol XHigh
-- Implementation Agent: Terra XHigh
-- Branch: `codex/22-stable-route-resolver`
-- Base: `main` at `5496956`
+- Planned implementation Agent: Terra XHigh
+- Planning branch: `codex/i21-core-flow-contract`
+- Planned implementation branch: `codex/30-core-input-flow`
+- Planning base: `main` at `c5d7d7c`
 - Goal: `TP-BETA-001`
+
+> 人工停止条件：完成本合同的文档固化、GitHub 同步、独立 Review 与规划 PR 后暂停。未收到明确
+> `继续` 前，不得创建实现分支、分派 Terra、写 TDD RED 或修改业务代码。
 
 ## 1. 目标与背景
 
-把 I07 的 cold catalog 与六个已合并试点片段变成生产运行时可加载的静态目录，并提供一个无 I/O、
-永久 ID、可注入测试的纯 resolver。它必须诚实区分：
+用一个原子垂直 PR 将公共 `prepare/confirm` 从 I05 legacy 路径切换到 I13 永久 ID resolver，并接通
+I14 小时天气、I16 确定性结论、I17/I18 可信 TripContext 与 I20 十状态 UI。用户应能输入日期、统一
+每日出发时间、能力、适用天数和技术攀登支持；服务端只采用 resolver、可信路线和外部地点结果，
+不得相信客户端的坐标、路线类型、天气、固定天数或结论。
 
-- `route_variant/full`
-- `place/place_only`
-- `route_variant/blocked`
-
-I13 冻结可信身份、搜索、消歧和旧 ID 兼容语义，但不改变当前公共 prepare/confirm 行为。I21 才会
-原子接通前端输入、handler、小时天气、确定性结论和 TripContext；不得在 I13 形成半接线状态。
-
-前置依赖已经满足：I08/I09/I11/I12 与 I10c 分别通过 PRs #79–#82/#87 合并，当前 production
-catalog 应为 14 Sources、175 Places、6 Routes、6 Variants，其中 5 full、1 blocked。
+I13 PR #89 已合并为 `c5d7d7c`，I14/I16/I17–I20 均已完成，依赖已满足。I21 不拆成可独立合并的
+前后端半成品，因为任一方向都会让生产 `main` 出现死输入或协议不兼容。
 
 ## 2. 必读文件
 
-执行 Agent 完成 `AGENTS.md` 的强制阅读顺序后，再阅读：
+完成 `AGENTS.md` 的强制顺序后，实施 Agent 再阅读：
 
-1. GitHub #22 的同步任务合同
-2. `docs/architecture.md` 的 I07 catalog、I13 resolver 与 I21 staged-cutover 边界
-3. `docs/development-plan.md` 的 I13 合同摘要和依赖关系
-4. `docs/testing-strategy.md` 的 I13 production resolver contract
-5. `cloudfunctions/getAdvice/domain/route-catalog.js`
-6. `cloudfunctions/getAdvice/data/routes.js` 的 I05 matcher 与 `editDistance`
-7. 六个 `cloudfunctions/getAdvice/data/catalog/pilots/*.js` 片段
-8. `scripts/route-domain-contract-test.js`、`scripts/route-data-contract-test.js` 和
-   `scripts/confirmation-contract-test.js`
+1. GitHub #30 的同步合同
+2. `docs/product-requirements.md` 的核心查询流程
+3. `docs/architecture.md` 的云函数契约、BaseData、TripContext、I14–I16 与 I20/I21 状态边界
+4. `docs/development-plan.md` 的 I21 依赖与原子交付
+5. `docs/testing-strategy.md` 的 I21 垂直矩阵
+6. `cloudfunctions/getAdvice/index.js`、`trip-context.js`、`response-contract.js`
+7. `domain/catalog-resolver.js`、`weather.js`、`trip-verdict.js`、`gear-rules.js`
+8. `taro-app/src/pages/index/index.jsx`、`trip-flow.js`、`get-advice-service.js`
+9. 本合同允许修改的现有脚本
 
 ## 3. 允许修改的文件
 
-实现 Agent 只可修改：
+实施 Agent 只可修改：
 
-1. `cloudfunctions/getAdvice/data/catalog/runtime-catalog.js`（新增）
-2. `cloudfunctions/getAdvice/domain/catalog-resolver.js`（新增）
-3. `scripts/route-resolver-contract-test.js`（新增）
-4. `package.json`
-5. `docs/current-status.md`
-6. `docs/tasks/ACTIVE_TASK.md`
+1. `cloudfunctions/getAdvice/index.js`
+2. `cloudfunctions/getAdvice/trip-base.js`（新增）
+3. `cloudfunctions/getAdvice/trip-context.js`
+4. `cloudfunctions/getAdvice/response-contract.js`
+5. `taro-app/src/pages/index/index.jsx`
+6. `taro-app/src/pages/index/index.css`
+7. `scripts/core-input-flow-contract-test.js`（新增）
+8. `scripts/response-contract-test.js`
+9. `scripts/confirmation-contract-test.js`
+10. `scripts/trip-context-contract-test.js`
+11. `scripts/trip-flow-contract-test.js`
+12. `scripts/e2e-local.js`
+13. `package.json`
+14. `docs/current-status.md`
+15. `docs/tasks/ACTIVE_TASK.md`
 
-除非 Sol 先更新合同，不得修改其他文件。
+本任务跨前后端与可信快照，文件数超过通常拆分信号是原子协议切换的必要结果，不是放宽范围。
+若实际实现需要 `prompt.js`、`safety-advice.js`、history、service、reducer 或其他文件，先停止并由 Sol
+更新合同；不得自行扩大 allowlist。
 
-## 4. 固定接口与行为
+## 4. 固定公共请求与响应
 
-### 4.1 Production catalog
-
-`runtime-catalog.js` 聚合：
-
-- `BUILTIN_ROUTES`
-- 六个已存在 pilot fragments
-- I07 `createRouteCatalog`
-
-模块不得访问网络、数据库、CloudBase、文件系统或环境变量，不新增依赖。它只导出
-`createProductionRouteCatalog()`；每次返回一份经 I07 factory 验证的新 catalog，不导出调用方可
-修改的共享 singleton，不修改 pilot fragment，也不复制它们的数据。
-
-### 4.2 Resolver factory
+### 4.1 请求
 
 ```js
-createCatalogResolver({ catalog }) -> {
-  resolveQuery(query),
-  resolveCandidateId(candidateId)
+prepare: {
+  mode: 'prepare', route, date, startTimeLocal, level,
+  days?, climbSupport?, manualLat?, manualLon?, manualElevation?, routeType?
 }
+
+confirm: {
+  mode: 'confirm', candidateId, date, startTimeLocal, level,
+  days?, climbSupport?, routeType?
+}
+
+advice: { mode: 'advice', queryId }
 ```
 
-`catalog-resolver.js` 的生产导出精确为 `resolveRouteQuery` 和 `resolveRouteCandidateId`，二者绑定
-模块私有的 production catalog；同时导出 `createCatalogResolver`，允许测试注入经
-`createRouteCatalog` 验证的 synthetic catalog。resolver 不修改 catalog，也不把可变内部引用
-交给调用者。可复用现有只读导出的 `editDistance`，但不得修改 I05 `data/routes.js`。
+- `date` 为真实且不早于 `Asia/Shanghai` 当日的 `YYYY-MM-DD`；`startTimeLocal` 精确 `HH:mm`；`level` 只允许
+  `小白 | 中级 | 老手`。
+- 页面默认 `startTimeLocal='08:00'`、`climbSupport='solo_or_unsure'`。技术攀登支持选择器始终可见，
+  文案明确“仅技术攀登适用”；默认值可修改。
+- `climbSupport` 只允许 `solo_or_unsure | experienced_team | professional_guide`。服务端只对 resolver
+  确认的 `route_variant/full + climb` 强制；trek/tour、place-only 和 manual climb 不强制。
+- 旧 `mode='base'` alias 删除；缺失、未知或 `base` 均为 `invalid_mode`。
+- 新错误码 `invalid_level`、`invalid_start_time`、`invalid_manual_place`、
+  `missing_climb_support`、`route_not_found` 均 `retryable:false`。保留既有 phase/error envelope；
+  不得新增另一种错误形状。
+- `advice` 仍只读取 `queryId`，客户端附带的 route/base/weather 等字段不读取、不校验、不回退使用。
 
-内部结果 union：
+`route_type_required.data` 是显式 union：
 
-```text
-direct       { kind: 'direct', matchStage, target }
-confirmation { kind: 'confirmation', matchStage, candidates }
-not_found    { kind: 'not_found' }
+```js
+{ resolutionKind: 'catalog_place', candidateId, name, region, input, routeTypeOptions }
+{ resolutionKind: 'amap_place', route, name, location, input, routeTypeOptions }
+{ resolutionKind: 'manual_place', route, name, location, lat, lon, elevation, input, routeTypeOptions }
 ```
 
-`resolveCandidateId` 的 direct `matchStage='candidate_id'`；兼容 ID 使用
-`matchStage='legacy_candidate_id'`。
+其中 `input` 是服务端接收的 `{date,startTimeLocal,level,days,climbSupport}` 快照。catalog Place 不暴露
+坐标，用户选择类型后再次 `confirm` 同一 candidateId；AMap Place 不回传坐标，选择类型后使用原
+route 再次 `prepare`，由服务端重新解析；只有用户已明确提交 manual coordinates 时才返回
+manual_place 并沿相同坐标再次 `prepare`。三者复用 `awaiting_route_type`，不得靠字段猜测来源。
 
-### 4.3 Trusted target
+### 4.2 Resolver 与输入顺序
 
-direct target 的公共内部摘要字段固定为：
+- `prepare` 先严格校验 route/date/time/level 的输入形状，再调用 `resolveRouteQuery(route)`。
+- `confirm` 先严格校验 candidateId/date/time/level，再调用 `resolveRouteCandidateId(candidateId)`。
+- `confirmation` 精确返回 I13 七字段 DTO，并保存完整
+  `{date,startTimeLocal,level,days,climbSupport}` 前端快照；确认只提交 candidateId 加该输入快照。
+- unknown/stale/malformed candidate 返回 `route_not_found`，不得降级为客户端坐标或 candidate DTO
+  事实。`prepare` 的 resolver `not_found` 可进入现有 AMap/manual fallback，且只能产生 place-only；
+  外部服务明确无结果映射 `route_not_found`，服务不可用保留 `location_failed`。
+- 一旦任一 manual coordinate 字段出现，manualLat/manualLon 必须成对提供为有限 number，纬度在
+  `[-90,90]`、经度在 `[-180,180]`；manualElevation 可省略，提供时必须为 `[-500,9000]` 的有限
+  number。部分、字符串、NaN、Infinity 或越界统一 `invalid_manual_place`，且不得调用 elevation、
+  天气、规则或 TripContext。该边界只校验真实客户端入口，不建立重复的内部防御层。
+- confirmation、所有输入错误和 route_not_found 必须在天气、装备、结论、AI、TripContext、cache 与
+  history 副作用前返回。
 
-```text
-candidateId, entityKind, capability, canonicalName, region, routeType, fixedDays
-```
+## 5. 三种可信 target 编排
 
-并携带 I21 后续接线需要的服务端记录：
+### 5.1 full
 
-- full：`place`、`route`、`routeVariant`
-- place_only：`place`，其他两者为 `null`
-- blocked：`place`、`route`、`routeVariant`
+- `days` 只取服务端 Variant `fixedDays`；忽略客户端值，不因其非法而拒绝。
+- 使用 Variant、date、startTimeLocal 调用 I14 `fetchRouteWeather`，并把 complete/insufficient 原始
+  snapshot 交给 I16。
+- `routeContext={kind:'full',routeType}`；climb 时把合法 support 交给 I16。
+- 最低装备只用服务端事实：月份、Variant `routeHighestPointElevationM`、最高海拔 reviewed weather
+  sample 的纬度、fixedDays 与 Route routeType。
+- I14 `insufficient` 仍返回成功的有限 base；`deterministicResult.verdict` 按 I16 为 null 或已有独立
+  hard no-go，不改写成通用天气错误。
 
-full 的摘要使用永久 Variant ID、可信 Route `routeType` 和 Variant `fixedDays`。place-only 使用永久
-Place ID，`routeType=null`、`fixedDays=null`；不得把 `activityTypeHint` 作为可信路线类型。
-blocked 使用永久 Variant ID、Route 类型、`fixedDays=null`，并保留可信 restriction 于
-`routeVariant` 内部记录，但不能把它暴露进 candidate DTO。
+### 5.2 place-only 与 external/manual
 
-target 与其嵌套记录每次返回独立副本。只做必要的数据所有权隔离，不建立复杂冻结/代理机制。
+- 用户必须明确 routeType，days 必须提供且只接受 1–7；不得使用 Place `activityTypeHint`。
+- catalog Place 使用服务端参考坐标/高程；external/manual 只采用服务端 geocode 结果或当前请求中
+  已校验的明确手动输入，仍标记 place-only。
+- 可继续调用 legacy reference-point daily weather 和通用 gear；I16 固定返回
+  `verdict:null/dataStatus:'place_only'`。不得生成 Variant、stages、route highest 或 full 来源声明。
+- manual/user-selected climb 仍是 place-only，因此不强制 climbSupport。
 
-### 4.4 查询与展开
+### 5.3 blocked
 
-查询必须是非空字符串，否则 not_found；不增加复杂文本规范化。阶段顺序：
+- 合法 date/startTimeLocal/level 之后直接构造 blocked base；days 与 climbSupport 归一为 null。
+- 不调用 daily/hourly weather、I15、日落或 gear rules；I16 仅用可信 restriction 输出
+  `no_go/complete/official_route_blocked`。
+- `minimumGear={essential:[],recommended:[],optional:[]}`，`weatherSnapshot=null`。
 
-1. 全局 canonical exact
-2. alias exact
-3. prefix
-4. contains
-5. fuzzy（query 长度至少 4，最小 edit distance `<=2`）
+## 6. BaseData、TripContext 与过渡展示
 
-只使用第一个非空阶段。匹配名称来自 Place、Route、RouteVariant 的 canonicalName/aliases：
-
-- Place 命中：优先展开该 Place 下的 full Variants；没有 full 时展开 blocked Variants；都没有则
-  返回 place-only。
-- Route 命中：优先展开该 Route 下的 full Variants；没有 full 时展开 blocked Variants。
-- RouteVariant 命中：展开自身。
-
-同一层级最终按永久 target ID 去重。canonical/alias exact 展开后只有一个 target 时 direct；多个
-且全部可规划时 confirmation。若 exact 展开同时含 blocked 与其他 target，或含多个 blocked target，
-返回 not_found，不静默放行也不把 blocked 暴露成候选。prefix/contains/fuzzy 只保留
-full/place-only candidates，blocked 不得出现；若过滤后为空则 not_found。
-
-alias exact 在展开去重后一个 target 为 `unique_alias_exact`，多个为 `repeated_alias_exact`。
-canonical/alias/prefix/contains confirmation 均按 `canonicalName` Unicode 顺序、再按 ID；fuzzy 先按
-最小距离，再按相同顺序。所有 confirmation 先去重排序，再截取最多五项。
-
-### 4.5 Candidate DTO
-
-confirmation 的每项必须精确只有：
+`trip-base.js` 是可注入依赖的深模块，统一负责 target-to-BaseData 编排与一次性兼容展示投影；
+`index.js` 只负责认证、public mode、resolver 分发、持久化和 advice 调度。BaseData 的权威字段为：
 
 ```js
 {
-  candidateId,
-  entityKind,
-  capability,
-  canonicalName,
-  region,
-  routeType,
-  fixedDays,
+  schemaVersion: 'beta_base_v1',
+  requestSummary: { date, startTimeLocal, level, days, climbSupport },
+  routeSnapshot: {
+    entityKind, capability, placeId, routeId, routeVariantId,
+    canonicalName, region, routeType, fixedDays, stages,
+    referenceCoordinate, referenceElevationM, restriction
+  },
+  weatherSnapshot,
+  deterministicResult,
+  minimumGear: { essential, recommended, optional },
+  sourceMetadata: { routeSourceIds, routeTypeSource, weatherSource, checkedAt }
 }
 ```
 
-只允许两种组合：
+不适用字段使用 `null`，不伪造事实：full 有三层永久 ID；place-only 的 route/variant/fixedDays/stages/
+restriction 为 null；blocked 保留三层 ID 与 restriction，但 fixedDays/stages 为 null。
 
-- `route_variant/full`：`variant:*`，routeType 为可信类型，fixedDays 为正整数
-- `place/place_only`：`place:*`，routeType 和 fixedDays 均为 null
+`TripContextStore.create` 精确改为 `create({openid,trustedBaseData})`，验证对象与
+`schemaVersion='beta_base_v1'` 后深拷贝保存，不再重建 legacy place-only 投影。create 返回、数据库记录和
+read 返回保持隔离副本；随机 queryId、openid 绑定和 30 分钟 TTL 不变。
 
-不得暴露坐标、高程、天气、Source 对象、restriction、legacy activity hint 或完整实体。
+I21 为当前 I20 renderer 与 I18 advice 暂时保留现有顶层兼容字段：
+`route/date/level/days/elevation/location/coords/routeType/routeTypeSource/weather/sunEvents/gearRules/meta`。
+它们必须在 `trip-base.js` 内由同一次服务端编排单向生成，不再次查询、不读取客户端 BaseData，也不
+反向进入天气或结论。`minimumGear` 与兼容 `gearRules` 共享同一次 `getGearRules` 输出；后者完整保留
+`fatalRisks/ruleNotes` 以满足现有 prompt/safety。full complete weather 从 I14 hours 按日生成只读
+`tempMin/tempMax/precipProb/windMs/confidence` 摘要，insufficient 为 null；place-only 保留 reference
+daily weather；blocked 为 null。full/blocked 的 `sunEvents=null`，因为 full 日落已在 I16 内求值且
+blocked 不求值；place-only 可保留参考点 sunEvents。blocked 的兼容 gearRules 由 trusted
+`official_route_blocked` 结果生成空装备、`fatalRisks:['官方禁行']` 与单条规则提示。
+I22/I24 负责移除或最终收敛；I21 不修改 prompt/safety 形成第二条路径。
 
-### 4.6 blocked 与旧 ID
+兼容字段固定映射：route/date/level 取 routeSnapshot/requestSummary；days 为 full fixed、place user、
+blocked null；elevation/coords 为 full 最高点与最高 reviewed sample、place reference、blocked null；
+location 为 region；routeType/routeTypeSource 取前述服务端映射；meta 精确为
+`{source:'base',capability,dataStatus}`。full complete 的每个日摘要把该日所有样点小时展平：tempMin=floor
+最低 temperatureC，tempMax=ceil 最高 temperatureC，precipProb=最高 precipitationProbabilityPct，
+windMs=最高 windSpeedMs；该日存在 forecast_lead_time 原因则 confidence=`参考`，否则 `正常`。
 
-- blocked 只允许 canonical exact、唯一 alias exact、永久 Variant ID 或兼容 ID 精确 direct。
-- blocked 永不进入 prefix/contains/fuzzy 或 confirmation。
-- 新查询和 confirmation 永不输出 `builtin-route:*`。
-- `builtin-route:<canonicalName>` 通过对应 legacy Place 展开：唯一 full → full；仅 blocked →
-  blocked；无子 Variant → place-only；多个 full → not_found，要求重新搜索而不静默选择。
-- 永久 candidate ID 只接受 `variant:*` full/blocked 与 `place:*` place-only。Route ID、未知、畸形
-  或已移除 ID 返回 not_found。
+place-only 优先使用可信/外部 elevation；缺失时调用现有 elevation lookup。lookup 失败不伪造海拔，
+referenceElevationM/elevation 保持 null、weather unavailable；通用 gear 仅使用 `getGearRules` 的海拔 0
+中性环境基线并追加“地点级参考，未按完整路线海拔评估”规则提示，0 不写入 routeSnapshot 或顶层
+elevation。这样保留基础/类型装备，但不会把中性计算输入冒充路线事实。
 
-## 5. TDD 与测试要求
+模块生产出口精确为：
 
-先添加 `test:route-resolver` 并运行，记录缺少 resolver 模块/导出的真实 RED；一个 RED 足够。
-GREEN 测试至少覆盖：
+```js
+createTripBaseBuilder({
+  fetchRouteWeather, fetchReferenceWeather, getReferenceSunEvents,
+  evaluateTripVerdict, getGearRules, now
+}) -> {
+  build({ target, request })
+}
+```
 
-1. production catalog 精确 `14/175/6/6`、`5 full/1 blocked`。
-2. 真实党岭与武功山 Place/Route/Variant 名称展开并去重到唯一 full 永久 ID。
-3. synthetic multi-Variant Place/Route 返回稳定 confirmation。
-4. canonical exact 全局优先于 alias；唯一/重复 alias、prefix、contains、fuzzy 的首个非空阶段；
-   canonical/alias confirmation 也使用冻结排序。
-5. fuzzy 阈值、距离优先、名称/ID 稳定排序、去重后最多五项。
-6. legacy 泰山等无子 Variant Place 为 place-only，null type/days，且不泄露旧事实。
-7. 五台 Place/Route/Variant 精确解析为 blocked；非精确候选排除 blocked；synthetic exact 的
-   blocked+其他 target 或多个 blocked target 返回 not_found。
-8. 永久 ID 恢复服务端事实；旧 builtin ID 的 full/blocked/place-only 与多 full stale 语义。
-9. candidate DTO 精确七字段且不含坐标、高程、天气、来源或 restriction。
-10. 修改输入、一次 target/candidate/嵌套记录不会污染 catalog 或下一次解析。
-11. registry/resolver 无网络、数据库和外部 I/O 依赖。
+`target` 只允许 I13 的 `route_variant/full|blocked`，或 handler 规范化的 `place/place_only`。place-only
+增加内部 `origin='catalog'|'amap'|'manual'`；catalog 保留永久 place ID，amap/manual 的 ID 为 null，只
+携带已校验参考点。`routeTypeSource` 固定为 full/blocked=`builtin`、catalog/manual 用户选择=`user`、
+外部地理编码且用户确认=`amap`。builder 不调用 resolver。`build` 返回
+`{kind:'built',trustedBaseData}` 或 `{kind:'invalid',code,message}`，不返回 public response envelope，
+不持久化，也不调用 AI。公共通用输入校验、resolver 和 errorResponse mapping 留在 `index.js`；
+target-aware days/support/manual 编排由 builder 负责。
+
+## 7. 前端与状态约束
+
+- 保持 I20 十个状态和纯 reducer；不引入全局状态库或第十一状态。
+- candidate validator 同时接受 I13 的合法 full 与 place-only 七字段组合，拒绝 blocked/畸形组合。
+- place-only candidate 复用 `awaiting_route_type`；full candidate 直接确认，fixedDays 只读展示。catalog
+  Place 的类型提交再次调用 confirm；AMap Place 只用原 route+类型再次 prepare；manual Place 才用
+  原手工坐标+类型再次 prepare。
+- `confirmationInput` 精确保留五项输入；confirm 不复制 candidate routeType/fixedDays/坐标。
+- 新查询、候选取消、手动弹窗取消、返回和卸载继续推进/校验 token；迟到 prepare/confirm/advice 不得
+  更新 UI、cache 或 history。
+- `BASE_RECEIVED → base_ready → ADVICE_STARTED` 顺序不变；AI 失败仍保留确定性 base 并 degraded。
+- `route_not_found` 与 `location_failed` 可打开无坐标的手动 fallback；其他不可重试输入错误保持 error。
+- history schema 本任务不增加 time/support，且只在当前 token 的终态写入。
+
+## 8. TDD 与验证
+
+先注册并运行 `test:core-input-flow`，记录缺少 `trip-base.js` 模块/导出的一个真实 RED；随后实现最小
+GREEN。聚焦测试至少覆盖：
+
+1. full trek/climb/tour、place-only、manual/external、blocked 的 target-to-base 联通。
+2. full 忽略客户端 days；place-only/manual 严格 1–7；blocked days/support 为 null。
+3. 三种 climb support 到达 I16；缺失/非法只对 full climb 报错。
+4. invalid date/time/level/days/support/manual place、route_not_found、confirmation 的零副作用计数。
+5. I13 七字段 candidate、五项输入 snapshot、confirm 仅 ID 恢复与 place-only 类型选择。
+6. full 原样 I14 snapshot、permanent IDs、gear trusted inputs；insufficient 仍返回 base。
+7. blocked no-go/restriction/空 gear/null weather 与零天气/I15/日落调用。
+8. TripContext 精确持久化 handler trusted BaseData、所有权/TTL/深拷贝与 advice queryId-only。
+9. 页面默认值、请求透传、fixedDays 只读、十状态与迟到响应无副作用。
+10. 现有 place-only fallback、AI degraded、私人 history 和 build 不回归。
+11. full/place-only/blocked 均能通过 queryId-only advice，不进入 internal_error；compatibility gearRules
+    与 minimumGear 三个数组逐项一致，且 AI 结果不能修改 deterministicResult。
 
 最终必须通过：
 
 ```text
-npm run test:route-resolver
-npm run test:confirmation
+npm run test:core-input-flow
 npm run test:response
+npm run test:confirmation
 npm run test:trip-context
-npm run test:route-domain
-npm run test:route-data
+npm run test:trip-flow
+npm run test:route-resolver
+npm run test:hourly-weather
+npm run test:trip-verdict
 npm test
 npm run test:integration
 npm run lint
@@ -208,44 +272,30 @@ npm run build:weapp
 git diff --check
 ```
 
-## 6. 非范围与禁止事项
+## 9. 非范围与禁止事项
 
-- 不修改 `index.js`、`geocode.js`、`data/routes.js`、TripContext、response contract 或当前 handler。
-- 不修改前端页面、reducer、service、history、天气、结论、装备或 AI。
-- 不修改 pilot fragment、I07 schema 或现有 I05 tests/四字段公共行为。
-- 不新增公共 phase/error/input 字段；保留当前 public 请求键 `route`，输入演进属于 I21。
-- 不引入数据库、缓存、网络查询、新依赖、哈希、slug/index ID 或数据迁移。
-- 不把 blocked 当候选，不把 place hint 当可信 routeType，不从 legacy 坐标生成 full 路线事实。
-- 不机械扩展 impossible-case 测试或通用安全框架。
+- 不修改 I13 resolver/runtime catalog、I07 schema、pilot fragments、`data/routes.js` 或可信路线事实。
+- 不修改 I14–I16 pure modules及阈值，不重解释天气或安全原因。
+- 不修改 history schema/云函数、UGC、AI 权限边界或 queryId 所有权/TTL。
+- 不实现 I22 结果页重构、I23 恢复控件、视觉大改、Taro 升级、部署、迁移或生产配置。
+- 不新增状态库、主要依赖、哈希/SHA、客户端可信路线事实或重复 legacy/full 运行路径。
+- 不为基本不可能的 case 建通用防御框架，不用机械覆盖率或 rubric 代替行为验证。
 
-## 7. 允许自主决定与升级条件
+## 10. 自主决定、升级与交付
 
-Terra 可自行决定局部 helper 名称、内部索引结构、文件内函数顺序、测试 fixture 排版和复制实现，
-前提是不改变冻结接口、顺序、返回字段和边界。
+Terra 可自行决定 `trip-base.js` 内私有 helper 名称、函数顺序、测试 fixture 排版和 CSS 局部布局，
+前提是不改变冻结出口、日天气摘要规则、公共请求、错误码、三类 target、BaseData 权威字段、状态数
+与信任边界。
 
-遇到以下情况必须停止并交回 Sol：需要修改 allowlist；改变 result union、候选字段、ID/匹配/blocked
-语义；需要公共 handler/UI 接线；需要新依赖或 Schema 变化；生产目录不能得到冻结计数；测试暴露
-跨模块缺陷；无法在不降低验收标准下完成。
+若需要修改 allowlist、公共字段/错误语义、resolver/schema、I14–I16、prompt/safety/history、主要依赖，
+或发现无法在一个原子 PR 中保持 `main` 可用，必须停止交回 Sol。部署、不可逆操作、权限/隐私变化、
+主要栈替换和 Goal 外产品取舍必须人工确认。
 
-部署、生产配置、数据迁移、权限/隐私变化和不可逆操作不在授权内。
+交付包必须包含：完成状态、实际文件、真实 RED/GREEN、测试命令与结果、计划偏差、自主实现决策、
+限制、PR 和重点 Review 位置。Terra 只能提交 `READY_FOR_CONTROLLER_REVIEW`，不得批准或合并自己的 PR。
 
-## 8. 验收与交付物
+## 11. 当前下一步
 
-- production catalog 与纯 resolver 可由后续 I21 直接导入。
-- 永久 ID、三种能力、搜索/消歧、blocked 和兼容 ID 语义全部由真实测试证明。
-- 当前 public handler 与 I05 回归保持不变；没有中间态或双可信路径。
-- 全部指定命令通过，无隐藏失败、Goal 外修改或未经记录的风险。
-- Terra 返回结果包：完成情况、修改摘要、实际文件、RED/GREEN、命令结果、计划差异、自主实现
-  决策、限制、PR 和重点 Review 位置。
-- Terra 只可提交 `READY_FOR_CONTROLLER_REVIEW`；不得批准或合并自己的 PR。
-
-## 9. 当前下一步
-
-独立 Sol XHigh 合同 Review 已返回 `APPROVED`，P0–P3 均无剩余 finding。规划 PR #88 通过
-latest-head quality 并 squash merged as `5496956`；GitHub #22 已同步且无 blocked 标签。
-Terra XHigh 已按本合同完成 test-first 实现，并提交 `READY_FOR_CONTROLLER_REVIEW`；下一步仅为 Sol XHigh
-独立 Review，之后才可创建 implementation PR。REVIEW_FIX 进一步限制永久 `place:*`：只有展开为唯一
-place-only target 时才可 direct，含 full 或 blocked 子记录的 Place 必须 `not_found`；注入 catalog 的后续
-调用方 mutation 也不得影响 resolver snapshot。主控与第二名独立 Sol XHigh 均已复审实际提交
-`2f457fe` 并返回 `APPROVED`，无 P0–P2 finding；现在创建 implementation PR，并以 latest-head quality
-作为合并前最后门禁。
+合同已通过第三次聚焦独立 Review，P0–P3 无剩余 finding。仅创建规划 PR 并等待 quality；规划 PR 不
+合并，实施模式不激活。等待人工明确
+`继续` 后，Sol 才能合并规划 PR、创建实现分支并向 Terra 下发本合同。

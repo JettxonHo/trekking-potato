@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — I13 APPROVED / PR_PENDING; I20 COMPLETE; I21 BLOCKED_BY_I13`
+- Status: `ACTIVE — M3 COMPLETE; I21 CONTRACT_APPROVED / IMPLEMENTATION_PAUSED`
 - Updated: `2026-08-07`
 
 ## 1. 依赖图
@@ -156,7 +156,8 @@ I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补�
 - Implementation order was I08 first, then I09/I11/I12, then I10c; no temporary fifth record was used.
 - I08/I09/I11/I12 merged through PRs #79–#82. I10c planning PR #86 and implementation PR #87 passed
   independent Review and latest-head quality; #87 squash merged as `4c17f45` and closed #77. The production
-  aggregate is now 14 Sources, 175 Places, 6 Routes and 6 Variants (5 full, 1 blocked), so I13 is active.
+  aggregate is now 14 Sources, 175 Places, 6 Routes and 6 Variants (5 full, 1 blocked). I13 subsequently
+  merged through PRs #88/#89 and completed M3.
 
 ## 8. I13 冻结合同摘要
 
@@ -325,5 +326,23 @@ PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29
   固定天数、放行自由 1–7 天和是否必须收集 climb support。
 - I13 合并后，I21 以一个原子垂直 PR 同时交付：输入 UI、`prepare/confirm` 请求、服务端
   `date/startTimeLocal/level/days/climbSupport` 校验、确认快照、TripContext requestSummary 和回归测试。
-- 未解锁前 #30 保持 `BLOCKED_BY_I13`，不修改业务代码；不用 legacy 候选的名称、类型或天数
-  推导 RouteVariant 事实。
+- I13 implementation PR #89 passed latest-head quality and merged as `c5d7d7c`; #22 closed and M3 is
+  complete. #30 may be planned and unblocked, but implementation remains explicitly paused until the
+  human says `继续`.
+- I21 removes the obsolete public `mode='base'` alias and performs one vertical cutover. It preserves
+  the ten I20 states and reuses `awaiting_route_type` for place-only/manual type selection.
+- The form shows daily departure time (default `08:00`) and a clearly labelled technical-climb support
+  selector for all searches (default `solo_or_unsure`); the server requires support only for trusted full
+  climb Variants. Manual and place-only records remain limited and do not require support.
+- Full gear uses trusted route-highest elevation, the highest-elevation reviewed weather sample's latitude,
+  server fixedDays and Route type. Blocked uses empty minimum gear and no weather. Place-only/manual retains
+  reference-point weather and generic gear only after user route-type selection.
+- Structured BaseData stores I14 weather directly as `weatherSnapshot`; insufficient stays a successful
+  limited base. A server-derived compatibility presentation projection may preserve the current I20 result
+  renderer and AI explanation during I21, but it is not a second trusted source and must be removed or
+  reconciled by I22/I24.
+- The implementation seam is one new injected `trip-base.js` orchestration module plus the public handler,
+  TripContext store and page wiring. It owns target-to-BaseData construction and the one-way compatibility
+  projection; `index.js` retains authentication, public mode routing, persistence and advice orchestration.
+- #30's contract is frozen in `docs/tasks/ACTIVE_TASK.md`. Planning may be published for review now; branch
+  creation, Terra handoff, TDD RED or implementation edits wait for the human command `继续`.
