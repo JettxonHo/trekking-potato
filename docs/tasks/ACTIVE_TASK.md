@@ -3,12 +3,12 @@
 - Task ID: `I21`
 - GitHub Issue: `#30`
 - Title: 实现搜索、确认与行程输入流程
-- Status: `CONTRACT_APPROVED — PLANNING_PR_OPEN / IMPLEMENTATION_PAUSED`
+- Status: `CONTRACT_APPROVED — PLANNING_PR_READY / IMPLEMENTATION_PAUSED`
 - Mode: `IMPLEMENTATION`（尚未激活）
 - Owner: Sol XHigh
 - Planned implementation Agent: Terra XHigh
 - Planning branch: `codex/i21-core-flow-contract`
-- Planning PR: `#90` (open; must not merge before `继续`)
+- Planning PR: `#90` (open; quality passed; must not merge before `继续`)
 - Planned implementation branch: `codex/30-core-input-flow`
 - Planning base: `main` at `c5d7d7c`
 - Goal: `TP-BETA-001`
@@ -297,6 +297,6 @@ Terra 可自行决定 `trip-base.js` 内私有 helper 名称、函数顺序、�
 
 ## 11. 当前下一步
 
-合同已通过第三次聚焦独立 Review，P0–P3 无剩余 finding。规划 PR #90 已创建并等待 latest-head
-quality；该 PR 不合并，实施模式不激活。等待人工明确
+合同已通过第三次聚焦独立 Review，P0–P3 无剩余 finding。规划 PR #90 的 latest-head quality 已通过；
+该 PR 不合并，实施模式不激活。等待人工明确
 `继续` 后，Sol 才能合并规划 PR、创建实现分支并向 Terra 下发本合同。
