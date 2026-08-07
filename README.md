@@ -16,7 +16,6 @@
 
 - 当前产品入口：`taro-app/`
 - 云函数：`cloudfunctions/getAdvice/`、`cloudfunctions/history/`
-- `miniprogram/`：早期原生原型，不是当前生产界面
 - 当前 Goal：[GOAL.md](GOAL.md)
 - 当前状态：[docs/current-status.md](docs/current-status.md)
 
@@ -105,7 +104,7 @@ npm run build:weapp
 
 用微信开发者工具打开 `taro-app/`，其 `project.config.json` 指向 `dist/`。
 
-不要用仓库根目录的旧 `project.config.json` 作为当前入口；它仍指向历史原生 `miniprogram/`，后续将由独立工程清理任务处理。
+仓库根目录不是微信开发者工具入口。项目只维护这一套 Taro 前端；历史原生实现如需审计或恢复，使用 Git 历史。
 
 ## 本地质量门禁
 
@@ -136,8 +135,7 @@ corepack npm@10.9.2 run build:weapp
 │   ├── getAdvice/            # 路线、天气、规则和 AI 编排
 │   └── history/              # 当前历史/旧 UGC，Goal 后收敛为私人历史
 ├── scripts/                  # 离线测试与审计脚本
-├── docs/                     # 产品、架构、开发、测试和治理事实
-└── miniprogram/              # 历史原生原型
+└── docs/                     # 产品、架构、开发、测试和治理事实
 ```
 
 ## 协作
