@@ -7,8 +7,8 @@
 - Mode: `INVESTIGATION`
 - Owner: Sol XHigh
 - Implementation Agent: 未分配
-- Branch: `codex/m3-retain-exact-pilots`
-- Base: `main` at `97c6728`
+- Branch: `codex/m3-exact-source-recovery-2`
+- Base: `main` at `62ba8c5`
 - Goal: `TP-BETA-001`
 
 ## 当前检查点
@@ -31,6 +31,10 @@ resolver，因为五条 full pilot Variant 仍缺少完整 A/B 字段证据。�
 
 人工已选择方案 `A`：保留五条已批准 exact pilot Variants，不使用上述 GPX 替换 I08、I09、
 I10b、I11 或 I12。I13/I21 的阻塞不变，后续只继续寻找与当前 Variant 精确匹配的来源。
+
+第二轮高信任来源恢复已完成。官方页面、PDF、地图/API、公告和公开下载面均未发现可补齐任一
+full Variant 的 GPX/KML、完整高程剖面或量化日程；五条路线的最小外部资料请求见
+`docs/research/exact-route-source-recovery-2026-08-07.md`。当前已进入外部来源等待状态。
 
 ## I21 补充阅读
 
@@ -82,7 +86,7 @@ I21 必须等待 I13 合并后才能进入 IMPLEMENTATION。I13 继续依赖 I08
 
 ## 当前允许与禁止
 
-当前允许：补充可验证的 A/B 路线来源、修正调研事实、维护 Issue 依赖和文档检查点。
+当前允许：接收并审阅新提供的 A/B exact-Variant 路线来源、修正调研事实、维护 Issue 依赖和文档检查点。
 
 当前禁止：修改 UI、云函数、reducer、service、history、路线 schema/生产数据、天气/结论规则、
 依赖、工作流或建立任何临时 full Variant。未解锁前不分配 Terra implementation。
@@ -95,3 +99,6 @@ I21 必须等待 I13 合并后才能进入 IMPLEMENTATION。I13 继续依赖 I08
 人工已明确拒绝本轮替换方案。未来若重新提出用 GPX Variant 替换 I08、I09、I11 或 I12，仍属于
 新的产品范围决策，必须再次人工确认；五台多台顶轨迹不得用于替换 I10b，也不得绕过 I10a 的
 官方禁行记录。
+
+公开来源已经过两轮独立核验。没有新的官方文件、匹配 GPX 或外部机构答复时，不重复执行宽泛
+搜索并把同一局部事实包装成进展；I13/I21 保持阻塞。

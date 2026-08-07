@@ -2,11 +2,11 @@
 
 - Updated: `2026-08-07`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE`
-- Active milestone: `M6 Core UX` (M3 full routes remain source-blocked)
+- Goal status: `BLOCKED — EXTERNAL_SOURCE_EVIDENCE`
+- Active milestone: `M3 Route domain` (M6 waits for I13)
 - Active task: `I21 / #30 / BLOCKED_BY_I13`
-- Branch: `codex/m3-retain-exact-pilots`
-- Base: `main` at `97c6728`
+- Branch: `codex/m3-exact-source-recovery-2`
+- Base: `main` at `62ba8c5`
 - Implementation assignment: none; investigation/documentation only
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
@@ -39,8 +39,10 @@
 - I21 dependency checkpoint PR: `#72` — merged as `bfd9394`; #22/#30 remain blocked
 - M3 source refresh PR: `#73` — merged as `31eab6d`; latest-head quality passed
 - User GPX audit PR: `#74` — merged as `97c6728`; latest-head quality passed
+- Exact-pilot retention PR: `#75` — merged as `62ba8c5`; latest-head quality passed
 
-Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
+Status semantics: TP-BETA-001 is blocked on external exact-route evidence. M1 and M2 are complete.
+I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is complete through I14–I16 without authorizing I13 or real full-route data. M5 is complete: I17
@@ -451,6 +453,10 @@ policy and I13 can resolve them from the production catalog.
   the derived, non-personalized evidence is in `docs/research/user-gpx-audit-2026-08-07.md`.
 - Human decision `A` retains all five approved exact pilot Variants. The reviewed GPX remains evidence
   for possible future routes and does not replace I08, I09, I10b, I11 or I12.
+- A second high-trust recovery pass checked official pages, PDFs, maps/APIs and downloadable-track
+  surfaces. It found no public GPX/KML, complete elevation profile or itinerary capable of completing
+  any full Variant. The durable negative result and five exact request packets are in
+  `docs/research/exact-route-source-recovery-2026-08-07.md`.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -460,13 +466,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns the I21 dependency checkpoint and any future task activation.
 - Terra XHigh: no I21 implementation assignment while I13 is blocked.
-- Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
+- Terra XHigh source agents: completed both official-source audits, GPX Review and the external request packet.
 
 ## Open work
 
 1. Keep #22/#30 blocked until all five retained exact pilots satisfy the A/B field gate.
-2. Obtain matching GPX or official geometry/elevation plus current-operation evidence for the retained
-   I08, I09, I10b, I11 and I12 Variants.
+2. A human/controller with external-contact authority may use the five request packets to obtain
+   matching official files or reviewable exact-Variant GPX. No messages have been sent.
 
 ## Blockers and risks
 
@@ -478,6 +484,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   remediation are recorded in the research report and must not be filled from adjacent routes.
 - The newly supplied GPX files pass basic track-quality checks but are different variants. Human
   decision `A` retains the existing pilots, so these files cannot satisfy the current route Issues.
+- Two official-source passes have exhausted the publicly discoverable route pages, downloadable files,
+  maps and current notices without finding complete exact-Variant evidence. Repeating broad web search
+  is not a meaningful unblock path; new evidence must come from the listed operators/authorities or a
+  matching reviewable GPX.
 - I09's seven-day identity is now official, but D2–D6 detail and the 5276m/5454m official conflict
   remain unresolved. I12 is a 2017 event record and lacks current access evidence.
 - I10a remains deliberately narrow: broader restriction scope still requires the missing official
@@ -501,5 +511,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Continue bounded source recovery for the five retained exact pilots. No implementation Agent starts
-I13 or I21 before all five full Variants are genuinely source-complete.
+Wait for one or more exact external source packages listed in
+`docs/research/exact-route-source-recovery-2026-08-07.md`. On receipt, Sol reopens the affected Issue,
+reviews field coverage and only activates I13 after all five full Variants are genuinely source-complete.

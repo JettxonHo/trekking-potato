@@ -1,7 +1,7 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `ACTIVE`
+- Status: `BLOCKED — EXTERNAL_SOURCE_EVIDENCE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
@@ -19,6 +19,9 @@ through PRs #66/#67; #27 is closed. I19 planning PR #68 merged as `72ab196` afte
 and latest-head quality. I19 implementation PR #69 merged as `b7c17ea`; #28 and M5 are closed.
 I20 planning and implementation merged through PRs #70/#71; #29 is closed. M6 is now waiting at
 I21 because its trusted RouteVariant input path depends on source-blocked I13.
+The human retained all five exact pilots in TP-D037. A second high-trust recovery pass found no
+public official track/elevation package capable of completing any full Variant; the exact external
+requests are recorded in `docs/research/exact-route-source-recovery-2026-08-07.md`.
 
 ## 1. Objective
 
@@ -51,10 +54,10 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 |---|---|---|---|
 | M1 Engineering gate | Complete | I01–I03 | Fresh install, unified commands, CI and PR protection work |
 | M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
-| M3 Route domain | Active — full routes source-blocked | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
+| M3 Route domain | Blocked — external exact-route evidence | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
-| M6 Core UX | Active — I20 complete; I21 waits I13 | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
+| M6 Core UX | Blocked — I20 complete; I21 waits I13 | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10 is
