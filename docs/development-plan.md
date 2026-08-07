@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M5 / I18 APPROVED — PR_PENDING; M3 full routes source-blocked`
+- Status: `ACTIVE — M5 / I19 PLANNING_PR_PENDING; M3 full routes source-blocked`
 - Updated: `2026-08-06`
 
 ## 1. 依赖图
@@ -44,7 +44,7 @@ I19 + I23 → I24 → I25
 | I16 | #25 | 攀登支持、日落和数据不足 | 输入与组合规则 |
 | I17 | #26 parent; #60/#61 | 服务端 TripContext | I17a store + I17b base 接线 |
 | I18 | #27 | 移除可信 baseData 回传 | advice 仅 queryId |
-| I19 | #28 | 私人历史和停用 UGC | read/delete/clear only |
+| I19 | #28 | 私人历史和停用 UGC | save/list/delete/clear + UGC shutdown |
 | I20 | #29 | 前端 reducer 与服务层 | 显式状态和竞态保护 |
 | I21 | #30 | 搜索确认输入流程 | variant/date/time/support |
 | I22 | #31 | 结果体验 | verdict/hourly/checklist/sources |
@@ -232,5 +232,21 @@ M7 前不做重复全局 Review。
   AI degraded，也不写 history。
 - 实现按 RED → 服务端 → 前端 → 完整质量矩阵串行。当前 #27 工作分支已完成这条原子切换：
   `test:response` 记录了旧字段 getter 的真实 RED，并在 GREEN 中覆盖 owner/unknown/foreign/
-  expired/read-failure、AI 降级和前端静态合同；完整本地矩阵已通过，等待 Sol XHigh 的独立
-  Review。精确 allowlist、测试与升级条件以 #27 和 `docs/tasks/ACTIVE_TASK.md` 为准。
+  expired/read-failure、AI 降级和前端静态合同；完整本地矩阵与 latest-head CI 已通过，PR #67
+  合并为 `5c69195`，#27 已关闭。
+
+## 14. I19 冻结合同摘要
+
+- I19 使用一个 Issue、一个原子实现 PR，同时关闭 history 云函数、geocode 与生产前端三处
+  公共 UGC 路径，并补齐私人历史的读取、单删、清空和局部失败体验。拆分合并会在 main 留下
+  无意义调用或继续受信任的 UGC 入口。
+- history 身份只取服务端 openid；`list` 返回显式公共 DTO，不返回 `_id/_openid/queryId`；
+  `delete` 以 `_id + openid` 一次条件删除，只在 `stats.removed===1` 时成功，零删除对未知与
+  他人记录统一为 `history_not_found`；`clear` 返回实际删除量，只删除当前用户，空历史成功。
+- 旧 `saveRoute/listRoutes` 认证后固定返回 `ugc_disabled`，对 `routes` 零访问；geocode 删除公共
+  routes 查询，内置可信匹配未命中后直接走 AMap；前端不再调用 `saveRoute`。既有 routes/history
+  数据不迁移、不删除。
+- 历史保存、读取、删除或清空失败都不改变路线、天气、结论、装备和已有列表；普通 advice
+  失败仍保存确定性降级摘要，`query_context_unavailable` 按 I18 保持零历史。
+- 精确公共契约、allowlist、测试矩阵与升级条件以 GitHub #28 和
+  `docs/tasks/ACTIVE_TASK.md` 为准。规划合同通过独立 Review 和合并前不得开始实现。

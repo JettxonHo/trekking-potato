@@ -1,147 +1,178 @@
 # 当前活动任务
 
-- Task ID: `I18`
-- GitHub Issue: `#27`
-- Title: 移除客户端可信 BaseData 回传并让 advice 仅接收 queryId
-- Status: `APPROVED — PR_PENDING`
-- Mode: `REVIEW`
-- Owner: Terra XHigh
-- Reviewer: Sol XHigh
-- Branch: `codex/i18-query-context-implementation`
-- Base: `main` at `270e442`
+- Task ID: `I19`
+- GitHub Issue: `#28`
+- Title: 实现私人历史、清空历史并停用公共 UGC 主路径
+- Status: `APPROVED — PLANNING_PR_PENDING`
+- Mode: `PLANNING`
+- Owner: Sol XHigh
+- Reviewer: independent Terra XHigh
+- Branch: `codex/i19-private-history-contract`
+- Base: `main` at `5c69195`
 - Goal: `TP-BETA-001`
 
 ## 当前授权
 
-I17 规划及实现 PR #62–#65 已合并，父 Issue #26 与子 Issues #60/#61 已关闭。I17 基线会在
-成功的 `prepare` / `confirm` 后创建短期、绑定 `openid` 的 TripContext；当前 I18 工作分支已
-把 advice 原子切换为读取该服务端快照，但尚未通过 Sol Review 或合并。
+I18 规划 PR #66 与实现 PR #67 已合并；#27 已关闭。PR #67 的 latest-head GitHub `quality`
+通过（3 分 15 秒），squash commit 为 `5c69195`。queryId-only advice 可信闭环已完成。
 
-I18 规划 PR #66 已通过独立 Review 与 latest-head GitHub `quality`（57 秒），并 squash
-merged as `270e442`。当前授权 Terra XHigh 按本合同实施 I18；不得改动合同、扩大范围、批准
-或合并自己的 PR。Sol XHigh 保留独立 Review、返工指令与合并判断。
+当前只授权 Sol XHigh 冻结 I19 合同、同步权威文档与 Issue，并提交纯规划 PR。规划合同通过
+独立 Review、latest-head CI 和合并后，才可切换为 `IMPLEMENTATION` 并交给 Terra XHigh。
+规划阶段不得修改业务代码、测试代码、依赖、锁文件或 GitHub 工作流。
 
-执行记录：Terra 已按本合同完成首轮 RED → 服务端切换 → 前端切换 → 本地质量矩阵
-（implementation commit `c5b2201`）。Sol 与额外独立审计返回 `CHANGES_REQUESTED`：
-
-1. 候选 confirm 的本地 params 没有 route，成功 advice 后 `_saveHistory` 会保存“未知路线”。
-   只在成功 base 后构造 `{ ...params, route: params.route || base.route }` 的本地 historyParams；
-   不改变 confirm/advice 网络体，不保存 queryId，并补确认→advice→history 回归。
-2. 云函数文件头仍把 advice 描述为接收 base 数据，需改为服务端 TripContext 快照。
-3. 补一条未认证 advice 的零 context read 聚焦断言，证明冻结的认证顺序。
-
-Sol 当时仅授权 Terra XHigh 处理上述 REVIEW_FIX 并重新运行完整矩阵；该返工未创建、批准或
-合并 implementation PR。
-
-REVIEW_FIX commit `2a4c85c` 已关闭以上三项。Sol 检查实际 diff 并独立重跑聚焦与完整矩阵；
-额外 Terra 复核亦无剩余 P0–P2。正式 Review 结果为 `APPROVED`。当前只允许 Sol 推送、创建
-implementation PR、核对 latest-head CI 并在条件全部满足后合并；Terra 不得自批或自并。
+两名独立 Terra XHigh 已复核当前合同为 `APPROVED`，无剩余 P0–P2、无需人工确认。Review
+曾要求并已关闭三项：以 `stats.removed` 冻结条件删除结果、补保存失败同参重试/删除不冒泡
+回归，以及修正开发计划中的旧操作摘要。
 
 ## 必读上下文
 
 1. `AGENTS.md`
 2. `GOAL.md`
-3. `docs/architecture.md` 第 4、5、8、11 节
-4. `docs/testing-strategy.md` 的 I17 与 I18 合同
-5. `docs/decision-log.md` 的 TP-D030 与 TP-D031
-6. GitHub Issue #27，以及已合并 PR #63、#64、#65
+3. `docs/product-requirements.md` 第 6–7 节
+4. `docs/architecture.md` 第 9–11 节
+5. `docs/testing-strategy.md` 的“可信上下文和隐私”与 I19 合同
+6. `docs/decision-log.md` 的 TP-D008、TP-D031、TP-D032
+7. GitHub Issue #28，以及已合并 PR #66、#67
 
 ## 任务目标
 
-把 advice 的可信输入从客户端 `baseData` 原子切换为服务端 TripContext：客户端只发送
-`queryId`；服务端按当前 `openid` 读取一次可信快照，再由现有 AI 解释和安全投影消费该快照。
-任何客户端附带的路线、日期、天气、装备或确定性结论都不参与 advice。
+把 history 云函数收敛为当前 `openid` 的私人查询历史，支持保存、读取、单项删除和清空；
+同时从生产前端、history 云函数和 getAdvice geocode 三个入口停用公共 UGC 写入与读取。
+既有 `routes` 和 `history` 数据保留原状，不迁移、不批量修改、不删除。
 
 ## 交付形态与拆分结论
 
-I18 使用一个 Issue、一个原子实现 PR，不拆成可独立合并的前后端子任务。后端先切换会破坏
-旧前端，前端先切换会破坏旧后端；保留双信任路径又违背本任务目标。实现 PR 内按
-“RED 测试 → 服务端切换 → 前端调用切换 → 完整质量矩阵”串行完成。
+I19 使用一个 Issue、一个原子实现 PR。后端先停用会让旧前端继续产生无意义的静默 UGC
+调用；只改前端会让云函数和 geocode 继续读写不可信公共路线；删除/清空又依赖后端 DTO 与
+前端控件共同闭环。不得保留双协议或临时公共 UGC 回退。
 
-## 冻结的公共请求与分支顺序
+## 私人 history 公共契约
 
-公共请求固定为：
+所有 mode 先读取 `cloud.getWXContext().OPENID`。客户端传入的 `openid` 永远无权覆盖服务端
+身份；history 不保存 `queryId`。
 
-```js
-{ mode: 'advice', queryId }
+```text
+save   { mode, route, date, days, level, elevation?, location?, coords?,
+         routeType?, routeTypeSource?, summary?, degraded? }
+       → { ok:true, id } | error
+
+list   { mode, limit? }
+       → { ok:true, data: HistoryItem[] } | error
+
+delete { mode, id }
+       → { ok:true } | history_not_found | error
+
+clear  { mode }
+       → { ok:true, removed } | error
 ```
 
-- 入口只先解析 `mode` 与服务端身份 `openid`。
-- `mode === 'advice'` 时，在读取或验证 `route/date/level/days/baseData/weather` 前进入 advice 分支。
-- 客户端附带的旧字段静默忽略，但不得读取、校验、回退或赋予任何权限。
-- 非 advice 的 `prepare` / `confirm` 顺序与 I17 写入行为保持不变。
-- 未认证请求在访问 TripContext 前失败，context read 为零。
+`HistoryItem` 只包含：
 
-## 冻结的 TripContext 读取流程
+```text
+id, route, date, days, level, elevation, location, summary,
+degraded, coords, routeType, routeTypeSource
+```
 
-- 使用现有 `createTripContextStore({ collection }).read({ openid, queryId })`，其中 collection
-  来自 `db.collection('trip_contexts')`；每个 advice 请求恰好读取一次。
-- `found` 时只把 `found.snapshot` 交给现有 Prompt、AI 和安全结果投影。
-- 不对可信快照重复实现一套客户端 BaseData 校验器；存储模块继续负责记录完整性、归属与 TTL。
-- 不修改 I17 的 ID、TTL、集合、记录结构或深拷贝语义。
-- AI 失败或无效响应继续返回 `phase: 'advice'`、`degraded: true`，确定性事实来自可信快照。
+不得返回 `_id`、`_openid`、`queryId` 或未知数据库字段。`save` 延续现有字段白名单、长度限制
+和轻量归一化；只新增非空 route/date 的现实边界，不建立深层或重复安全 rubric。
 
-## 冻结的公共错误语义
+## 归属、删除与清空
 
-| 内部读取结果 | 公共响应 | retryable | 行为 |
-|---|---|---:|---|
-| `not_found` / `forbidden` / `expired` | `query_context_unavailable` | `false` | 提示“本次查询已失效，请重新查询”，不泄露内部差异 |
-| `store_unavailable` | `context_unavailable` | `true` | 提示“暂时无法读取本次查询，请重试”，不泄露原始存储错误 |
+- `save` 写入的 `_openid` 只来自服务端身份。
+- `list` 固定 `where({ _openid: openid })`，最多 20 条，并投影为公共 DTO。
+- `delete` 使用一次条件删除 `where({ _id: id, _openid: openid }).remove()`；只在
+  `result.stats.removed === 1` 时成功，`removed === 0` 对未知和他人记录都返回相同不可重试
+  `history_not_found`，不先无条件读取文档。
+- `clear` 使用 `where({ _openid: openid }).remove()`，返回实际 `result.stats.removed`；空历史也
+  成功并返回 `removed: 0`。
+- 清空是用户在 UI 明确确认后发起的自身历史操作；Agent 不执行任何真实数据删除。
 
-两类错误均不得包含 `data`、`queryId`、`expiresAt`、快照或内部状态，并且不得调用 LLM。
-`invalid_base_data` 从公共 advice 路径退役；若内部非 advice helper 仍使用同名字符串，不在 I18
-扩大范围清理。
+## 错误语义
 
-## 前端原子切换
+错误统一返回 `{ ok:false, error, message, retryable }`，不得拼接数据库原始错误或回显未知 mode：
 
-- `prepare` / `confirm` 成功后把完整 base response 和当前 request generation 交给结果流程。
-- 从 base 顶层读取 `queryId`；确定性展示继续使用 `baseResponse.data`。
-- advice 云调用的 `data` 必须字面量为 `{ mode: 'advice', queryId }`，不得展开表单参数。
-- 路线、日期、等级、天数等只作为本地 history 参数继续传给 `_saveHistory`；不得持久化 `queryId`。
-- advice 的 success 与 fail 回调都要先核对 generation，迟到响应不得覆盖新查询。
-- `query_context_unavailable` 必须走独立前端分支：停止 advice loading，保留已经显示的
-  确定性 base，在结果视图内显示服务端“本次查询已失效，请重新查询”消息并保留现有
-  “返回重新查询”动作；不把 result 标成 degraded、不追加 `AI_UNAVAILABLE_NOTE`、不写
-  history。新增按钮或额外重试控件属于 I23。
+| error | retryable | 语义 |
+|---|---:|---|
+| `no_auth` | false | 无服务端身份 |
+| `invalid_history_input` | false | save 缺少必要摘要字段 |
+| `missing_id` | false | delete 缺 id |
+| `history_not_found` | false | delete 未删除当前用户记录；不区分未知或他人 |
+| `history_unavailable` | true | save/list/delete/clear 的存储失败 |
+| `ugc_disabled` | false | 旧公共 UGC mode 已停用 |
+| `invalid_mode` | false | 未知 mode |
+
+## 公共 UGC 非破坏性停用
+
+- history 只实现 `save/list/delete/clear`；旧 `saveRoute/listRoutes` 保留为显式 tombstone，认证
+  后固定返回 `ugc_disabled`，对 `routes` 集合零读、零写、零更新、零删除。
+- 删除 history 云函数内的 UGC/Haversine/全表扫描实现。
+- 删除 geocode 的 CloudBase `routes` 读取；内置可信匹配未命中后直接走 AMap。
+- 删除手动坐标提交后的 `saveRoute` 调用；手动查询本身保持不变。
+- 保留 `routeTypeSource:'ugc'` 作为旧私人历史的兼容显示值，不重新激活公共 UGC。
+- 不接触真实 `routes` 记录、数据库权限、索引、配置或部署。
+
+## 前端私人历史行为
+
+- 正常 advice（包括服务端 AI degraded advice）成功后保存一次私人历史。
+- advice 传输失败或普通 advice error 时，确定性 base 仍可用，保存一次 `degraded:true` 的私人
+  历史；`query_context_unavailable` 继续遵守 I18：不写 history。
+- history save 的云失败或 `{ok:false}` 只显示非阻断提示“历史未保存，不影响本次结果”，
+  不改变当前路线、天气、结论、装备或风险；失败不得锁死后续相同查询的保存机会。
+- 打开 history 面板不先清空旧列表；list 失败保留当前列表并显示局部 `historyError`。
+- 每条记录提供独立删除动作；只在服务端成功后从本地列表移除，失败保持列表。
+- 删除控件必须阻止该次交互冒泡到历史行的 restore，不关闭历史面板、不触发查询恢复。
+- 清空前使用一次原生确认；只在服务端成功后清空本地列表，失败保持列表。
+- restore 行为与 I18 的手动上下文恢复规则不变；不提前引入 I20 reducer/service。
 
 ## 实现阶段允许范围
 
-- `cloudfunctions/getAdvice/index.js`
-- `cloudfunctions/getAdvice/response-contract.js`
+- `cloudfunctions/history/index.js`
+- `cloudfunctions/getAdvice/geocode.js`
 - `taro-app/src/pages/index/index.jsx`
-- `scripts/response-contract-test.js`
+- `taro-app/src/pages/index/index.css`
+- `scripts/security-test.js`
+- `scripts/route-type-contract-test.js`
 - `scripts/confirmation-contract-test.js`
+- `scripts/response-contract-test.js`
+- `package.json`
 - `docs/architecture.md`
 - `docs/testing-strategy.md`
 - `docs/development-plan.md`
 - `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
 
-规划 PR 可额外同步 `GOAL.md` 与 `docs/decision-log.md`。不得修改 `trip-context.js`、Prompt、
-`safety-advice.js`、history 云函数、依赖清单、锁文件、共享 E2E mock 或 GitHub 工作流。
+规划 PR 可额外同步 `GOAL.md` 与 `docs/decision-log.md`。不得修改路线目录/schema、TripContext、
+天气/结论规则、AI/Prompt、安全投影、依赖或锁文件、非默认 deep/redteam 脚本、工作流、数据库
+配置或任何真实数据。
 
 ## TDD 与最小回归矩阵
 
-先提交能真实失败的 RED，再实现 GREEN：
+先以现有行为记录真实 RED，再实施 GREEN：
 
-1. 成功 `prepare` 获得真实 `queryId` 后，owner 仅以 `{ mode, queryId }` 获取 advice；Prompt 与结果来自存储快照。
-2. 在 advice event 的旧字段上设置会抛错的 getter，调用仍成功，证明入口和 handler 都未读取它们。
-3. unknown、foreign、expired 各一例，公开响应完全一致为 `query_context_unavailable`，无 data、无 LLM。
-4. context read 失败一例，返回可重试 `context_unavailable`，无 data、无 LLM、无原始错误。
-5. 可信 context 下 AI 失败一例，仍返回 degraded advice，装备、风险与天气来自快照。
-6. 保持 prepare/confirm 零 context read，且原有创建、TTL、归属、深拷贝测试继续通过。
-7. 前端静态合同证明 advice 请求只有 `mode/queryId`、history 参数仅本地使用、success/fail
-   都有 generation guard；`query_context_unavailable` 单独保留 base 并显示重新查询消息，
-   不设置 degraded、不追加 AI unavailable note、不写 history，并在结果视图保留现有返回动作。
+1. user A/B 分别 save/list，只看到自己的 HistoryItem；伪造 event `_openid` 无效，响应无内部字段。
+2. A 删除自己的记录且 `stats.removed === 1` 时成功；`removed === 0` 的 B/未知 id 得到完全
+   相同 `history_not_found`，B 记录保留。删除控件不触发 restore 或关闭面板。
+3. A clear 返回实际删除数量且只删除 A 的 history；B history 与预置 `routes` 存量保持原样；
+   空 clear 成功并返回 `removed:0`。
+4. save/list/delete/clear 各一个代表性存储失败映射到同一 `history_unavailable` 通用消息；不扩展
+   为异常排列组合。
+5. `saveRoute/listRoutes` 都返回 `ugc_disabled`，且 mock 对任何 `routes` 访问会使测试失败。
+6. 精确命中的旧 UGC fixture 不能被 geocode 读取，内置未命中直接走 AMap；confirmation 路径
+   全程对公共 `routes` 零读取。
+7. 页面无 `saveRoute`；history save 首次 `{ok:false}` 或云失败都非阻断，同一参数再次保存仍会
+   重新调用服务端；普通 advice 失败保存确定性摘要；`query_context_unavailable` 仍零 history。
+8. history 面板 list/delete/clear 的成功和失败分支符合本合同，清空有确认，queryId 不入 history。
 
-不得增加 token 熵、哈希、攻击排列组合或机械覆盖率门槛。
+将现有 `scripts/security-test.js` 收敛为聚焦 history/privacy 契约，注册 `test:history` 并纳入默认
+`npm test`。不把 `deep-audit`、`redteam-audit` 或 live 网络脚本加入默认门禁。
 
 ## 完整验证命令
 
 ```text
-npm run test:trip-context
-npm run test:response
+npm run test:history
+npm run test:route
 npm run test:confirmation
+npm run test:response
 npm run test:integration
 npm run lint
 npm run typecheck
@@ -152,23 +183,23 @@ git diff --check
 
 ## 可验证验收标准
 
-- advice 的唯一可信请求参数是 `queryId`，服务端只消费当前用户的一次可信快照读取。
-- 客户端旧事实字段即使存在也不会被读取或影响 Prompt、装备、天气、安全风险和最终输出。
-- unknown、foreign、expired 不可区分；存储不可用可重试；所有失败都无敏感泄露且不调用 LLM。
-- prepare/confirm 的成功创建与失败零写入行为无回归。
-- 前端确定性 base 先展示，AI 异步解释；迟到 advice 不覆盖新查询；历史不保存 `queryId`。
-- 全部指定测试、质量命令和微信构建通过，文档与代码一致。
+- 私人历史所有持久化操作按服务端 openid 隔离，公共响应不泄露内部身份或数据库字段。
+- 当前用户可读取、单删、清空自己的历史；跨用户不可见、不可删、不可被清空。
+- 手动查询、history 旧 mode 和 geocode 都不再读写公共 UGC；存量数据未改动。
+- 历史失败不影响主查询结果；前端只在服务端成功后乐观更新列表。
+- 默认 quality 矩阵包含聚焦 history 契约，全部指定测试、构建和文档检查通过。
 
 ## 自主决策与升级条件
 
-Terra 可自行决定测试 fixture、局部 helper 命名和不改变契约的重排。以下情况必须停止并交回
-Sol：需要修改公共契约、TripContext schema/TTL/ID、引入依赖、改变历史数据结构、扩大到
-I19/I20/I23、降低验收标准，或连续两轮修复仍未通过 Review。涉及部署、生产配置、数据删除、
-不可逆迁移、认证/隐私边界变化时必须请求人工确认。
+Terra 可决定局部 helper 名称、mock 结构和不改变公共契约的最小 JSX/CSS 布局。以下情况必须
+停止并交回 Sol：需要删除/迁移/批量修改真实 `routes` 或 `history` 数据，修改认证/数据库权限
+或生产配置，引入依赖，改变 queryId/路线/天气/结论契约，发现其他生产 UGC 入口，扩大为用户
+资料或公共替代功能，或连续两轮修复仍未通过 Review。TP-D008 已授权本合同内的非破坏性
+隐私收敛，无需额外人工确认。
 
 ## 交付物
 
-- RED/GREEN 证据、实现代码与最小测试。
-- 修改文件清单、完整本地验证结果、偏差与已知限制。
+- RED/GREEN 证据、实现代码、聚焦隐私测试与完整验证报告。
+- 修改文件清单、偏差、自主决策、限制和重点 Review 位置。
 - 与实现直接相关的文档更新。
-- PR 描述与重点 Review 位置。
+- PR 描述与回滚说明；不得自行批准或合并。

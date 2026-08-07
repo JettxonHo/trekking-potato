@@ -4,10 +4,10 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I18 / #27 / APPROVED — PR_PENDING`
-- Branch: `codex/i18-query-context-implementation`
-- Base: `main` at `270e442`
-- Implementation commits: `c5b2201` + REVIEW_FIX `2a4c85c`; PR: pending
+- Active task: `I19 / #28 / APPROVED — PLANNING_PR_PENDING`
+- Branch: `codex/i19-private-history-contract`
+- Base: `main` at `5c69195`
+- Implementation assignment: none until the planning contract merges
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -30,15 +30,16 @@
 - I17a implementation PR: `#63` — merged; GitHub #60 closed
 - I17b implementation PR: `#64` — merged; GitHub #61 closed
 - I17 completion PR: `#65` — merged; GitHub #26 closed
-- I18 planning PR: `#66` — merged; GitHub #27 implementation result awaiting Sol review
+- I18 planning PR: `#66` — merged
+- I18 implementation PR: `#67` — merged as `5c69195`; GitHub #27 closed; latest-head quality passed
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is now complete through I14–I16 without authorizing I13 or real full-route data. M5 is active at
-I18 independent code review. I17 is complete and creates server-owned short-lived contexts; the I18
-working branch now uses those contexts for advice and has no client-`baseData` fallback. This result is
-not accepted or merged until Sol XHigh completes an independent review.
+I19 planning PR. I17 creates server-owned short-lived contexts and I18 has completed the atomic
+queryId-only advice cutover. I19 planning freezes private-history ownership, delete/clear semantics and
+the non-destructive closure of public UGC before any implementation is assigned.
 
 ## Completed
 
@@ -368,6 +369,14 @@ not accepted or merged until Sol XHigh completes an independent review.
   unused-variable warnings), `typecheck`, `test`, `test:integration` and
   `build:weapp` pass; global `taro` is not required.
 - PR #38 GitHub-hosted `quality`: all 12 steps passed in 50 seconds using the same root commands.
+- I18 passed Sol Review after bounded REVIEW_FIX, then PR #67 passed latest-head GitHub `quality` in
+  3 minutes 15 seconds and merged as `5c69195`; #27 is closed.
+- Two independent Terra read-only I19 audits mapped the production history/UGC paths and verified the
+  installed CloudBase SDK supports conditional query removal with `stats.removed`. No human-confirm
+  blocker was found: the contract retains all real routes/history data and changes only code paths.
+- Two independent formal I19 contract Reviews returned `APPROVED` after Sol froze `stats.removed`
+  success semantics, save-failure retry and delete-control propagation tests, and corrected the Issue
+  summary. There are no remaining P0–P2 findings or human-confirm items.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -375,15 +384,17 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: owns I18 independent Review, GitHub orchestration and all merge decisions.
-- Terra XHigh: completed I18 implementation and bounded REVIEW_FIX; no active coding assignment.
+- Sol XHigh: owns I19 contract, planning PR, GitHub orchestration and all review/merge decisions.
+- Terra XHigh audit agents: completed independent I19 architecture and test-boundary audits; no active
+  coding assignment until the planning PR merges.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Sol pushes the approved I18 head, opens the implementation PR and verifies latest-head CI.
-2. Merge only if the PR still matches the approved head and quality passes; then close #27/checkpoint.
-3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
+1. Push the approved pure planning branch, open its PR, and require latest-head quality.
+2. Merge only if the PR head matches the reviewed commit and quality passes.
+3. From the merged main, activate #28 and assign the frozen implementation contract to Terra XHigh.
+4. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
 
@@ -402,17 +413,19 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - TP-D029 resolves I16's sunset evidence boundary as the earliest value across each route-day's trusted
   I14 samples. If any necessary sunset cannot be calculated, the result is unavailable unless a known
   hard no-go independently applies.
-- I18 has deliberately removed the client-`baseData` compatibility fallback from its working branch.
-  It remains subject to Sol review and merge; reintroducing a dual-trust fallback would violate #27.
+- I19 crosses history, geocode and frontend boundaries and therefore stays one atomic PR; a partial
+  merge would leave either meaningless frontend calls or a remaining trusted public UGC path.
+- I19 must preserve all real routes/history records. Data deletion, migration, permissions, production
+  configuration and deployment remain unauthorized.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I18 implementation
+## Forbidden actions during I19 planning
 
-- Any file outside the I18 implementation allowlist without Sol recording a necessary dependency first
-- I19 history/UGC, real route data, broader frontend redesign or deployment
-- Deployment, database mutation, UGC deletion, migration or production configuration
+- Business code, test code, dependencies, lockfiles or workflow changes before the planning PR merges
+- Real route data, route schema, TripContext, weather/verdict/AI/safety behavior or broader frontend work
+- Deployment, database mutation, UGC deletion, migration, permissions or production configuration
 
 ## Next action
 
-Push the approved I18 head and create its implementation PR. Merge only after latest-head GitHub quality
-passes and the head still matches Sol's reviewed commit.
+Create the approved I19 pure planning PR. Only after latest-head quality passes and the reviewed head
+merges may Sol activate implementation and assign Terra XHigh.
