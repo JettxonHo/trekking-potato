@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — I10c DANGLING APPROVED / PR_PENDING; I20 COMPLETE; I21 BLOCKED_BY_I13`
+- Status: `ACTIVE — I13 CONTRACT_APPROVED / PLANNING_PR_PENDING; I20 COMPLETE; I21 BLOCKED_BY_I13`
 - Updated: `2026-08-07`
 
 ## 1. 依赖图
@@ -153,16 +153,36 @@ I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补�
   mandatory-guide or restriction claims. Each route contract must freeze its actual name, type,
   activity-day split, derived-field method, coordinate interpretation, weather samples and unknown
   status semantics before implementation.
-- Implementation order is I08 first, then I09/I11/I12, then I10c. I13 remains blocked until those four and
-  I10c's fifth full Variant are all merged; no temporary fifth record is allowed.
-- I08/I09/I11/I12 are merged through PRs #79–#82. I10c/#77 is now the only route-data implementation
-  blocker. The supplied KML passed quality, identity, privacy and management review; its exact contract is
-  `docs/research/dangling-kml-audit-2026-08-07.md` and `docs/tasks/ACTIVE_TASK.md`. Implementation may start
-  only after the approved contract's planning PR merges. Independent Review returned `APPROVED` with no
-  P0–P3 findings; planning PR #86 passed latest-head quality and merged as `3983102`, so Terra XHigh may
-  implement on `codex/77-dangling-track-data`.
+- Implementation order was I08 first, then I09/I11/I12, then I10c; no temporary fifth record was used.
+- I08/I09/I11/I12 merged through PRs #79–#82. I10c planning PR #86 and implementation PR #87 passed
+  independent Review and latest-head quality; #87 squash merged as `4c17f45` and closed #77. The production
+  aggregate is now 14 Sources, 175 Places, 6 Routes and 6 Variants (5 full, 1 blocked), so I13 is active.
 
-## 8. I14 冻结合同摘要
+## 8. I13 冻结合同摘要
+
+- I13 is one focused internal Issue: aggregate `BUILTIN_ROUTES` and the six approved pilot fragments through
+  `createProductionRouteCatalog()`, then expose a pure permanent-ID resolver with private production state
+  plus an injected factory for tests. It does not connect the
+  resolver to `index.js`, `geocode.js`, TripContext, weather, verdict, AI or the frontend; I21 owns that
+  atomic public-flow cutover.
+- Query stages remain `canonical exact → alias exact → prefix → contains → fuzzy`, using only the first
+  non-empty stage, deduplicating logical targets, sorting deterministically and returning at most five
+  candidates. Place and Route names expand to their child Variant targets; the same hierarchy collapses to
+  one permanent target. Exact matches containing blocked plus another target, or multiple blocked targets,
+  return not_found; canonical/alias/prefix/contains confirmations sort by canonical name then ID.
+- Candidate IDs are only `variant:*` or `place:*`. Candidate DTO keys are exactly
+  `candidateId/entityKind/capability/canonicalName/region/routeType/fixedDays`; full Variants carry trusted
+  type/days, while place-only records use `routeType=null` and `fixedDays=null`.
+- Blocked Variants resolve only from exact canonical/unique-alias or candidate-ID lookup and never enter
+  confirmation candidates. Old `builtin-route:*` IDs remain input-only compatibility: they map through the
+  legacy Place to one full, one blocked or the place-only target; a mapping to multiple full Variants is
+  rejected as stale and requires a new search. New results never emit old IDs.
+- The resolver returns trusted copied server records and never exposes coordinates, elevations, weather,
+  sources or restrictions in candidate DTOs. It adds no hash, database, network I/O or new dependency.
+- Exact allowlist, result union, TDD matrix and quality commands are defined by GitHub #22 and
+  `docs/tasks/ACTIVE_TASK.md` after the planning PR is approved.
+
+## 9. I14 冻结合同摘要
 
 - 运行依赖仅为 I07 full RouteVariant 的 `stages/weatherSamplePoints` shape；测试内构造并
   经 catalog 验证的合成变体，不创建 pilot 数据，不接 I13 生产目录。
@@ -179,7 +199,7 @@ I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补�
 I14 已在 PR #55 通过 Sol 独立 Review 和 latest-head CI，squash 合并为 `f771b41`，#23
 关闭。其 contract/history 由 GitHub #23、PR #54/#55 和决策记录保存；当前活动合同已切换 I15。
 
-## 9. I15 冻结合同摘要
+## 10. I15 冻结合同摘要
 
 - I15 新增 weather-only 纯函数，只消费 I14 complete snapshot，返回天气部分
   `go/caution/no_go` 与稳定原因；I16 负责 blocked route、climb、预报提前量、日落、
@@ -195,7 +215,7 @@ I15 implementation PR #57 passed Sol XHigh Review and latest-head CI, squash mer
 and closed #24. It contains only the pure evaluator, its offline I14-derived contract test and the
 root test entry; it does not expose a public handler or implement I16 composition.
 
-## 10. I16 冻结合同摘要
+## 11. I16 冻结合同摘要
 
 - I16 新增单一纯组合函数，消费 normalized trusted route context、I14 weather snapshot 和
   `request.level/climbSupport`；I15 与本地日落适配器通过默认依赖调用，测试可注入。
@@ -210,13 +230,13 @@ root test entry; it does not expose a public handler or implement I16 compositio
 - 精确接口、优先级、allowlist、TDD、矩阵和命令以 GitHub #25 与
   `docs/tasks/ACTIVE_TASK.md` 为准。
 
-## 11. 合并顺序与里程碑门
+## 12. 合并顺序与里程碑门
 
 每个里程碑最后一个 PR 合并后更新 `GOAL.md` 和 `docs/current-status.md`。I05a 与 I05b
 已按串行顺序分别 Review/合并并关闭父 #14。M3 路线的字段来源合同未冻结不得并行该数据；
 M7 前不做重复全局 Review。
 
-## 12. I17 冻结合同摘要
+## 13. I17 冻结合同摘要
 
 - I17 parent #26 拆为串行 #60 I17a（深存储模块）和 #61 I17b（prepare/confirm 接线）；父
   Issue 只在两者合并后关闭。
@@ -236,7 +256,7 @@ M7 前不做重复全局 Review。
 - 精确接口、record/snapshot shape、allowlist、TDD 和矩阵以 #26/#60/#61 与当前
   `docs/tasks/ACTIVE_TASK.md` 为准。
 
-## 13. I18 冻结合同摘要
+## 14. I18 冻结合同摘要
 
 - I18 使用一个 Issue、一个原子实现 PR；前后端分开合并会造成中间主干协议不兼容，保留
   客户端 `baseData` 回退则会形成双信任路径。
@@ -254,7 +274,7 @@ M7 前不做重复全局 Review。
   expired/read-failure、AI 降级和前端静态合同；完整本地矩阵与 latest-head CI 已通过，PR #67
   合并为 `5c69195`，#27 已关闭。
 
-## 14. I19 冻结合同摘要
+## 15. I19 冻结合同摘要
 
 - I19 使用一个 Issue、一个原子实现 PR，同时关闭 history 云函数、geocode 与生产前端三处
   公共 UGC 路径，并补齐私人历史的读取、单删、清空和局部失败体验。拆分合并会在 main 留下
@@ -277,7 +297,7 @@ M7 前不做重复全局 Review。
 I19 implementation PR #69 passed two-round Sol Review and latest-head quality, squash merged as
 `b7c17ea`, and closed #28 plus M5.
 
-## 15. I20 冻结合同摘要
+## 16. I20 冻结合同摘要
 
 - I20 使用一个 Issue/PR，新增一个纯 `trip-flow` reducer 和一个可注入 getAdvice service，随后
   最小接线当前页面；不拆出无法独立验收的未接线模块 PR。
@@ -296,7 +316,7 @@ I20 implementation 已完成 RED→GREEN：新增 reducer/service、最小页面
 I05/I18 的页面静态断言迁移到 reducer token/service seam。Sol 两轮 Review 后批准，
 PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29 关闭。
 
-## 16. I21 依赖门与原子交付
+## 17. I21 依赖门与原子交付
 
 - I21 不拆分为“前端先加控件”或“后端先强制字段”的可合并子 Issue。前者会让
   `startTimeLocal/climbSupport` 被生产 handler 忽略，后者会让当前页面无法提交。

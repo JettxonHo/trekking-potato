@@ -2,12 +2,12 @@
 
 - Updated: `2026-08-07`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — I10c APPROVED / PR_PENDING`
-- Active milestone: `M3 Route domain` (four full reviewed-track Variants merged; fifth approved, PR pending)
-- Active task: `I10c / #77 / APPROVED — PR_PENDING`
-- Branch: `codex/77-dangling-track-data`
-- Base: `main` at `3983102`
-- Assignment: Terra XHigh implements the frozen contract; Sol XHigh owns independent Review and merge decision
+- Goal status: `ACTIVE — I13 CONTRACT_APPROVED / PLANNING_PR_PENDING`
+- Active milestone: `M3 Route domain` (five full reviewed-track Variants and one blocked record merged; I13 remains)
+- Active task: `I13 / #22 / CONTRACT_APPROVED — PLANNING_PR_PENDING`
+- Branch: `codex/i13-resolver-contract`
+- Base: `main` at `4c17f45`
+- Assignment: Sol XHigh owns the approved planning PR; Terra XHigh implements only after its merge
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -36,7 +36,7 @@
 - I19 implementation PR: `#69` — merged as `b7c17ea`; GitHub #28 and M5 closed
 - I20 planning PR: `#70` — merged as `7fc295f`; GitHub #29 implementation activated
 - I20 implementation PR: `#71` — merged as `9d70f7c`; GitHub #29 closed
-- I21 dependency checkpoint PR: `#72` — merged as `bfd9394`; #22/#30 remain blocked
+- I21 dependency checkpoint PR: `#72` — merged as `bfd9394`; at that checkpoint #22/#30 were blocked
 - M3 source refresh PR: `#73` — merged as `31eab6d`; latest-head quality passed
 - User GPX audit PR: `#74` — merged as `97c6728`; latest-head quality passed
 - Exact-pilot retention PR: `#75` — merged as `62ba8c5`; latest-head quality passed
@@ -69,24 +69,36 @@
 - Sol inspected the actual seven-file implementation diff and independently reran route-domain,
   route-data, root test, integration `56/0`, lint `0 errors / 10 existing warnings`, typecheck,
   `git diff --check` and host WeChat build; all passed. A second independent Sol then re-read code,
-  tests and live #77 and also returned `APPROVED`, with no P0–P3 finding. I10c is `PR_PENDING` and still
-  requires latest-head GitHub `quality` before merge.
+  tests and live #77 and also returned `APPROVED`, with no P0–P3 finding. At that pre-merge checkpoint,
+  I10c was `PR_PENDING` and still required latest-head GitHub `quality`.
 - I10c independent contract re-review inspected the latest local diff and live GitHub #77 after four
   synchronization fixes. Result: `APPROVED`, with no P0–P3 finding. The reviewed-track enum, ordered
   supports, stable IDs, 14/175/6/6 aggregate and privacy/unknown boundaries are ready for the planning PR.
 - I10c planning PR #86 matched approved contract head `9505b5e`, passed latest-head GitHub quality in
   49 seconds and squash merged as `3983102`. The implementation branch was created from that exact main;
   no business-code edit preceded the Terra handoff.
+- I10c implementation PR #87 passed main-controller and second independent Sol XHigh Review with no
+  P0–P3 finding, passed latest-head GitHub `quality` in 50 seconds, squash merged as `4c17f45` and closed
+  GitHub #77. The production data aggregate is now `14 Sources / 175 Places / 6 Routes / 6 Variants /
+  5 full / 1 blocked`.
+- Two independent I13 read-only audits confirmed that the existing handler still uses I05 four-field
+  candidates, single-point daily weather and a place-only TripContext projection. TP-D044 therefore
+  freezes I13 as a production-loadable static catalog plus pure permanent-ID resolver; I21 remains the
+  atomic public handler/UI/hourly-weather/verdict cutover.
+- Independent Sol XHigh contract Review first requested three synchronization/edge clarifications: live
+  #22 export names, exact-stage sorting/blocked collisions, and the stale product checkpoint. Sol fixed all
+  three, resynchronized #22, and the focused re-review returned `APPROVED` with no P0–P3 finding.
+- Planning validation passes root `npm test`, integration `56/0`, lint `0 errors / 10 existing warnings`,
+  typecheck, host WeChat build and `git diff --check`. No business code changed on the planning branch.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
-M1 and M2 are complete. I07 and I10a are complete. Four reviewed community tracks are merged as full
-RouteVariants; #77 still blocks the fifth full pilot, so M3 cannot close. TP-D024 permits the
+M1 and M2 are complete. I07, I10a and all five reviewed community-track Variants are complete; I13 is
+the only remaining M3 Issue. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is complete through I14–I16 without authorizing I13 or real full-route data. M5 is complete: I17
 creates server-owned short-lived contexts, I18 completed the atomic queryId-only advice cutover, and
 I19 completed private history plus non-destructive public UGC shutdown. I20 completed the pure reducer
-and getAdvice service seam. M6 remains blocked at I21 until the four supplied-track Variants plus
-#77's fifth Variant are merged and I13 resolves them from the production catalog.
+and getAdvice service seam. M6 remains blocked at I21 until I13's production catalog resolver is merged.
 
 ## Completed
 
@@ -484,7 +496,7 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   Siguniang's partial Haizigou reopening, Yulong's current seasonal cableway service and a reliable
   secondary report of the 4506–4680 boardwalk segment. None supplies the complete same-variant
   itinerary, geometry, sampling points and current operating scope required by I07; all five data
-  Issues therefore remain source-blocked and I13/I21 stay inactive.
+  Issues therefore remained source-blocked and I13/I21 stayed inactive at that historical checkpoint.
 - The source-refresh checkpoint passed an independent Terra XHigh document Review after one bounded
   correction round. Local lint (0 errors/10 existing warnings), typecheck, root test, integration
   (56/0), WeChat build and `git diff --check` all pass.
@@ -576,15 +588,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns the community-GPX replan, route contracts, task activation and independent Review.
-- Terra XHigh: completed #77's frozen implementation contract; it was independently approved.
+- Terra XHigh: completed #77; will receive I13 only after its planning contract is merged.
 - Terra XHigh source agents: completed official-source audits, GPX Review, the external request packet
   and a read-only replacement-Variant mapping review.
 
 ## Open work
 
-1. Push #77's approved branch and create the focused implementation PR.
-2. Require latest-head `quality`; merge only if the reviewed head and CI head match.
-3. After implementation PR quality and merge, activate I13; all five full Variants gate it until then.
+1. Create the focused I13 planning PR; require latest-head `quality` before merge.
+2. Merge only if the reviewed head and CI head match.
+3. From the merged planning base, assign the frozen I13 implementation to Terra XHigh.
 
 ## Blockers and risks
 
@@ -595,8 +607,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Four supplied GPX files are suitable for their actual route identities, not the superseded exact
   pilots. Each implementation must use the reviewed derivation method and must not retain old names,
   days or geometry.
-- The fifth plannable Variant input is no longer missing. Its KML passed review and the static data change
-  awaits independent Review; #77 remains an I13 dependency until the approved implementation PR merges.
+- The fifth plannable Variant is merged through #87; route-data sourcing no longer blocks I13.
 - Community tracks cannot establish `open`. The static full records use `operationalStatus='unknown'` unless
   a precise official management fact is found; unknown is disclosed and does not mean open.
 - I10a remains deliberately narrow: broader restriction scope still requires the missing official
@@ -608,8 +619,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   hard no-go independently applies.
 - I21 cannot be split into a frontend-only or backend-only merge while I13 is missing: either direction
   creates a dead input or protocol-incompatible main.
-- I13 cannot infer full RouteVariants from the existing legacy candidate fields. All five required
-  pilots need complete A/B route evidence before the planned I13 production resolver is activated.
+- I13 must not partially wire verified Variants into the legacy handler. The pure resolver can now be
+  implemented from complete A/B data; I21 owns the later atomic public cutover.
 - Deployment and real-device validation remain outside the Goal.
 
 ## Forbidden actions while I21 is blocked
@@ -621,5 +632,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Push the approved #77 implementation, open its PR and merge only after latest-head quality. Keep #22/#30 blocked
-until #77 and all five full Variant PRs are complete.
+Create the approved I13 planning PR and merge only after latest-head quality. Keep #30 blocked until the
+I13 implementation is independently approved and merged.

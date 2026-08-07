@@ -1,7 +1,7 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `ACTIVE — M3 FIFTH_TRACK_APPROVED_PR_PENDING`
+- Status: `ACTIVE — M3 I13 CONTRACT_APPROVED_PR_PENDING`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
@@ -18,7 +18,7 @@ create server-owned short-lived TripContexts. I18's queryId-only planning and im
 through PRs #66/#67; #27 is closed. I19 planning PR #68 merged as `72ab196` after independent Review
 and latest-head quality. I19 implementation PR #69 merged as `b7c17ea`; #28 and M5 are closed.
 I20 planning and implementation merged through PRs #70/#71; #29 is closed. M6 is now waiting at
-I21 because its trusted RouteVariant input path depends on source-blocked I13.
+I21 because its trusted RouteVariant input path depends on the active I13 resolver.
 The human retained all five exact pilots in TP-D037. A second high-trust recovery pass found no
 public official track/elevation package capable of completing any full Variant; the exact external
 requests are recorded in `docs/research/exact-route-source-recovery-2026-08-07.md`.
@@ -26,8 +26,9 @@ The human then approved TP-D039: official/operator material governs management a
 while a Sol-reviewed community track may independently provide geometry for the route it actually
 records. Four supplied tracks have been reviewed, implemented and merged through PRs #79–#82 as four
 full replacement Variants; the Wutai summit track remains non-plannable under the official restriction,
-and #77 now freezes the reviewed user-owned KML as a one-day Dangling Village–Hulu Sea–Zhuoyongcuo
-out-and-back before implementation.
+and #77 delivered the reviewed user-owned KML as a one-day Dangling Village–Hulu Sea–Zhuoyongcuo
+out-and-back through PR #87. All five full Variants and the Wutai blocked record are now merged;
+I13 is active to build the permanent-ID production catalog resolver.
 
 ## 1. Objective
 
@@ -37,13 +38,13 @@ Deliver a reproducible, reviewable WeChat mini-program that uses verified route 
 
 The Taro app and two CloudBase functions are the current product. Engineering gates, wind units,
 trip date windows, route type propagation, fuzzy confirmation, hourly evaluation and deterministic
-safety composition, trusted second-stage context and private-only history are complete. Full pilot route
-records and the RouteVariant-backed input/result experience remain. Four reviewed community tracks
-are merged as full RouteVariants; the fifth route contract is independently approved and its planning
-PR #86 is merged. I10c implementation passed main-controller and second independent Sol Review and
-awaits its latest-head PR quality. I20's
-explicit reducer and getAdvice service seam is complete; I21 still waits until five full variants
-meet the hybrid A/B policy and I13 can resolve them.
+safety composition, trusted second-stage context and private-only history are complete. Five reviewed
+community tracks are merged as full RouteVariants; the fifth route's planning PR #86 froze its contract,
+and implementation PR #87 passed main-controller and second independent Sol Review plus latest-head
+quality, then squash merged as `4c17f45` and closed #77. The RouteVariant-backed input/result experience
+remains. I20's explicit
+reducer and getAdvice service seam is complete. I13 now owns the production catalog and pure resolver;
+I21 remains blocked until that resolver is merged and can be atomically connected to the public flow.
 
 Current verified baselines are route type `91/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 
@@ -63,7 +64,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 |---|---|---|---|
 | M1 Engineering gate | Complete | I01–I03 | Fresh install, unified commands, CI and PR protection work |
 | M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
-| M3 Route domain | Active — fifth KML implementation approved; PR pending | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
+| M3 Route domain | Active — I13 contract approved; planning PR pending | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Blocked — I20 complete; I21 waits I13 | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
@@ -71,8 +72,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10a's
 official Wutai blocked record remains complete; the former small-pilgrimage full route is superseded,
-and #77 owns the reviewed KML-backed fifth plannable pilot. This does not reduce the
-five-full-variant completion requirement.
+and #77 delivered the reviewed KML-backed fifth plannable pilot. I13 is the only remaining M3 Issue.
 
 ## 6. Agent routing
 
