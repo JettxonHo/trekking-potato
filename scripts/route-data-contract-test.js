@@ -5,11 +5,13 @@ const wugongshanReverse = require('../cloudfunctions/getAdvice/data/catalog/pilo
 const siguniangErfeng = require('../cloudfunctions/getAdvice/data/catalog/pilots/siguniang-erfeng')
 const yulongBlueMoonYunshanping = require('../cloudfunctions/getAdvice/data/catalog/pilots/yulong-blue-moon-yunshanping')
 const gonggaLaoyulinYulongxi = require('../cloudfunctions/getAdvice/data/catalog/pilots/gongga-laoyulin-yulongxi')
+const danglingHuluhaiZhuoyongcuo = require('../cloudfunctions/getAdvice/data/catalog/pilots/dangling-huluhai-zhuoyongcuo')
 const { runWutaiTests } = require('./route-data/wutai.test')
 const { runWugongshanReverseTests } = require('./route-data/wugongshan-reverse.test')
 const { runSiguniangErfengTests } = require('./route-data/siguniang-erfeng.test')
 const { runYulongBlueMoonYunshanpingTests } = require('./route-data/yulong-blue-moon-yunshanping.test')
 const { runGonggaLaoyulinYulongxiTests } = require('./route-data/gongga-laoyulin-yulongxi.test')
+const { runDanglingHuluhaiZhuoyongcuoTests } = require('./route-data/dangling-huluhai-zhuoyongcuo.test')
 
 const PILOT_FRAGMENTS = [
   wutai,
@@ -17,6 +19,7 @@ const PILOT_FRAGMENTS = [
   siguniangErfeng,
   yulongBlueMoonYunshanping,
   gonggaLaoyulinYulongxi,
+  danglingHuluhaiZhuoyongcuo,
 ]
 
 function combineFragments(fragments) {
@@ -67,8 +70,18 @@ function main() {
       yulongBlueMoonYunshanping,
     ])),
   })
-  runGonggaLaoyulinYulongxiTests({ catalog, fragment: gonggaLaoyulinYulongxi })
-  console.log('PASS: I08/I09/I10a/I11/I12 试点路线数据契约')
+  runGonggaLaoyulinYulongxiTests({
+    catalog: createFragmentCatalogView(catalog, combineFragments([
+      wutai,
+      wugongshanReverse,
+      siguniangErfeng,
+      yulongBlueMoonYunshanping,
+      gonggaLaoyulinYulongxi,
+    ])),
+    fragment: gonggaLaoyulinYulongxi,
+  })
+  runDanglingHuluhaiZhuoyongcuoTests({ catalog, fragment: danglingHuluhaiZhuoyongcuo })
+  console.log('PASS: I08/I09/I10a/I11/I12/I10c 试点路线数据契约')
 }
 
 try {

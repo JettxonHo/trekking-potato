@@ -12,6 +12,7 @@ const SOURCE_KINDS = new Set([
   'association',
   'trusted_api',
   'reviewed_gpx',
+  'reviewed_track',
   'reliable_secondary',
   'user_input',
   'legacy_unknown',
