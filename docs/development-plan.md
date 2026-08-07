@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `BLOCKED — EXTERNAL_SOURCE_EVIDENCE; I20 COMPLETE; I21 BLOCKED_BY_I13`
+- Status: `ACTIVE — COMMUNITY_GPX_REPLAN; I20 COMPLETE; I21 BLOCKED_BY_I13`
 - Updated: `2026-08-07`
 
 ## 1. 依赖图
@@ -8,7 +8,8 @@
 ```text
 I01 → I02 → I03 → I04 → I05a → I05b → I06
 I04 → I07 → I10a
-I10a → {I08, I09, I10b, I11, I12} → I13
+I10a → {I08, I09, I11, I12}
+{I08, I09, I10c, I11, I12} → I13
 I07 → I14 → I15 → I16
 I15 + I16 → I17 → I18 → I19
 I17 → I18 → I19 → I20
@@ -17,9 +18,9 @@ I19 + I22 → I23
 I19 + I23 → I24 → I25
 ```
 
-默认串行。I10a 先建立共享 route-data test seam 和可独立证明的大朝台 blocked
-记录。I08、I09、I10b、I11、I12 在来源证据齐全且使用隔离 worktree、数据文件不
-重叠时，最多两路并行。I14 只依赖已冻结的 I07 schema，可在 full 试点数据阻塞期使用
+默认串行。I10a 已建立共享 route-data test seam 和可独立证明的大朝台 blocked
+记录。I08、I09、I11、I12 分别录入四条已审阅社区轨迹；I10c/#77 等待第五条 GPX。
+首个 route-data PR 通过后，文件不重叠且使用隔离 worktree 时最多两路并行。I14 只依赖已冻结的 I07 schema，可在 full 试点数据阻塞期使用
 合成变体和离线 fixture 独立实现；它不解锁 I13，也不改变任何真实路线事实。
 
 ## 2. Issue 清单
@@ -33,11 +34,13 @@ I19 + I23 → I24 → I25
 | I05 | #14 (parent), #41/#42 | 模糊路线确认闭环 | I05a 服务端 ID/confirm + I05b 前端确认 |
 | I06 | #15 | 确定性安全合并 | AI 不可覆盖规则项 |
 | I07 | #16 | 领域模型与旧数据适配 | Place/Route/Variant schema |
-| I08 | #17 | 武功山数据 | 可追溯 verified variant |
-| I09 | #18 | 四姑娘山二峰数据 | climb variant |
-| I10 | #19 parent; #50/#51 | 五台山数据 | I10a blocked 大朝台 + I10b 小朝台 |
-| I11 | #20 | 玉龙雪山数据 | 4680 tour variant |
-| I12 | #21 | 贡嘎数据 | 三日点到点 variant |
+| I08 | #17 | 武功山反穿社区轨迹数据 | 2 日 trek full variant |
+| I09 | #18 | 四姑娘山二峰社区轨迹数据 | 2 日 climb full variant |
+| I10a | #19 parent; #50 | 五台山官方限制 | blocked 大朝台；已完成 |
+| I10b | #51 | 原小朝台目标 | 被 TP-D039 取代，规划合并后关闭 |
+| I10c | #77 | 第五条社区 GPX 试点 | 选择、审阅并另建数据合同 |
+| I11 | #20 | 蓝月谷—云杉坪社区轨迹数据 | 1 日 trek full variant |
+| I12 | #21 | 贡嘎西南坡社区轨迹数据 | 3 日点到点 trek variant |
 | I13 | #22 | 稳定 ID 搜索解析 | 地点/路线/变体区分 |
 | I14 | #23 | 多点小时天气 | 活动窗口契约 |
 | I15 | #24 | TP-VERDICT-1 | 纯规则和原因码 |
@@ -133,15 +136,24 @@ I06 规划 PR #46 已合并为 `bf7ac83`，#15 在该真实 base 激活并交给
 
 I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补齐文件 allowlist、精确验收、测试命令和当前基准提交。I05a/I05b 的冻结合同与真实基准已作为历史保存在 GitHub #41/#42；后续任务不得用本表的一句话目标直接分派。
 
-## 7. I08–I12 来源门
+## 7. I08–I12 社区 GPX 路线门
 
-- 字段级证据和直达来源以 `docs/research/pilot-route-source-audit.md` 为调研事实源。
-- I08、I09、I10b、I11、I12 均是 `BLOCKED: SOURCE_EVIDENCE_INCOMPLETE`；任何实现 Agent
-  不得仅凭 Issue 中的部分数值创建 full 变体。
-- I10a 已通过 PR #53 合并并关闭 #50：只新增大朝台 tier A blocked 记录和共享
-  `test:route-data` seam，未创建 full 变体或接入生产搜索。
-- I08、I09、I10b、I11、I12 继续等待各自字段级来源解阻。I14 已从最新 main 建立独立
-  合同，不使用上述阻塞路线的伪造数据。
+- TP-D039 supersedes the exact-pilot gate. `docs/research/user-gpx-audit-2026-08-07.md` is the
+  identity/quality evidence source for the supplied tracks; the older official-source reports remain
+  historical evidence and must not be reused as geometry for the replacement Variants.
+- I08 uses `武功山反穿.gpx` only for a two-day reverse traverse; I09 uses `四姑娘二峰.gpx` only
+  for a two-day out-and-back climb; I11 uses the Blue Moon Valley/Yunshanping GPX only for its
+  low-elevation one-day trek; I12 uses the Gongga southwest-slope GPX only for its actual three-day
+  point-to-point route.
+- I10a remains complete through PR #53 with the tier A Wutai blocked record and shared
+  `test:route-data` seam. The Wutai multi-summit GPX cannot create a full Variant under that official
+  restriction. Former I10b/#51 is superseded; I10c/#77 waits for a fifth non-blocked GPX.
+- A reviewed GPX may independently support geometry and time fields, but not `open`, permission,
+  mandatory-guide or restriction claims. Each route contract must freeze its actual name, type,
+  activity-day split, derived-field method, coordinate interpretation, weather samples and unknown
+  status semantics before implementation.
+- Implementation order is I08 first, then I09/I11/I12. I13 remains blocked until those four and
+  I10c's fifth full Variant are all merged; no temporary fifth record is allowed.
 
 ## 8. I14 冻结合同摘要
 

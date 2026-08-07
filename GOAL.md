@@ -1,7 +1,7 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `BLOCKED — EXTERNAL_SOURCE_EVIDENCE`
+- Status: `ACTIVE — M3 COMMUNITY_GPX_REPLAN`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
@@ -22,6 +22,10 @@ I21 because its trusted RouteVariant input path depends on source-blocked I13.
 The human retained all five exact pilots in TP-D037. A second high-trust recovery pass found no
 public official track/elevation package capable of completing any full Variant; the exact external
 requests are recorded in `docs/research/exact-route-source-recovery-2026-08-07.md`.
+The human then approved TP-D039: official/operator material governs management and restriction facts,
+while a Sol-reviewed community GPX may independently provide geometry for the route it actually
+records. Four supplied tracks now replace four old exact pilots; the Wutai summit track remains
+non-plannable under the official restriction, and #77 tracks the still-missing fifth plannable GPX.
 
 ## 1. Objective
 
@@ -32,9 +36,10 @@ Deliver a reproducible, reviewable WeChat mini-program that uses verified route 
 The Taro app and two CloudBase functions are the current product. Engineering gates, wind units,
 trip date windows, route type propagation, fuzzy confirmation, hourly evaluation and deterministic
 safety composition, trusted second-stage context and private-only history are complete. Full pilot route
-records and the RouteVariant-backed input/result experience remain. M3's full pilot records are
-source-gated. I20's explicit reducer and getAdvice service seam is complete; there is no honest
-production I21 slice until all five required full variants meet A/B policy and I13 can resolve them.
+records and the RouteVariant-backed input/result experience remain. Four reviewed community tracks
+are ready for route-specific data contracts; the fifth plannable pilot is still unselected. I20's
+explicit reducer and getAdvice service seam is complete; I21 still waits until five full variants
+meet the hybrid A/B policy and I13 can resolve them.
 
 Current verified baselines are route type `93/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 
@@ -44,7 +49,7 @@ Follow the mandatory order in `AGENTS.md`; it is the only file that defines sess
 
 ## 4. Scope
 
-In scope: minimal engineering gates; fuzzy confirmation; deterministic safety merge; `Place / Route / RouteVariant`; five verified pilot variants and one blocked record; multi-point hourly weather; deterministic verdicts; server-owned `queryId`; private history and public UGC shutdown; explicit frontend states; final integrated review.
+In scope: minimal engineering gates; fuzzy confirmation; deterministic safety merge; `Place / Route / RouteVariant`; five curated pilot variants whose geometry may come from reviewed community GPX, plus one official blocked record; multi-point hourly weather; deterministic verdicts; server-owned `queryId`; private history and public UGC shutdown; explicit frontend states; final integrated review.
 
 Out of scope: deployment, publication, live beta research, native apps, multilingual, social/community, payment, H5 sharing, in-trip navigation, rescue coordination, climbing instruction, Taro major upgrades, destructive data migration, and broad visual redesign.
 
@@ -54,15 +59,16 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 |---|---|---|---|
 | M1 Engineering gate | Complete | I01–I03 | Fresh install, unified commands, CI and PR protection work |
 | M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
-| M3 Route domain | Blocked — external exact-route evidence | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
+| M3 Route domain | Active — four reviewed tracks selected; fifth pending | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Blocked — I20 complete; I21 waits I13 | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
-The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10 is
-tracked as a parent with independently reviewable I10a blocked-record and I10b full-route work; the
-split does not reduce the five-variant completion requirement.
+The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10a's
+official Wutai blocked record remains complete; the former small-pilgrimage full route is superseded,
+and #77 owns selection of the fifth plannable community-GPX pilot. This does not reduce the
+five-full-variant completion requirement.
 
 ## 6. Agent routing
 
@@ -78,4 +84,4 @@ Stop and request human confirmation for deployment, production configuration, se
 
 ## 9. Completion
 
-The Goal is complete only when I01–I25 are closed with compliant review evidence, `main` quality gates are green, five verified variants and the Wutai blocked record meet source policy, all trusted/degraded flows are testable, documentation matches implementation, no Goal P0/P1 blocker is hidden, and a final report records milestones, PRs, tests, decisions, limitations, risks, debt, follow-ups, and release recommendation. Deployment and real-device beta execution are not required.
+The Goal is complete only when I01–I25 plus replacement child #77 are closed with compliant review evidence, `main` quality gates are green, five verified variants and the Wutai blocked record meet the hybrid source policy, all trusted/degraded flows are testable, documentation matches implementation, no Goal P0/P1 blocker is hidden, and a final report records milestones, PRs, tests, decisions, limitations, risks, debt, follow-ups, and release recommendation. Deployment and real-device beta execution are not required.
