@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE — COMMUNITY_GPX_REPLAN`
 - Active milestone: `M3 Route domain` (four route tracks selected; fifth waits #77)
-- Active task: `I12 / #21 / IMPLEMENTATION`
+- Active task: `I12 / #21 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/i12-gongga-community-gpx`
 - Base: `main` at `4a9577f`
 - Implementation assignment: Terra XHigh on approved contract head `a635082`; Sol XHigh reviews and merges
@@ -528,7 +528,13 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   not inferred `open` or `blocked`. The reviewed 4067-point GPX supplies a three-day non-navigation record:
   `44.892km / +2392.1m / -1628.9m`, a 4873m route high and one WGS84 high-area sample per day. Personal
   detour waypoints and all raw/account metadata remain excluded. Contract head `a635082` passed independent
-  Sol XHigh Review with no P0–P3 findings; no human escalation is required and bounded implementation is active.
+  Sol XHigh Review with no P0–P3 findings. I12 implementation first registered its route-data test and
+  fragment require, recording the genuine missing-fragment `MODULE_NOT_FOUND` RED. The minimum GREEN adds
+  only the three-Source static fragment, its exact entity/evidence assertions and runner registration; the
+  runner continues to pass each earlier route its established aggregate view. Route-data, route-domain,
+  root test, offline integration (56/0), lint (0 errors; 10 existing warnings) and typecheck pass. The
+  sandbox WeChat build reproduced the known `system-configuration` NULL-object panic; no build configuration
+  changed. I12 is `READY_FOR_CONTROLLER_REVIEW` pending Sol's diff review, host build rerun and CI.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -543,9 +549,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Synchronize live #21, remove `status:blocked`, and hand the exact approved contract to Terra XHigh.
-2. Implement I12 with a genuine route-data RED, run all gates, then require independent Sol Review and CI.
-3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
+1. Sol reviews I12's implementation diff, validation evidence and host WeChat build before PR approval.
+2. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
 ## Blockers and risks
 
@@ -582,6 +587,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Synchronize the independently approved I12/#21 contract to GitHub and hand its exact allowlist to Terra
-XHigh. Sol must inspect the resulting diff and validation evidence before any PR approval. Keep #22/#30
-blocked until #77 and all five full Variant PRs are complete.
+Sol must inspect I12's implementation diff and validation evidence, rerun the WeChat build on the host and
+wait for CI before any PR approval. Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.

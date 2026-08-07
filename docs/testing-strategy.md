@@ -107,6 +107,14 @@ waypoint、不同赛事和 raw GPX 元数据没有进入实体事实。Wutai、W
 来源页可访问性不作为默认 CI 的实时网络门禁；CI 验证入库的来源元数据和领域契约，人工/发布前
 清单负责复核动态运行状态。
 
+I12 implementation records one genuine RED after registering its route-specific test and fragment require:
+the absent `gongga-laoyulin-yulongxi` fragment returns `MODULE_NOT_FOUND`. Its GREEN test deep-compares all
+three Sources (including ordered `supports` methods and derived notes), the Route and the full Variant;
+it also fixes the three one-sample stage links, three-decimal distance and one-decimal ascent/descent stage
+sum comparison, 4873m route high, WGS84 samples, `unknown` management boundary and final 11/175/5/5
+aggregate. The runner passes Wutai, Wugong, Siguniang and Yulong their pre-I12 aggregate views so their
+established count assertions remain meaningful.
+
 TP-D039 后的 full 试点测试采用同一 seam，并额外固定以下代表性行为：
 
 - `reviewed_gpx` Source 必须为 tier B，逐字段说明 direct/derived 方法；单一完整社区 GPX

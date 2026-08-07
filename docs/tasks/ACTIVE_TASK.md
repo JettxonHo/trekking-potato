@@ -3,7 +3,7 @@
 - Task ID: `I12`
 - GitHub Issue: `#21`
 - Title: 录入贡嘎西南坡·老榆林—玉龙西三日线
-- Status: `IMPLEMENTATION`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -17,6 +17,17 @@
 - The reviewer independently reproduced all three daily geometry totals, overnight-bridge exclusions,
   duration rounding, the 4873m route high, the three WGS84 high-area samples and aggregate counts.
 - No human escalation is required. Terra may implement only the allowlist below; Sol retains Review and merge.
+
+## Implementation result
+
+- Registered the I12 test and fragment require first; `test:route-data` produced the genuine
+  missing-fragment `MODULE_NOT_FOUND` RED.
+- The minimum static fragment and exact route-data assertions are GREEN. `test:route-data`,
+  `test:route-domain`, root `test`, `test:integration`, `lint` (0 errors; 10 existing warnings) and
+  `typecheck` pass. The sandbox `build:weapp` hit the known `system-configuration` NULL-object panic;
+  no build configuration changed, so Sol must rerun that command on the host.
+- Implementation is ready for Sol XHigh's independent diff review, CI and merge decision; Terra has not
+  approved, merged or created a PR.
 
 ## 1. 任务目标
 
