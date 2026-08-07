@@ -41,7 +41,8 @@
 - User GPX audit PR: `#74` — merged as `97c6728`; latest-head quality passed
 - Exact-pilot retention PR: `#75` — merged as `62ba8c5`; latest-head quality passed
 - External evidence checkpoint PR: `#76` — merged as `0461874`; latest-head quality passed
-- Community-GPX replan PR: pending creation from `codex/m3-community-gpx-replan`
+- Community-GPX replan PR: `#78` — draft; local gates and independent Review pass; latest-head
+  GitHub `quality` pending
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1 and M2 are complete. I07 and I10a are complete. Four reviewed community tracks can now receive
