@@ -3,7 +3,7 @@
 - Task ID: `I12`
 - GitHub Issue: `#21`
 - Title: 录入贡嘎西南坡·老榆林—玉龙西三日线
-- Status: `READY_FOR_CONTROLLER_REVIEW`
+- Status: `APPROVED — PR_PENDING`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -26,8 +26,9 @@
   `test:route-domain`, root `test`, `test:integration`, `lint` (0 errors; 10 existing warnings) and
   `typecheck` pass. The sandbox `build:weapp` hit the known `system-configuration` NULL-object panic;
   no build configuration changed, so Sol must rerun that command on the host.
-- Implementation is ready for Sol XHigh's independent diff review, CI and merge decision; Terra has not
-  approved, merged or created a PR.
+- Sol reran `build:weapp` on the host successfully. Sol and a second independent Sol XHigh inspected
+  implementation commit `e7510de` and returned `APPROVED` with no P0–P3 findings. Only the PR's
+  latest-head Actions quality run remains before merge; Terra has not approved, merged or created a PR.
 
 ## 1. 任务目标
 

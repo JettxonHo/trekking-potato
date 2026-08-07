@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE — COMMUNITY_GPX_REPLAN`
 - Active milestone: `M3 Route domain` (four route tracks selected; fifth waits #77)
-- Active task: `I12 / #21 / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `I12 / #21 / APPROVED — PR_PENDING`
 - Branch: `codex/i12-gongga-community-gpx`
 - Base: `main` at `4a9577f`
 - Implementation assignment: Terra XHigh on approved contract head `a635082`; Sol XHigh reviews and merges
@@ -534,7 +534,10 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   runner continues to pass each earlier route its established aggregate view. Route-data, route-domain,
   root test, offline integration (56/0), lint (0 errors; 10 existing warnings) and typecheck pass. The
   sandbox WeChat build reproduced the known `system-configuration` NULL-object panic; no build configuration
-  changed. I12 is `READY_FOR_CONTROLLER_REVIEW` pending Sol's diff review, host build rerun and CI.
+  changed. Sol then reran `build:weapp` on the host, where Taro 4.0.9 Webpack compiled successfully.
+  Sol and a second independent Sol XHigh inspected implementation commit `e7510de` and returned `APPROVED`
+  with no P0–P3 findings. I12 is `APPROVED — PR_PENDING`; only the PR's latest-head Actions quality run
+  remains before merge.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -549,7 +552,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol reviews I12's implementation diff, validation evidence and host WeChat build before PR approval.
+1. Create I12's PR and require its latest-head Actions quality run before merge.
 2. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
 ## Blockers and risks
@@ -587,5 +590,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol must inspect I12's implementation diff and validation evidence, rerun the WeChat build on the host and
-wait for CI before any PR approval. Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.
+Create I12's PR from approved implementation commit `e7510de`, then require latest-head Actions quality
+before merge. Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.
