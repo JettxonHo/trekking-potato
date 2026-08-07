@@ -4,6 +4,11 @@
 - Checked at: `2026-08-06`
 - Status: planning evidence only; **不是已验证的产品数据，且不授权写入路线目录**。
 
+> 2026-08-07 状态更新：TP-D039 已用按实际社区 GPX 命名的试点取代本报告审计的五条 exact
+> full Variants。本报告保留为历史来源与五台山官方限制证据；除已合并的 I10a blocked 记录外，
+> 不再作为当前 I08/I09/I11/I12 的几何合同。当前轨迹事实以
+> `docs/research/user-gpx-audit-2026-08-07.md` 为准。
+
 ## 1. 判定方法
 
 本报告按 `docs/architecture.md` 的 `Source.supports[]` 语义整理证据。`direct` 表示来源直接

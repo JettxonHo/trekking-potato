@@ -2,12 +2,12 @@
 
 - Updated: `2026-08-07`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `BLOCKED — EXTERNAL_SOURCE_EVIDENCE`
-- Active milestone: `M3 Route domain` (M6 waits for I13)
-- Active task: `I21 / #30 / BLOCKED_BY_I13`
-- Branch: `codex/m3-exact-source-recovery-2`
-- Base: `main` at `62ba8c5`
-- Implementation assignment: none; investigation/documentation only
+- Goal status: `ACTIVE — COMMUNITY_GPX_REPLAN`
+- Active milestone: `M3 Route domain` (four route tracks selected; fifth waits #77)
+- Active task: `I08 / #17 / CONTRACT_DRAFT`
+- Branch: `codex/m3-community-gpx-replan`
+- Base: `main` at `0461874`
+- Implementation assignment: none until this planning checkpoint merges
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -40,22 +40,26 @@
 - M3 source refresh PR: `#73` — merged as `31eab6d`; latest-head quality passed
 - User GPX audit PR: `#74` — merged as `97c6728`; latest-head quality passed
 - Exact-pilot retention PR: `#75` — merged as `62ba8c5`; latest-head quality passed
-- External evidence checkpoint PR: `#76` — current checkpoint; latest head is tracked by the PR
+- External evidence checkpoint PR: `#76` — merged as `0461874`; latest-head quality passed
+- Community-GPX replan PR: pending creation from `codex/m3-community-gpx-replan`
 
-Status semantics: TP-BETA-001 is blocked on external exact-route evidence. M1 and M2 are complete.
-I07 and I10a are complete. The
-field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
+Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
+M1 and M2 are complete. I07 and I10a are complete. Four reviewed community tracks can now receive
+route-data contracts; #77 still blocks the fifth full pilot, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is complete through I14–I16 without authorizing I13 or real full-route data. M5 is complete: I17
 creates server-owned short-lived contexts, I18 completed the atomic queryId-only advice cutover, and
 I19 completed private history plus non-destructive public UGC shutdown. I20 completed the pure reducer
-and getAdvice service seam. M6 is now blocked at I21 until all five required full variants meet A/B
-policy and I13 can resolve them from the production catalog.
+and getAdvice service seam. M6 remains blocked at I21 until the four supplied-track Variants plus
+#77's fifth Variant are merged and I13 resolves them from the production catalog.
 
 ## Completed
 
 - Repository, product docs, architecture, tests, GitHub workflow and risk audit.
 - Product and architecture decisions for TP-BETA-001.
+- TP-D039 community-GPX replan passed independent documentation Review after one bounded wording
+  correction. Local lint (0 errors/10 existing warnings), typecheck, full root test, integration
+  (56/0), host-environment WeChat build and `git diff --check` pass.
 - PR #8 reviewed and squash merged; P0-3 closeout and P0-4 investigation activation preserved.
 - Governance v2, Goal and durable planning documents drafted on the planning branch.
 - Independent Terra XHigh planning review completed with final `APPROVED` after all requested contract fixes.
@@ -450,14 +454,19 @@ policy and I13 can resolve them from the production catalog.
 - User-provided GPX source recovery was reviewed by Sol and two independent Terra XHigh read-only
   audits. All five files are structurally usable tracks, but they represent different variants:
   Wugong reverse traverse, two-day Siguniang Second Peak, multi-terrace Wutai traverse, Gongga
-  southwest slope and Blue Moon Valley/Yunshanping. None can populate the current exact pilot Variant;
-  the derived, non-personalized evidence is in `docs/research/user-gpx-audit-2026-08-07.md`.
-- Human decision `A` retains all five approved exact pilot Variants. The reviewed GPX remains evidence
-  for possible future routes and does not replace I08, I09, I10b, I11 or I12.
+  southwest slope and Blue Moon Valley/Yunshanping. Under the then-active TP-D037 contracts, none could
+  populate those old exact pilot Variants. The derived, non-personalized evidence is in
+  `docs/research/user-gpx-audit-2026-08-07.md`.
+- At that checkpoint, human decision `A` retained all five then-approved exact pilot Variants. That
+  interim decision was later superseded by TP-D039 below.
 - A second high-trust recovery pass checked official pages, PDFs, maps/APIs and downloadable-track
   surfaces. It found no public GPX/KML, complete elevation profile or itinerary capable of completing
   any full Variant. The durable negative result and five exact request packets are in
   `docs/research/exact-route-source-recovery-2026-08-07.md`.
+- Human approval TP-D039 supersedes TP-D037/TP-D038: official material now governs management facts,
+  while a Sol-reviewed community GPX can independently provide the geometry of its actual route.
+  I08/I09/I11/I12 are being re-contracted for four supplied tracks; Wutai stays blocked and #77 owns
+  the missing fifth plannable GPX.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -465,15 +474,17 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: owns the I21 dependency checkpoint and any future task activation.
-- Terra XHigh: no I21 implementation assignment while I13 is blocked.
-- Terra XHigh source agents: completed both official-source audits, GPX Review and the external request packet.
+- Sol XHigh: owns the community-GPX replan, route contracts, task activation and independent Review.
+- Terra XHigh: will receive I08 only after the planning PR merges; no I21 assignment while I13 is blocked.
+- Terra XHigh source agents: completed official-source audits, GPX Review, the external request packet
+  and a read-only replacement-Variant mapping review.
 
 ## Open work
 
-1. Keep #22/#30 blocked until all five retained exact pilots satisfy the A/B field gate.
-2. A human/controller with external-contact authority may use the five request packets to obtain
-   matching official files or reviewable exact-Variant GPX. No messages have been sent.
+1. Merge the community-GPX planning checkpoint, rewrite #17/#18/#20/#21, close superseded #51/#19,
+   and activate I08 on the merged base.
+2. Implement the four selected community-GPX Variants as focused route-data PRs.
+3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
 ## Blockers and risks
 
@@ -481,16 +492,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Node 24 随附的 npm 11 与 `@nutui/nutui-react-taro@3.0.20` 的不可解析可选依赖
   存在锁文件校验不兼容：npm 11 生成锁时省略该包、`npm ci` 又报缺失。I01 已按
   GitHub #10 的控制端决策固定 npm 10.9.2，并以 `engine-strict` 拒绝错误 npm。
-- Five full route variants still lack complete field-level A/B evidence. Exact gaps and acceptable
-  remediation are recorded in the research report and must not be filled from adjacent routes.
-- The newly supplied GPX files pass basic track-quality checks but are different variants. Human
-  decision `A` retains the existing pilots, so these files cannot satisfy the current route Issues.
-- Two official-source passes have exhausted the publicly discoverable route pages, downloadable files,
-  maps and current notices without finding complete exact-Variant evidence. Repeating broad web search
-  is not a meaningful unblock path; new evidence must come from the listed operators/authorities or a
-  matching reviewable GPX.
-- I09's seven-day identity is now official, but D2–D6 detail and the 5276m/5454m official conflict
-  remain unresolved. I12 is a 2017 event record and lacks current access evidence.
+- Four supplied GPX files are suitable for their actual route identities, not the superseded exact
+  pilots. Each implementation must use the reviewed derivation method and must not retain old names,
+  days or geometry.
+- The fifth plannable Variant is missing. #77 remains blocked until another non-restricted GPX is
+  supplied and reviewed; the Wutai summit track cannot fill it.
+- GPX cannot establish `open`. The four static full records use `operationalStatus='unknown'` unless
+  a precise official management fact is found; unknown is disclosed and does not mean open.
 - I10a remains deliberately narrow: broader restriction scope still requires the missing official
   announcement body or poster.
 - TP-D028 resolved the I15 accumulation ambiguity as activity-window totals. Full rolling-24h or
@@ -507,11 +515,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Forbidden actions while I21 is blocked
 
 - UI, cloud function, reducer, service or TripContext changes for I21
-- Temporary full variants, inferred fixed days, nearby-peak geometry or downgraded source policy
+- Temporary fifth variants, cross-route fields, unreviewed GPX, nearby-peak geometry or treating
+  absence of an official notice as `open`
 - I22/I23 work that depends on the absent trusted I21 result
 
 ## Next action
 
-Wait for one or more exact external source packages listed in
-`docs/research/exact-route-source-recovery-2026-08-07.md`. On receipt, Sol reopens the affected Issue,
-reviews field coverage and only activates I13 after all five full Variants are genuinely source-complete.
+Finish and Review the community-GPX planning PR. After merge, synchronize GitHub Issues, activate
+I08/#17 for the two-day Wugong reverse traverse, and assign its bounded route-data implementation to
+Terra XHigh. Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.

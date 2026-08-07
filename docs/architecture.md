@@ -2,7 +2,7 @@
 
 - Architecture scope: `TP-BETA-001`
 - Status: `APPROVED`
-- Updated: `2026-08-06`
+- Updated: `2026-08-07`
 
 ## 1. 系统边界
 
@@ -59,9 +59,23 @@ RouteVariant (blocked)
 直接当作全行程累计爬升。若来源不能覆盖完整几何，该 full 变体保持阻塞，不为
 混合路线另造一套模糊的体力指标。
 
-来源：A 为官方/政府/协会/API；B 为两个可靠独立来源或经主控审阅的 GPX；C 为未验证
-输入。`Source.supports` 逐字段记录直接或推导证据；推导项必须写明方法，但不计算加权总分。
-只有 A/B 且核心字段完整的 full 变体可输出路线结论。
+来源：A 为官方/政府/协会/API；B 为两个可靠独立来源或经主控审阅的社区 GPX；C 为未验证
+输入。官方没有 GPX 是正常情况，不把“官方轨迹”设为门槛。`Source.supports` 逐字段记录直接
+或推导证据；推导项必须写明方法，但不计算加权总分。只有 A/B 且核心字段完整的 full 变体
+可输出路线结论。
+
+### 社区 GPX 证据边界
+
+- 经 Sol 审阅后，社区 GPX 记录为 `tier='B'`、`kind='reviewed_gpx'`，一份完整且身份清楚的
+  轨迹即可支持它实际记录路线的方向、起终点、分日、距离、升降、参考时长、路线最高点和
+  天气采样点；不机械要求第二条同路线轨迹。
+- 规范名按轨迹真实点序和活动方式定义。GPX 与旧试点不同就建立替代 Variant，不跨路线拼字段。
+- GPX 不能证明当前开放、许可、强制向导或禁令范围；这些事实由 A 级管理来源决定。未找到
+  路线级当前状态时可记录 `operationalStatus='unknown'`，其含义是“尚未证明”，不是默认开放。
+- GPX 分日按 `Asia/Shanghai` 的实际活动日划分；无效高程、跨夜间隔和疑似交通段必须在各
+  路线审计中明确处理。坐标系必须在入库前结合 GPX 规范与实际地标完成一次合理交叉核对。
+- 原始文件不进入仓库。Source 可使用 `url=null`，并通过 `checkedAt`、去标识化标题和
+  `supports.method='derived'` 回链到持久审计；不得保存平台账号、轨迹 ID 或个人精确时间。
 
 `operationalStatus` 为 `open | blocked | unknown`。只有仍有效、来源明确的 `blocked` 触发硬阻断；`unknown` 显示核验提示但不自动降级。
 blocked 的 `effectiveFrom/effectiveTo=null` 只表示官方来源未披露对应边界，不表示永久
@@ -122,8 +136,13 @@ Issue 提前编写 registry。
 
 I10a 的 blocked 记录引用现有 `place:legacy:五台山朝台` 作为地点容器；它不使用旧
 海拔或坐标，也不把该 Place 升级为 verified。这让限制事实在不伪造新 Place 参考
-坐标的情况下可以独立验证。I10b 只有取得可追溯坐标后才可新增 verified Place，并
-在同一受控 PR 中调整引用。
+坐标的情况下可以独立验证。原 I10b 小朝台 full 目标已被 TP-D039 取代；#77 负责选择
+第五条社区 GPX 试点，不能把受限的五台多台顶轨迹重新包装为可规划路线。
+
+I08 的武功山替代 Variant 同样复用现有 `place:legacy:武功山反穿` 作为稳定地点容器，避免
+再创建一个同名 Place。新 Route/Variant 的几何、类型、天数和样点只来自 reviewed GPX；
+不得消费 legacy Place 的旧海拔、坐标、季节、note 或类型提示。I13 需要把该 Place 下唯一的
+verified Variant 解析为 full，而不是停留在 place-only。
 
 ## 3. 路线解析
 

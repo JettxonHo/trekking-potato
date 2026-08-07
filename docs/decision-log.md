@@ -393,7 +393,7 @@
 
 ## 2026-08-07 — TP-D037 保留五条已批准 exact pilot Variants
 
-- Status: Accepted by human (`A`)
+- Status: Superseded by TP-D039
 - Decision: TP-BETA-001 保留 I08、I09、I10b、I11、I12 已批准的五条 exact pilot Variants，
   不用本轮用户 GPX 所记录的武功山反穿、二日四姑娘二峰、五台多台顶穿越、贡嘎西南坡或
   蓝月谷—云杉坪替换它们。五份 GPX 仅作为未来候选 Variant 的调查证据；当前五条路线、I13 和
@@ -407,7 +407,7 @@
 
 ## 2026-08-07 — TP-D038 公开来源恢复结束后转为定向外部资料等待
 
-- Status: Accepted
+- Status: Superseded by TP-D039
 - Decision: 在两轮官方/一手来源恢复、五份用户 GPX 审阅和方案 `A` 决策后，没有一条保留的
   exact pilot Variant 达到 I07 full A/B 门禁。TP-BETA-001 标记为
   `BLOCKED — EXTERNAL_SOURCE_EVIDENCE`；I08、I09、I10b、I11、I12、I13、I21 保持 blocked，
@@ -421,3 +421,27 @@
 - Why: 当前缺口位于资料所有者和 exact Variant 轨迹本身，而不是仓库实现。定向请求包明确列出
   五个机构入口和所需字段，保留恢复路径；继续搜索同一公开面只会重复证据，提前编码则会伪造
   决定天气窗口与安全结论的路线事实。
+
+## 2026-08-07 — TP-D039 官方管理事实与经审阅社区 GPX 分工，并按实际轨迹重定义试点
+
+- Status: Accepted by human
+- Decision: 官方/政府/景区/运营方来源继续负责明确禁行、限制、许可和运营事实；官方不需要
+  提供 GPX。经 Sol 审阅且路线身份清楚的社区 GPX 作为 tier B `reviewed_gpx`，可独立支持它
+  实际记录路线的几何、分日、距离、升降、参考时长、最高点和天气采样点。试点改为武功山·
+  龙山村至景区正门反穿二日、四姑娘山二峰·海子沟两日往返、蓝月谷—云杉坪一日往返、
+  贡嘎西南坡三日，以及由 #77 选择的
+  第五条非明确禁行社区轨迹。类型分别为 `trek/climb/trek/trek`；蓝月谷—云杉坪记录的是
+  `13.223km` 纯步行路线，没有索道或景交段，因此按徒步而不是旧冰川公园试点的 `tour` 分类。
+  五台多台顶轨迹不作为 full；已合并的官方大朝台 blocked 记录保留。
+- Evidence: 人工明确批准“官方管理信息 + 经审核的社区 GPX”并授权按实际 GPX 重定义试点；
+  `docs/research/user-gpx-audit-2026-08-07.md` 已证明五份轨迹的质量和真实身份；I07 schema 原本已
+  支持单份 Sol-reviewed GPX 作为 B 级来源，因此无需改公共 Schema。
+- Data boundary: GPX 不证明当前开放。无路线级当前事实时使用 `operationalStatus='unknown'`
+  并展示复核提示；明确有效的官方 blocked 仍硬阻断。原始 GPX 因平台用户元数据和转载边界不
+  入库，只提交去标识化派生字段、审阅日期和方法，不引入哈希。
+- Supersedes: TP-D037 的 exact-pilot 保留决定，以及 TP-D038 的外部官方轨迹等待状态。历史研究
+  保留，不删除或改写为新路线证据。
+- Alternatives: 继续等待并不存在的官方 GPX；把未经审阅轨迹当 C 级输入；把不同路线字段拼接；
+  将五台受限轨迹计为可规划；降低到不记录来源和未知状态。
+- Why: 官方管理事实与实际轨迹几何来自不同现实来源。分工后仍保持路线身份、禁行规则和逐字段
+  可追溯性，同时解除不现实的官方 GPX 门槛，符合小规模闭测和比例适当的工程要求。
