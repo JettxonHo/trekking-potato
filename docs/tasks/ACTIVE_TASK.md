@@ -3,7 +3,7 @@
 - Task ID: `I13`
 - GitHub Issue: `#22`
 - Title: 实现稳定 ID 的地点、路线与变体解析器
-- Status: `IMPLEMENTATION`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
 - Mode: `IMPLEMENTATION`
 - Owner: Sol XHigh
 - Implementation Agent: Terra XHigh
@@ -243,4 +243,5 @@ Terra 可自行决定局部 helper 名称、内部索引结构、文件内函数
 
 独立 Sol XHigh 合同 Review 已返回 `APPROVED`，P0–P3 均无剩余 finding。规划 PR #88 通过
 latest-head quality 并 squash merged as `5496956`；GitHub #22 已同步且无 blocked 标签。
-Terra XHigh 现在按本合同开始 test-first 实现，完成后只提交 `READY_FOR_CONTROLLER_REVIEW`。
+Terra XHigh 已按本合同完成 test-first 实现，并提交 `READY_FOR_CONTROLLER_REVIEW`；下一步仅为 Sol XHigh
+独立 Review，之后才可创建 implementation PR。
