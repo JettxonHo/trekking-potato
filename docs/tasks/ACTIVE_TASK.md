@@ -3,7 +3,7 @@
 - Task ID: `I19`
 - GitHub Issue: `#28`
 - Title: 实现私人历史、清空历史并停用公共 UGC 主路径
-- Status: `READY_FOR_CONTROLLER_REVIEW`
+- Status: `APPROVED — PR_PENDING`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -31,8 +31,9 @@ Terra 已在 allowlist 内完成原子实现，并保留所有真实 `routes`/`h
 分别改为显式 HistoryItem DTO 与零 public-routes 访问。聚焦 history/route/confirmation/response、
 integration（56/0）、lint、typecheck 与 root test 已通过。本沙箱内 WeChat build 会触发 macOS
 `system-configuration` panic 并挂起；Sol 已在沙箱外以 `env CI=1 npm run build:weapp` 验证 exit 0、
-Webpack 3.24s 成功。没有改依赖、锁文件或构建配置来掩盖该环境现象。交付等待 Sol XHigh 的独立
-Review，非自我批准或合并。
+Webpack 成功；最新返工 head 再次通过，耗时 5.32s。没有改依赖、锁文件或构建配置来掩盖该
+环境现象。Sol 第一次 Review 要求隔离历史面板错误与主结果保存提示；返工测试先 RED 后 GREEN，
+第二次 Review 为 `APPROVED — PR_PENDING`。Terra 未自我批准或合并。
 
 ## 必读上下文
 

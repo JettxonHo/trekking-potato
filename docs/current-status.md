@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I19 / #28 / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `I19 / #28 / APPROVED — PR_PENDING`
 - Branch: `codex/i19-private-history-implementation`
 - Base: `main` at `72ab196`
 - Implementation assignment: Terra XHigh
@@ -387,8 +387,13 @@ semantics and non-destructive public UGC shutdown.
   tombstones, zero geocode UGC reads, and the frontend local history error/delete/clear/degraded-save
   paths. Focused tests, root test, integration (56/0), lint and typecheck are green. In this sandbox,
   WeChat build triggers a macOS `system-configuration` panic and hangs; Sol verified outside the sandbox
-  with `env CI=1 npm run build:weapp` that it exits 0 and Webpack completes in 3.24s. No dependency or
-  build-config change was made to conceal the sandbox-only phenomenon.
+  with `env CI=1 npm run build:weapp` that it exits 0. The latest reviewed head compiled in 5.32s. No
+  dependency or build-config change was made to conceal the sandbox-only phenomenon.
+- Sol's first implementation Review returned `CHANGES_REQUESTED` because history panel failures and the
+  result-page save hint shared one state and could leak across surfaces. Terra split `historyError` from
+  `historySaveError` and added a sensitive regression. Sol's second Review inspected the actual diff and
+  independently reran root test, integration (56/0), lint, typecheck, the latest-head WeChat build and
+  diff check; all passed. Result: `APPROVED — PR_PENDING`.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -402,8 +407,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol independently reviews I19 code, RED/GREEN evidence and the runner build note; bounded findings return to Terra.
-2. Open and merge the implementation PR only after latest-head quality and explicit Sol `APPROVED`.
+1. Push the reviewed I19 head and open its implementation PR.
+2. Merge only after the PR head matches the reviewed commit and latest-head quality passes.
 3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
 
 ## Blockers and risks
@@ -437,5 +442,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol reviews the I19 structured result package and independently decides whether the build-runner note
-requires a bounded follow-up before the implementation PR is opened.
+Push the approved I19 implementation head, open the PR, and require latest-head GitHub quality before merge.
