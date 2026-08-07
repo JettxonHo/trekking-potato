@@ -2,9 +2,9 @@
 
 - Updated: `2026-08-07`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — I13 READY_FOR_CONTROLLER_REVIEW`
+- Goal status: `ACTIVE — I13 APPROVED / PR_PENDING`
 - Active milestone: `M3 Route domain` (five full reviewed-track Variants and one blocked record merged; I13 remains)
-- Active task: `I13 / #22 / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `I13 / #22 / APPROVED — PR_PENDING`
 - Branch: `codex/22-stable-route-resolver`
 - Base: `main` at `5496956`
 - Assignment: Terra XHigh implements the frozen contract; Sol XHigh owns independent Review and merge
@@ -105,6 +105,12 @@
   target; 党岭、五台山朝台 and a synthetic multi-full Place return `not_found`, while 泰山 remains direct.
   The contract also mutates the injected validated catalog after factory creation and proves the resolver snapshot
   is unchanged. The same complete validation matrix, including host WeChat build, passes again.
+- Sol XHigh inspected the complete diff through `2f457fe`, found and verified the Place-ID bypass fix, then
+  independently reran focused contracts, root test, integration `56/0`, lint `0 errors / 10 warnings`,
+  typecheck, host WeChat build and diff check; all passed. A second independent Sol XHigh also returned
+  `APPROVED`, with no P0–P2 finding. Its P3 observation that same-name ID tie-break lacks a dedicated fixture
+  is non-blocking: the deterministic comparator is directly inspectable and the suite already covers stable
+  sorting; adding another synthetic permutation would be mechanical rather than risk-reducing.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1 and M2 are complete. I07, I10a and all five reviewed community-track Variants are complete; I13 is
@@ -609,8 +615,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol XHigh independently reviews the I13 actual diff and reruns the required matrix.
-2. Create the implementation PR only after `APPROVED`; require latest-head `quality` before merge.
+1. Push the approved I13 branch and create the focused implementation PR.
+2. Require latest-head `quality`; merge only if the reviewed and CI heads match.
 
 ## Blockers and risks
 
@@ -646,5 +652,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol XHigh performs independent I13 Review. Keep #30 blocked until the implementation is approved, passes
-latest-head quality and merges.
+Push the approved I13 implementation and merge only after latest-head quality. Keep #30 blocked until merge.
