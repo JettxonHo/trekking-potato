@@ -7,8 +7,8 @@
 - Mode: `INVESTIGATION`
 - Owner: Sol XHigh
 - Implementation Agent: 未分配
-- Branch: `codex/i21-input-flow-planning`
-- Base: `main` at `9d70f7c`
+- Branch: `codex/m3-source-refresh-2026-08`
+- Base: `main` at `bfd9394`
 - Goal: `TP-BETA-001`
 
 ## 当前检查点
@@ -20,6 +20,10 @@ queryId-only service 是后续 UI 的唯一流程基础。
 I21 当前只授权调查与合同同步，不授权业务实现。I13 尚未能把 cold catalog 接入生产
 resolver，因为五条 full pilot Variant 仍缺少完整 A/B 字段证据。当前 I05 legacy 候选不能
 提供 `entityKind/capability/fixedDays`，不得被 I21 当作已验证 RouteVariant。
+
+2026-08-07 来源刷新再次核验 I08、I09、I10b、I11、I12。新增证据只补强局部设施、区域管理、
+索道服务或单段几何，没有一条同时满足完整日程、全程几何、天气样点和精确变体运行状态。
+详细字段与拒绝项以 `docs/research/pilot-route-source-audit.md` 第 8 节为准。
 
 ## I21 补充阅读
 
