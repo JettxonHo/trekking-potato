@@ -2,12 +2,12 @@
 
 - Updated: `2026-08-07`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — I13 CONTRACT_APPROVED / PLANNING_PR_PENDING`
+- Goal status: `ACTIVE — I13 IMPLEMENTATION`
 - Active milestone: `M3 Route domain` (five full reviewed-track Variants and one blocked record merged; I13 remains)
-- Active task: `I13 / #22 / CONTRACT_APPROVED — PLANNING_PR_PENDING`
-- Branch: `codex/i13-resolver-contract`
-- Base: `main` at `4c17f45`
-- Assignment: Sol XHigh owns the approved planning PR; Terra XHigh implements only after its merge
+- Active task: `I13 / #22 / IMPLEMENTATION`
+- Branch: `codex/22-stable-route-resolver`
+- Base: `main` at `5496956`
+- Assignment: Terra XHigh implements the frozen contract; Sol XHigh owns independent Review and merge
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -90,6 +90,9 @@
   three, resynchronized #22, and the focused re-review returned `APPROVED` with no P0–P3 finding.
 - Planning validation passes root `npm test`, integration `56/0`, lint `0 errors / 10 existing warnings`,
   typecheck, host WeChat build and `git diff --check`. No business code changed on the planning branch.
+- I13 planning PR #88 matched approved contract head `c87e891`, passed latest-head GitHub `quality` in
+  3m14s (all substantive steps passed; runner cleanup completed), and squash merged as `5496956`.
+  GitHub #22 is active without a blocked label; the implementation branch was created from that exact main.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1 and M2 are complete. I07, I10a and all five reviewed community-track Variants are complete; I13 is
@@ -594,9 +597,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Create the focused I13 planning PR; require latest-head `quality` before merge.
-2. Merge only if the reviewed head and CI head match.
-3. From the merged planning base, assign the frozen I13 implementation to Terra XHigh.
+1. Terra XHigh completes I13 test-first implementation on the frozen allowlist.
+2. Sol XHigh independently reviews the actual diff and reruns the required matrix.
+3. Create the implementation PR only after `APPROVED`; require latest-head `quality` before merge.
 
 ## Blockers and risks
 
@@ -632,5 +635,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Create the approved I13 planning PR and merge only after latest-head quality. Keep #30 blocked until the
-I13 implementation is independently approved and merged.
+Terra XHigh implements I13 from `5496956`; Sol XHigh then performs independent Review. Keep #30 blocked
+until the implementation is approved, passes latest-head quality and merges.
