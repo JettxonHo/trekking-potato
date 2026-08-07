@@ -16,7 +16,8 @@ closed. I15 and I16 merged through PRs #57/#59; M4 is complete. I17 planning, bo
 completion checkpoint merged through PRs #62–#65; parent #26 is closed. Successful base results now
 create server-owned short-lived TripContexts. I18's queryId-only planning and implementation merged
 through PRs #66/#67; #27 is closed. I19 planning PR #68 merged as `72ab196` after independent Review
-and latest-head quality. M5 is now active at I19 implementation.
+and latest-head quality. I19 implementation PR #69 merged as `b7c17ea`; #28 and M5 are closed.
+M6 is now active at the I20 reducer/service contract.
 
 ## 1. Objective
 
@@ -26,9 +27,9 @@ Deliver a reproducible, reviewable WeChat mini-program that uses verified route 
 
 The Taro app and two CloudBase functions are the current product. Engineering gates, wind units,
 trip date windows, route type propagation, fuzzy confirmation, hourly evaluation and deterministic
-safety composition are complete. Full pilot route records, trusted second-stage context, private-only
-history and explicit UI state remain. M3's full pilot records are source-gated; the active unblocked
-path is I19's frozen private-history and non-destructive public-UGC implementation.
+safety composition, trusted second-stage context and private-only history are complete. Full pilot route
+records and explicit UI state remain. M3's full pilot records are source-gated; the active unblocked path
+is I20's explicit reducer and getAdvice service seam.
 
 Current verified baselines are route type `93/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 
@@ -50,8 +51,8 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M2 Correctness | Complete | I04–I06 | Response phases, confirmation and deterministic safety merge are tested |
 | M3 Route domain | Active — full routes source-blocked | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
-| M5 Trust and privacy | Active — I19 implementation | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
-| M6 Core UX | Pending | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
+| M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
+| M6 Core UX | Active — I20 contract | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10 is

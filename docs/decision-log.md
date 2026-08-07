@@ -333,3 +333,19 @@
 - Why: 三处入口必须共同关闭才能兑现“停用公共 UGC”，而条件删除可直接提供原子归属边界，
   无需额外认证层。公共 DTO 和统一错误语义足以隔离私人数据；保留存量避免未经授权的破坏性
   操作，也为将来人工决定保留回滚空间。聚焦真实数据边界比枚举基本不可能的攻击组合更可维护。
+
+## 2026-08-07 — TP-D033 I20 reducer 与 getAdvice adapter 边界
+
+- Status: Accepted
+- Decision: I20 用一个原子 PR 建立纯 `trip-flow` reducer、可注入 getAdvice adapter 和当前页面
+  的最小接线。reducer 唯一拥有 10 个流程状态、单调本地 request token、候选/类型上下文、
+  可渲染 result 与流程 error；页面删除同义 lifecycle flags 和 `_requestGeneration`，继续拥有
+  表单草稿、视觉 timer、缓存适配与 I19 history 局部状态。service 精确封装
+  `prepare/confirm/advice`，其中 advice 只发送 queryId。RESET、取消、返回和新查询推进 token；
+  旧异步事件无副作用。普通 advice 失败为 degraded，query context 不可用保留 result 并进入 error。
+  I20 不提前定义通用 RECOVER/recoverTo；I23 的异步恢复动作必须用推进 token 的新事件开始。
+- Alternatives: 只提取网络调用而保留页面状态；增加 flow controller/subscription；把全部页面数据
+  搬入 reducer；转换函数组件或引入 Redux/Zustand；把 I21–I23 一并实现。
+- Why: 两个小深模块分别集中状态复杂度和远程协议，而页面仍是唯一编排调用方；额外 controller
+  只有一个消费者且会过早增加生命周期接口。保留旧 flags 会制造双重真相，全面重写又会扩大
+  回归面。该边界能直接测试 base-first、竞态与 I18 信任约束，同时不偷做后续产品体验。

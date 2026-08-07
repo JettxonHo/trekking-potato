@@ -3,11 +3,11 @@
 - Updated: `2026-08-07`
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
-- Active milestone: `M5 Trust and privacy` (M3 full routes remain source-blocked)
-- Active task: `I19 / #28 / APPROVED — PR_PENDING`
-- Branch: `codex/i19-private-history-implementation`
-- Base: `main` at `72ab196`
-- Implementation assignment: Terra XHigh
+- Active milestone: `M6 Core UX` (M3 full routes remain source-blocked)
+- Active task: `I20 / #29 / APPROVED — PLANNING_PR_PENDING`
+- Branch: `codex/m5-checkpoint-i20-contract`
+- Base: `main` at `b7c17ea`
+- Implementation assignment: none until the I20 planning contract merges
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -33,14 +33,15 @@
 - I18 planning PR: `#66` — merged
 - I18 implementation PR: `#67` — merged as `5c69195`; GitHub #27 closed; latest-head quality passed
 - I19 planning PR: `#68` — merged as `72ab196`; attempt 3 latest-head quality passed in 50 seconds
+- I19 implementation PR: `#69` — merged as `b7c17ea`; GitHub #28 and M5 closed
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
-M4 is now complete through I14–I16 without authorizing I13 or real full-route data. M5 is active at
-I19 implementation. I17 creates server-owned short-lived contexts and I18 has completed the atomic
-queryId-only advice cutover. I19 now implements the frozen private-history ownership, delete/clear
-semantics and non-destructive public UGC shutdown.
+M4 is complete through I14–I16 without authorizing I13 or real full-route data. M5 is complete: I17
+creates server-owned short-lived contexts, I18 completed the atomic queryId-only advice cutover, and
+I19 completed private history plus non-destructive public UGC shutdown. M6 is active at the I20 pure
+reducer and getAdvice service contract.
 
 ## Completed
 
@@ -394,6 +395,16 @@ semantics and non-destructive public UGC shutdown.
   `historySaveError` and added a sensitive regression. Sol's second Review inspected the actual diff and
   independently reran root test, integration (56/0), lint, typecheck, the latest-head WeChat build and
   diff check; all passed. Result: `APPROVED — PR_PENDING`.
+- I19 PR #69 matched reviewed head `ed8800f`, completed every latest-head GitHub `quality` step in 51
+  seconds and squash merged as `b7c17ea`; #28 closed. M5 and the previously omitted M4 GitHub milestones
+  are now closed.
+- Two read-only I20 audits were assigned to map the reducer/service boundary and sensitive test seam.
+  The architecture audit recommends one atomic Issue with a pure `trip-flow` module, one injected
+  getAdvice adapter and minimal page wiring; no global library, visual rewrite or I21–I23 behavior.
+- The first formal I20 contract Review returned `CHANGES_REQUESTED` for an incomplete RECOVER/recoverTo
+  design and a dependency graph that omitted I18/I19. Sol removed generic recovery from I20, required
+  future I23 async recovery to start with a new token, and corrected the graph to I17→I18→I19→I20.
+  Second Review returned `APPROVED` with no remaining P0–P2 or human-confirm item.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -401,15 +412,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: owns I19 contract, independent implementation Review, GitHub orchestration and merge decision.
-- Terra XHigh: assigned the frozen I19 implementation contract on `codex/i19-private-history-implementation`.
+- Sol XHigh: owns the M5 checkpoint, I20 contract, independent Review and merge decision.
+- Terra XHigh audit agents: read-only I20 reducer/service and test-boundary review; no coding assignment.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Push the reviewed I19 head and open its implementation PR.
-2. Merge only after the PR head matches the reviewed commit and latest-head quality passes.
-3. Continue source acquisition independently; never fill blocked full variants with adjacent data.
+1. Synchronize the approved contract to GitHub #29 and open the pure planning PR.
+2. Merge only after latest-head quality and the reviewed head match.
+3. Activate Terra implementation from the merged planning base; continue source work independently.
 
 ## Blockers and risks
 
@@ -428,18 +439,18 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - TP-D029 resolves I16's sunset evidence boundary as the earliest value across each route-day's trusted
   I14 samples. If any necessary sunset cannot be calculated, the result is unavailable unless a known
   hard no-go independently applies.
-- I19 crosses history, geocode and frontend boundaries and therefore stays one atomic PR; a partial
-  merge would leave either meaningless frontend calls or a remaining trusted public UGC path.
-- I19 must preserve all real routes/history records. Data deletion, migration, permissions, production
-  configuration and deployment remain unauthorized.
+- I20 must remove the page's duplicate lifecycle flags and private generation counter; keeping both
+  reducer state and legacy flags would create two conflicting flow truths.
+- I20 must preserve I18 queryId-only advice and I19 local history failure semantics; it cannot become
+  a UI redesign, global-state migration or service-side business validator.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I19 implementation
+## Forbidden actions during I20 planning
 
-- Any file outside the I19 allowlist without Sol recording a necessary dependency first
-- Real route data, route schema, TripContext, weather/verdict/AI/safety behavior or broader frontend work
-- Deployment, database mutation, UGC deletion, migration, permissions or production configuration
+- Production or test code before the planning PR merges
+- Global state libraries, public API changes, CSS/visual work or I21–I23 product behavior
+- Route data/schema, cloud functions, TripContext, history, weather/verdict/AI/safety behavior
 
 ## Next action
 
-Push the approved I19 implementation head, open the PR, and require latest-head GitHub quality before merge.
+Synchronize #29, commit the approved I20 contract and open the pure planning PR.

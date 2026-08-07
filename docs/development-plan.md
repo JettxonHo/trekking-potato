@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M5 / I19 APPROVED — PR_PENDING; M3 full routes source-blocked`
+- Status: `ACTIVE — M6 / I20 APPROVED — PLANNING_PR_PENDING; M3 full routes source-blocked`
 - Updated: `2026-08-07`
 
 ## 1. 依赖图
@@ -11,8 +11,8 @@ I04 → I07 → I10a
 I10a → {I08, I09, I10b, I11, I12} → I13
 I07 → I14 → I15 → I16
 I15 + I16 → I17 → I18 → I19
-I04 + I17 → I20
-I13 + I16 + I20 → I21 → I22
+I17 → I18 → I19 → I20
+I16 + I20 → I21 foundation; I13 unlocks verified RouteVariant integration within I21 → I22
 I19 + I22 → I23
 I19 + I23 → I24 → I25
 ```
@@ -254,3 +254,21 @@ M7 前不做重复全局 Review。
   服务端 openid，list 显式投影 DTO，delete/clear 使用条件删除；旧 UGC mode 为认证 tombstone，
   geocode 与手动坐标路径不再访问公共 routes。页面保持 history 局部失败、服务端成功后才更新列表、
   普通 advice 失败保存 deterministic degraded 摘要，query context 不可用仍零 history。
+
+I19 implementation PR #69 passed two-round Sol Review and latest-head quality, squash merged as
+`b7c17ea`, and closed #28 plus M5.
+
+## 15. I20 冻结合同摘要
+
+- I20 使用一个 Issue/PR，新增一个纯 `trip-flow` reducer 和一个可注入 getAdvice service，随后
+  最小接线当前页面；不拆出无法独立验收的未接线模块 PR。
+- reducer 是 10 个流程状态、单调 request token、候选/类型上下文、结果和流程错误的唯一事实
+  来源。页面删除同义 lifecycle flags 与 `_requestGeneration`，但保留表单、视觉 timer、缓存适配
+  和 I19 history 局部状态。
+- service 只封装 `prepare/confirm/advice`，advice 精确发送 mode/queryId；不校验业务事实、不自动
+  重试、不碰 history/cache。startTimeLocal/climbSupport 只作为 I21 已冻结接口字段，不在 I20 加 UI。
+- RESET、新查询、候选/手动取消和 onBack 均推进 token；迟到 response/failure 是同对象 no-op，
+  不得写 UI、cache 或 history。context 不可用保留 base result 且不是 degraded。
+- I21 负责新输入和稳定路线接入，I22 负责结果体验，I23 负责重试/恢复控件；I20 不提前实现。
+- 精确事件、allowlist、测试矩阵与升级条件以 GitHub #29 和当前
+  `docs/tasks/ACTIVE_TASK.md` 为准。规划 PR 合并前不得开始实现。
