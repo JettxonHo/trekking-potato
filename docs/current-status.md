@@ -475,8 +475,9 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   test: the absent Wugong fragment produced `MODULE_NOT_FOUND`. The minimum GREEN adds only the plain
   reviewed-GPX fragment, its catalog assertions and minimal runner registration. The focused route-data and
   route-domain contracts, root test, integration (56/0), lint (0 errors; 10 existing warnings) and
-  typecheck pass. The sandbox WeChat build hit the known macOS `system-configuration` NULL-object panic;
-  host-environment rerun is required before final validation can be claimed.
+  typecheck pass. The sandbox WeChat build hit the known macOS `system-configuration` NULL-object panic,
+  an environment limitation; Sol independently reran `npm run build:weapp` on the host, where Taro 4.0.9
+  Webpack compiled successfully in 3.68 seconds with exit 0.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -491,8 +492,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Re-run I08/#17 WeChat build on the host, then independently Review the focused implementation on the
-   merged `1e601d9` base.
+1. Sol independently Reviews I08/#17, creates its Draft PR, and awaits latest-head CI on the focused
+   implementation from the merged `1e601d9` base.
 2. Freeze and implement I09/I11/I12 as focused route-data PRs after I08.
 3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
@@ -531,6 +532,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra XHigh completes I08/#17 host-build evidence and returns a draft PR plus full RED/GREEN and quality
-evidence. Sol XHigh then reviews the actual diff and latest-head CI before any merge. Keep
+Sol XHigh reviews the I08/#17 actual diff, creates its Draft PR and verifies latest-head CI before any
+merge. Keep
 #22/#30 blocked until #77 and all five full Variant PRs are complete.
