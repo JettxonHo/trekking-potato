@@ -522,3 +522,32 @@
 - Why: 路线身份、实录几何和当前管理范围是三个不同事实层。分层既保留官方安全边界，也不把
   概括公告扩大成未经证实的禁行判定；非导航产品只需要诚实行程量级和逐日天气高区，不需要伪造
   一条从个人 GPX 中“清洗”出的官方导航线。
+
+## 2026-08-07 — TP-D043 用户自有 KML 作为通用 reviewed track，并冻结党岭第五试点
+
+- Status: Accepted by Sol under human-approved TP-D039
+- Decision: 用户明确确认新文件是其本人轨迹。经两次独立只读审阅，该 KML 2.2
+  `gx:Track` 可作为第五条 full Variant 的 tier B 几何证据，无需转换为 GPX。Route 冻结为
+  `党岭·葫芦海—卓雍措徒步`，Variant 冻结为 `党岭村—葫芦海—卓雍措一日往返`，类型
+  `trek`、1 日、纯步行、`out_and_back`。新增内部 Source kind `reviewed_track`，本条使用该
+  kind；既有四条 `reviewed_gpx` 保持兼容，不迁移、不改名。
+- Geometry: `3326` 组坐标、高程与时间完整配对；独立派生为
+  `19.067km / +1009.4m / -955.8m / 12.18h`，最高有效轨迹点约 `4341.2m`，按整米记录
+  `4341m`。低区起点与卓雍措方向轨迹高点构成两个 WGS84 天气样点。轨迹无断点、交通桥或
+  影响几何的高程异常；一处瞬时速度异常不对应空间跳点，不作过度清洗。
+- Management boundary: 一手资料支持党岭、葫芦海和卓雍措身份及当地徒步管理活动；官方资料
+  还证明 2025-11-15 起的当次冬季关闭，但未找到可访问的 2026 当前开放原文。历史季节性关闭
+  不能永久化为当前 `blocked`，二手恢复消息也不能升级为 `open`，故记录
+  `operationalStatus='unknown'` 并要求出发前复核。
+- Data boundary: 原始 KML 不入库；平台账号、创作者字段、轨迹/缩略图 ID、精确个人日期时间和
+  完整点序全部排除。静态 fragment 只保存派生量、两个必要天气样点、审阅日期和逐字段方法。
+- Interface boundary: `reviewed_track` 是内部 Source enum 的 additive 扩展，表达经审阅的地理
+  轨迹证据，不按 KML/TCX/FIT 扩张格式专用枚举。它不新增上传、生产解析、公共响应字段、依赖、
+  数据迁移或部署；现有 `reviewed_gpx` 继续有效。
+- Evidence: 人工明确说明轨迹归本人所有；`docs/research/dangling-kml-audit-2026-08-07.md`；
+  丹巴县政府和甘孜州政协一手资料；两名独立 Agent 的 KML 结构/连续性/身份审阅均返回
+  `APPROVED FOR CONTRACT`。
+- Alternatives: 要求用户将 KML 转 GPX；把 KML 错记为 `reviewed_gpx`；新增
+  `reviewed_kml` 并让枚举随格式增长；把旧冬季公告当永久禁令；依据二手恢复消息标记 open。
+- Why: KML 已完整承载同等轨迹证据，转换不会增加可信度。通用 reviewed-track 语义既透明又
+  向后兼容；将几何和管理事实分层，可以完成第五条真实试点而不伪造开放状态。
