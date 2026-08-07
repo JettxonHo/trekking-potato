@@ -40,6 +40,7 @@
 - M3 source refresh PR: `#73` — merged as `31eab6d`; latest-head quality passed
 - User GPX audit PR: `#74` — merged as `97c6728`; latest-head quality passed
 - Exact-pilot retention PR: `#75` — merged as `62ba8c5`; latest-head quality passed
+- External evidence checkpoint PR: `#76` — current checkpoint; latest head is tracked by the PR
 
 Status semantics: TP-BETA-001 is blocked on external exact-route evidence. M1 and M2 are complete.
 I07 and I10a are complete. The

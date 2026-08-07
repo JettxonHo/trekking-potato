@@ -12,7 +12,7 @@
 
 本轮逐一检索了路线运营方/景区/政府/协会官网，公开官方 PDF、官方地图/API、当前公告及可下载轨迹/高程资料。没有把搜索结果摘要当作证据；下列“已访问”均指直接页面/PDF/API，另列出读取失败的官方 URL 以避免重复尝试。唯一纳入的可靠二级来源只作为 B 候选，明确不具备两份独立来源或完整变体覆盖。
 
-已在本轮读取 live GitHub Issues [#17](https://github.com/JettxonHo/trekking-potato/issues/17)、[#18](https://github.com/JettxonHo/trekking-potato/issues/18)、[#20](https://github.com/JettxonHo/trekking-potato/issues/20)、[#21](https://github.com/JettxonHo/trekking-potato/issues/21)、[#51](https://github.com/JettxonHo/trekking-potato/issues/51) 和 [#22](https://github.com/JettxonHo/trekking-potato/issues/22)。其 source-gate 与此报告一致；没有修改任何 Issue。
+已在本轮读取 live GitHub Issues [#17](https://github.com/JettxonHo/trekking-potato/issues/17)、[#18](https://github.com/JettxonHo/trekking-potato/issues/18)、[#20](https://github.com/JettxonHo/trekking-potato/issues/20)、[#21](https://github.com/JettxonHo/trekking-potato/issues/21)、[#51](https://github.com/JettxonHo/trekking-potato/issues/51) 和 [#22](https://github.com/JettxonHo/trekking-potato/issues/22)。其 source-gate 与此报告一致；研究 Agent 未修改 Issue，随后由 Sol 在相关 Issues 追加了本轮证据结论和外部资料请求入口，阻塞状态不变。
 
 | Exact Variant | 新增可登记 `direct` 字段 | 本轮最高可用证据 | I07 A/B full gate | 解锁 Issue |
 |---|---|---|---|---|
