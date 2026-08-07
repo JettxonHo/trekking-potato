@@ -3,12 +3,12 @@
 - Task ID: `I08`
 - GitHub Issue: `#17`
 - Title: 录入武功山·龙山村至景区正门反穿二日徒步线
-- Status: `READY_AFTER_PLANNING_MERGE`
+- Status: `ACTIVE`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
 - Branch: `codex/i08-wugong-community-gpx`
-- Base: 本规划 PR 合并后的最新 `main`
+- Base: `main` at `1e601d9`
 - Goal: `TP-BETA-001`
 
 ## 1. 任务目标
@@ -17,7 +17,7 @@
 RouteVariant，并通过现有 `test:route-data` seam 验证。它替代原 I08 的官方索道一日线，不修改
 旧路线数据，也不接入 I13 生产搜索。
 
-规划 PR 合并前不得创建实现分支或修改业务文件；合并后由 Sol 同步 GitHub #17 并正式分派。
+规划 PR #78 已合并，GitHub #17 已同步并解除 blocked；本合同现已由 Sol 正式分派给 Terra XHigh。
 
 ## 2. 必须阅读
 
