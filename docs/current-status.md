@@ -4,10 +4,10 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M6 Core UX` (M3 full routes remain source-blocked)
-- Active task: `I20 / #29 / APPROVED — PR_PENDING`
-- Branch: `codex/i20-frontend-flow-implementation`
-- Base: `main` at `7fc295f`
-- Implementation assignment: Terra XHigh
+- Active task: `I21 / #30 / BLOCKED_BY_I13`
+- Branch: `codex/i21-input-flow-planning`
+- Base: `main` at `9d70f7c`
+- Implementation assignment: none; investigation/documentation only
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -35,14 +35,16 @@
 - I19 planning PR: `#68` — merged as `72ab196`; attempt 3 latest-head quality passed in 50 seconds
 - I19 implementation PR: `#69` — merged as `b7c17ea`; GitHub #28 and M5 closed
 - I20 planning PR: `#70` — merged as `7fc295f`; GitHub #29 implementation activated
+- I20 implementation PR: `#71` — merged as `9d70f7c`; GitHub #29 closed
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
 independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
 M4 is complete through I14–I16 without authorizing I13 or real full-route data. M5 is complete: I17
 creates server-owned short-lived contexts, I18 completed the atomic queryId-only advice cutover, and
-I19 completed private history plus non-destructive public UGC shutdown. M6 is active at the I20 pure
-reducer and getAdvice service contract.
+I19 completed private history plus non-destructive public UGC shutdown. I20 completed the pure reducer
+and getAdvice service seam. M6 is now blocked at I21 until all five required full variants meet A/B
+policy and I13 can resolve them from the production catalog.
 
 ## Completed
 
@@ -422,6 +424,14 @@ reducer and getAdvice service contract.
   all pass. Sol also reran the WeChat build outside the sandbox, where it completed successfully.
   Second Review is `APPROVED — PR_PENDING`, with no remaining P0–P2 or human-confirm item and only
   latest-head GitHub `quality` outstanding.
+- I20 PR #71 matched reviewed head `daa2f02`, completed latest-head `quality` in 51 seconds and squash
+  merged as `9d70f7c`; #29 closed. The local main was then fast-forwarded over HTTPS after GitHub CLI's
+  post-merge SSH refresh failed; the remote merge itself had already succeeded.
+- Sol and an independent Terra XHigh performed the I21 dependency audit. The production handler still
+  ignores `startTimeLocal/climbSupport`, TripContext still records a null start time, and the I05 legacy
+  candidate has no `entityKind/capability/fixedDays`. A frontend-only slice would collect dead input;
+  a backend-only slice would break the current client. TP-D034 therefore keeps I21 atomic after I13 and
+  marks #30 `BLOCKED_BY_I13`; no business implementation has been assigned.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -429,15 +439,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: owns I20 contract, independent implementation Review and merge decision.
-- Terra XHigh: assigned I20 implementation on `codex/i20-frontend-flow-implementation`.
+- Sol XHigh: owns the I21 dependency checkpoint and any future task activation.
+- Terra XHigh: no I21 implementation assignment while I13 is blocked.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Push the approved I20 head, open its implementation PR, and require latest-head GitHub `quality`
-   before merge.
-2. Continue source work independently without inventing blocked route fields.
+1. Keep #30 blocked and synchronize its atomic post-I13 contract with this checkpoint.
+2. Request human-provided reviewable GPX/second reliable sources, or an explicit product/source-policy
+   decision, because the five full pilot variants still cannot meet A/B field evidence.
 
 ## Blockers and risks
 
@@ -456,18 +466,19 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - TP-D029 resolves I16's sunset evidence boundary as the earliest value across each route-day's trusted
   I14 samples. If any necessary sunset cannot be calculated, the result is unavailable unless a known
   hard no-go independently applies.
-- I20 must remove the page's duplicate lifecycle flags and private generation counter; keeping both
-  reducer state and legacy flags would create two conflicting flow truths.
-- I20 must preserve I18 queryId-only advice and I19 local history failure semantics; it cannot become
-  a UI redesign, global-state migration or service-side business validator.
+- I21 cannot be split into a frontend-only or backend-only merge while I13 is missing: either direction
+  creates a dead input or protocol-incompatible main.
+- I13 cannot infer full RouteVariants from the existing legacy candidate fields. All five required
+  pilots need complete A/B route evidence before the planned I13 production resolver is activated.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I20 implementation
+## Forbidden actions while I21 is blocked
 
-- Any file outside the I20 allowlist without Sol recording a necessary dependency first
-- Global state libraries, public API changes, CSS/visual work or I21–I23 product behavior
-- Route data/schema, cloud functions, TripContext, history, weather/verdict/AI/safety behavior
+- UI, cloud function, reducer, service or TripContext changes for I21
+- Temporary full variants, inferred fixed days, nearby-peak geometry or downgraded source policy
+- I22/I23 work that depends on the absent trusted I21 result
 
 ## Next action
 
-Terra executes the frozen I20 task contract; Sol waits for the local result package before reviewing.
+Publish this dependency checkpoint and request the human source/GPX decision required by the Goal stop
+condition. No implementation Agent starts I21 before I13 is genuinely unblocked and merged.

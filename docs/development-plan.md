@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M6 / I20 IMPLEMENTATION; M3 full routes source-blocked`
+- Status: `ACTIVE — I20 COMPLETE; I21 BLOCKED_BY_I13; M3 full routes source-blocked`
 - Updated: `2026-08-07`
 
 ## 1. 依赖图
@@ -12,7 +12,7 @@ I10a → {I08, I09, I10b, I11, I12} → I13
 I07 → I14 → I15 → I16
 I15 + I16 → I17 → I18 → I19
 I17 → I18 → I19 → I20
-I16 + I20 → I21 foundation; I13 unlocks verified RouteVariant integration within I21 → I22
+I13 + I16 + I20 → I21 → I22
 I19 + I22 → I23
 I19 + I23 → I24 → I25
 ```
@@ -274,5 +274,17 @@ I19 implementation PR #69 passed two-round Sol Review and latest-head quality, s
   `docs/tasks/ACTIVE_TASK.md` 为准。规划 PR 合并前不得开始实现。
 
 I20 implementation 已完成 RED→GREEN：新增 reducer/service、最小页面接线与 `test:trip-flow`，并将
-I05/I18 的页面静态断言迁移到 reducer token/service seam。它不修改云函数、CSS、history 语义或
-I21–I23 行为；当前等待 Sol 的独立实际 diff Review。
+I05/I18 的页面静态断言迁移到 reducer token/service seam。Sol 两轮 Review 后批准，
+PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29 关闭。
+
+## 16. I21 依赖门与原子交付
+
+- I21 不拆分为“前端先加控件”或“后端先强制字段”的可合并子 Issue。前者会让
+  `startTimeLocal/climbSupport` 被生产 handler 忽略，后者会让当前页面无法提交。
+- I21 依赖 I13 先把 cold catalog 接入生产 resolver；只有服务端能区分
+  `route_variant/full` 与 `place/place_only`、恢复可信 route type/fixedDays 后，才能诚实决定
+  固定天数、放行自由 1–7 天和是否必须收集 climb support。
+- I13 合并后，I21 以一个原子垂直 PR 同时交付：输入 UI、`prepare/confirm` 请求、服务端
+  `date/startTimeLocal/level/days/climbSupport` 校验、确认快照、TripContext requestSummary 和回归测试。
+- 未解锁前 #30 保持 `BLOCKED_BY_I13`，不修改业务代码；不用 legacy 候选的名称、类型或天数
+  推导 RouteVariant 事实。

@@ -284,6 +284,18 @@ unavailable 分流、new query/RESET/候选取消/手动取消/onBack 的 token 
 阻断迟到的 UI/cache/history side effect。`test:confirmation` 与 `test:response` 只更新了既有页面
 静态 seam，移除了已退役 `_requestGeneration` 断言；核心竞态行为只由 reducer 直接验证。
 
+### I21 依赖门与未来矩阵
+
+I13 未合并时不新增 I21 生产测试或控件：没有可信 resolver 的“前端字段通过”不能证明
+输入影响了天气、结论或快照。I13 合并后，I21 的代表性垂直矩阵必须同时证明：
+
+- `date/startTimeLocal/level/days/climbSupport` 的客户端提示与服务端严格校验，输入失败时
+  不执行天气、规则、AI、TripContext 或 history 副作用。
+- full Variant 只使用服务端 `fixedDays`，忽略客户端自由天数；place-only/手动地点仍严格保留 1–7 天。
+- climb 的三种 support 都可通过，缺失/非法 support 为 `missing_climb_support`；trek/tour 不强制。
+- confirmation 快照保留全部输入，confirm 仍只用 candidate ID 让服务端恢复路线事实；advice 仍只有 queryId。
+- place-only 仍为 limited/null verdict；I20 token 竞态、I19 history 和 I18 信任边界不回归。
+
 ## 4. 关键矩阵
 
 ### 路线确认

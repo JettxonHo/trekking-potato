@@ -613,6 +613,12 @@ I20 不新增重试控件、全局状态库、业务 validator 或第 11 个状�
 I20 也不定义通用 RECOVER 事件；错误只保留 code/message/retryable 与既有 result。I23 后续新增
 恢复动作时，凡会启动异步请求都必须先推进 token。
 
+I21 是 I13 后的原子垂直接线，不能在 resolver 缺失时只合并前端控件或只强制后端字段。
+它必须在同一个主分支兼容变更中把 UI、`prepare/confirm`、服务端校验、确认快照与
+TripContext `requestSummary` 接通。服务端 resolver 恢复的 `entityKind/capability/routeType/fixedDays`
+是决定固定天数、place-only 1–7 天和 climb support 要求的唯一事实源；前端不从名称或
+legacy 候选推断。这一接线不新增流程状态，只扩展 I20 的 `confirmationInput` 快照和已冻结请求字段。
+
 页面在 reducer 的 `BASE_RECEIVED` 后先提交可渲染的 `base_ready`，仅在当前 token 仍匹配时才
 写入 cache、转移到 `ADVICE_STARTED` 并发起 advice。advice 的成功、普通失败与 transport failure
 同样只在当前 token 下写 cache/history；`query_context_unavailable` 只转为保留 base 的 flow error，
