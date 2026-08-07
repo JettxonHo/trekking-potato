@@ -3,12 +3,12 @@
 - Task ID: `I19`
 - GitHub Issue: `#28`
 - Title: 实现私人历史、清空历史并停用公共 UGC 主路径
-- Status: `APPROVED — PLANNING_PR_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Reviewer: independent Terra XHigh
-- Branch: `codex/i19-private-history-contract`
-- Base: `main` at `5c69195`
+- Status: `APPROVED — PR_PENDING`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
+- Branch: `codex/i19-private-history-implementation`
+- Base: `main` at `72ab196`
 - Goal: `TP-BETA-001`
 
 ## 当前授权
@@ -16,13 +16,24 @@
 I18 规划 PR #66 与实现 PR #67 已合并；#27 已关闭。PR #67 的 latest-head GitHub `quality`
 通过（3 分 15 秒），squash commit 为 `5c69195`。queryId-only advice 可信闭环已完成。
 
-当前只授权 Sol XHigh 冻结 I19 合同、同步权威文档与 Issue，并提交纯规划 PR。规划合同通过
-独立 Review、latest-head CI 和合并后，才可切换为 `IMPLEMENTATION` 并交给 Terra XHigh。
-规划阶段不得修改业务代码、测试代码、依赖、锁文件或 GitHub 工作流。
+I19 规划 PR #68 已通过两名独立 Terra Review 与 attempt 3 latest-head `quality`（50 秒），并
+squash merged as `72ab196`。当前授权 Terra XHigh 在本合同 allowlist 内按 TDD 实施 I19；不得
+改变合同、扩大范围、批准或合并自己的 PR。Sol XHigh 保留独立 Review、返工指令和合并判断。
 
 两名独立 Terra XHigh 已复核当前合同为 `APPROVED`，无剩余 P0–P2、无需人工确认。Review
 曾要求并已关闭三项：以 `stats.removed` 冻结条件删除结果、补保存失败同参重试/删除不冒泡
 回归，以及修正开发计划中的旧操作摘要。
+
+## 实现交付状态
+
+Terra 已在 allowlist 内完成原子实现，并保留所有真实 `routes`/`history` 数据。真实 RED 先后证明：
+旧 list 会泄露数据库字段，旧 geocode 即使最终 AMap 回退也会读取 public `routes`；最小 GREEN
+分别改为显式 HistoryItem DTO 与零 public-routes 访问。聚焦 history/route/confirmation/response、
+integration（56/0）、lint、typecheck 与 root test 已通过。本沙箱内 WeChat build 会触发 macOS
+`system-configuration` panic 并挂起；Sol 已在沙箱外以 `env CI=1 npm run build:weapp` 验证 exit 0、
+Webpack 成功；最新返工 head 再次通过，耗时 5.32s。没有改依赖、锁文件或构建配置来掩盖该
+环境现象。Sol 第一次 Review 要求隔离历史面板错误与主结果保存提示；返工测试先 RED 后 GREEN，
+第二次 Review 为 `APPROVED — PR_PENDING`。Terra 未自我批准或合并。
 
 ## 必读上下文
 
@@ -32,7 +43,7 @@ I18 规划 PR #66 与实现 PR #67 已合并；#27 已关闭。PR #67 的 latest
 4. `docs/architecture.md` 第 9–11 节
 5. `docs/testing-strategy.md` 的“可信上下文和隐私”与 I19 合同
 6. `docs/decision-log.md` 的 TP-D008、TP-D031、TP-D032
-7. GitHub Issue #28，以及已合并 PR #66、#67
+7. GitHub Issue #28，以及已合并 PR #66、#67、#68
 
 ## 任务目标
 

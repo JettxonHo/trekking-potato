@@ -1,7 +1,7 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M5 / I19 PLANNING_PR_PENDING; M3 full routes source-blocked`
-- Updated: `2026-08-06`
+- Status: `ACTIVE — M5 / I19 APPROVED — PR_PENDING; M3 full routes source-blocked`
+- Updated: `2026-08-07`
 
 ## 1. 依赖图
 
@@ -250,3 +250,7 @@ M7 前不做重复全局 Review。
   失败仍保存确定性降级摘要，`query_context_unavailable` 按 I18 保持零历史。
 - 精确公共契约、allowlist、测试矩阵与升级条件以 GitHub #28 和
   `docs/tasks/ACTIVE_TASK.md` 为准。规划合同通过独立 Review 和合并前不得开始实现。
+- I19 implementation 以一个原子变更完成 history、geocode 与前端闭环：所有 history mode 只用
+  服务端 openid，list 显式投影 DTO，delete/clear 使用条件删除；旧 UGC mode 为认证 tombstone，
+  geocode 与手动坐标路径不再访问公共 routes。页面保持 history 局部失败、服务端成功后才更新列表、
+  普通 advice 失败保存 deterministic degraded 摘要，query context 不可用仍零 history。

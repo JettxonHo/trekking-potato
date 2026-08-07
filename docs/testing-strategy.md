@@ -235,8 +235,9 @@ integration、lint、typecheck、WeChat build 和 diff check successfully before
 
 ### I19 private history and UGC shutdown contract
 
-I19 先把现有 `scripts/security-test.js` 收敛为聚焦 history/privacy 的 `test:history`，并纳入
-默认 `npm test`，再用一个原子 PR 完成后端、geocode 和前端闭环。测试证明：
+I19 已把现有 `scripts/security-test.js` 收敛为聚焦 history/privacy 的 `test:history`，并纳入
+默认 `npm test`。实现记录了两个真实 RED：旧 list 透传数据库字段而不能满足显式 DTO，旧 geocode
+即使在 routes 读取异常后回退 AMap 也仍触达公共集合；最小 GREEN 分别收敛为 DTO 与零读取。测试证明：
 
 - A/B 用户保存和读取严格隔离，伪造客户端 openid 无效，公共 DTO 不包含数据库内部字段。
 - 自有单删只在 `stats.removed===1` 时成功；零删除对他人和未知 id 的公开结果相同且不影响
@@ -250,8 +251,10 @@ I19 先把现有 `scripts/security-test.js` 收敛为聚焦 history/privacy 的 
   restore，清空有一次确认。
 - 普通 advice 失败保存确定性降级摘要，`query_context_unavailable` 保持零 history。
 
-实现至少运行 `test:history`、route、confirmation、response、integration、root test、lint、
-typecheck、WeChat build 和 diff check。deep/redteam/live 网络脚本不进入默认门禁。
+实现已运行 `test:history`、route、confirmation、response、integration、root test、lint、
+typecheck 与 diff check。本沙箱的 WeChat build 会触发 macOS `system-configuration` panic 并挂起；
+Sol 在沙箱外以 `env CI=1 npm run build:weapp` 验证 exit 0；最新返工 head 的 Webpack 5.32s 成功。未改变依赖或
+构建配置来规避该环境现象；deep/redteam/live 网络脚本不进入默认门禁。
 
 ## 3. 测试层级
 
