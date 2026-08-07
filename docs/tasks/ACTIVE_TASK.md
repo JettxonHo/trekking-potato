@@ -3,12 +3,12 @@
 - Task ID: `I19`
 - GitHub Issue: `#28`
 - Title: 实现私人历史、清空历史并停用公共 UGC 主路径
-- Status: `APPROVED — PLANNING_PR_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Reviewer: independent Terra XHigh
-- Branch: `codex/i19-private-history-contract`
-- Base: `main` at `5c69195`
+- Status: `IMPLEMENTATION`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
+- Branch: `codex/i19-private-history-implementation`
+- Base: `main` at `72ab196`
 - Goal: `TP-BETA-001`
 
 ## 当前授权
@@ -16,9 +16,9 @@
 I18 规划 PR #66 与实现 PR #67 已合并；#27 已关闭。PR #67 的 latest-head GitHub `quality`
 通过（3 分 15 秒），squash commit 为 `5c69195`。queryId-only advice 可信闭环已完成。
 
-当前只授权 Sol XHigh 冻结 I19 合同、同步权威文档与 Issue，并提交纯规划 PR。规划合同通过
-独立 Review、latest-head CI 和合并后，才可切换为 `IMPLEMENTATION` 并交给 Terra XHigh。
-规划阶段不得修改业务代码、测试代码、依赖、锁文件或 GitHub 工作流。
+I19 规划 PR #68 已通过两名独立 Terra Review 与 attempt 3 latest-head `quality`（50 秒），并
+squash merged as `72ab196`。当前授权 Terra XHigh 在本合同 allowlist 内按 TDD 实施 I19；不得
+改变合同、扩大范围、批准或合并自己的 PR。Sol XHigh 保留独立 Review、返工指令和合并判断。
 
 两名独立 Terra XHigh 已复核当前合同为 `APPROVED`，无剩余 P0–P2、无需人工确认。Review
 曾要求并已关闭三项：以 `stats.removed` 冻结条件删除结果、补保存失败同参重试/删除不冒泡
@@ -32,7 +32,7 @@ I18 规划 PR #66 与实现 PR #67 已合并；#27 已关闭。PR #67 的 latest
 4. `docs/architecture.md` 第 9–11 节
 5. `docs/testing-strategy.md` 的“可信上下文和隐私”与 I19 合同
 6. `docs/decision-log.md` 的 TP-D008、TP-D031、TP-D032
-7. GitHub Issue #28，以及已合并 PR #66、#67
+7. GitHub Issue #28，以及已合并 PR #66、#67、#68
 
 ## 任务目标
 
