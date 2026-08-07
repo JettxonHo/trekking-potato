@@ -522,3 +522,20 @@
 - Why: 路线身份、实录几何和当前管理范围是三个不同事实层。分层既保留官方安全边界，也不把
   概括公告扩大成未经证实的禁行判定；非导航产品只需要诚实行程量级和逐日天气高区，不需要伪造
   一条从个人 GPX 中“清洗”出的官方导航线。
+
+## 2026-08-07 — TP-D043 Taro 是唯一微信前端入口
+
+- Status: Accepted by human
+- Decision: 删除已废弃的根目录 `project.config.json` 和 `miniprogram/` 原生前端，唯一微信
+  开发者工具入口固定为 `taro-app/`，其 `project.config.json` 继续指向 `dist/`。根
+  `cloudfunctions/` 及 `taro-app/cloudfunctions -> ../cloudfunctions` 保留，历史原生实现只通过
+  Git 历史恢复，不复制到现行 archive 目录。TP-D042 已由并行 I12 合同预留，因此本决策使用
+  TP-D043，避免两个独立分支复用同一决策编号。
+- Evidence: 控制者确认只需要 Taro 前端并批准并行清理；根配置与 Taro 配置此前分别指向
+  `miniprogram/` 和 `dist/`，导致微信开发者工具导入不同目录时展示两套界面。GitHub #83 记录
+  完整清理合同和验证要求。
+- Alternatives: 永久保留两套可运行入口并仅用文档提醒；把旧原生代码复制到 `docs/archive/`；
+  将根项目配置改为跨目录指向 Taro 构建产物。
+- Why: 两套使用同一 AppID 的入口持续制造误导和维护歧义。Git 历史已经提供可恢复性，复制归档
+  会保留第二份源码事实；根配置跨目录转发仍允许误导性导入。删除旧入口让开发、构建和文档只有
+  一个可验证来源，同时不改变 Taro UI、云函数或产品契约。

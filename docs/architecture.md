@@ -9,7 +9,10 @@
 - `taro-app/`：实际微信小程序前端。
 - `cloudfunctions/getAdvice/`：路线解析、天气、规则、短期上下文和 AI 编排。
 - `cloudfunctions/history/`：仅私人历史。
-- `miniprogram/`：历史原生原型，不是生产入口。
+
+`taro-app/` 是唯一微信前端入口；微信开发者工具打开该目录并读取其
+`project.config.json`，构建产物位于 `taro-app/dist/`。仓库根目录不提供第二套微信项目配置。
+历史原生实现只保留在 Git 历史中，不能作为运行时、测试或产品事实来源。
 
 依赖方向为 UI → 云函数契约 → 领域/规则纯模块 → 外部 API。LLM 位于解释层，不能反向覆盖领域事实或规则结果。
 
