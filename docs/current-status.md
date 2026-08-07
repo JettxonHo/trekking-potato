@@ -2,9 +2,9 @@
 
 - Updated: `2026-08-07`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — I10c READY_FOR_CONTROLLER_REVIEW`
-- Active milestone: `M3 Route domain` (four full reviewed-track Variants merged; fifth awaits independent Review)
-- Active task: `I10c / #77 / READY_FOR_CONTROLLER_REVIEW`
+- Goal status: `ACTIVE — I10c APPROVED / PR_PENDING`
+- Active milestone: `M3 Route domain` (four full reviewed-track Variants merged; fifth approved, PR pending)
+- Active task: `I10c / #77 / APPROVED — PR_PENDING`
 - Branch: `codex/77-dangling-track-data`
 - Base: `main` at `3983102`
 - Assignment: Terra XHigh implements the frozen contract; Sol XHigh owns independent Review and merge decision
@@ -66,6 +66,11 @@
   `14 Sources / 175 Places / 6 Routes / 6 Variants / 5 full / 1 blocked`. Final validation passes
   route-domain, route-data, root test, integration `56/0`, lint `0 errors / 10 existing warnings`,
   typecheck, host WeChat build and `git diff --check`; it is `READY_FOR_CONTROLLER_REVIEW`.
+- Sol inspected the actual seven-file implementation diff and independently reran route-domain,
+  route-data, root test, integration `56/0`, lint `0 errors / 10 existing warnings`, typecheck,
+  `git diff --check` and host WeChat build; all passed. A second independent Sol then re-read code,
+  tests and live #77 and also returned `APPROVED`, with no P0–P3 finding. I10c is `PR_PENDING` and still
+  requires latest-head GitHub `quality` before merge.
 - I10c independent contract re-review inspected the latest local diff and live GitHub #77 after four
   synchronization fixes. Result: `APPROVED`, with no P0–P3 finding. The reviewed-track enum, ordered
   supports, stable IDs, 14/175/6/6 aggregate and privacy/unknown boundaries are ready for the planning PR.
@@ -571,14 +576,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns the community-GPX replan, route contracts, task activation and independent Review.
-- Terra XHigh: completed #77's frozen implementation contract and awaits independent Sol Review.
+- Terra XHigh: completed #77's frozen implementation contract; it was independently approved.
 - Terra XHigh source agents: completed official-source audits, GPX Review, the external request packet
   and a read-only replacement-Variant mapping review.
 
 ## Open work
 
-1. Sol XHigh independently reviews #77's actual code, tests and scope; any fix returns to Terra.
-2. After Sol approval, create the focused implementation PR and require latest-head `quality` before merge.
+1. Push #77's approved branch and create the focused implementation PR.
+2. Require latest-head `quality`; merge only if the reviewed head and CI head match.
 3. After implementation PR quality and merge, activate I13; all five full Variants gate it until then.
 
 ## Blockers and risks
@@ -616,6 +621,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra returned #77 as `READY_FOR_CONTROLLER_REVIEW`; Sol now reviews and opens/merges only an approved PR
-after latest-head quality. Keep #22/#30 blocked
+Push the approved #77 implementation, open its PR and merge only after latest-head quality. Keep #22/#30 blocked
 until #77 and all five full Variant PRs are complete.
