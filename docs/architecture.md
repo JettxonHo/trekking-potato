@@ -603,11 +603,13 @@ idle → searching → awaiting_confirmation | awaiting_route_type
 I20 已将该过渡实现收敛为两个深模块：纯 `trip-flow` reducer 唯一拥有 10 个状态、本地
 单调 token、候选/类型确认上下文、可渲染 result 与流程 error；可注入 getAdvice service 唯一
 封装 `prepare/confirm/advice` 请求。页面只保留表单、视觉 timer、缓存适配和 history 局部状态，
-不得同时保留 `loading/showResult/adviceLoading/error/showCandidatePopup` 或私有 generation。
+不得同时保留 `loading/showResult/adviceLoading/error/showCandidatePopup/showManualCoords` 或私有 generation。
 自由输入 prepare 在途为 searching，候选/类型 follow-up 在途为 preparing。base 到达先进入
 base_ready，再启动 advice_loading。普通 advice 失败进入 degraded；query context 不可用进入
 保留 result 的 error。RESET、新查询、取消和返回均推进 token，旧 token 的异步事件原样忽略。
 I20 不新增重试控件、全局状态库、业务 validator 或第 11 个状态。
+`ROUTE_TYPE_REQUIRED` 可在不增加状态或字段的前提下携带 local fallback error：`location_failed`
+或本地手动上下文无效都进入同一个 `awaiting_route_type`，由 reducer 派生手动坐标 Popup。
 I20 也不定义通用 RECOVER 事件；错误只保留 code/message/retryable 与既有 result。I23 后续新增
 恢复动作时，凡会启动异步请求都必须先推进 token。
 

@@ -109,7 +109,7 @@ RESTORE_CACHED      idle → complete | degraded，token + 1，恢复缓存 resu
 
 ```text
 CONFIRMATION_REQUIRED searching → awaiting_confirmation
-ROUTE_TYPE_REQUIRED  searching/preparing → awaiting_route_type
+ROUTE_TYPE_REQUIRED  searching/preparing → awaiting_route_type（可携带 local fallback error）
 BASE_RECEIVED        searching/preparing → base_ready
 ADVICE_STARTED       base_ready → advice_loading
 ADVICE_SUCCEEDED     advice_loading → complete | degraded
@@ -144,7 +144,7 @@ I20 不定义 `RECOVER` 或恢复目标；error 的可重试事实保留在 `err
 - `errorMessage`：`error && error.message`
 
 以下旧字段从页面顶层 state 删除，不得与 reducer 双写：`loading`、`showResult`、`adviceLoading`、
-`error`、`showCandidatePopup`、`candidates`、`candidateSnapshot`、`pendingResolvedLocation`、
+`error`、`showCandidatePopup`、`showManualCoords`、`candidates`、`candidateSnapshot`、`pendingResolvedLocation`、
 `_requestGeneration`。
 
 以下继续留在页面：
@@ -216,7 +216,8 @@ history、路线目录/schema/data、天气/结论/AI/Prompt/安全模块、依�
 
 1. 初始 state 字段和值精确；状态集合没有第 11 个值。
 2. search → confirmation；candidate begin prepare → base_ready → advice_loading → complete。
-3. search/preparing → route type required；手动 follow-up 可进入 preparing。
+3. search/preparing → route type required；`location_failed` 与本地手动 fallback 可随该事件保留 error、
+   进入同一个 `awaiting_route_type`；手动 follow-up 可进入 preparing，且不新增状态/字段。
 4. base_ready 时 result 已存在；advice normal/degraded/transport failure 都保留确定性 result。
 5. `query_context_unavailable` 进入 error，result 保留且不变成 degraded。
 6. 新查询、RESET、候选/手动取消推进 token；各选一个旧 success 与旧 failure 代表事件证明返回

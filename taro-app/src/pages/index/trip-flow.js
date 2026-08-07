@@ -108,7 +108,7 @@ function reduceTripFlow(state, event) {
       candidates: [],
       confirmationInput: null,
       routeTypeRequest: event.routeTypeRequest,
-      error: null,
+      error: event.error || null,
     })
   }
 

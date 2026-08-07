@@ -66,7 +66,6 @@ export default class Index extends Component {
     minDate: '',
     loadingStage: '',
     tripFlow: createInitialTripFlow(),
-    showManualCoords: false,
     manualLat: '',
     manualLon: '',
     manualElev: '',
@@ -208,7 +207,8 @@ export default class Index extends Component {
       const coordsValid = !isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180
       if (!typeValid || !coordsValid) {
         Taro.showToast({ title: '手动坐标或路线类型不完整，请确认后重新提交', icon: 'none' })
-        this.setState({ showManualCoords: true })
+        const error = { code: 'invalid_manual_context', message: '手动坐标或路线类型不完整，请确认后重新提交', retryable: false }
+        this._openManualFallback(error)
         return
       }
       this._submitBase({
@@ -242,6 +242,18 @@ export default class Index extends Component {
 
   _getAdviceService() {
     return createGetAdviceService({ callFunction: (request) => Taro.cloud.callFunction(request) })
+  }
+
+  _openManualFallback(error) {
+    const type = this.state.tripFlow.status === 'error' ? 'BEGIN_PREPARE' : 'BEGIN_SEARCH'
+    this._updateTripFlow({ type }, null, (flow) => {
+      this._updateTripFlow({
+        type: 'ROUTE_TYPE_REQUIRED',
+        token: flow.token,
+        routeTypeRequest: null,
+        error,
+      })
+    })
   }
 
   _isValidCandidate(candidate) {
@@ -292,7 +304,6 @@ export default class Index extends Component {
         if (result.phase === 'route_type_required') {
           const pd = result.data
           this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token, routeTypeRequest: pd }, {
-            showManualCoords: true,
             manualContextActive: true,
             manualLat: pd.lat != null ? String(pd.lat) : '',
             manualLon: pd.lon != null ? String(pd.lon) : '',
@@ -338,7 +349,7 @@ export default class Index extends Component {
     const elev = parseFloat(manualElev) || 0
     // TP-P0-003 REVIEW_FIX：手动弹窗成功发起查询即激活手动可信上下文，
     // 后续普通提交复用该坐标与类型
-    this.setState({ showManualCoords: false, manualContextActive: true })
+    this.setState({ manualContextActive: true })
     this._submitBase({
       route: route.trim() || '手动坐标',
       date, level, days: tripDays,
@@ -348,7 +359,7 @@ export default class Index extends Component {
     })
   }
 
-  onManualClose = () => this._updateTripFlow({ type: 'RESET' }, { showManualCoords: false })
+  onManualClose = () => this._updateTripFlow({ type: 'RESET' })
 
   _startFunnyRotation() {
     this._funnyTimer = setInterval(() => {
@@ -401,7 +412,7 @@ export default class Index extends Component {
     const type = ['awaiting_confirmation', 'awaiting_route_type', 'error'].indexOf(status) >= 0
       ? 'BEGIN_PREPARE'
       : 'BEGIN_SEARCH'
-    this._updateTripFlow({ type }, { showManualCoords: false, loadingStage: '薯仔正在查询路线位置...' }, (flow) => {
+    this._updateTripFlow({ type }, { loadingStage: '薯仔正在查询路线位置...' }, (flow) => {
       const generation = flow.token
       this._getAdviceService().prepare(params).then((outcome) => {
         if (!this._isCurrentTripFlow(generation, ['searching', 'preparing'])) return
@@ -448,8 +459,12 @@ export default class Index extends Component {
         }
         if (result.phase === 'error') {
           const error = result.code
-          const isLocationFail = error === 'location_failed'
-          this._updateTripFlow({ type: 'FLOW_FAILED', token: generation, error: { code: result.code, message: result.message || '路线查询失败', retryable: result.retryable === true } }, { showManualCoords: isLocationFail })
+          const flowError = { code: result.code, message: result.message || '路线查询失败', retryable: result.retryable === true }
+          if (error === 'location_failed') {
+            this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token: generation, routeTypeRequest: null, error: flowError })
+            return
+          }
+          this._updateTripFlow({ type: 'FLOW_FAILED', token: generation, error: flowError })
           return
         }
         if (result.phase !== 'base') {
@@ -713,11 +728,10 @@ export default class Index extends Component {
   }
 
   render() {
-    const { route, date, days, levels, levelIndex, minDate, loadingStage, tripFlow, showManualCoords: manualPopupVisible, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, showHistory, historyList, historyLoading, historyError, historySaveError } = this.state
-    const { loading, adviceLoading, showResult, showCandidatePopup, errorMessage } = selectTripFlowView(tripFlow)
+    const { route, date, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, showHistory, historyList, historyLoading, historyError, historySaveError } = this.state
+    const { loading, adviceLoading, showResult, showCandidatePopup, showManualCoords, errorMessage } = selectTripFlowView(tripFlow)
     const { result, candidates, routeTypeRequest } = tripFlow
     const error = errorMessage
-    const showManualCoords = manualPopupVisible || selectTripFlowView(tripFlow).showManualCoords
     const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
     const funnyMsg = this.state.funnyMsg
 

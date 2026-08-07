@@ -411,8 +411,11 @@ reducer and getAdvice service contract.
 - I20 implementation recorded a genuine `test:trip-flow` RED because the frozen reducer module was
   absent. Its GREEN adds only the pure 10-state/token reducer, injected queryId-only getAdvice service,
   minimal page wiring and direct contract coverage; I05/I18 static page checks now point to that seam,
-  rather than preserving `_requestGeneration`. Focused trip-flow/confirmation/response, history,
-  integration (56/0), root test, lint (0 errors; 10 existing warnings), typecheck and diff check pass.
+  rather than preserving `_requestGeneration`. A bounded P1 review fix removed the remaining page-level
+  `showManualCoords` source, and made `location_failed`/local manual fallback carry their error through
+  `ROUTE_TYPE_REQUIRED` into the existing `awaiting_route_type` state. Focused
+  trip-flow/confirmation/response, history, integration (56/0), root test, lint (0 errors; 10 existing
+  warnings), typecheck and diff check pass.
   This sandbox reproduced the known WeChat `system-configuration` NULL-object panic; no retry was made,
   and Sol must perform the existing out-of-sandbox build validation. I20 is
   `READY_FOR_CONTROLLER_REVIEW`.

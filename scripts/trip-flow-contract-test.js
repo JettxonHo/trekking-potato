@@ -106,6 +106,44 @@ function assertPrimaryTransitions() {
   assert.strictEqual(selectTripFlowView(routeType).showManualCoords, true, 'route type 状态必须派生手动类型界面')
   routeType = reduce(routeType, { type: 'BEGIN_PREPARE' })
   assert.strictEqual(routeType.status, 'preparing', '手动类型 follow-up 必须可进入 preparing')
+
+  let locationFailed = beginSearch(createInitialTripFlow())
+  const locationToken = locationFailed.token
+  const locationError = { code: 'location_failed', message: '路线位置暂时无法确认，请手动输入坐标', retryable: false }
+  locationFailed = reduce(locationFailed, {
+    type: 'ROUTE_TYPE_REQUIRED',
+    token: locationToken,
+    routeTypeRequest: null,
+    error: locationError,
+  })
+  assert.strictEqual(locationFailed.status, 'awaiting_route_type', 'location_failed 必须复用 awaiting_route_type 打开手动 fallback')
+  assert.strictEqual(locationFailed.routeTypeRequest, null, 'location_failed 不得伪造外部位置预填资料')
+  assert.strictEqual(locationFailed.error, locationError, 'location_failed 必须保留局部流程错误')
+  assert.strictEqual(selectTripFlowView(locationFailed).showManualCoords, true, 'location_failed 必须只由 reducer 派生手动 Popup')
+
+  let localManual = beginSearch(createInitialTripFlow())
+  const localManualToken = localManual.token
+  localManual = reduce(localManual, {
+    type: 'ROUTE_TYPE_REQUIRED',
+    token: localManualToken,
+    routeTypeRequest: null,
+    error: { code: 'invalid_manual_context', message: '手动坐标或路线类型不完整，请确认后重新提交', retryable: false },
+  })
+  assert.strictEqual(localManual.token, localManualToken, '从 idle 打开本地手动 fallback 必须先经 BEGIN_SEARCH 推进 token')
+  assert.strictEqual(localManual.status, 'awaiting_route_type', '本地手动 fallback 必须进入唯一的 awaiting_route_type 状态')
+
+  let failedManual = beginSearch(createInitialTripFlow())
+  failedManual = reduce(failedManual, { type: 'FLOW_FAILED', token: failedManual.token, error: { message: '查询失败' } })
+  const failedManualToken = failedManual.token
+  failedManual = reduce(failedManual, { type: 'BEGIN_PREPARE' })
+  failedManual = reduce(failedManual, {
+    type: 'ROUTE_TYPE_REQUIRED',
+    token: failedManual.token,
+    routeTypeRequest: null,
+    error: { code: 'invalid_manual_context', message: '手动坐标或路线类型不完整，请确认后重新提交', retryable: false },
+  })
+  assert.strictEqual(failedManual.token, failedManualToken + 1, '从 error 打开手动 fallback 必须经 BEGIN_PREPARE 推进 token')
+  assert.strictEqual(failedManual.status, 'awaiting_route_type', 'error 后的本地手动 fallback 必须进入 awaiting_route_type')
 }
 
 function assertAdviceOutcomes() {
@@ -234,6 +272,13 @@ function assertPageWiring() {
   }
   assert(pageSource.includes("type: 'RESTORE_CACHED'"), '缓存恢复必须经 RESTORE_CACHED')
   assert(pageSource.includes("type: 'RESET'"), '取消与 onBack 必须经 RESET 推进 token')
+  assert(!pageSource.includes('showManualCoords:'), '页面不得保留顶层 showManualCoords 或其写入')
+  assert(!pageSource.includes('manualPopupVisible ||'), '手动 Popup 不得叠加页面局部可见性')
+  assert(pageSource.includes('_openManualFallback(error)'), '本地无效手动上下文必须经 reducer 打开 fallback')
+  const manualSubmitStart = pageSource.indexOf('onManualSubmit = () =>')
+  const manualSubmitEnd = pageSource.indexOf('onManualClose =', manualSubmitStart)
+  const manualSubmitSource = pageSource.slice(manualSubmitStart, manualSubmitEnd)
+  assert(!manualSubmitSource.includes('showManualCoords'), 'onManualSubmit 必须通过 BEGIN_PREPARE 关闭 reducer Popup，而非页面局部状态')
   assert(pageSource.includes('this.state.tripFlow.token !== token'), 'cache/history side effect 必须在页面回调再次确认 reducer token')
   assert(pageSource.includes('this._unmounted || this.state.tripFlow.token !== token'), '卸载后不得触发 cache/history/UI side effect')
   assert(!/name:\s*['\"]getAdvice['\"]/.test(pageSource), '页面不得直接发送 getAdvice；必须经 service')
