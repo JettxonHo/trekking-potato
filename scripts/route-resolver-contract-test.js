@@ -408,6 +408,11 @@ function candidateIdAndIsolationTests() {
   const catalog = createProductionRouteCatalog()
   const resolver = createCatalogResolver({ catalog })
   const fullId = 'variant:dangling-huluhai-zhuoyongcuo-out-and-back-1d'
+  catalog.variants.find((variant) => variant.id === fullId).canonicalName = 'mutated injected catalog'
+  catalog.routes.find((route) => route.id === 'route:dangling-huluhai-zhuoyongcuo').routeType = 'tour'
+  const snapshotTarget = assertDirect(resolver.resolveCandidateId(fullId), 'candidate_id', fullId)
+  assert.equal(snapshotTarget.canonicalName, '党岭村—葫芦海—卓雍措一日往返')
+  assert.equal(snapshotTarget.route.routeType, 'trek')
   const full = assertDirect(resolver.resolveCandidateId(fullId), 'candidate_id', fullId)
   assert.equal(full.route.routeType, 'trek')
   assert.equal(full.routeVariant.fixedDays, 1)
@@ -415,10 +420,8 @@ function candidateIdAndIsolationTests() {
   assert.equal(blocked.capability, 'blocked')
   const placeOnly = assertDirect(resolver.resolveCandidateId('place:legacy:泰山'), 'candidate_id', 'place:legacy:泰山')
   assert.equal(placeOnly.routeType, null)
-  const pilotPlace = assertDirect(resolver.resolveCandidateId('place:legacy:党岭'), 'candidate_id', 'place:legacy:党岭')
-  assert.equal(pilotPlace.capability, 'place_only')
-  assert.equal(pilotPlace.route, null)
-  assert.equal(pilotPlace.routeVariant, null)
+  assertNotFound(resolver.resolveCandidateId('place:legacy:党岭'))
+  assertNotFound(resolver.resolveCandidateId('place:legacy:五台山朝台'))
   assertNotFound(resolver.resolveCandidateId('route:wutai-grand-pilgrimage'))
   assertNotFound(resolver.resolveCandidateId('variant:unknown'))
   assertNotFound(resolver.resolveCandidateId({}))
@@ -431,6 +434,7 @@ function candidateIdAndIsolationTests() {
   assert.equal(legacyPlace.capability, 'place_only')
 
   const staleCatalog = makeMultiVariantCatalog()
+  assertNotFound(createCatalogResolver({ catalog: staleCatalog }).resolveCandidateId('place:legacy:Multi place'))
   assertNotFound(createCatalogResolver({ catalog: staleCatalog }).resolveCandidateId('builtin-route:Multi place'))
 
   const target = resolver.resolveQuery('党岭').target

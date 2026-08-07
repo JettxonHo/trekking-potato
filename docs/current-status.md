@@ -100,6 +100,11 @@
   copy isolation and no-I/O boundary. The full matrix passes: focused contracts, root test, integration `56/0`,
   lint `0 errors / 10 existing warnings`, typecheck, host `CI=1` WeChat build and diff check. No handler, UI,
   route-data, dependency, schema or public-contract file changed; I13 is `READY_FOR_CONTROLLER_REVIEW`.
+- I13 REVIEW_FIX recorded a sensitive RED: permanent `place:legacy:党岭` incorrectly resolved as place-only,
+  bypassing its full child. `place:*` now expands first and succeeds only for exactly one matching place-only
+  target; 党岭、五台山朝台 and a synthetic multi-full Place return `not_found`, while 泰山 remains direct.
+  The contract also mutates the injected validated catalog after factory creation and proves the resolver snapshot
+  is unchanged. The same complete validation matrix, including host WeChat build, passes again.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1 and M2 are complete. I07, I10a and all five reviewed community-track Variants are complete; I13 is

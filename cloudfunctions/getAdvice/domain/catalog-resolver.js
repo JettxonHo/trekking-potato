@@ -46,7 +46,9 @@ function createCatalogResolver({ catalog }) {
       if (candidateId.startsWith('place:')) {
         const place = state.placesById.get(candidateId)
         if (!place) return notFound()
-        return direct('candidate_id', targetForPlace(place))
+        const targets = uniqueTargets(targetsForPlace(place, state))
+        if (targets.length !== 1 || targets[0].candidateId !== candidateId || targets[0].capability !== 'place_only') return notFound()
+        return direct('candidate_id', targets[0])
       }
 
       if (!candidateId.startsWith('builtin-route:')) return notFound()
