@@ -7,8 +7,8 @@
 - Mode: `INVESTIGATION`
 - Owner: Sol XHigh
 - Implementation Agent: 未分配
-- Branch: `codex/m3-source-refresh-2026-08`
-- Base: `main` at `bfd9394`
+- Branch: `codex/m3-gpx-audit-2026-08`
+- Base: `main` at `31eab6d`
 - Goal: `TP-BETA-001`
 
 ## 当前检查点
@@ -24,6 +24,10 @@ resolver，因为五条 full pilot Variant 仍缺少完整 A/B 字段证据。�
 2026-08-07 来源刷新再次核验 I08、I09、I10b、I11、I12。新增证据只补强局部设施、区域管理、
 索道服务或单段几何，没有一条同时满足完整日程、全程几何、天气样点和精确变体运行状态。
 详细字段与拒绝项以 `docs/research/pilot-route-source-audit.md` 第 8 节为准。
+
+用户提供的五份 GPX 已进入恢复审计。结构与几何质量可用，但分别记录了武功山反穿、二日二峰、
+五台多台顶穿越、贡嘎西南坡和蓝月谷—云杉坪，均非当前 exact Variant；结论与派生数据见
+`docs/research/user-gpx-audit-2026-08-07.md`。当前仍只授权来源调查和合同同步。
 
 ## I21 补充阅读
 
@@ -84,3 +88,6 @@ I21 必须等待 I13 合并后才能进入 IMPLEMENTATION。I13 继续依赖 I08
 
 若现有路线资料继续无法满足 A/B 来源政策，必须请求人工提供可审阅 GPX/第二可靠来源，
 或由人工明确修改试点/来源政策。未获授权不降低标准、不改用 C 级、不伪造路线事实。
+
+本轮 GPX 若用于替换 I08、I09、I11 或 I12，将改变已批准的 Beta 试点，必须由人工明确选择；
+五台多台顶轨迹不得用于替换 I10b，也不得绕过 I10a 的官方禁行记录。
