@@ -4,10 +4,10 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE — COMMUNITY_GPX_REPLAN`
 - Active milestone: `M3 Route domain` (four route tracks selected; fifth waits #77)
-- Active task: `I12 / #21 / PLANNING`
+- Active task: `I12 / #21 / IMPLEMENTATION`
 - Branch: `codex/i12-gongga-community-gpx`
 - Base: `main` at `4a9577f`
-- Implementation assignment: pending contract Review; Terra XHigh executes only after Sol activation
+- Implementation assignment: Terra XHigh on approved contract head `a635082`; Sol XHigh reviews and merges
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -527,8 +527,8 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   different route after the shared Riwuqie–Moxi corridor. The honest static state is therefore `unknown`,
   not inferred `open` or `blocked`. The reviewed 4067-point GPX supplies a three-day non-navigation record:
   `44.892km / +2392.1m / -1628.9m`, a 4873m route high and one WGS84 high-area sample per day. Personal
-  detour waypoints and all raw/account metadata remain excluded. The pure documentation contract awaits
-  independent Sol Review before implementation activation.
+  detour waypoints and all raw/account metadata remain excluded. Contract head `a635082` passed independent
+  Sol XHigh Review with no P0–P3 findings; no human escalation is required and bounded implementation is active.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -537,14 +537,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns the community-GPX replan, route contracts, task activation and independent Review.
-- Terra XHigh: no active implementation assignment until the I12/#21 contract is independently approved.
+- Terra XHigh: assigned I12/#21 on `codex/i12-gongga-community-gpx` under approved contract head `a635082`.
 - Terra XHigh source agents: completed official-source audits, GPX Review, the external request packet
   and a read-only replacement-Variant mapping review.
 
 ## Open work
 
-1. Independently Review the I12/#21 contract, synchronize live #21 and remove `status:blocked` only after approval.
-2. Assign the approved I12 implementation contract to Terra XHigh and run the focused route-data PR cycle.
+1. Synchronize live #21, remove `status:blocked`, and hand the exact approved contract to Terra XHigh.
+2. Implement I12 with a genuine route-data RED, run all gates, then require independent Sol Review and CI.
 3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
 ## Blockers and risks
@@ -582,6 +582,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-An independent Sol XHigh reviews the pure-documentation I12/#21 contract and TP-D042. Only after
-`APPROVED`, live Issue synchronization and a clean implementation handoff may Terra edit the allowlisted
-route-data files. Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.
+Synchronize the independently approved I12/#21 contract to GitHub and hand its exact allowlist to Terra
+XHigh. Sol must inspect the resulting diff and validation evidence before any PR approval. Keep #22/#30
+blocked until #77 and all five full Variant PRs are complete.

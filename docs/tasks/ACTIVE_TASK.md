@@ -3,13 +3,20 @@
 - Task ID: `I12`
 - GitHub Issue: `#21`
 - Title: 录入贡嘎西南坡·老榆林—玉龙西三日线
-- Status: `CONTRACT_REVIEW_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Reviewer: independent Sol XHigh
+- Status: `IMPLEMENTATION`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
 - Branch: `codex/i12-gongga-community-gpx`
 - Base: `main` at `4a9577f`
 - Goal: `TP-BETA-001`
+
+## Contract approval checkpoint
+
+- Contract head `a635082` passed independent Sol XHigh Review with no P0–P3 findings.
+- The reviewer independently reproduced all three daily geometry totals, overnight-bridge exclusions,
+  duration rounding, the 4873m route high, the three WGS84 high-area samples and aggregate counts.
+- No human escalation is required. Terra may implement only the allowlist below; Sol retains Review and merge.
 
 ## 1. 任务目标
 
