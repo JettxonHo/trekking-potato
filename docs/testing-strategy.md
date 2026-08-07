@@ -97,12 +97,15 @@ I10a 已建立离线 `test:route-data` 入口并纳入根 `test`。共享 runner
 restriction/operationalStatus evidence 的连接、禁止 full 行程字段，以及官方未披露边界的
 `effectiveFrom/effectiveTo=null` 和核验日期；还直接证明 tier B restriction source、缺
 restriction evidence 与 blocked 记录偷加 full 字段均被拒绝。I08 在同一 runner 注册武功山
-反穿 plain fragment 与独立断言：完整聚合固定为 3 Source、175 legacy Place、2 Route、2 Variant，
-其中一个是 tier B `reviewed_gpx` full Variant、另一个是 Wutai blocked；它直接核对两日 stage
-样点连接、分日汇总、WGS84 点位、`unknown` 状态和逐字段 evidence。Wutai 专用断言继续使用
-已验证聚合 catalog 的 Wutai-only view，以保持其 blocked-only 数量语义。后续每个 full 路线 Issue 只能
-新增自己的数据和断言文件，不并发修改 runner。来源页可访问性不作为默认 CI 的实时网络门禁；
-CI 验证入库的来源元数据和领域契约，人工/发布前清单负责复核动态运行状态。
+反穿 plain fragment 与独立断言，直接核对两日 stage 样点连接、分日汇总、WGS84 点位、`unknown`
+状态和逐字段 evidence。I09 再注册四姑娘山二峰三来源 fragment；完整聚合固定为 6 Source、
+175 legacy Place、3 Route、3 Variant，其中两个是 tier B full Variant、一个是 Wutai blocked。
+I09 直接核对官方 5276m route highest 与 GPX 5254m 高点样本的语义分层、两个 stage 的样点
+引用和分日汇总，以及动态管理资料只支持 `unknown` 而不支持 `open`。Wutai 和 Wugong 专用断言
+继续使用已验证聚合 catalog 的相应既定组合视图，以保持其原有 blocked-only 与 3 Source/2 Route/
+2 Variant 数量语义。后续每个 full 路线 Issue 只能新增自己的数据和断言文件，不并发修改 runner。
+来源页可访问性不作为默认 CI 的实时网络门禁；CI 验证入库的来源元数据和领域契约，人工/发布前
+清单负责复核动态运行状态。
 
 TP-D039 后的 full 试点测试采用同一 seam，并额外固定以下代表性行为：
 

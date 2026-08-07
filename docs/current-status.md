@@ -486,6 +486,14 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   5276m route highest point; official management material keeps the exact Variant `unknown`; the
   reviewed GPX owns two-day geometry, activity windows and WGS84 samples, including its 5254m measured
   high sample. No raw GPX or personal metadata enters the repository.
+- I09 implementation recorded a real `test:route-data` RED after registering the I09 fragment and
+  route-specific assertion: the absent `siguniang-erfeng` fragment produced `MODULE_NOT_FOUND`. Its
+  minimum GREEN adds only the three-source static fragment, I09 assertions and runner registration.
+  The full aggregate is 6 Sources, 175 legacy Places, 3 Routes and 3 Variants (two full, one blocked);
+  Wutai and Wugong keep their established aggregate views. Route-data, route-domain, root test,
+  offline integration (56/0), lint (0 errors; 10 existing warnings) and typecheck pass. The sandbox
+  WeChat build reproduces the known `system-configuration` NULL-object panic, so Sol must rerun it on
+  the host; no build or dependency configuration was changed.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
