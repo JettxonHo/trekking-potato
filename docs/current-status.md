@@ -5,8 +5,8 @@
 - Goal status: `ACTIVE`
 - Active milestone: `M6 Core UX` (M3 full routes remain source-blocked)
 - Active task: `I21 / #30 / BLOCKED_BY_I13`
-- Branch: `codex/m3-source-refresh-2026-08`
-- Base: `main` at `bfd9394`
+- Branch: `codex/m3-gpx-audit-2026-08`
+- Base: `main` at `31eab6d`
 - Implementation assignment: none; investigation/documentation only
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
@@ -37,6 +37,7 @@
 - I20 planning PR: `#70` — merged as `7fc295f`; GitHub #29 implementation activated
 - I20 implementation PR: `#71` — merged as `9d70f7c`; GitHub #29 closed
 - I21 dependency checkpoint PR: `#72` — merged as `bfd9394`; #22/#30 remain blocked
+- M3 source refresh PR: `#73` — merged as `31eab6d`; latest-head quality passed
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
@@ -442,6 +443,11 @@ policy and I13 can resolve them from the production catalog.
 - The source-refresh checkpoint passed an independent Terra XHigh document Review after one bounded
   correction round. Local lint (0 errors/10 existing warnings), typecheck, root test, integration
   (56/0), WeChat build and `git diff --check` all pass.
+- User-provided GPX source recovery was reviewed by Sol and two independent Terra XHigh read-only
+  audits. All five files are structurally usable tracks, but they represent different variants:
+  Wugong reverse traverse, two-day Siguniang Second Peak, multi-terrace Wutai traverse, Gongga
+  southwest slope and Blue Moon Valley/Yunshanping. None can populate the current exact pilot Variant;
+  the derived, non-personalized evidence is in `docs/research/user-gpx-audit-2026-08-07.md`.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -455,9 +461,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Keep #22/#30 blocked and synchronize the refreshed field gaps to their prerequisite Issues.
-2. Request human-provided reviewable GPX/second reliable sources, or an explicit product/source-policy
-   decision, because the five full pilot variants still cannot meet A/B field evidence.
+1. Keep #22/#30 blocked and synchronize the GPX mismatch evidence to prerequisite Issues.
+2. Ask the human whether the Beta must retain all five exact pilots or may replace selected pilots with
+   the actual GPX variants; without replacement, request matching GPX/current-operation evidence.
 
 ## Blockers and risks
 
@@ -467,6 +473,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   GitHub #10 的控制端决策固定 npm 10.9.2，并以 `engine-strict` 拒绝错误 npm。
 - Five full route variants still lack complete field-level A/B evidence. Exact gaps and acceptable
   remediation are recorded in the research report and must not be filled from adjacent routes.
+- The newly supplied GPX files pass basic track-quality checks but are different variants. A good track
+  for another route does not prove the current Variant; adopting it requires an explicit product-scope
+  decision and fresh Issue contracts.
 - I09's seven-day identity is now official, but D2–D6 detail and the 5276m/5454m official conflict
   remain unresolved. I12 is a 2017 event record and lacks current access evidence.
 - I10a remains deliberately narrow: broader restriction scope still requires the missing official
@@ -490,6 +499,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Publish the reviewed source-refresh checkpoint and request the human source/GPX decision required by
-the Goal stop condition. No implementation Agent starts I13 or I21 before all five required full
-variants are genuinely source-complete.
+Publish the reviewed GPX checkpoint and request the exact-pilot-versus-replacement decision. No
+implementation Agent starts I13 or I21 before the selected five full variants are genuinely
+source-complete.
