@@ -4,9 +4,10 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE — M6 I21 CONTRACT_APPROVED / IMPLEMENTATION_PAUSED`
 - Active milestone: `M6 Core UX`
-- Active task: `I21 / #30 / CONTRACT_APPROVED — PLANNING_PR_PENDING / IMPLEMENTATION_PAUSED`
+- Active task: `I21 / #30 / CONTRACT_APPROVED — PLANNING_PR_OPEN / IMPLEMENTATION_PAUSED`
 - Branch: `codex/i21-core-flow-contract`
 - Base: `main` at `c5d7d7c`
+- I21 planning PR: `#90` — open; implementation and merge paused pending `继续`
 - Assignment: Sol XHigh owns contract freeze and independent Review; no implementation Agent is assigned
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
@@ -627,8 +628,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Publish the approved planning PR and require latest-head `quality`.
-2. Leave that planning PR unmerged and pause until the human says `继续`.
+1. Require latest-head `quality` on planning PR #90.
+2. Leave PR #90 unmerged and pause until the human says `继续`.
 
 ## Blockers and risks
 
