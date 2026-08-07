@@ -96,13 +96,24 @@ I10a 已建立离线 `test:route-data` 入口并纳入根 `test`。共享 runner
 五台山用例固定验证 tier A blocked 记录、权威 Source 与 restriction/operationalStatus evidence
 的连接、禁止 full 行程字段，以及官方未披露边界的 `effectiveFrom/effectiveTo=null` 和核验日期。I08
 注册武功山反穿 plain fragment，I09 注册四姑娘山二峰三来源 fragment，I11 注册蓝月谷—云杉坪的管理
-边界与社区 GPX 两来源 fragment。I11 后完整聚合固定为 8 Source、175 legacy Place、4 Route、4 Variant，其中
-三个是 tier B full Variant、一个是 Wutai blocked。各路线直接核对 stage 样点连接、分日汇总、WGS84 点位、
-`unknown` 状态和逐字段 evidence；I09 另行固定官方 5276m route highest 与 GPX 5254m 高点样本的语义分层。
-Wutai、Wugong 和 Siguniang 专用断言继续使用已验证聚合 catalog 的相应既定视图，以保持其原有数量语义。
+边界与社区 GPX 两来源 fragment，I12 注册贡嘎老榆林—玉龙西的路线身份、管理边界与社区 GPX 三来源
+fragment。I12 后完整聚合固定为 11 Source、175 legacy Place、5 Route、5 Variant，其中四个是 tier B full
+Variant、一个是 Wutai blocked。各路线直接核对 stage 样点连接、分日汇总、WGS84 点位、`unknown` 状态和
+逐字段 evidence；I09 另行固定官方 5276m route highest 与 GPX 5254m 高点样本的语义分层。I12 固定三个
+上海活动日的可加总几何、4873m 实测路线最高点，以及每个活动日一个高区样点；测试还必须证明个人绕行
+waypoint、不同赛事和 raw GPX 元数据没有进入实体事实。Wutai、Wugong、Siguniang 和 Yulong 专用断言继续
+使用已验证聚合 catalog 的相应既定视图，以保持其原有数量语义。
 后续每个 full 路线 Issue 只能新增自己的数据和断言文件，不并发修改 runner。
 来源页可访问性不作为默认 CI 的实时网络门禁；CI 验证入库的来源元数据和领域契约，人工/发布前
 清单负责复核动态运行状态。
+
+I12 implementation records one genuine RED after registering its route-specific test and fragment require:
+the absent `gongga-laoyulin-yulongxi` fragment returns `MODULE_NOT_FOUND`. Its GREEN test deep-compares all
+three Sources (including ordered `supports` methods and derived notes), the Route and the full Variant;
+it also fixes the three one-sample stage links, three-decimal distance and one-decimal ascent/descent stage
+sum comparison, 4873m route high, WGS84 samples, `unknown` management boundary and final 11/175/5/5
+aggregate. The runner passes Wutai, Wugong, Siguniang and Yulong their pre-I12 aggregate views so their
+established count assertions remain meaningful.
 
 TP-D039 后的 full 试点测试采用同一 seam，并额外固定以下代表性行为：
 

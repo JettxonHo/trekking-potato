@@ -4,12 +4,20 @@ const wutai = require('../cloudfunctions/getAdvice/data/catalog/pilots/wutai')
 const wugongshanReverse = require('../cloudfunctions/getAdvice/data/catalog/pilots/wugongshan-reverse')
 const siguniangErfeng = require('../cloudfunctions/getAdvice/data/catalog/pilots/siguniang-erfeng')
 const yulongBlueMoonYunshanping = require('../cloudfunctions/getAdvice/data/catalog/pilots/yulong-blue-moon-yunshanping')
+const gonggaLaoyulinYulongxi = require('../cloudfunctions/getAdvice/data/catalog/pilots/gongga-laoyulin-yulongxi')
 const { runWutaiTests } = require('./route-data/wutai.test')
 const { runWugongshanReverseTests } = require('./route-data/wugongshan-reverse.test')
 const { runSiguniangErfengTests } = require('./route-data/siguniang-erfeng.test')
 const { runYulongBlueMoonYunshanpingTests } = require('./route-data/yulong-blue-moon-yunshanping.test')
+const { runGonggaLaoyulinYulongxiTests } = require('./route-data/gongga-laoyulin-yulongxi.test')
 
-const PILOT_FRAGMENTS = [wutai, wugongshanReverse, siguniangErfeng, yulongBlueMoonYunshanping]
+const PILOT_FRAGMENTS = [
+  wutai,
+  wugongshanReverse,
+  siguniangErfeng,
+  yulongBlueMoonYunshanping,
+  gonggaLaoyulinYulongxi,
+]
 
 function combineFragments(fragments) {
   return fragments.reduce((combined, fragment) => ({
@@ -51,8 +59,16 @@ function main() {
       siguniangErfeng,
     ])),
   })
-  runYulongBlueMoonYunshanpingTests({ catalog })
-  console.log('PASS: I08/I09/I10a/I11 试点路线数据契约')
+  runYulongBlueMoonYunshanpingTests({
+    catalog: createFragmentCatalogView(catalog, combineFragments([
+      wutai,
+      wugongshanReverse,
+      siguniangErfeng,
+      yulongBlueMoonYunshanping,
+    ])),
+  })
+  runGonggaLaoyulinYulongxiTests({ catalog, fragment: gonggaLaoyulinYulongxi })
+  console.log('PASS: I08/I09/I10a/I11/I12 试点路线数据契约')
 }
 
 try {

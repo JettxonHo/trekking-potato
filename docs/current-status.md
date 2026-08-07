@@ -4,10 +4,10 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE — COMMUNITY_GPX_REPLAN`
 - Active milestone: `M3 Route domain` (four route tracks selected; fifth waits #77)
-- Active task: `I11 / #20 / IMPLEMENTATION`
-- Branch: `codex/i11-yulong-community-gpx`
-- Base: `main` at `1e7fa2d`
-- Implementation assignment: Terra XHigh; Sol XHigh independently reviews and merges
+- Active task: `I12 / #21 / APPROVED — PR_PENDING`
+- Branch: `codex/i12-gongga-community-gpx`
+- Base: `main` at `4a9577f`
+- Implementation assignment: Terra XHigh on approved contract head `a635082`; Sol XHigh reviews and merges
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -45,6 +45,8 @@
 - I08 implementation PR: `#79` — squash merged as `adfa0d8`; GitHub #17 closed; latest-head
   GitHub `quality` passed
 - I09 implementation PR: `#80` — squash merged as `1e7fa2d`; GitHub #18 closed; latest-head
+  GitHub `quality` passed
+- I11 implementation PR: `#81` — squash merged as `4a9577f`; GitHub #20 closed; latest-head
   GitHub `quality` passed
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
@@ -516,8 +518,26 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   sandbox WeChat build reproduced the known `system-configuration` NULL-object panic; Sol reran the same
   command on the host, where Taro 4.0.9 Webpack compiled successfully in 3.08 seconds with exit 0. After
   one focused Review fix locked the complete reviewed-GPX Source evidence, Sol and a second independent
-  Sol XHigh inspected the actual diff and returned `APPROVED` with no P0–P3 findings. I11 is `PR_PENDING`;
-  latest-head CI and merge remain required. No dependency or build configuration was changed.
+  Sol XHigh inspected the actual diff and returned `APPROVED` with no P0–P3 findings. Latest-head Actions
+  `quality` run 41 passed, PR #81 squash merged as `4a9577f`, and GitHub #20 closed. No dependency or
+  build configuration was changed.
+- I12's source and GPX audit froze TP-D042. The official 2023 route identity calls old Yulin to Gongga
+  Yulong West a developed long trek, while the 2025 closure notice applies to named peaks and undeveloped/
+  unopened dangerous areas without naming this exact Variant. A 2026 tourism directory follows a
+  different route after the shared Riwuqie–Moxi corridor. The honest static state is therefore `unknown`,
+  not inferred `open` or `blocked`. The reviewed 4067-point GPX supplies a three-day non-navigation record:
+  `44.892km / +2392.1m / -1628.9m`, a 4873m route high and one WGS84 high-area sample per day. Personal
+  detour waypoints and all raw/account metadata remain excluded. Contract head `a635082` passed independent
+  Sol XHigh Review with no P0–P3 findings. I12 implementation first registered its route-data test and
+  fragment require, recording the genuine missing-fragment `MODULE_NOT_FOUND` RED. The minimum GREEN adds
+  only the three-Source static fragment, its exact entity/evidence assertions and runner registration; the
+  runner continues to pass each earlier route its established aggregate view. Route-data, route-domain,
+  root test, offline integration (56/0), lint (0 errors; 10 existing warnings) and typecheck pass. The
+  sandbox WeChat build reproduced the known `system-configuration` NULL-object panic; no build configuration
+  changed. Sol then reran `build:weapp` on the host, where Taro 4.0.9 Webpack compiled successfully.
+  Sol and a second independent Sol XHigh inspected implementation commit `e7510de` and returned `APPROVED`
+  with no P0–P3 findings. I12 is `APPROVED — PR_PENDING`; only the PR's latest-head Actions quality run
+  remains before merge.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -526,15 +546,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns the community-GPX replan, route contracts, task activation and independent Review.
-- Terra XHigh: assigned I11/#20 on `codex/i11-yulong-community-gpx`; no I21 assignment while I13 is blocked.
+- Terra XHigh: assigned I12/#21 on `codex/i12-gongga-community-gpx` under approved contract head `a635082`.
 - Terra XHigh source agents: completed official-source audits, GPX Review, the external request packet
   and a read-only replacement-Variant mapping review.
 
 ## Open work
 
-1. Open I11/#20's PR, require latest-head `quality`, then merge only the approved head and close #20.
-2. Freeze and implement I12 as a focused route-data PR after I11 merges.
-3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
+1. Create I12's PR and require its latest-head Actions quality run before merge.
+2. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
 ## Blockers and risks
 
@@ -571,6 +590,5 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol XHigh independently reviews I11/#20 from its approved contract, including the host-environment
-WeChat build unavailable in this sandbox, before creating or approving a PR. I12 remains inactive; keep
-#22/#30 blocked until #77 and all five full Variant PRs are complete.
+Create I12's PR from approved implementation commit `e7510de`, then require latest-head Actions quality
+before merge. Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.
