@@ -366,8 +366,10 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
 - `node scripts/route-domain-contract-test.js`: I07 cold catalog contract for valid full/blocked
   fixtures, 175 legacy place-only adaptation, nonempty namespace suffix/error namespace, evidence/
   reference/itinerary/sample-count failures, input isolation and `getById` miss semantics.
-- `node scripts/route-data-contract-test.js`: I10a aggregated data contract for 175 legacy Places,
-  one Wutai Route, one tier A blocked Variant, zero full Variants, and focused evidence/field failures.
+- `node scripts/route-data-contract-test.js`: I08/I10a aggregated data contract for 3 Sources, 175 legacy
+  Places, 2 Routes and 2 Variants: one tier B reviewed-GPX Wugong full Variant plus one tier A Wutai
+  blocked Variant. It directly checks the Wugong two-day samples, totals, WGS84 points, unknown state and
+  evidence, while the Wutai-specific assertions retain their blocked-only catalog view.
 - `node scripts/weather-verdict-contract-test.js`: I15 weather-only contract. It derives complete
   snapshots via injected I14 transport, verifies all TP-VERDICT-1 weather rules and leaves I16
   composition paths outside its scope.
@@ -469,6 +471,12 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   #18/#20/#21 now name their actual GPX routes and remain blocked only until route-specific contracts;
   #19/#51 closed as not planned; #22/#30 reference #77 rather than old I10b. Wutai stays blocked and
   #77 owns the missing fifth plannable GPX.
+- I08 implementation recorded a genuine `test:route-data` RED after registering the new route-specific
+  test: the absent Wugong fragment produced `MODULE_NOT_FOUND`. The minimum GREEN adds only the plain
+  reviewed-GPX fragment, its catalog assertions and minimal runner registration. The focused route-data and
+  route-domain contracts, root test, integration (56/0), lint (0 errors; 10 existing warnings) and
+  typecheck pass. The sandbox WeChat build hit the known macOS `system-configuration` NULL-object panic;
+  host-environment rerun is required before final validation can be claimed.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -483,7 +491,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Implement and independently Review I08/#17 on the merged `1e601d9` base.
+1. Re-run I08/#17 WeChat build on the host, then independently Review the focused implementation on the
+   merged `1e601d9` base.
 2. Freeze and implement I09/I11/I12 as focused route-data PRs after I08.
 3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
@@ -522,6 +531,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra XHigh implements I08/#17 under the active contract and returns a draft PR plus full RED/GREEN and
-quality evidence. Sol XHigh then reviews the actual diff and latest-head CI before any merge. Keep
+Terra XHigh completes I08/#17 host-build evidence and returns a draft PR plus full RED/GREEN and quality
+evidence. Sol XHigh then reviews the actual diff and latest-head CI before any merge. Keep
 #22/#30 blocked until #77 and all five full Variant PRs are complete.
