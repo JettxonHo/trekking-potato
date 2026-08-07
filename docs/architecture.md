@@ -600,6 +600,17 @@ idle → searching → awaiting_confirmation | awaiting_route_type
 
 网络服务从页面组件拆出。每次流程分配本地 request token；迟到响应和卸载后的回调不得覆盖新状态。不引入 Redux/Zustand。I18 过渡实现继续使用页面私有 generation：prepare/confirm 成功把完整 base response 交给结果流程，从顶层取 `queryId`，advice 网络体精确为 `{ mode: 'advice', queryId }`；表单参数仅供本地历史保存且 history 不存 queryId。advice 的 success 和 fail 都必须先拒绝旧 generation。`query_context_unavailable` 保留已显示 base，在结果视图展示“本次查询已失效，请重新查询”并保留现有“返回重新查询”动作，但不设置 degraded、不追加 AI unavailable note 且不写 history；新的恢复控件留给 I23。
 
+I20 将该过渡实现收敛为两个深模块：纯 `trip-flow` reducer 唯一拥有 10 个状态、本地
+单调 token、候选/类型确认上下文、可渲染 result 与流程 error；可注入 getAdvice service 唯一
+封装 `prepare/confirm/advice` 请求。页面只保留表单、视觉 timer、缓存适配和 history 局部状态，
+不得同时保留 `loading/showResult/adviceLoading/error/showCandidatePopup` 或私有 generation。
+自由输入 prepare 在途为 searching，候选/类型 follow-up 在途为 preparing。base 到达先进入
+base_ready，再启动 advice_loading。普通 advice 失败进入 degraded；query context 不可用进入
+保留 result 的 error。RESET、新查询、取消和返回均推进 token，旧 token 的异步事件原样忽略。
+I20 不新增重试控件、全局状态库、业务 validator 或第 11 个状态。
+I20 也不定义通用 RECOVER 事件；错误只保留 code/message/retryable 与既有 result。I23 后续新增
+恢复动作时，凡会启动异步请求都必须先推进 token。
+
 ## 10. 历史与 UGC
 
 history 仅保存当前 openid 的私人查询摘要，支持保存、读取、单项删除和清空。身份只来自
