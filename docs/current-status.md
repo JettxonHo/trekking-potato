@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M6 Core UX` (M3 full routes remain source-blocked)
-- Active task: `I20 / #29 / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `I20 / #29 / APPROVED — PR_PENDING`
 - Branch: `codex/i20-frontend-flow-implementation`
 - Base: `main` at `7fc295f`
 - Implementation assignment: Terra XHigh
@@ -416,9 +416,12 @@ reducer and getAdvice service contract.
   `ROUTE_TYPE_REQUIRED` into the existing `awaiting_route_type` state. Focused
   trip-flow/confirmation/response, history, integration (56/0), root test, lint (0 errors; 10 existing
   warnings), typecheck and diff check pass.
-  This sandbox reproduced the known WeChat `system-configuration` NULL-object panic; no retry was made,
-  and Sol must perform the existing out-of-sandbox build validation. I20 is
-  `READY_FOR_CONTROLLER_REVIEW`.
+  Sol first returned `CHANGES_REQUESTED` for that remaining dual flow source. After Terra's bounded
+  reducer-only fix, Sol independently re-read the actual diff and reran the focused contracts, private
+  history, integration (56/0), root test, lint (0 errors; 10 existing warnings), typecheck and diff check;
+  all pass. Sol also reran the WeChat build outside the sandbox, where it completed successfully.
+  Second Review is `APPROVED — PR_PENDING`, with no remaining P0–P2 or human-confirm item and only
+  latest-head GitHub `quality` outstanding.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -432,8 +435,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol independently reviews actual I20 tests/code, requests bounded fixes if needed, then requires
-   latest-head CI.
+1. Push the approved I20 head, open its implementation PR, and require latest-head GitHub `quality`
+   before merge.
 2. Continue source work independently without inventing blocked route fields.
 
 ## Blockers and risks
