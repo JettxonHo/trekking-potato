@@ -507,6 +507,15 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   cableway and `tour/mixed` facts stay excluded. No raw GPX or personal metadata enters the repository.
   The local and live #20 contracts passed an independent Sol XHigh Review with no P0–P3 findings;
   #20 is open without `status:blocked`, and implementation is authorized on contract head `6034bf1`.
+- I11 implementation recorded a genuine `test:route-data` RED after registering the I11 fragment and
+  route-specific assertion: the absent `yulong-blue-moon-yunshanping` fragment produced `MODULE_NOT_FOUND`.
+  Its minimum GREEN adds only the two-source static fragment, I11 assertions and runner registration.
+  The full aggregate is 8 Sources, 175 legacy Places, 4 Routes and 4 Variants (three full, one blocked);
+  Wutai, Wugong and Siguniang keep their established catalog views. Route-data, route-domain, root test,
+  offline integration (56/0), lint (0 errors; 10 existing warnings), typecheck and diff check pass. The
+  sandbox WeChat build reproduced the known `system-configuration` NULL-object panic; no build or
+  dependency configuration was changed. I11 is `READY_FOR_CONTROLLER_REVIEW`; Sol must run/record a
+  host-environment build and independently review the actual diff before opening a PR.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -521,7 +530,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Terra XHigh implements I11/#20 under the approved route-specific contract; Sol then reviews the actual diff.
+1. Sol XHigh independently reviews I11/#20, including a host-environment WeChat build, before any PR.
 2. Freeze and implement I12 as a focused route-data PR after I11 merges.
 3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
@@ -560,7 +569,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra XHigh implements I11/#20 from contract head `6034bf1` with a genuine route-data RED before the
-minimum static fragment. Sol XHigh independently reviews the actual diff and all required gates before
-creating or approving a PR. I12 remains inactive; keep #22/#30 blocked until #77 and all five full
-Variant PRs are complete.
+Sol XHigh independently reviews I11/#20 from its approved contract, including the host-environment
+WeChat build unavailable in this sandbox, before creating or approving a PR. I12 remains inactive; keep
+#22/#30 blocked until #77 and all five full Variant PRs are complete.

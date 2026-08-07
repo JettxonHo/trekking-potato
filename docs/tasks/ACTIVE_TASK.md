@@ -3,13 +3,26 @@
 - Task ID: `I11`
 - GitHub Issue: `#20`
 - Title: 录入蓝月谷—云杉坪徒步往返线
-- Status: `ACTIVE`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
 - Branch: `codex/i11-yulong-community-gpx`
 - Base: `main` at `1e7fa2d`
 - Goal: `TP-BETA-001`
+
+## Implementation handoff
+
+- A genuine RED was recorded after registering the I11 route-data contract: the missing
+  `yulong-blue-moon-yunshanping` fragment produced `MODULE_NOT_FOUND`.
+- The minimum GREEN adds the one static fragment, its route-specific contract test and runner registration;
+  existing Wutai, Wugong and Siguniang assertions remain in their established fragment views.
+- `test:route-data`, `test:route-domain`, root `test`, `test:integration`, `lint` (0 errors; 10 existing
+  warnings), `typecheck` and `git diff --check` pass. The sandbox `build:weapp` reproduces the known
+  `system-configuration` NULL-object panic, so Sol must record a host-environment build result before
+  approving a PR. No dependency or build configuration was changed.
+- This status is an implementation handoff only. Sol XHigh must independently inspect the actual diff,
+  rerun required gates and decide the Review result.
 
 ## 1. 任务目标
 
