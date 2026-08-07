@@ -2,12 +2,12 @@
 
 - Updated: `2026-08-07`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — I13 CONTRACT_APPROVED / PLANNING_PR_PENDING`
+- Goal status: `ACTIVE — I13 APPROVED / PR_PENDING`
 - Active milestone: `M3 Route domain` (five full reviewed-track Variants and one blocked record merged; I13 remains)
-- Active task: `I13 / #22 / CONTRACT_APPROVED — PLANNING_PR_PENDING`
-- Branch: `codex/i13-resolver-contract`
-- Base: `main` at `4c17f45`
-- Assignment: Sol XHigh owns the approved planning PR; Terra XHigh implements only after its merge
+- Active task: `I13 / #22 / APPROVED — PR_PENDING`
+- Branch: `codex/22-stable-route-resolver`
+- Base: `main` at `5496956`
+- Assignment: Terra XHigh implements the frozen contract; Sol XHigh owns independent Review and merge
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -90,6 +90,27 @@
   three, resynchronized #22, and the focused re-review returned `APPROVED` with no P0–P3 finding.
 - Planning validation passes root `npm test`, integration `56/0`, lint `0 errors / 10 existing warnings`,
   typecheck, host WeChat build and `git diff --check`. No business code changed on the planning branch.
+- I13 planning PR #88 matched approved contract head `c87e891`, passed latest-head GitHub `quality` in
+  3m14s (all substantive steps passed; runner cleanup completed), and squash merged as `5496956`.
+  GitHub #22 is active without a blocked label; the implementation branch was created from that exact main.
+- I13 implementation recorded the required real RED: the new `test:route-resolver` failed with
+  `MODULE_NOT_FOUND` for `catalog-resolver`. The GREEN adds only a fresh I07-validated runtime catalog and
+  pure permanent-ID resolver, plus its offline contract. It proves the `14/175/6/6` aggregate, full/place-only/
+  blocked expansion, deterministic query stages, blocked collision boundaries, legacy IDs, DTO minimization,
+  copy isolation and no-I/O boundary. The full matrix passes: focused contracts, root test, integration `56/0`,
+  lint `0 errors / 10 existing warnings`, typecheck, host `CI=1` WeChat build and diff check. No handler, UI,
+  route-data, dependency, schema or public-contract file changed; I13 is `READY_FOR_CONTROLLER_REVIEW`.
+- I13 REVIEW_FIX recorded a sensitive RED: permanent `place:legacy:党岭` incorrectly resolved as place-only,
+  bypassing its full child. `place:*` now expands first and succeeds only for exactly one matching place-only
+  target; 党岭、五台山朝台 and a synthetic multi-full Place return `not_found`, while 泰山 remains direct.
+  The contract also mutates the injected validated catalog after factory creation and proves the resolver snapshot
+  is unchanged. The same complete validation matrix, including host WeChat build, passes again.
+- Sol XHigh inspected the complete diff through `2f457fe`, found and verified the Place-ID bypass fix, then
+  independently reran focused contracts, root test, integration `56/0`, lint `0 errors / 10 warnings`,
+  typecheck, host WeChat build and diff check; all passed. A second independent Sol XHigh also returned
+  `APPROVED`, with no P0–P2 finding. Its P3 observation that same-name ID tie-break lacks a dedicated fixture
+  is non-blocking: the deterministic comparator is directly inspectable and the suite already covers stable
+  sorting; adding another synthetic permutation would be mechanical rather than risk-reducing.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1 and M2 are complete. I07, I10a and all five reviewed community-track Variants are complete; I13 is
@@ -594,9 +615,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Create the focused I13 planning PR; require latest-head `quality` before merge.
-2. Merge only if the reviewed head and CI head match.
-3. From the merged planning base, assign the frozen I13 implementation to Terra XHigh.
+1. Push the approved I13 branch and create the focused implementation PR.
+2. Require latest-head `quality`; merge only if the reviewed and CI heads match.
 
 ## Blockers and risks
 
@@ -632,5 +652,4 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Create the approved I13 planning PR and merge only after latest-head quality. Keep #30 blocked until the
-I13 implementation is independently approved and merged.
+Push the approved I13 implementation and merge only after latest-head quality. Keep #30 blocked until merge.
