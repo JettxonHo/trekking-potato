@@ -2,12 +2,12 @@
 
 - Updated: `2026-08-07`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — I10c DANGLING CONTRACT APPROVED`
-- Active milestone: `M3 Route domain` (four full reviewed-track Variants merged; fifth contract approved)
-- Active task: `I10c / #77 / CONTRACT_APPROVED — PLANNING_PR_PENDING`
-- Branch: `codex/i10c-dangling-kml-contract`
-- Base: `main` at `fe0ef24`
-- Assignment: Sol XHigh owns contract and independent Review; Terra XHigh is not assigned until planning merges
+- Goal status: `ACTIVE — I10c DANGLING IMPLEMENTATION`
+- Active milestone: `M3 Route domain` (four full reviewed-track Variants merged; fifth implementation active)
+- Active task: `I10c / #77 / IMPLEMENTATION`
+- Branch: `codex/77-dangling-track-data`
+- Base: `main` at `3983102`
+- Assignment: Terra XHigh implements the frozen contract; Sol XHigh owns independent Review and merge decision
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -66,6 +66,9 @@
 - I10c independent contract re-review inspected the latest local diff and live GitHub #77 after four
   synchronization fixes. Result: `APPROVED`, with no P0–P3 finding. The reviewed-track enum, ordered
   supports, stable IDs, 14/175/6/6 aggregate and privacy/unknown boundaries are ready for the planning PR.
+- I10c planning PR #86 matched approved contract head `9505b5e`, passed latest-head GitHub quality in
+  49 seconds and squash merged as `3983102`. The implementation branch was created from that exact main;
+  no business-code edit preceded the Terra handoff.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1 and M2 are complete. I07 and I10a are complete. Four reviewed community tracks are merged as full
@@ -571,9 +574,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Create, validate and merge the approved planning PR for #77's Dangling KML contract.
-2. From merged `main`, dispatch the exact contract to Terra XHigh on `codex/77-dangling-track-data`.
-3. After implementation Sol Review and merge, activate I13; all five full Variants gate it until then.
+1. Terra XHigh executes #77's exact TDD and implementation contract on the isolated branch.
+2. Sol XHigh independently reviews actual code, tests and scope; any fix returns to Terra.
+3. After implementation PR quality and merge, activate I13; all five full Variants gate it until then.
 
 ## Blockers and risks
 
@@ -610,6 +613,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Push the approved planning branch, open and merge its PR after latest-head quality, then dispatch the
-frozen implementation to Terra XHigh. Keep #22/#30 blocked
+Terra implements the frozen #77 contract and returns `READY_FOR_CONTROLLER_REVIEW`; Sol then reviews,
+opens/merges only an approved PR after latest-head quality. Keep #22/#30 blocked
 until #77 and all five full Variant PRs are complete.
