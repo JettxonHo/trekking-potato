@@ -492,8 +492,11 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   The full aggregate is 6 Sources, 175 legacy Places, 3 Routes and 3 Variants (two full, one blocked);
   Wutai and Wugong keep their established aggregate views. Route-data, route-domain, root test,
   offline integration (56/0), lint (0 errors; 10 existing warnings) and typecheck pass. The sandbox
-  WeChat build reproduces the known `system-configuration` NULL-object panic, so Sol must rerun it on
-  the host; no build or dependency configuration was changed.
+  WeChat build reproduced the known `system-configuration` NULL-object panic; Sol reran the same
+  command on the host, where Taro 4.0.9 Webpack compiled successfully in 3.08 seconds with exit 0.
+  Sol and a second independent Sol XHigh inspected the actual diff and returned `APPROVED` with no
+  P0–P3 findings. No build or dependency configuration was changed; only latest-head GitHub `quality`
+  remains before merge.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -508,8 +511,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Implement and independently Review I09/#18 on the merged `adfa0d8` base.
-2. Freeze and implement I11/I12 as focused route-data PRs after I09.
+1. Create the I09/#18 Draft PR, verify latest-head GitHub `quality`, then merge only the approved head.
+2. Freeze and implement I11/I12 as focused route-data PRs after I09 merges.
 3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
 ## Blockers and risks
@@ -547,6 +550,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Terra XHigh implements I09/#18 under TP-D040 and the active contract. Sol XHigh then reviews the
-actual diff, creates/validates the Draft PR and verifies latest-head CI before any merge. Keep
-#22/#30 blocked until #77 and all five full Variant PRs are complete.
+Sol XHigh publishes the reviewed I09 head as a Draft PR, verifies latest-head GitHub `quality`, records
+the approval and squash merges only that head. Then activate I11 without overlapping route-data work.
+Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.
