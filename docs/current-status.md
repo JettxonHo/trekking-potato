@@ -4,10 +4,10 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M6 Core UX` (M3 full routes remain source-blocked)
-- Active task: `I20 / #29 / APPROVED — PLANNING_PR_PENDING`
-- Branch: `codex/m5-checkpoint-i20-contract`
-- Base: `main` at `b7c17ea`
-- Implementation assignment: none until the I20 planning contract merges
+- Active task: `I20 / #29 / IMPLEMENTATION`
+- Branch: `codex/i20-frontend-flow-implementation`
+- Base: `main` at `7fc295f`
+- Implementation assignment: Terra XHigh
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -34,6 +34,7 @@
 - I18 implementation PR: `#67` — merged as `5c69195`; GitHub #27 closed; latest-head quality passed
 - I19 planning PR: `#68` — merged as `72ab196`; attempt 3 latest-head quality passed in 50 seconds
 - I19 implementation PR: `#69` — merged as `b7c17ea`; GitHub #28 and M5 closed
+- I20 planning PR: `#70` — merged as `7fc295f`; GitHub #29 implementation activated
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
@@ -405,6 +406,8 @@ reducer and getAdvice service contract.
   design and a dependency graph that omitted I18/I19. Sol removed generic recovery from I20, required
   future I23 async recovery to start with a new token, and corrected the graph to I17→I18→I19→I20.
   Second Review returned `APPROVED` with no remaining P0–P2 or human-confirm item.
+- I20 planning PR #70 matched reviewed head `6ed5c67`, passed every latest-head GitHub quality step in
+  48 seconds and squash merged as `7fc295f`. #29 is activated for Terra implementation on that exact base.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -412,15 +415,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: owns the M5 checkpoint, I20 contract, independent Review and merge decision.
-- Terra XHigh audit agents: read-only I20 reducer/service and test-boundary review; no coding assignment.
+- Sol XHigh: owns I20 contract, independent implementation Review and merge decision.
+- Terra XHigh: assigned I20 implementation on `codex/i20-frontend-flow-implementation`.
 - Terra XHigh source agents: completed read-only official-source audits and the durable evidence report.
 
 ## Open work
 
-1. Synchronize the approved contract to GitHub #29 and open the pure planning PR.
-2. Merge only after latest-head quality and the reviewed head match.
-3. Activate Terra implementation from the merged planning base; continue source work independently.
+1. Terra implements I20 in vertical RED→GREEN slices and returns a structured result package.
+2. Sol independently reviews actual tests/code, requests bounded fixes if needed, then requires latest-head CI.
+3. Continue source work independently without inventing blocked route fields.
 
 ## Blockers and risks
 
@@ -445,12 +448,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   a UI redesign, global-state migration or service-side business validator.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I20 planning
+## Forbidden actions during I20 implementation
 
-- Production or test code before the planning PR merges
+- Any file outside the I20 allowlist without Sol recording a necessary dependency first
 - Global state libraries, public API changes, CSS/visual work or I21–I23 product behavior
 - Route data/schema, cloud functions, TripContext, history, weather/verdict/AI/safety behavior
 
 ## Next action
 
-Synchronize #29, commit the approved I20 contract and open the pure planning PR.
+Terra executes the frozen I20 task contract; Sol waits for the local result package before reviewing.

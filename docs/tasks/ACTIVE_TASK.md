@@ -3,12 +3,12 @@
 - Task ID: `I20`
 - GitHub Issue: `#29`
 - Title: 建立前端 reducer 状态模型与 getAdvice 服务层
-- Status: `APPROVED — PLANNING_PR_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Reviewer: independent Terra XHigh
-- Branch: `codex/m5-checkpoint-i20-contract`
-- Base: `main` at `b7c17ea`
+- Status: `IMPLEMENTATION`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
+- Branch: `codex/i20-frontend-flow-implementation`
+- Base: `main` at `7fc295f`
 - Goal: `TP-BETA-001`
 
 ## 当前授权与检查点
@@ -17,9 +17,10 @@ I19 implementation PR #69 在 reviewed head `ed8800f` 上通过 GitHub `quality`
 merged as `b7c17ea`，GitHub #28 已关闭。I17–I19 全部完成，M5 Trust and privacy 已关闭；此前
 遗漏的 M4 GitHub milestone 也已同步关闭。
 
-当前只授权 Sol XHigh 冻结 I20 合同、同步权威文档和 GitHub #29，并提交纯规划 PR。合同通过
-独立 Review、latest-head CI 和合并后，才可切换为 `IMPLEMENTATION` 并交给 Terra XHigh。
-规划阶段不得修改生产代码、测试代码、依赖、锁文件或 GitHub workflow。
+I20 规划 PR #70 在 reviewed head `6ed5c67` 上通过 latest-head GitHub `quality`（48 秒），squash
+merged as `7fc295f`，GitHub #29 保持开放。当前授权 Terra XHigh 严格按本合同 allowlist 和
+RED→GREEN 实施；不得改变接口、状态语义、范围或验收标准，不得推送、批准或合并自己的 PR。
+Sol XHigh 保留独立代码 Review、返工指令和合并判断。
 
 一名独立 Terra XHigh 对实际七文档 diff 和当前页面/后端契约完成正式 Review。第一轮
 `CHANGES_REQUESTED` 指出悬空的 RECOVER/recoverTo 与遗漏 I18/I19 的依赖图；Sol 删除 I20 的

@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M6 / I20 APPROVED — PLANNING_PR_PENDING; M3 full routes source-blocked`
+- Status: `ACTIVE — M6 / I20 IMPLEMENTATION; M3 full routes source-blocked`
 - Updated: `2026-08-07`
 
 ## 1. 依赖图
