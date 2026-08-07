@@ -270,12 +270,19 @@ Sol 在沙箱外以 `env CI=1 npm run build:weapp` 验证 exit 0；最新返工 
 I20 新增 `test:trip-flow` 并纳入默认 root test。核心测试直接加载纯 reducer 与注入 fake 的
 getAdvice service，不以页面字符串扫描代替状态行为。代表性矩阵覆盖：10 状态初值与合法主路径、
 base_ready 先于 advice、normal/degraded/context-unavailable 分流、缓存恢复、RESET/取消/返回推进
-token、旧 success/failure 同对象 no-op，以及 prepare/confirm/advice 精确请求体。只为页面接线
-保留少量静态断言：生产 getAdvice 不再直调、旧 lifecycle flags 和 `_requestGeneration` 已移除，
-history 局部路径保持。不要机械排列每个状态与每个事件。
+token、旧 success/failure 同对象 no-op，以及 prepare/confirm/advice 精确请求体。它还直接证明
+`location_failed`/本地手动 fallback 可携带 error 进入唯一的 `awaiting_route_type`，不增加状态或
+字段。只为页面接线保留少量静态断言：生产 getAdvice 不再直调、旧 lifecycle flags（包括
+`showManualCoords`）和 `_requestGeneration` 已移除，history 局部路径保持。不要机械排列每个状态与每个事件。
 
 I20 不测试 I21 的新输入交互、I22 的新结果视觉或 I23 的重试控件；这些在各自 Issue 验收。
 I20 不机械测试尚不存在的通用 RECOVER；I23 的每个异步恢复动作必须另行证明先推进 token。
+
+I20 implementation 的首个真实 RED 是 `test:trip-flow` 缺少 `trip-flow` 模块；GREEN 直接覆盖
+reducer、注入 service 和最小页面边界。它证明 base_ready 先于 advice、normal/degraded/context
+unavailable 分流、new query/RESET/候选取消/手动取消/onBack 的 token no-op，以及 token 和卸载标记
+阻断迟到的 UI/cache/history side effect。`test:confirmation` 与 `test:response` 只更新了既有页面
+静态 seam，移除了已退役 `_requestGeneration` 断言；核心竞态行为只由 reducer 直接验证。
 
 ## 4. 关键矩阵
 

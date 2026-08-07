@@ -52,7 +52,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M3 Route domain | Active — full routes source-blocked | I07–I13 | Domain model and five sourced variants are usable; legacy places are limited |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
-| M6 Core UX | Active — I20 contract | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
+| M6 Core UX | Active — I20 implementation | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10 is

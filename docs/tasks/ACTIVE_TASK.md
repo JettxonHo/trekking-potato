@@ -3,12 +3,12 @@
 - Task ID: `I20`
 - GitHub Issue: `#29`
 - Title: 建立前端 reducer 状态模型与 getAdvice 服务层
-- Status: `APPROVED — PLANNING_PR_PENDING`
-- Mode: `PLANNING`
-- Owner: Sol XHigh
-- Reviewer: independent Terra XHigh
-- Branch: `codex/m5-checkpoint-i20-contract`
-- Base: `main` at `b7c17ea`
+- Status: `APPROVED — PR_PENDING`
+- Mode: `IMPLEMENTATION`
+- Owner: Terra XHigh
+- Reviewer: Sol XHigh
+- Branch: `codex/i20-frontend-flow-implementation`
+- Base: `main` at `7fc295f`
 - Goal: `TP-BETA-001`
 
 ## 当前授权与检查点
@@ -17,9 +17,17 @@ I19 implementation PR #69 在 reviewed head `ed8800f` 上通过 GitHub `quality`
 merged as `b7c17ea`，GitHub #28 已关闭。I17–I19 全部完成，M5 Trust and privacy 已关闭；此前
 遗漏的 M4 GitHub milestone 也已同步关闭。
 
-当前只授权 Sol XHigh 冻结 I20 合同、同步权威文档和 GitHub #29，并提交纯规划 PR。合同通过
-独立 Review、latest-head CI 和合并后，才可切换为 `IMPLEMENTATION` 并交给 Terra XHigh。
-规划阶段不得修改生产代码、测试代码、依赖、锁文件或 GitHub workflow。
+I20 规划 PR #70 在 reviewed head `6ed5c67` 上通过 latest-head GitHub `quality`（48 秒），squash
+merged as `7fc295f`，GitHub #29 保持开放。当前授权 Terra XHigh 严格按本合同 allowlist 和
+RED→GREEN 实施；不得改变接口、状态语义、范围或验收标准，不得推送、批准或合并自己的 PR。
+Sol XHigh 保留独立代码 Review、返工指令和合并判断。
+
+Terra implementation 已记录一个真实缺失模块 RED，随后交付 reducer、service、最小页面接线和
+`test:trip-flow` GREEN。Sol 首轮 Review 发现页面级 `showManualCoords` 依然是第二事实源，
+返回 `CHANGES_REQUESTED`；Terra 以 reducer-only fallback 和直接回归测试修复。Sol 第二轮检查
+实际 diff 并独立重跑 trip-flow、confirmation、response、history、integration、root test、
+lint、typecheck、diff check 和沙箱外 WeChat build；全部通过。Review 结果为
+`APPROVED — PR_PENDING`，无剩余 P0–P2 或人工确认项，仅等待最新 head 的 GitHub quality。
 
 一名独立 Terra XHigh 对实际七文档 diff 和当前页面/后端契约完成正式 Review。第一轮
 `CHANGES_REQUESTED` 指出悬空的 RECOVER/recoverTo 与遗漏 I18/I19 的依赖图；Sol 删除 I20 的
@@ -102,7 +110,7 @@ RESTORE_CACHED      idle → complete | degraded，token + 1，恢复缓存 resu
 
 ```text
 CONFIRMATION_REQUIRED searching → awaiting_confirmation
-ROUTE_TYPE_REQUIRED  searching/preparing → awaiting_route_type
+ROUTE_TYPE_REQUIRED  searching/preparing → awaiting_route_type（可携带 local fallback error）
 BASE_RECEIVED        searching/preparing → base_ready
 ADVICE_STARTED       base_ready → advice_loading
 ADVICE_SUCCEEDED     advice_loading → complete | degraded
@@ -137,7 +145,7 @@ I20 不定义 `RECOVER` 或恢复目标；error 的可重试事实保留在 `err
 - `errorMessage`：`error && error.message`
 
 以下旧字段从页面顶层 state 删除，不得与 reducer 双写：`loading`、`showResult`、`adviceLoading`、
-`error`、`showCandidatePopup`、`candidates`、`candidateSnapshot`、`pendingResolvedLocation`、
+`error`、`showCandidatePopup`、`showManualCoords`、`candidates`、`candidateSnapshot`、`pendingResolvedLocation`、
 `_requestGeneration`。
 
 以下继续留在页面：
@@ -209,7 +217,8 @@ history、路线目录/schema/data、天气/结论/AI/Prompt/安全模块、依�
 
 1. 初始 state 字段和值精确；状态集合没有第 11 个值。
 2. search → confirmation；candidate begin prepare → base_ready → advice_loading → complete。
-3. search/preparing → route type required；手动 follow-up 可进入 preparing。
+3. search/preparing → route type required；`location_failed` 与本地手动 fallback 可随该事件保留 error、
+   进入同一个 `awaiting_route_type`；手动 follow-up 可进入 preparing，且不新增状态/字段。
 4. base_ready 时 result 已存在；advice normal/degraded/transport failure 都保留确定性 result。
 5. `query_context_unavailable` 进入 error，result 保留且不变成 degraded。
 6. 新查询、RESET、候选/手动取消推进 token；各选一个旧 success 与旧 failure 代表事件证明返回

@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M6 / I20 APPROVED — PLANNING_PR_PENDING; M3 full routes source-blocked`
+- Status: `ACTIVE — M6 / I20 IMPLEMENTATION; M3 full routes source-blocked`
 - Updated: `2026-08-07`
 
 ## 1. 依赖图
@@ -272,3 +272,7 @@ I19 implementation PR #69 passed two-round Sol Review and latest-head quality, s
 - I21 负责新输入和稳定路线接入，I22 负责结果体验，I23 负责重试/恢复控件；I20 不提前实现。
 - 精确事件、allowlist、测试矩阵与升级条件以 GitHub #29 和当前
   `docs/tasks/ACTIVE_TASK.md` 为准。规划 PR 合并前不得开始实现。
+
+I20 implementation 已完成 RED→GREEN：新增 reducer/service、最小页面接线与 `test:trip-flow`，并将
+I05/I18 的页面静态断言迁移到 reducer token/service seam。它不修改云函数、CSS、history 语义或
+I21–I23 行为；当前等待 Sol 的独立实际 diff Review。
