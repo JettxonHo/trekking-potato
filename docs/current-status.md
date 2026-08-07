@@ -4,7 +4,7 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE`
 - Active milestone: `M6 Core UX` (M3 full routes remain source-blocked)
-- Active task: `I20 / #29 / IMPLEMENTATION`
+- Active task: `I20 / #29 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/i20-frontend-flow-implementation`
 - Base: `main` at `7fc295f`
 - Implementation assignment: Terra XHigh
@@ -408,6 +408,14 @@ reducer and getAdvice service contract.
   Second Review returned `APPROVED` with no remaining P0–P2 or human-confirm item.
 - I20 planning PR #70 matched reviewed head `6ed5c67`, passed every latest-head GitHub quality step in
   48 seconds and squash merged as `7fc295f`. #29 is activated for Terra implementation on that exact base.
+- I20 implementation recorded a genuine `test:trip-flow` RED because the frozen reducer module was
+  absent. Its GREEN adds only the pure 10-state/token reducer, injected queryId-only getAdvice service,
+  minimal page wiring and direct contract coverage; I05/I18 static page checks now point to that seam,
+  rather than preserving `_requestGeneration`. Focused trip-flow/confirmation/response, history,
+  integration (56/0), root test, lint (0 errors; 10 existing warnings), typecheck and diff check pass.
+  This sandbox reproduced the known WeChat `system-configuration` NULL-object panic; no retry was made,
+  and Sol must perform the existing out-of-sandbox build validation. I20 is
+  `READY_FOR_CONTROLLER_REVIEW`.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -421,9 +429,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Terra implements I20 in vertical RED→GREEN slices and returns a structured result package.
-2. Sol independently reviews actual tests/code, requests bounded fixes if needed, then requires latest-head CI.
-3. Continue source work independently without inventing blocked route fields.
+1. Sol independently reviews actual I20 tests/code, requests bounded fixes if needed, then requires
+   latest-head CI.
+2. Continue source work independently without inventing blocked route fields.
 
 ## Blockers and risks
 

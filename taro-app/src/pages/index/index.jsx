@@ -6,6 +6,9 @@ import Taro from '@tarojs/taro'
 import './index.css'
 import '../../styles/nutui-override.css'
 
+const { createInitialTripFlow, reduceTripFlow, selectTripFlowView } = require('./trip-flow')
+const { createGetAdviceService } = require('./get-advice-service')
+
 const FUNNY_MESSAGES = [
   '薯仔正在向老天借晴天...',
   '薯仔正在把雨水塞进云里...',
@@ -61,12 +64,8 @@ export default class Index extends Component {
     levelCaptions: ['适合无经验者，路线以平路为主', '有一定经验，单日 10-20km 含爬升', '强驴专属，地形复杂，需强户外自理能力'],
     levelIndex: 1,
     minDate: '',
-    loading: false,
     loadingStage: '',
-    error: null,
-    showResult: false,
-    result: null,
-    adviceLoading: false,
+    tripFlow: createInitialTripFlow(),
     showManualCoords: false,
     manualLat: '',
     manualLon: '',
@@ -79,8 +78,6 @@ export default class Index extends Component {
     // true 表示当前表单的路线身份必须继续使用用户确认的坐标和路线类型，
     // 而不是重新执行路线名解析
     manualContextActive: false,
-    // 后端返回 route_type_required 时暂存的已解析位置（预填手动坐标弹窗）
-    pendingResolvedLocation: null,
     funnyMsg: '',
     daysBounce: false,
     showHistory: false,
@@ -88,9 +85,6 @@ export default class Index extends Component {
     historyLoading: false,
     historyError: null,
     historySaveError: null,
-    showCandidatePopup: false,
-    candidates: [],
-    candidateSnapshot: null,
   }
 
   componentDidMount() {
@@ -129,8 +123,11 @@ export default class Index extends Component {
           manualLat: restoreManualContext ? String(cached.form.manualLat) : '',
           manualLon: restoreManualContext ? String(cached.form.manualLon) : '',
           manualElev: restoreManualContext ? (cached.form.manualElevation || '') : '',
-          showResult: true,
-          result: cached.result,
+          tripFlow: reduceTripFlow(this.state.tripFlow, {
+            type: 'RESTORE_CACHED',
+            result: cached.result,
+            degraded: cached.result.degraded === true,
+          }),
         })
       }
     } catch (e) {
@@ -140,24 +137,25 @@ export default class Index extends Component {
 
   onRouteInput = (e) => {
     const nextRoute = e.detail.value
-    this._nextRequestGeneration()
-    const clearedCandidates = this._clearCandidateConfirmation()
+    const routeTypeRequest = this.state.tripFlow.routeTypeRequest
     // TP-P0-003 REVIEW_FIX：用户修改路线文本后必须清除全部手动上下文，
     // 包括 manualContextActive，避免旧坐标与路线类型被串用
-    if (this.state.manualContextActive || this.state.pendingResolvedLocation || this.state.manualRouteType || this.state.manualLat || this.state.manualLon) {
-      this.setState({
+    if (this.state.manualContextActive || routeTypeRequest || this.state.manualRouteType || this.state.manualLat || this.state.manualLon) {
+      this.setState((previous) => ({
         route: nextRoute,
         manualContextActive: false,
-        pendingResolvedLocation: null,
         manualRouteType: '',
         manualLat: '',
         manualLon: '',
         manualElev: '',
-        ...clearedCandidates,
-      })
+        tripFlow: reduceTripFlow(previous.tripFlow, { type: 'RESET' }),
+      }))
       return
     }
-    this.setState({ route: nextRoute, ...clearedCandidates })
+    this.setState((previous) => ({
+      route: nextRoute,
+      tripFlow: reduceTripFlow(previous.tripFlow, { type: 'RESET' }),
+    }))
   }
   onDateChange = (e) => this.setState({ date: e.detail.value })
 
@@ -226,13 +224,24 @@ export default class Index extends Component {
     this._submitBase({ route: route.trim(), date, level, days: tripDays })
   }
 
-  _nextRequestGeneration() {
-    this._requestGeneration = (this._requestGeneration || 0) + 1
-    return this._requestGeneration
+  _updateTripFlow(event, pageState, callback) {
+    let changed = false
+    this.setState((previous) => {
+      const tripFlow = reduceTripFlow(previous.tripFlow, event)
+      changed = tripFlow !== previous.tripFlow
+      return { ...(pageState || {}), tripFlow }
+    }, () => {
+      if (changed && callback) callback(this.state.tripFlow)
+    })
   }
 
-  _clearCandidateConfirmation() {
-    return { showCandidatePopup: false, candidates: [], candidateSnapshot: null }
+  _isCurrentTripFlow(token, statuses) {
+    const flow = this.state.tripFlow
+    return !this._unmounted && flow.token === token && statuses.indexOf(flow.status) >= 0
+  }
+
+  _getAdviceService() {
+    return createGetAdviceService({ callFunction: (request) => Taro.cloud.callFunction(request) })
   }
 
   _isValidCandidate(candidate) {
@@ -244,46 +253,47 @@ export default class Index extends Component {
   }
 
   onCandidateClose = () => {
-    this._nextRequestGeneration()
-    this.setState(this._clearCandidateConfirmation())
+    this._updateTripFlow({ type: 'RESET' })
   }
 
   onCandidateSelect = (candidateId) => {
-    const { candidates, candidateSnapshot } = this.state
+    const { candidates, confirmationInput } = this.state.tripFlow
     const candidate = candidates.find((item) => item.candidateId === candidateId)
-    const snapshot = candidateSnapshot
+    const snapshot = confirmationInput
     if (!this._isValidCandidate(candidate) || !snapshot || typeof snapshot.date !== 'string' || typeof snapshot.level !== 'string' || !snapshot.days) {
-      this._nextRequestGeneration()
-      this.setState({ error: '候选路线信息异常，请修改输入后重试', ...this._clearCandidateConfirmation() })
+      this._updateTripFlow({ type: 'BEGIN_PREPARE' }, null, (flow) => {
+        this._updateTripFlow({
+          type: 'FLOW_FAILED',
+          token: flow.token,
+          error: { message: '候选路线信息异常，请修改输入后重试', retryable: false },
+        })
+      })
       return
     }
 
-    const generation = this._nextRequestGeneration()
     const params = { candidateId, date: snapshot.date, level: snapshot.level, days: snapshot.days }
-    this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, loadingStage: '薯仔正在确认路线...', ...this._clearCandidateConfirmation() })
-    Taro.cloud.callFunction({
-      name: 'getAdvice',
-      data: { mode: 'confirm', ...params },
-      success: (res) => {
-        if (this._unmounted || generation !== this._requestGeneration) return
-        const result = res.result
+    this._updateTripFlow({ type: 'BEGIN_PREPARE' }, { loadingStage: '薯仔正在确认路线...' }, (flow) => {
+      const token = flow.token
+      this._getAdviceService().confirm(params).then((outcome) => {
+        if (!this._isCurrentTripFlow(token, ['preparing'])) return
+        if (outcome.kind === 'transport_failure') {
+          this._updateTripFlow({
+            type: 'FLOW_FAILED',
+            token,
+            error: { message: '云函数调用失败，请检查 getAdvice 是否已部署', retryable: true },
+          })
+          return
+        }
+        const result = outcome.result
         if (!result) {
-          this.setState({ loading: false, error: '路线确认失败，请重新查询' })
+          this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { message: '路线确认失败，请重新查询', retryable: true } })
           return
         }
         if (result.phase === 'route_type_required') {
           const pd = result.data
-          this.setState({
-            loading: false,
+          this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token, routeTypeRequest: pd }, {
             showManualCoords: true,
             manualContextActive: true,
-            pendingResolvedLocation: {
-              name: pd.name,
-              lat: pd.lat,
-              lon: pd.lon,
-              elevation: pd.elevation,
-              location: pd.location,
-            },
             manualLat: pd.lat != null ? String(pd.lat) : '',
             manualLon: pd.lon != null ? String(pd.lon) : '',
             manualElev: pd.elevation != null ? String(pd.elevation) : '',
@@ -292,22 +302,17 @@ export default class Index extends Component {
           return
         }
         if (result.phase === 'error') {
-          this.setState({ loading: false, error: result.message || '路线确认失败，请重新查询' })
+          this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { code: result.code, message: result.message || '路线确认失败，请重新查询', retryable: result.retryable === true } })
           return
         }
         if (result.phase !== 'base') {
-          this.setState({ loading: false, error: '路线确认失败，请重新查询' })
+          this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { message: '路线确认失败，请重新查询', retryable: true } })
           return
         }
         const base = result.data
         const historyParams = { ...params, route: params.route || base.route }
-        this._showBaseAndFetchAdvice(base, result.queryId, historyParams, generation)
-      },
-      fail: (err) => {
-        if (this._unmounted || generation !== this._requestGeneration) return
-        this.setState({ loading: false, error: '云函数调用失败，请检查 getAdvice 是否已部署' })
-        console.error('[徒步薯] confirm callFunction fail', err)
-      }
+        this._showBaseAndFetchAdvice(base, result.queryId, historyParams, token)
+      })
     })
   }
 
@@ -343,9 +348,11 @@ export default class Index extends Component {
     })
   }
 
+  onManualClose = () => this._updateTripFlow({ type: 'RESET' }, { showManualCoords: false })
+
   _startFunnyRotation() {
     this._funnyTimer = setInterval(() => {
-      if (this._unmounted || !this.state.adviceLoading) { clearInterval(this._funnyTimer); return }
+      if (this._unmounted || !selectTripFlowView(this.state.tripFlow).adviceLoading) { clearInterval(this._funnyTimer); return }
       const msg = FUNNY_MESSAGES[Math.floor(Math.random() * FUNNY_MESSAGES.length)]
       this.setState({ funnyMsg: msg })
     }, 2000)
@@ -354,10 +361,7 @@ export default class Index extends Component {
 
   _showBaseAndFetchAdvice(base, queryId, params, generation) {
     const baseSafetyResult = buildBaseSafetyResult(base.gearRules)
-    this.setState({
-      loading: false,
-      showResult: true,
-      result: {
+    const baseResult = {
         weatherWindow: base.weather,
         photoTiming: base.sunEvents,
         gear: baseSafetyResult.gear,
@@ -371,47 +375,60 @@ export default class Index extends Component {
           routeType: base.routeType,
           routeTypeSource: base.routeTypeSource,
         },
-      },
-     adviceLoading: true,
-    }, () => this._saveCache())
-    this._adviceSteps = ['薯仔正在分析天气窗口...', '薯仔正在匹配装备清单...', '薯仔正在评估风险等级...', '薯仔正在生成行前建议...']
-    this._adviceStepIdx = 0
-    this._adviceStepTimer = setInterval(() => {
-      if (this._unmounted || !this.state.adviceLoading) { clearInterval(this._adviceStepTimer); return }
-      this._adviceStepIdx = (this._adviceStepIdx + 1) % this._adviceSteps.length
-      this.setState({ adviceStage: this._adviceSteps[this._adviceStepIdx] })
-    }, 1800)
-    this.setState({ adviceStage: this._adviceSteps[0] })
-    this._startFunnyRotation()
-    this._fetchAdvice(queryId, params, generation)
+    }
+    this._updateTripFlow({ type: 'BASE_RECEIVED', token: generation, result: baseResult, queryId }, null, (flow) => {
+      if (this._unmounted || flow.token !== generation || flow.status !== 'base_ready') return
+      this._saveCache(generation)
+      this._updateTripFlow({ type: 'ADVICE_STARTED', token: generation }, null, (adviceFlow) => {
+        if (this._unmounted || adviceFlow.token !== generation || adviceFlow.status !== 'advice_loading') return
+        this._adviceSteps = ['薯仔正在分析天气窗口...', '薯仔正在匹配装备清单...', '薯仔正在评估风险等级...', '薯仔正在生成行前建议...']
+        this._adviceStepIdx = 0
+        this._adviceStepTimer = setInterval(() => {
+          if (this._unmounted || !selectTripFlowView(this.state.tripFlow).adviceLoading) { clearInterval(this._adviceStepTimer); return }
+          this._adviceStepIdx = (this._adviceStepIdx + 1) % this._adviceSteps.length
+          this.setState({ adviceStage: this._adviceSteps[this._adviceStepIdx] })
+        }, 1800)
+        this.setState({ adviceStage: this._adviceSteps[0] })
+        this._startFunnyRotation()
+        this._fetchAdvice(queryId, params, generation)
+      })
+    })
   }
 
   _submitBase(params) {
     this._unmounted = false
-    const generation = this._nextRequestGeneration()
-    this.setState({ loading: true, error: null, showResult: false, result: null, adviceLoading: false, showManualCoords: false, loadingStage: '薯仔正在查询路线位置...', ...this._clearCandidateConfirmation() })
-    Taro.cloud.callFunction({
-      name: 'getAdvice',
-      data: { ...params, mode: 'prepare' },
-      success: (res) => {
-        if (this._unmounted || generation !== this._requestGeneration) return
-        const result = res.result
+    const status = this.state.tripFlow.status
+    const type = ['awaiting_confirmation', 'awaiting_route_type', 'error'].indexOf(status) >= 0
+      ? 'BEGIN_PREPARE'
+      : 'BEGIN_SEARCH'
+    this._updateTripFlow({ type }, { showManualCoords: false, loadingStage: '薯仔正在查询路线位置...' }, (flow) => {
+      const generation = flow.token
+      this._getAdviceService().prepare(params).then((outcome) => {
+        if (!this._isCurrentTripFlow(generation, ['searching', 'preparing'])) return
+        if (outcome.kind === 'transport_failure') {
+          this._updateTripFlow({
+            type: 'FLOW_FAILED',
+            token: generation,
+            error: { message: '云函数调用失败，请检查 getAdvice 是否已部署', retryable: true },
+          })
+          return
+        }
+        const result = outcome.result
         if (!result) {
-          this.setState({ loading: false, error: '路线查询失败' })
+          this._updateTripFlow({ type: 'FLOW_FAILED', token: generation, error: { message: '路线查询失败', retryable: true } })
           return
         }
         if (result.phase === 'confirmation') {
           const candidates = Array.isArray(result.candidates) ? result.candidates : []
           if (candidates.length < 1 || candidates.length > 5 || !candidates.every((candidate) => this._isValidCandidate(candidate))) {
-            this.setState({ loading: false, error: '候选路线信息异常，请修改输入后重试', ...this._clearCandidateConfirmation() })
+            this._updateTripFlow({ type: 'FLOW_FAILED', token: generation, error: { message: '候选路线信息异常，请修改输入后重试', retryable: false } })
             return
           }
-          this.setState({
-            loading: false,
-            error: null,
-            showCandidatePopup: true,
+          this._updateTripFlow({
+            type: 'CONFIRMATION_REQUIRED',
+            token: generation,
             candidates,
-            candidateSnapshot: { date: params.date, level: params.level, days: params.days },
+            confirmationInput: { date: params.date, level: params.level, days: params.days },
           })
           return
         }
@@ -419,18 +436,9 @@ export default class Index extends Component {
           // TP-P0-003：类型未知不是普通失败——保存已解析位置，预填手动坐标弹窗，
           // 打开路线类型选择；不自动选择 trek
           const pd = result.data
-          this.setState({
-            loading: false,
-            showManualCoords: true,
+          this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token: generation, routeTypeRequest: pd }, {
             // TP-P0-003 REVIEW_FIX：外部位置预填后激活手动可信上下文
             manualContextActive: true,
-            pendingResolvedLocation: {
-              name: pd.name,
-              lat: pd.lat,
-              lon: pd.lon,
-              elevation: pd.elevation,
-              location: pd.location,
-            },
             manualLat: pd.lat != null ? String(pd.lat) : '',
             manualLon: pd.lon != null ? String(pd.lon) : '',
             manualElev: pd.elevation != null ? String(pd.elevation) : '',
@@ -441,126 +449,98 @@ export default class Index extends Component {
         if (result.phase === 'error') {
           const error = result.code
           const isLocationFail = error === 'location_failed'
-          this.setState({ loading: false, error: result.message || '路线查询失败', showManualCoords: isLocationFail })
+          this._updateTripFlow({ type: 'FLOW_FAILED', token: generation, error: { code: result.code, message: result.message || '路线查询失败', retryable: result.retryable === true } }, { showManualCoords: isLocationFail })
           return
         }
         if (result.phase !== 'base') {
-          this.setState({ loading: false, error: '路线查询失败' })
+          this._updateTripFlow({ type: 'FLOW_FAILED', token: generation, error: { message: '路线查询失败', retryable: true } })
           return
         }
         this._showBaseAndFetchAdvice(result.data, result.queryId, params, generation)
-      },
-      fail: (err) => {
-        if (this._unmounted || generation !== this._requestGeneration) return
-        this.setState({ loading: false, error: '云函数调用失败，请检查 getAdvice 是否已部署' })
-        console.error('[徒步薯] base callFunction fail', err)
-      }
+      })
     })
   }
 
   _fetchAdvice(queryId, historyParams, generation) {
-    Taro.cloud.callFunction({
-      name: 'getAdvice',
-      data: { mode: 'advice', queryId },
-      success: (res) => {
-        if (this._unmounted || generation !== this._requestGeneration) return
+    this._getAdviceService().advice(queryId).then((outcome) => {
+        if (!this._isCurrentTripFlow(generation, ['advice_loading'])) return
         if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
         if (this._funnyTimer) clearInterval(this._funnyTimer)
-        const result = res.result
+        if (outcome.kind === 'transport_failure') {
+          this._finishDegradedAdvice(generation, historyParams, { message: 'AI 建议生成失败', retryable: true })
+          return
+        }
+        const result = outcome.result
         if (result && result.phase === 'error' && result.code === 'query_context_unavailable') {
-          this.setState((prev) => ({
-            adviceLoading: false,
-            funnyMsg: '',
-            daysBounce: false,
-            error: result.message,
-            result: { ...prev.result },
-          }))
+          this._updateTripFlow({
+            type: 'CONTEXT_UNAVAILABLE',
+            token: generation,
+            error: { code: result.code, message: result.message, retryable: result.retryable === true },
+          }, { funnyMsg: '', daysBounce: false })
           return
         }
         if (result && result.phase === 'advice') {
           const d = result.data
           const degraded = result.degraded === true
-          let historyResult
-          this.setState((prev) => ({
-            adviceLoading: false,
-            funnyMsg: '',
-            daysBounce: false,
-            result: {
-              ...prev.result,
-              gear: d.gear || prev.result.gear,
-              risks: d.risks || prev.result.risks,
-              notes: d.notes || prev.result.notes,
+          const base = this.state.tripFlow.result
+          const mergedResult = {
+              ...base,
+              gear: d.gear || base.gear,
+              risks: d.risks || base.risks,
+              notes: d.notes || base.notes,
               degraded,
-              weatherWindow: d.weather || prev.result.weatherWindow,
-              photoTiming: d.photoTiming || prev.result.photoTiming,
+              weatherWindow: d.weather || base.weatherWindow,
+              photoTiming: d.photoTiming || base.photoTiming,
               disclaimer: d.disclaimer,
-              meta: { ...prev.result.meta, ...d.meta },
-            },
-          }), () => {
-            historyResult = {
+              meta: { ...base.meta, ...d.meta },
+          }
+          this._updateTripFlow({ type: 'ADVICE_SUCCEEDED', token: generation, result: mergedResult, degraded }, { funnyMsg: '', daysBounce: false }, (flow) => {
+            if (this._unmounted || flow.token !== generation || ['complete', 'degraded'].indexOf(flow.status) < 0) return
+            const historyResult = {
               risks: d.risks || [],
               degraded,
-              meta: { ...((this.state.result && this.state.result.meta) || {}), ...d.meta },
+              meta: { ...(flow.result.meta || {}), ...d.meta },
             }
-            this._saveCache()
-            this._saveHistory(historyParams, historyResult)
+            this._saveCache(generation)
+            this._saveHistory(historyParams, historyResult, generation)
           })
         } else {
-          let historyResult
-          this.setState((prev) => ({
-            adviceLoading: false,
-            funnyMsg: '',
-            daysBounce: false,
-            error: (result && result.phase === 'error' && result.message) || 'AI 建议生成失败',
-            result: {
-              ...prev.result,
-              degraded: true,
-              notes: [...(prev.result.notes || []), AI_UNAVAILABLE_NOTE],
-            },
-          }), () => {
-            historyResult = {
-              risks: (this.state.result && this.state.result.risks) || [],
-              degraded: true,
-              meta: (this.state.result && this.state.result.meta) || {},
-            }
-            this._saveCache()
-            this._saveHistory(historyParams, historyResult)
+          this._finishDegradedAdvice(generation, historyParams, {
+            code: result && result.phase === 'error' ? result.code : undefined,
+            message: (result && result.phase === 'error' && result.message) || 'AI 建议生成失败',
+            retryable: result && result.retryable === true,
           })
         }
-      },
-      fail: (err) => {
-        if (this._unmounted || generation !== this._requestGeneration) return
-        if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
-        if (this._funnyTimer) clearInterval(this._funnyTimer)
-        let historyResult
-        this.setState((prev) => ({
-          adviceLoading: false,
-          funnyMsg: '',
-          daysBounce: false,
-          result: {
-            ...prev.result,
-            degraded: true,
-            notes: [...(prev.result.notes || []), AI_UNAVAILABLE_NOTE],
-          },
-        }), () => {
-          historyResult = {
-            risks: (this.state.result && this.state.result.risks) || [],
-            degraded: true,
-            meta: (this.state.result && this.state.result.meta) || {},
-          }
-          this._saveCache()
-          this._saveHistory(historyParams, historyResult)
-        })
-        console.error('[徒步薯] advice callFunction fail', err)
-      }
     })
   }
 
-  onBack = () => this.setState({ showResult: false })
+  _finishDegradedAdvice(token, historyParams, error) {
+    const base = this.state.tripFlow.result
+    const result = {
+      ...base,
+      degraded: true,
+      notes: [...(base.notes || []), AI_UNAVAILABLE_NOTE],
+    }
+    this._updateTripFlow({ type: 'ADVICE_FAILED', token, result, error }, { funnyMsg: '', daysBounce: false }, (flow) => {
+      if (this._unmounted || flow.token !== token || flow.status !== 'degraded') return
+      const historyResult = {
+        risks: flow.result.risks || [],
+        degraded: true,
+        meta: flow.result.meta || {},
+      }
+      this._saveCache(token)
+      this._saveHistory(historyParams, historyResult, token)
+    })
+  }
+
+  onBack = () => this._updateTripFlow({ type: 'RESET' })
 
   // ===== 结果缓存 =====
   _saveCache() {
-    const { route, date, days, level, levelIndex, result, manualContextActive, manualRouteType, manualLat, manualLon, manualElev } = this.state
+    const token = arguments[0]
+    if (this._unmounted || this.state.tripFlow.token !== token) return
+    const { route, date, days, level, levelIndex, manualContextActive, manualRouteType, manualLat, manualLon, manualElev } = this.state
+    const result = this.state.tripFlow.result
     if (!result) return
     try {
       Taro.setStorageSync(CACHE_KEY, {
@@ -585,6 +565,7 @@ export default class Index extends Component {
 
   // ===== 历史记录 =====
   _saveHistory(params, resultData) {
+    const token = arguments[2]
     const risks = resultData.risks || []
     const summary = risks.length > 0
       ? risks[0].risk + (risks.length > 1 ? ' 等' + risks.length + '项风险' : '')
@@ -608,10 +589,14 @@ export default class Index extends Component {
         degraded: resultData.degraded === true,
       },
       success: (res) => {
+        if (this._unmounted || this.state.tripFlow.token !== token) return
         const result = res.result
         this.setState({ historySaveError: result && result.ok ? null : HISTORY_SAVE_ERROR })
       },
-      fail: () => this.setState({ historySaveError: HISTORY_SAVE_ERROR }),
+      fail: () => {
+        if (this._unmounted || this.state.tripFlow.token !== token) return
+        this.setState({ historySaveError: HISTORY_SAVE_ERROR })
+      },
     })
   }
 
@@ -713,7 +698,6 @@ export default class Index extends Component {
       level: record.level || '中级',
       levelIndex: ['小白', '中级', '老手'].indexOf(record.level || '中级'),
       showHistory: false,
-      pendingResolvedLocation: null,
       manualContextActive: isManualRecord,
       manualRouteType: isManualRecord ? record.routeType : '',
       manualLat: isManualRecord ? String(coords.lat) : '',
@@ -729,7 +713,11 @@ export default class Index extends Component {
   }
 
   render() {
-    const { route, date, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, pendingResolvedLocation, showHistory, historyList, historyLoading, historyError, historySaveError, showCandidatePopup, candidates } = this.state
+    const { route, date, days, levels, levelIndex, minDate, loadingStage, tripFlow, showManualCoords: manualPopupVisible, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, showHistory, historyList, historyLoading, historyError, historySaveError } = this.state
+    const { loading, adviceLoading, showResult, showCandidatePopup, errorMessage } = selectTripFlowView(tripFlow)
+    const { result, candidates, routeTypeRequest } = tripFlow
+    const error = errorMessage
+    const showManualCoords = manualPopupVisible || selectTripFlowView(tripFlow).showManualCoords
     const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
     const funnyMsg = this.state.funnyMsg
 
@@ -987,10 +975,10 @@ export default class Index extends Component {
           </View>
         </Popup>
 
-        <Popup visible={showManualCoords} position="bottom" round onClose={() => this.setState({ showManualCoords: false })} className="manual-popup">
+        <Popup visible={showManualCoords} position="bottom" round onClose={this.onManualClose} className="manual-popup">
           <View className="manual-popup-content">
-            <Text className="manual-popup-title">{pendingResolvedLocation ? '已定位到外部位置，请确认路线类型' : '搜不到路线？输入起点坐标'}</Text>
-            <Text className="manual-hint">{pendingResolvedLocation ? '外部数据无法确认路线类型，请选择后继续（不会默认为徒步）' : '在高德地图长按路线起点即可复制坐标'}</Text>
+            <Text className="manual-popup-title">{routeTypeRequest ? '已定位到外部位置，请确认路线类型' : '搜不到路线？输入起点坐标'}</Text>
+            <Text className="manual-hint">{routeTypeRequest ? '外部数据无法确认路线类型，请选择后继续（不会默认为徒步）' : '在高德地图长按路线起点即可复制坐标'}</Text>
             <View className="coord-row">
               <Input className="coord-input" type="digit" placeholder="纬度 如 27.45" placeholderClass="placeholder" value={manualLat} onInput={(e) => this.setState({ manualLat: e.detail.value })} />
               <Input className="coord-input" type="digit" placeholder="经度 如 114.17" placeholderClass="placeholder" value={manualLon} onInput={(e) => this.setState({ manualLon: e.detail.value })} />

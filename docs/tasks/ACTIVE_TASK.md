@@ -3,7 +3,7 @@
 - Task ID: `I20`
 - GitHub Issue: `#29`
 - Title: 建立前端 reducer 状态模型与 getAdvice 服务层
-- Status: `IMPLEMENTATION`
+- Status: `READY_FOR_CONTROLLER_REVIEW`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -21,6 +21,12 @@ I20 规划 PR #70 在 reviewed head `6ed5c67` 上通过 latest-head GitHub `qual
 merged as `7fc295f`，GitHub #29 保持开放。当前授权 Terra XHigh 严格按本合同 allowlist 和
 RED→GREEN 实施；不得改变接口、状态语义、范围或验收标准，不得推送、批准或合并自己的 PR。
 Sol XHigh 保留独立代码 Review、返工指令和合并判断。
+
+Terra implementation 已记录一个真实缺失模块 RED，随后交付 reducer、service、最小页面接线和
+`test:trip-flow` GREEN。聚焦 trip-flow、confirmation、response、history、integration、root test、
+lint 和 typecheck 均通过；本沙箱复现已知 WeChat build 的 `system-configuration` panic，未重试且
+不记作通过。任务状态为 `READY_FOR_CONTROLLER_REVIEW`，仅等待 Sol 的独立代码 Review 与其后的
+latest-head CI 判断。
 
 一名独立 Terra XHigh 对实际七文档 diff 和当前页面/后端契约完成正式 Review。第一轮
 `CHANGES_REQUESTED` 指出悬空的 RECOVER/recoverTo 与遗漏 I18/I19 的依赖图；Sol 删除 I20 的
