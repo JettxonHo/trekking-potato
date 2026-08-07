@@ -1,9 +1,11 @@
 const { BUILTIN_ROUTES } = require('../cloudfunctions/getAdvice/data/routes')
 const { createRouteCatalog } = require('../cloudfunctions/getAdvice/domain/route-catalog')
 const wutai = require('../cloudfunctions/getAdvice/data/catalog/pilots/wutai')
+const wugongshanReverse = require('../cloudfunctions/getAdvice/data/catalog/pilots/wugongshan-reverse')
 const { runWutaiTests } = require('./route-data/wutai.test')
+const { runWugongshanReverseTests } = require('./route-data/wugongshan-reverse.test')
 
-const PILOT_FRAGMENTS = [wutai]
+const PILOT_FRAGMENTS = [wutai, wugongshanReverse]
 
 function combineFragments(fragments) {
   return fragments.reduce((combined, fragment) => ({
@@ -14,12 +16,29 @@ function combineFragments(fragments) {
   }), { sources: [], places: [], routes: [], variants: [] })
 }
 
+function createFragmentCatalogView(catalog, fragment) {
+  const sourceIds = new Set(fragment.sources.map((source) => source.id))
+  const routeIds = new Set(fragment.routes.map((route) => route.id))
+  const variantIds = new Set(fragment.variants.map((variant) => variant.id))
+  return {
+    ...catalog,
+    sources: catalog.sources.filter((source) => sourceIds.has(source.id)),
+    routes: catalog.routes.filter((route) => routeIds.has(route.id)),
+    variants: catalog.variants.filter((variant) => variantIds.has(variant.id)),
+  }
+}
+
 function main() {
   const fragments = combineFragments(PILOT_FRAGMENTS)
   const catalog = createRouteCatalog({ legacyRecords: BUILTIN_ROUTES, ...fragments })
 
-  runWutaiTests({ catalog, createRouteCatalog, fragment: wutai })
-  console.log('PASS: I10a 试点路线数据契约')
+  runWutaiTests({
+    catalog: createFragmentCatalogView(catalog, wutai),
+    createRouteCatalog,
+    fragment: wutai,
+  })
+  runWugongshanReverseTests({ catalog })
+  console.log('PASS: I08/I10a 试点路线数据契约')
 }
 
 try {

@@ -4,10 +4,10 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE — COMMUNITY_GPX_REPLAN`
 - Active milestone: `M3 Route domain` (four route tracks selected; fifth waits #77)
-- Active task: `I08 / #17 / CONTRACT_DRAFT`
-- Branch: `codex/m3-community-gpx-replan`
-- Base: `main` at `0461874`
-- Implementation assignment: none until this planning checkpoint merges
+- Active task: `I08 / #17 / IMPLEMENTATION`
+- Branch: `codex/i08-wugong-community-gpx`
+- Base: `main` at `1e601d9`
+- Implementation assignment: Terra XHigh; Sol XHigh independently reviews and merges
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -41,8 +41,7 @@
 - User GPX audit PR: `#74` — merged as `97c6728`; latest-head quality passed
 - Exact-pilot retention PR: `#75` — merged as `62ba8c5`; latest-head quality passed
 - External evidence checkpoint PR: `#76` — merged as `0461874`; latest-head quality passed
-- Community-GPX replan PR: `#78` — draft; local gates and independent Review pass; latest-head
-  GitHub `quality` pending
+- Community-GPX replan PR: `#78` — squash merged as `1e601d9`; latest-head GitHub `quality` passed
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1 and M2 are complete. I07 and I10a are complete. Four reviewed community tracks can now receive
@@ -367,8 +366,10 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
 - `node scripts/route-domain-contract-test.js`: I07 cold catalog contract for valid full/blocked
   fixtures, 175 legacy place-only adaptation, nonempty namespace suffix/error namespace, evidence/
   reference/itinerary/sample-count failures, input isolation and `getById` miss semantics.
-- `node scripts/route-data-contract-test.js`: I10a aggregated data contract for 175 legacy Places,
-  one Wutai Route, one tier A blocked Variant, zero full Variants, and focused evidence/field failures.
+- `node scripts/route-data-contract-test.js`: I08/I10a aggregated data contract for 3 Sources, 175 legacy
+  Places, 2 Routes and 2 Variants: one tier B reviewed-GPX Wugong full Variant plus one tier A Wutai
+  blocked Variant. It directly checks the Wugong two-day samples, totals, WGS84 points, unknown state and
+  evidence, while the Wutai-specific assertions retain their blocked-only catalog view.
 - `node scripts/weather-verdict-contract-test.js`: I15 weather-only contract. It derives complete
   snapshots via injected I14 transport, verifies all TP-VERDICT-1 weather rules and leaves I16
   composition paths outside its scope.
@@ -466,8 +467,17 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   `docs/research/exact-route-source-recovery-2026-08-07.md`.
 - Human approval TP-D039 supersedes TP-D037/TP-D038: official material now governs management facts,
   while a Sol-reviewed community GPX can independently provide the geometry of its actual route.
-  I08/I09/I11/I12 are being re-contracted for four supplied tracks; Wutai stays blocked and #77 owns
-  the missing fifth plannable GPX.
+  PR #78 merged the replan as `1e601d9`. GitHub #17 is active with the full two-day Wugong contract;
+  #18/#20/#21 now name their actual GPX routes and remain blocked only until route-specific contracts;
+  #19/#51 closed as not planned; #22/#30 reference #77 rather than old I10b. Wutai stays blocked and
+  #77 owns the missing fifth plannable GPX.
+- I08 implementation recorded a genuine `test:route-data` RED after registering the new route-specific
+  test: the absent Wugong fragment produced `MODULE_NOT_FOUND`. The minimum GREEN adds only the plain
+  reviewed-GPX fragment, its catalog assertions and minimal runner registration. The focused route-data and
+  route-domain contracts, root test, integration (56/0), lint (0 errors; 10 existing warnings) and
+  typecheck pass. The sandbox WeChat build hit the known macOS `system-configuration` NULL-object panic,
+  an environment limitation; Sol independently reran `npm run build:weapp` on the host, where Taro 4.0.9
+  Webpack compiled successfully in 3.68 seconds with exit 0.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -476,15 +486,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns the community-GPX replan, route contracts, task activation and independent Review.
-- Terra XHigh: will receive I08 only after the planning PR merges; no I21 assignment while I13 is blocked.
+- Terra XHigh: assigned I08/#17 on `codex/i08-wugong-community-gpx`; no I21 assignment while I13 is blocked.
 - Terra XHigh source agents: completed official-source audits, GPX Review, the external request packet
   and a read-only replacement-Variant mapping review.
 
 ## Open work
 
-1. Merge the community-GPX planning checkpoint, rewrite #17/#18/#20/#21, close superseded #51/#19,
-   and activate I08 on the merged base.
-2. Implement the four selected community-GPX Variants as focused route-data PRs.
+1. Sol independently Reviews I08/#17, creates its Draft PR, and awaits latest-head CI on the focused
+   implementation from the merged `1e601d9` base.
+2. Freeze and implement I09/I11/I12 as focused route-data PRs after I08.
 3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
 ## Blockers and risks
@@ -522,6 +532,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Finish and Review the community-GPX planning PR. After merge, synchronize GitHub Issues, activate
-I08/#17 for the two-day Wugong reverse traverse, and assign its bounded route-data implementation to
-Terra XHigh. Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.
+Sol XHigh reviews the I08/#17 actual diff, creates its Draft PR and verifies latest-head CI before any
+merge. Keep
+#22/#30 blocked until #77 and all five full Variant PRs are complete.
