@@ -3,7 +3,7 @@
 - Task ID: `I11`
 - GitHub Issue: `#20`
 - Title: 录入蓝月谷—云杉坪徒步往返线
-- Status: `READY_FOR_CONTROLLER_REVIEW`
+- Status: `PR_PENDING`
 - Mode: `IMPLEMENTATION`
 - Owner: Terra XHigh
 - Reviewer: Sol XHigh
@@ -19,10 +19,10 @@
   existing Wutai, Wugong and Siguniang assertions remain in their established fragment views.
 - `test:route-data`, `test:route-domain`, root `test`, `test:integration`, `lint` (0 errors; 10 existing
   warnings), `typecheck` and `git diff --check` pass. The sandbox `build:weapp` reproduces the known
-  `system-configuration` NULL-object panic, so Sol must record a host-environment build result before
-  approving a PR. No dependency or build configuration was changed.
-- This status is an implementation handoff only. Sol XHigh must independently inspect the actual diff,
-  rerun required gates and decide the Review result.
+  `system-configuration` NULL-object panic; Sol reran the build on the host, where Taro 4.0.9 compiled
+  successfully in 3.08 seconds. No dependency or build configuration was changed.
+- Sol XHigh and a second independent Sol XHigh inspected the actual diff after the Review fix and returned
+  `APPROVED` with no P0–P3 findings. The task is ready for a PR and latest-head CI; merge remains owned by Sol.
 
 ## 1. 任务目标
 

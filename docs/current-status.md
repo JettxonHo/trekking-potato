@@ -513,9 +513,11 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   The full aggregate is 8 Sources, 175 legacy Places, 4 Routes and 4 Variants (three full, one blocked);
   Wutai, Wugong and Siguniang keep their established catalog views. Route-data, route-domain, root test,
   offline integration (56/0), lint (0 errors; 10 existing warnings), typecheck and diff check pass. The
-  sandbox WeChat build reproduced the known `system-configuration` NULL-object panic; no build or
-  dependency configuration was changed. I11 is `READY_FOR_CONTROLLER_REVIEW`; Sol must run/record a
-  host-environment build and independently review the actual diff before opening a PR.
+  sandbox WeChat build reproduced the known `system-configuration` NULL-object panic; Sol reran the same
+  command on the host, where Taro 4.0.9 Webpack compiled successfully in 3.08 seconds with exit 0. After
+  one focused Review fix locked the complete reviewed-GPX Source evidence, Sol and a second independent
+  Sol XHigh inspected the actual diff and returned `APPROVED` with no P0–P3 findings. I11 is `PR_PENDING`;
+  latest-head CI and merge remain required. No dependency or build configuration was changed.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -530,7 +532,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol XHigh independently reviews I11/#20, including a host-environment WeChat build, before any PR.
+1. Open I11/#20's PR, require latest-head `quality`, then merge only the approved head and close #20.
 2. Freeze and implement I12 as a focused route-data PR after I11 merges.
 3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
