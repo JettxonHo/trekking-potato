@@ -505,6 +505,8 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   segment. A current management notice confirms the scenic-area service and signage boundary but not
   the exact walking path, so the Variant remains `unknown`. Old Glacier Park 3356/4506/4680m,
   cableway and `tour/mixed` facts stay excluded. No raw GPX or personal metadata enters the repository.
+  The local and live #20 contracts passed an independent Sol XHigh Review with no P0–P3 findings;
+  #20 is open without `status:blocked`, and implementation is authorized on contract head `6034bf1`.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -519,7 +521,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Synchronize and independently Review the I11/#20 route-specific contract, then assign implementation.
+1. Terra XHigh implements I11/#20 under the approved route-specific contract; Sol then reviews the actual diff.
 2. Freeze and implement I12 as a focused route-data PR after I11 merges.
 3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
@@ -558,6 +560,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol XHigh synchronizes the frozen I11 contract to GitHub #20, removes only its contract-pending blocker,
-and obtains an independent contract Review. If approved, Terra XHigh implements it on `1e7fa2d` while
-I12 remains inactive. Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.
+Terra XHigh implements I11/#20 from contract head `6034bf1` with a genuine route-data RED before the
+minimum static fragment. Sol XHigh independently reviews the actual diff and all required gates before
+creating or approving a PR. I12 remains inactive; keep #22/#30 blocked until #77 and all five full
+Variant PRs are complete.
