@@ -36,27 +36,70 @@ function testAggregatedYulongBlueMoonYunshanpingRecord(catalog) {
       note: '公告证明景区与相关交通服务在运行，但正式交通、现场标识与未开发区域限制不能证明经审阅 GPX 完整徒步路径当前 open。',
     }],
   })
-  assert.equal(communityGpxSource.tier, 'B')
-  assert.equal(communityGpxSource.kind, 'reviewed_gpx')
-  assert.equal(communityGpxSource.url, null)
-  assert.equal(communityGpxSource.checkedAt, '2026-08-07')
-  assert.deepEqual(
-    communityGpxSource.supports.map(({ entityId, field, method }) => ({ entityId, field, method })),
-    [
-      { entityId: ROUTE_ID, field: 'canonicalName', method: 'derived' },
-      { entityId: ROUTE_ID, field: 'routeType', method: 'direct' },
-      { entityId: ROUTE_ID, field: 'summary', method: 'derived' },
-      { entityId: VARIANT_ID, field: 'canonicalName', method: 'derived' },
-      { entityId: VARIANT_ID, field: 'fixedDays', method: 'derived' },
-      { entityId: VARIANT_ID, field: 'stages', method: 'derived' },
-      { entityId: VARIANT_ID, field: 'distanceKm', method: 'derived' },
-      { entityId: VARIANT_ID, field: 'ascentM', method: 'derived' },
-      { entityId: VARIANT_ID, field: 'descentM', method: 'derived' },
-      { entityId: VARIANT_ID, field: 'routeHighestPointElevationM', method: 'derived' },
-      { entityId: VARIANT_ID, field: 'weatherSamplePoints', method: 'derived' },
-    ],
-    '社区 GPX 只支持其实际记录路线的路线事实与几何',
-  )
+  assert.deepEqual(communityGpxSource, {
+    id: COMMUNITY_GPX_SOURCE_ID,
+    tier: 'B',
+    kind: 'reviewed_gpx',
+    title: '蓝月谷—云杉坪一日往返社区 GPX（去标识化审阅）',
+    publisher: '第三方轨迹平台社区用户，经项目控制端审阅',
+    url: null,
+    checkedAt: '2026-08-07',
+    supports: [{
+      entityId: ROUTE_ID,
+      field: 'canonicalName',
+      method: 'derived',
+      note: '经审阅的去标识化 GPX 实际点序、活动方式和地标核对后规范化。',
+    }, {
+      entityId: ROUTE_ID,
+      field: 'routeType',
+      method: 'direct',
+    }, {
+      entityId: ROUTE_ID,
+      field: 'summary',
+      method: 'derived',
+      note: '经审阅 GPX 的实际点序与起终点周边地标派生。',
+    }, {
+      entityId: VARIANT_ID,
+      field: 'canonicalName',
+      method: 'derived',
+      note: '经审阅 GPX 的实际单日往返点序派生。',
+    }, {
+      entityId: VARIANT_ID,
+      field: 'fixedDays',
+      method: 'derived',
+      note: '按 Asia/Shanghai 的单一活动日派生。',
+    }, {
+      entityId: VARIANT_ID,
+      field: 'stages',
+      method: 'derived',
+      note: '按 Asia/Shanghai 单一活动日与实际点序派生。',
+    }, {
+      entityId: VARIANT_ID,
+      field: 'distanceKm',
+      method: 'derived',
+      note: '使用半径 6371008.8m 的 Haversine 计算单日轨迹距离。',
+    }, {
+      entityId: VARIANT_ID,
+      field: 'ascentM',
+      method: 'derived',
+      note: '20m 等距重采样后以半径 2 中位滤波高程，累计正向变化。',
+    }, {
+      entityId: VARIANT_ID,
+      field: 'descentM',
+      method: 'derived',
+      note: '20m 等距重采样后以半径 2 中位滤波高程，累计负向变化。',
+    }, {
+      entityId: VARIANT_ID,
+      field: 'routeHighestPointElevationM',
+      method: 'derived',
+      note: '来自经审阅 GPX 的最高有效点。',
+    }, {
+      entityId: VARIANT_ID,
+      field: 'weatherSamplePoints',
+      method: 'derived',
+      note: '按 GPX 1.1 WGS84 语义与地标核对选取低区和高点样点。',
+    }],
+  })
 
   assert.deepEqual(route, {
     entityKind: 'route',
@@ -123,7 +166,7 @@ function testAggregatedYulongBlueMoonYunshanpingRecord(catalog) {
     distanceKm: variant.distanceKm,
     ascentM: variant.ascentM,
     descentM: variant.descentM,
-  }, '异体总量必须等于唯一个上海活动日 stage 的汇总')
+  }, '变体总量必须等于唯一个上海活动日 stage 的汇总')
   assert(variant.weatherSamplePoints.every((sample) => sample.coordinate.coordinateSystem === 'WGS84'))
   assert.equal(variant.routeHighestPointElevationM, variant.weatherSamplePoints[1].elevationM)
   assert.equal(variant.operationalStatus, 'unknown', '景区运营边界不得解释为 exact Variant open')
