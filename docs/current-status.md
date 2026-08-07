@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Goal status: `ACTIVE — COMMUNITY_GPX_REPLAN`
 - Active milestone: `M3 Route domain` (four route tracks selected; fifth waits #77)
-- Active task: `I08 / #17 / IMPLEMENTATION`
-- Branch: `codex/i08-wugong-community-gpx`
-- Base: `main` at `1e601d9`
+- Active task: `I09 / #18 / IMPLEMENTATION`
+- Branch: `codex/i09-siguniang-community-gpx`
+- Base: `main` at `adfa0d8`
 - Implementation assignment: Terra XHigh; Sol XHigh independently reviews and merges
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
@@ -42,6 +42,8 @@
 - Exact-pilot retention PR: `#75` — merged as `62ba8c5`; latest-head quality passed
 - External evidence checkpoint PR: `#76` — merged as `0461874`; latest-head quality passed
 - Community-GPX replan PR: `#78` — squash merged as `1e601d9`; latest-head GitHub `quality` passed
+- I08 implementation PR: `#79` — squash merged as `adfa0d8`; GitHub #17 closed; latest-head
+  GitHub `quality` passed
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1 and M2 are complete. I07 and I10a are complete. Four reviewed community tracks can now receive
@@ -478,6 +480,23 @@ and getAdvice service seam. M6 remains blocked at I21 until the four supplied-tr
   typecheck pass. The sandbox WeChat build hit the known macOS `system-configuration` NULL-object panic,
   an environment limitation; Sol independently reran `npm run build:weapp` on the host, where Taro 4.0.9
   Webpack compiled successfully in 3.68 seconds with exit 0.
+- I08 passed Sol and second independent Review with no P0–P2 findings. PR #79 latest-head `quality`
+  passed, Sol recorded `APPROVED`, the PR squash merged as `adfa0d8`, and GitHub #17 closed.
+- I09 source/GPX audit froze TP-D040: official route material owns the two-day climb identity and
+  5276m route highest point; official management material keeps the exact Variant `unknown`; the
+  reviewed GPX owns two-day geometry, activity windows and WGS84 samples, including its 5254m measured
+  high sample. No raw GPX or personal metadata enters the repository.
+- I09 implementation recorded a real `test:route-data` RED after registering the I09 fragment and
+  route-specific assertion: the absent `siguniang-erfeng` fragment produced `MODULE_NOT_FOUND`. Its
+  minimum GREEN adds only the three-source static fragment, I09 assertions and runner registration.
+  The full aggregate is 6 Sources, 175 legacy Places, 3 Routes and 3 Variants (two full, one blocked);
+  Wutai and Wugong keep their established aggregate views. Route-data, route-domain, root test,
+  offline integration (56/0), lint (0 errors; 10 existing warnings) and typecheck pass. The sandbox
+  WeChat build reproduced the known `system-configuration` NULL-object panic; Sol reran the same
+  command on the host, where Taro 4.0.9 Webpack compiled successfully in 3.08 seconds with exit 0.
+  Sol and a second independent Sol XHigh inspected the actual diff and returned `APPROVED` with no
+  P0–P3 findings. No build or dependency configuration was changed; only latest-head GitHub `quality`
+  remains before merge.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -486,15 +505,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
 - Luna XHigh: preferred executor, unavailable in this environment.
 - Sol XHigh: owns the community-GPX replan, route contracts, task activation and independent Review.
-- Terra XHigh: assigned I08/#17 on `codex/i08-wugong-community-gpx`; no I21 assignment while I13 is blocked.
+- Terra XHigh: assigned I09/#18 on `codex/i09-siguniang-community-gpx`; no I21 assignment while I13 is blocked.
 - Terra XHigh source agents: completed official-source audits, GPX Review, the external request packet
   and a read-only replacement-Variant mapping review.
 
 ## Open work
 
-1. Sol independently Reviews I08/#17, creates its Draft PR, and awaits latest-head CI on the focused
-   implementation from the merged `1e601d9` base.
-2. Freeze and implement I09/I11/I12 as focused route-data PRs after I08.
+1. Create the I09/#18 Draft PR, verify latest-head GitHub `quality`, then merge only the approved head.
+2. Freeze and implement I11/I12 as focused route-data PRs after I09 merges.
 3. Obtain one additional non-blocked GPX for #77; all five full Variants still gate I13.
 
 ## Blockers and risks
@@ -532,6 +550,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol XHigh reviews the I08/#17 actual diff, creates its Draft PR and verifies latest-head CI before any
-merge. Keep
-#22/#30 blocked until #77 and all five full Variant PRs are complete.
+Sol XHigh publishes the reviewed I09 head as a Draft PR, verifies latest-head GitHub `quality`, records
+the approval and squash merges only that head. Then activate I11 without overlapping route-data work.
+Keep #22/#30 blocked until #77 and all five full Variant PRs are complete.

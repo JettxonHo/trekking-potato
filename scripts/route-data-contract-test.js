@@ -2,10 +2,12 @@ const { BUILTIN_ROUTES } = require('../cloudfunctions/getAdvice/data/routes')
 const { createRouteCatalog } = require('../cloudfunctions/getAdvice/domain/route-catalog')
 const wutai = require('../cloudfunctions/getAdvice/data/catalog/pilots/wutai')
 const wugongshanReverse = require('../cloudfunctions/getAdvice/data/catalog/pilots/wugongshan-reverse')
+const siguniangErfeng = require('../cloudfunctions/getAdvice/data/catalog/pilots/siguniang-erfeng')
 const { runWutaiTests } = require('./route-data/wutai.test')
 const { runWugongshanReverseTests } = require('./route-data/wugongshan-reverse.test')
+const { runSiguniangErfengTests } = require('./route-data/siguniang-erfeng.test')
 
-const PILOT_FRAGMENTS = [wutai, wugongshanReverse]
+const PILOT_FRAGMENTS = [wutai, wugongshanReverse, siguniangErfeng]
 
 function combineFragments(fragments) {
   return fragments.reduce((combined, fragment) => ({
@@ -37,8 +39,11 @@ function main() {
     createRouteCatalog,
     fragment: wutai,
   })
-  runWugongshanReverseTests({ catalog })
-  console.log('PASS: I08/I10a 试点路线数据契约')
+  runWugongshanReverseTests({
+    catalog: createFragmentCatalogView(catalog, combineFragments([wutai, wugongshanReverse])),
+  })
+  runSiguniangErfengTests({ catalog })
+  console.log('PASS: I08/I09/I10a 试点路线数据契约')
 }
 
 try {
