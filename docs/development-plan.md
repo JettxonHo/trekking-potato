@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — I20 COMPLETE; I21 BLOCKED_BY_I13; M3 full routes source-blocked`
+- Status: `BLOCKED — EXTERNAL_SOURCE_EVIDENCE; I20 COMPLETE; I21 BLOCKED_BY_I13`
 - Updated: `2026-08-07`
 
 ## 1. 依赖图

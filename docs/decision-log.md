@@ -404,3 +404,20 @@
   验收合同；降低来源标准或跨变体拼接字段。
 - Why: 保持已批准的产品范围和路线身份，避免因几何资料可用而静默改变 Beta 验收对象。进度阻塞
   透明保留，不以替换产品目标或降低事实门槛换取表面完成。
+
+## 2026-08-07 — TP-D038 公开来源恢复结束后转为定向外部资料等待
+
+- Status: Accepted
+- Decision: 在两轮官方/一手来源恢复、五份用户 GPX 审阅和方案 `A` 决策后，没有一条保留的
+  exact pilot Variant 达到 I07 full A/B 门禁。TP-BETA-001 标记为
+  `BLOCKED — EXTERNAL_SOURCE_EVIDENCE`；I08、I09、I10b、I11、I12、I13、I21 保持 blocked，
+  不启动实现 Agent。后续只处理新取得的官方路线包、管理方答复或匹配 exact Variant 的可审阅
+  GPX；不重复宽泛网络搜索。
+- Evidence: `docs/research/pilot-route-source-audit.md`、
+  `docs/research/user-gpx-audit-2026-08-07.md`、
+  `docs/research/exact-route-source-recovery-2026-08-07.md`，以及 live Issues #17/#18/#20/#21/#51/#22/#30。
+- Alternatives: 继续重复相同公开搜索；以局部官方字段拼接 full；降低 A/B 门槛；提前实现 I13；
+  用不同 GPX Variant 替换试点。最后一项已由人工方案 `A` 明确拒绝。
+- Why: 当前缺口位于资料所有者和 exact Variant 轨迹本身，而不是仓库实现。定向请求包明确列出
+  五个机构入口和所需字段，保留恢复路径；继续搜索同一公开面只会重复证据，提前编码则会伪造
+  决定天气窗口与安全结论的路线事实。
