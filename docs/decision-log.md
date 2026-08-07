@@ -551,3 +551,21 @@
   `reviewed_kml` 并让枚举随格式增长；把旧冬季公告当永久禁令；依据二手恢复消息标记 open。
 - Why: KML 已完整承载同等轨迹证据，转换不会增加可信度。通用 reviewed-track 语义既透明又
   向后兼容；将几何和管理事实分层，可以完成第五条真实试点而不伪造开放状态。
+
+## 2026-08-07 — TP-D044 I13 先建立纯 resolver，I21 再原子切换公共流程
+
+- Status: Accepted by Sol after two independent read-only audits
+- Decision: I13 交付生产可加载的静态 catalog registry 与纯 permanent-ID resolver，但不修改
+  当前 handler、geocode、TripContext、天气/结论编排或 UI。I21 再一次性接通 prepare/confirm、
+  `startTimeLocal/climbSupport`、fixed days、小时天气、规则结论、可信快照和前端展示。
+- Resolver: Place/Route 名称展开到子 Variant，同一层级按 target ID 去重；匹配阶段沿用 I05。
+  新候选只输出 `variant:*` 或 `place:*` 与七字段 DTO。place-only 的 `routeType/fixedDays` 均为
+  null，不把 legacy 活动类型提示升级为可信事实。blocked 只允许唯一精确解析且永不成为候选；
+  exact 阶段若同时含 blocked 与其他 target 或多个 blocked，则 not_found 并要求重新搜索。
+- Compatibility: `builtin-route:*` 保留为输入兼容，不再输出；唯一 full、仅 blocked、无子 Variant
+  分别映射到对应可信 target，多个 full 时按 stale/not_found 处理并要求重新搜索。
+- Alternatives: I13 直接切换公共 handler；把 I13/I21 合并成一个超大 PR；先让 UI 收集但服务端
+  忽略新输入；把 legacy 活动类型当成可信 routeType；继续输出临时 ID。
+- Why: 当前 handler 仍使用单点日天气、自由 days 和 place-only TripContext，前端也尚未提供技术
+  攀登所需输入。提前接 resolver 不能诚实生成 full base，而合并 I13/I21 会失去独立可验证边界。
+  纯 resolver 先冻结可信身份和匹配语义，随后由 I21 原子完成公共行为切换。

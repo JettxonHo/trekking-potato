@@ -61,8 +61,9 @@
   派生字段、审阅日期和来源说明。
 
 前四条 GPX 质量与身份审计见 `docs/research/user-gpx-audit-2026-08-07.md`；第五条用户自有 KML
-审计见 `docs/research/dangling-kml-audit-2026-08-07.md`。#77 的来源审阅与合同已通过独立 Review，
-等待规划 PR 合并后再实现；I13 仍等待五条全部合并。
+审计见 `docs/research/dangling-kml-audit-2026-08-07.md`。#77 已通过规划 PR #86 和实现 PR #87
+完成独立 Review、latest-head quality 与合并；五条 full Variants 和五台 blocked 记录均已在 main。
+I13 已进入永久 ID resolver 合同阶段。
 
 ## 6. 隐私与信任
 

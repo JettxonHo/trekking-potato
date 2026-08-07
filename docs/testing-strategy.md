@@ -319,6 +319,33 @@ unavailable 分流、new query/RESET/候选取消/手动取消/onBack 的 token 
 阻断迟到的 UI/cache/history side effect。`test:confirmation` 与 `test:response` 只更新了既有页面
 静态 seam，移除了已退役 `_requestGeneration` 断言；核心竞态行为只由 reducer 直接验证。
 
+### I13 production resolver contract
+
+I13 新增独立离线 `test:route-resolver` 并纳入根 `npm test`。第一个真实 RED 为缺少 resolver
+模块或导出；一个真实 RED 足够。测试直接调用注入 catalog 的纯 resolver，不修改或假装接通
+当前 handler。
+
+- 生产 registry 精确聚合 14 Sources、175 Places、6 Routes、6 Variants，其中 5 full、1 blocked。
+- 真实同层级名称（包括武功山反穿和党岭）必须在 Place/Route/Variant 展开后去重到同一个永久
+  full Variant；一个合成 Place 下多个 full Variants 必须返回 confirmation。
+- 表驱动覆盖全局 canonical exact 优先、唯一/重复 alias exact、prefix、contains、fuzzy 首个
+  非空阶段、canonical/alias confirmation 排序、fuzzy 距离/名称排序、稳定去重和最多五项，
+  不为每个字符串排列复制同型测试。
+- legacy 无子 Variant 的 Place 返回 place-only；候选 `routeType/fixedDays` 均为 null，且不把旧
+  elevation/note/activityTypeHint 暴露成可信路线事实。
+- 五台 blocked 的 Place/Route/Variant 精确名称返回 direct blocked；blocked 不出现在 prefix、
+  contains、fuzzy 或 confirmation 候选；synthetic blocked+其他 exact 和多 blocked exact 返回
+  not_found。
+- 永久 `variant:*` / `place:*` ID 可恢复服务端 target；旧 `builtin-route:*` 只作输入兼容，唯一
+  full、仅 blocked、place-only 分别正确恢复，多 full 或未知/畸形 ID 返回 not_found。
+- candidate DTO 精确只有七个冻结字段，不含坐标、高程、天气、来源或 restriction；返回记录为
+  副本，调用者修改一次结果不得污染 catalog 或后续结果。
+- registry/resolver 不访问网络、数据库、CloudBase 或外部 API，不新增依赖、哈希或索引 ID。
+
+I13 最终运行 `test:route-resolver`、confirmation、response、trip-context、route-domain、route-data、
+root test、integration、lint、typecheck、WeChat build 和 diff check。既有 I05 handler 四字段与
+`builtin-route:*` 契约保持原样；它只在 I21 公共切换时更新。
+
 ### I21 依赖门与未来矩阵
 
 I13 未合并时不新增 I21 生产测试或控件：没有可信 resolver 的“前端字段通过”不能证明

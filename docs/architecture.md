@@ -188,6 +188,73 @@ I05a 冻结服务端匹配/confirm，I05b 完成前端选择/取消/编辑。临
 - AMap 不生成 candidate ID，继续进入 `route_type_required`。旧 UGC 只暂留精确名/别名
   兼容，substring 自动命中关闭；完整退出由 I19 完成。
 
+### I13 生产目录与纯 resolver
+
+I13 将 `BUILTIN_ROUTES` 与六个已审阅试点片段聚合成一个生产可加载、无网络 I/O 的静态
+catalog，并在独立领域模块中提供：
+
+```js
+createProductionRouteCatalog() -> catalog
+
+createCatalogResolver({ catalog }) -> {
+  resolveQuery(query),
+  resolveCandidateId(candidateId)
+}
+```
+
+runtime catalog 只导出 factory；生产 resolver 在模块内创建并持有私有 catalog，同时导出
+`resolveRouteQuery`、`resolveRouteCandidateId` 和可注入的 `createCatalogResolver`。不向调用方导出
+可修改的共享 singleton。
+
+内部解析结果只有三种：
+
+```text
+direct       { kind, matchStage, target }
+confirmation { kind, matchStage, candidates[] }
+not_found    { kind }
+```
+
+`target` 是服务端可信记录的副本，并按能力区分 `full`、`place_only` 或 `blocked`。full target
+包含同一层级的 Place、Route 和 RouteVariant；place-only 只包含 Place；blocked 包含 Place、Route、
+blocked RouteVariant 与 restriction。调用方不能通过修改一次结果污染后续解析。
+
+解析仍遵循 I05 的第一个非空阶段：全局 canonical exact、alias exact、prefix、contains、fuzzy；
+prefix/contains 的定义、fuzzy 长度至少 4/编辑距离不超过 2、稳定排序和最多五项保持不变。
+Place 与 Route 命中会展开到其子 Variant；同一 Place/Route/Variant 层级映射到相同 target 时按
+永久 ID 去重。一个唯一 target 直达，多个且全部可规划的 target 返回 confirmation；exact 阶段若
+同时留下 blocked 与其他 target，或多个 blocked target，则返回 not_found，既不静默放行也不把
+blocked 暴露为候选。canonical/alias/prefix/contains confirmation 按 canonicalName Unicode 后 ID
+排序；fuzzy 先按最小距离，再按相同顺序。全部先去重排序再截取最多五项。
+
+confirmation 只能包含 `route_variant/full` 或 `place/place_only`：
+
+```js
+{
+  candidateId,
+  entityKind,
+  capability,
+  canonicalName,
+  region,
+  routeType,
+  fixedDays,
+}
+```
+
+full 的 `candidateId` 为 `variant:*`，类型和天数来自可信 Route/Variant；place-only 的 ID 为
+`place:*`，`routeType=null`、`fixedDays=null`，不把 legacy `activityTypeHint` 升级为路线事实。
+候选不暴露坐标、高程、天气、来源对象或 restriction。blocked 只允许 canonical exact、唯一
+alias exact或永久/兼容 ID 精确解析，永不进入前缀、包含、fuzzy 或 confirmation 候选。
+
+旧 `builtin-route:*` 仅作为输入兼容：从 legacy Place 重新展开，唯一 full 映射到该 Variant，
+仅 blocked 映射为 blocked，无子 Variant 映射为 place-only；若已演化为多个 full Variant，则
+返回 not_found 并要求重新搜索。新结果永不输出旧 ID。Route ID 不是候选 ID。
+
+I13 不修改当前 `index.js`、`geocode.js`、TripContext、天气/结论编排或前端。当前 handler 仍是
+I05 的四字段、单点天气和 place-only 快照；在 I13 直接切换会产生一个无法诚实生成 full base 的
+中间态。I21 将以一个原子垂直 PR 把 resolver 的结果接入公共 prepare/confirm、输入校验、小时
+天气、规则、可信快照和 UI。I13 的“生产”含义是生产运行时可导入的真实目录/解析模块，不是提前
+改变当前公共行为。
+
 ## 4. 云函数契约
 
 ### Prepare
