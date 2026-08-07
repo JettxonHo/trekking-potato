@@ -5,8 +5,8 @@
 - Goal status: `ACTIVE`
 - Active milestone: `M6 Core UX` (M3 full routes remain source-blocked)
 - Active task: `I21 / #30 / BLOCKED_BY_I13`
-- Branch: `codex/i21-input-flow-planning`
-- Base: `main` at `9d70f7c`
+- Branch: `codex/m3-source-refresh-2026-08`
+- Base: `main` at `bfd9394`
 - Implementation assignment: none; investigation/documentation only
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
@@ -36,6 +36,7 @@
 - I19 implementation PR: `#69` — merged as `b7c17ea`; GitHub #28 and M5 closed
 - I20 planning PR: `#70` — merged as `7fc295f`; GitHub #29 implementation activated
 - I20 implementation PR: `#71` — merged as `9d70f7c`; GitHub #29 closed
+- I21 dependency checkpoint PR: `#72` — merged as `bfd9394`; #22/#30 remain blocked
 
 Status semantics: TP-BETA-001 remains active. M1 and M2 are complete. I07 and I10a are complete. The
 field-level audit still blocks every full pilot variant, so M3 cannot close. TP-D024 permits the
@@ -432,6 +433,15 @@ policy and I13 can resolve them from the production catalog.
   candidate has no `entityKind/capability/fixedDays`. A frontend-only slice would collect dead input;
   a backend-only slice would break the current client. TP-D034 therefore keeps I21 atomic after I13 and
   marks #30 `BLOCKED_BY_I13`; no business implementation has been assigned.
+- A 2026-08-07 primary-source refresh rechecked all five required full variants and added a durable
+  evidence appendix. It found useful current-management and partial-geometry facts, including
+  Siguniang's partial Haizigou reopening, Yulong's current seasonal cableway service and a reliable
+  secondary report of the 4506–4680 boardwalk segment. None supplies the complete same-variant
+  itinerary, geometry, sampling points and current operating scope required by I07; all five data
+  Issues therefore remain source-blocked and I13/I21 stay inactive.
+- The source-refresh checkpoint passed an independent Terra XHigh document Review after one bounded
+  correction round. Local lint (0 errors/10 existing warnings), typecheck, root test, integration
+  (56/0), WeChat build and `git diff --check` all pass.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 
@@ -445,7 +455,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Keep #30 blocked and synchronize its atomic post-I13 contract with this checkpoint.
+1. Keep #22/#30 blocked and synchronize the refreshed field gaps to their prerequisite Issues.
 2. Request human-provided reviewable GPX/second reliable sources, or an explicit product/source-policy
    decision, because the five full pilot variants still cannot meet A/B field evidence.
 
@@ -480,5 +490,6 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Publish this dependency checkpoint and request the human source/GPX decision required by the Goal stop
-condition. No implementation Agent starts I21 before I13 is genuinely unblocked and merged.
+Publish the reviewed source-refresh checkpoint and request the human source/GPX decision required by
+the Goal stop condition. No implementation Agent starts I13 or I21 before all five required full
+variants are genuinely source-complete.
