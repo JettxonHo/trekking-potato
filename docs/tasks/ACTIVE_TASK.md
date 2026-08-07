@@ -2,85 +2,213 @@
 
 - Task ID: `I10c`
 - GitHub Issue: `#77`
-- Title: 选定并审阅第五条社区 GPX Beta 试点
-- Status: `BLOCKED — AWAITING_FIFTH_COMMUNITY_GPX`
+- Title: 录入党岭村—葫芦海—卓雍措 reviewed-track 第五试点
+- Status: `CONTRACT_APPROVED — PLANNING_PR_PENDING`
 - Mode: `INVESTIGATION`
 - Owner: Sol XHigh
-- Implementation Agent: 未分配
-- Branch: `codex/i10c-fifth-gpx-intake`
-- Base: `main` at `25750df`
+- Implementation Agent: 未分配；合同合并后交 Terra XHigh
+- Contract branch: `codex/i10c-dangling-kml-contract`
+- Planned implementation branch: `codex/77-dangling-track-data`
+- Base: `main` at `fe0ef24`
 - Goal: `TP-BETA-001`
 
-## 1. 当前状态
+## 1. 目标与背景
 
-I08、I09、I11、I12 已通过 PR #79–#82 合并，当前目录包含四条 tier B full 社区-GPX
-Variant 和一条五台山 tier A blocked 记录。M3 与 I13 仍要求第五条 full Variant。
+把用户明确拥有、经 Sol 审阅的党岭 KML 录入为第五条 tier B full RouteVariant，解除 I13 的
+最后一个路线数据依赖。KML 只提供其实际记录路线的几何；官方/政府资料负责地点身份和管理边界。
 
-现有 `2026 五台山.gpx` 穿越官方明确限制的五台山多台顶区域，只能支持已经交付的 blocked
-记录，不能重复作为可规划 full Variant。不得用临时数据、相邻路线或降低来源标准来补足数量。
+两次独立审阅均确认该 KML 的 3,326 组坐标、高程和时间完整、连续且无需转 GPX。路线冻结为
+`党岭村—葫芦海—卓雍措一日往返`，当前没有一手证据证明 exact Variant 处于持续开放或当前禁行，
+所以 `operationalStatus='unknown'`。完整审阅见
+`docs/research/dangling-kml-audit-2026-08-07.md` 和 TP-D043。
 
-## 2. 需要人工提供的唯一输入
+## 2. 必读文件
 
-提供一条新的、实际可规划路线 GPX 文件或无需登录即可下载的 GPX 链接。路线不必是官方发布的
-轨迹，社区用户上传可以接受。路线身份可以由文件名、轨迹地标与可靠公开资料交叉确认；官方或
-运营方资料专门约束当前禁行、开放范围、预约、向导等管理事实。
+执行 Agent 完成 `AGENTS.md` 的强制阅读顺序后，再阅读：
 
-优先选择满足以下条件的文件：
+1. GitHub #77 的同步任务合同
+2. `docs/research/dangling-kml-audit-2026-08-07.md`
+3. `docs/architecture.md` 的领域模型、社区轨迹边界和静态数据 seam
+4. `docs/testing-strategy.md` 的 I10c route-domain/route-data 要求
+5. `cloudfunctions/getAdvice/domain/route-catalog.js`
+6. 既有四个 full pilot fragment、各自测试和 `scripts/route-data-contract-test.js`
 
-- 记录一条徒步、攀登或景区游览的完整实际路线，不是五台山受限台顶穿越；
-- GPX 轨迹点含经纬度和高程，最好同时含时间；
-- 轨迹没有明显截断，且可以辨认起终点、活动日和路线方向；
-- 路线所在地和常用名称能够从文件名、轨迹内容或公开资料确认；
-- 不要求用户先清理平台账号、轨迹 ID 或个人 waypoint；Sol 审阅时会排除这些信息，原始
-  GPX 不进入仓库。
+不得读取或提交原始 KML；实现只消费本合同已冻结的去标识化派生字段。
 
-若缺少时间，只有在可靠公开行程能够补足各日预计时长时才可能继续；因此含时间的完整 GPX
-最适合本 Goal。
+## 3. 允许修改的文件
 
-## 3. 收到文件后的 Sol 审阅合同
+实现 Agent 只可修改下列文件：
 
-Sol XHigh 必须在任何实现前完成：
+1. `cloudfunctions/getAdvice/domain/route-catalog.js`
+2. `scripts/route-domain-contract-test.js`
+3. `cloudfunctions/getAdvice/data/catalog/pilots/dangling-huluhai-zhuoyongcuo.js`（新增）
+4. `scripts/route-data/dangling-huluhai-zhuoyongcuo.test.js`（新增）
+5. `scripts/route-data-contract-test.js`
+6. `docs/current-status.md`
+7. `docs/tasks/ACTIVE_TASK.md`
 
-1. 确认 GPX 格式、轨迹/分段数量、点数、坐标系语义、高程和时间可用性；
-2. 检查断点、异常跳点、活动日边界、交通段和明显个人绕行；
-3. 按实际轨迹重定义 `Place / Route / RouteVariant`，不继承相邻或旧试点名称；
-4. 分开记录路线身份依据，并查找官方或运营方的当前禁行、开放范围、预约、向导等管理事实；
-5. 若 exact Variant 未被明确证明开放或禁行，固定 `operationalStatus='unknown'`；
-6. 只固化去标识化派生数据，排除账号、轨迹 ID、精确个人时间、评论、waypoint 文本和
-   原始点列；
-7. 冻结稳定 ID、route type、fixedDays、stages、距离、升降、路线最高点、1–3 个逐日
-   WGS84 天气样点、来源 supports、验收与测试；
-8. 由独立 Sol XHigh 审查完整合同，确认后才可把实现交给 Terra XHigh。
+除非 Sol 先更新合同，不得修改其他文件。
 
-## 4. 验收标准
+## 4. 固定数据合同
 
-- 新 GPX 通过结构、连续性、身份、活动日、高程和隐私审阅；
-- 没有官方证据将其 exact Variant 判定为当前禁止规划；
-- 官方管理事实与社区几何的职责边界逐字段记录；
-- 审阅结果写入非个人化的持久文档和 GitHub #77；
-- 实现前另建边界明确的文件 allowlist、测试要求和停止条件；
-- 本 intake 阶段不修改路线数据、Schema、生产解析、UI 或公共接口。
+### 4.1 稳定 ID 与 Source
 
-## 5. 停止与升级条件
+- `source:dangling-route-identity-2026-08-07`
+  - tier `A`，kind `government`
+  - 标题：`以政协之智 展政协之为——丹巴县政协以小微协商助力党岭景区摩托车载客等乱象整治`
+  - 发布者：`政协甘孜藏族自治州委员会`
+  - URL：`https://www.gzzzx.gov.cn/go-a855.htm`
+  - 只支持 Route `canonicalName / routeType / summary` 的派生身份；明确说明 exact 点序来自
+    reviewed track。
+- `source:dangling-winter-management-2026-08-07`
+  - tier `A`，kind `government`
+  - 标题：`甘孜：丹巴党岭的迷途引路人`
+  - 发布者：`丹巴县人民政府（县融媒体中心）`
+  - URL：`https://www.danba.gov.cn/ttxw/article/680325`
+  - 只支持 Variant `operationalStatus` 的派生 `unknown`：页面证明 2025-11-15 起的当次冬季
+    关闭，但不证明 2026-08-07 仍封闭；未找到一手当前开放原文。
+- `source:dangling-huluhai-zhuoyongcuo-reviewed-track-2026-08-07`
+  - tier `B`，kind `reviewed_track`
+  - 标题：`党岭村—葫芦海—卓雍措一日 KML 轨迹（用户自有，去标识化审阅）`
+  - 发布者：`用户本人，经项目控制端审阅`
+  - URL：`null`
+  - 支持 Route `canonicalName / routeType / summary`，以及 Variant `canonicalName / fixedDays /
+    stages / distanceKm / ascentM / descentM / routeHighestPointElevationM / weatherSamplePoints`。
+  - `method` 和 `note` 必须与审阅方法一致，不得声称 KML 直接证明开放状态。
 
-以下情况保持阻塞并请求用户提供另一条路线或作产品决定：
+所有 Source `checkedAt='2026-08-07'`。
 
-- GPX 对应路线被当前官方信息明确禁止；
-- 轨迹严重截断、坐标不可解释或核心几何无法可靠派生；
-- 无法确认它实际记录的路线身份；
-- 只能通过复用相邻路线事实或降低 A/B 来源政策才能形成 full Variant；
-- 发现需要部署、数据迁移、生产配置或 Goal 外产品取舍。
+`supports` 顺序、method 与 note 冻结如下，route-data test 必须原样断言：
 
-## 6. 禁止范围
+1. 身份 A 级 Source
+   - Route `canonicalName` / `derived`：`页面同时明确葫芦海、卓雍措与党岭徒步旅游身份；exact 点序与规范名由 reviewed track 补足。`
+   - Route `routeType` / `derived`：`页面将相关活动描述为登山徒步；不以页面缺失的几何推导行程。`
+   - Route `summary` / `derived`：`页面的党岭—葫芦海—卓雍措区域身份与 reviewed track 实际点序结合形成。`
+2. 管理 A 级 Source
+   - Variant `operationalStatus` / `derived`：`页面证明党岭区域徒步线路自 2025-11-15 起进入当次冬季关闭；未证明 2026-08-07 仍封闭，且未找到一手当前开放原文，故记录 unknown。`
+3. reviewed-track B 级 Source
+   - Route `canonicalName` / `derived`：`KML 实际点序经党岭村、葫芦海与卓雍措地标核对后规范化。`
+   - Route `routeType` / `direct`：无 note。
+   - Route `summary` / `derived`：`由 KML 的单日纯步行往返形态和地标点序派生。`
+   - Variant `canonicalName` / `derived`：`由 KML 的单日往返形态与实际地标点序派生。`
+   - Variant `fixedDays` / `derived`：`按 Asia/Shanghai 活动日为一日。`
+   - Variant `stages` / `derived`：`单一活动日连续轨迹；参考时长按首末时间向上取整到整分钟。`
+   - Variant `distanceKm` / `derived`：`对连续 WGS84 轨迹点使用半径 6371008.8m 的 Haversine。`
+   - Variant `ascentM` / `derived`：`20m 等距重采样后以半径 2 中位滤波高程，累计正向变化。`
+   - Variant `descentM` / `derived`：`20m 等距重采样后以半径 2 中位滤波高程，累计负向变化。`
+   - Variant `routeHighestPointElevationM` / `derived`：`来自 KML 最高有效轨迹点 4341.2m，按整米记录。`
+   - Variant `weatherSamplePoints` / `derived`：`按 KML WGS84 语义与地标交叉核对，选择低区起点和卓雍措方向轨迹高点。`
 
-- 不把五台山受限轨迹包装为 full Variant；
-- 不从附近山峰海拔推导路线最高点；
-- 不把 `unknown` 映射为 `open` 或 `blocked`；
-- 不提交原始 GPX 或个人/平台元数据；
-- 不在 intake 阶段开始 I13、I21、I22 或 I23；
-- 不修改业务代码、依赖、构建配置、数据库或公共契约。
+### 4.2 Route
 
-## 7. 下一步
+- ID：`route:dangling-huluhai-zhuoyongcuo`
+- Place：复用 `place:legacy:党岭`；不得消费该 legacy Place 的旧坐标、高程、季节、类型提示或 note。
+- 规范名：`党岭·葫芦海—卓雍措徒步`
+- aliases：`['党岭葫芦海卓雍措', '党岭卓雍措往返']`
+- routeType：`trek`
+- summary：`从党岭村出发，经葫芦海到卓雍措湖畔方向后返回党岭村区域的一日社区实录徒步路线。`
+- sourceIds：身份 A 级 Source + reviewed-track Source。
 
-等待用户提供一条新的完整 GPX。收到后由 Sol XHigh 先做只读审阅和来源核查，再决定是否
-满足 #77；当前没有可以安全分派给实现 Agent 的代码任务。
+### 4.3 RouteVariant
+
+- ID：`variant:dangling-huluhai-zhuoyongcuo-out-and-back-1d`
+- 规范名：`党岭村—葫芦海—卓雍措一日往返`
+- aliases：`['党岭葫芦海卓雍措一日线', '党岭村—卓雍措往返']`
+- `recordStatus='verified'`、`capability='full'`
+- `direction='out_and_back'`、`isLoop=false`、`fixedDays=1`
+- startPoint：`党岭村徒步起点区域`
+- endPoint：`党岭村徒步终点区域`
+- 单一 stage：
+  - day `1`
+  - 起终点同上
+  - `distanceKm=19.067`
+  - `ascentM=1009.4`
+  - `descentM=955.8`
+  - `durationHours={ min: 12.18, max: 12.18 }`
+  - 样点 IDs：`dangling-village-trailhead`、`dangling-zhuoyongcuo-track-high`
+- Variant 总量与 stage 相同。
+- `routeHighestPointElevationM=4341`、`nearbyPeakElevationM=null`
+- `accessMode='walk'`
+- `operationalStatus='unknown'`
+- `verificationLevel='B'`
+- sourceIds：管理 A 级 Source + reviewed-track Source。
+- `sourceCheckedAt='2026-08-07'`
+
+### 4.4 天气样点
+
+两个样点均为实际 KML WGS84 点：
+
+1. `dangling-village-trailhead`
+   - 名称：`党岭村徒步起点区域`
+   - coordinate：`{ lat: 31.075586, lon: 101.403937, coordinateSystem: 'WGS84' }`
+   - elevationM：`3383`
+2. `dangling-zhuoyongcuo-track-high`
+   - 名称：`卓雍措方向轨迹高点`
+   - coordinate：`{ lat: 31.051365, lon: 101.359981, coordinateSystem: 'WGS84' }`
+   - elevationM：`4341`
+
+不得增加第三样点、使用 legacy 坐标或把第二个样点写成未经证实的垭口。
+
+## 5. TDD 与测试要求
+
+按以下顺序留下可说明的 RED/GREEN 证据：
+
+1. 在 `scripts/route-domain-contract-test.js` 增加最小 `reviewed_track` 正例，先证明旧 enum 拒绝，
+   再在 `SOURCE_KINDS` additive 加入 `reviewed_track`；现有 `reviewed_gpx` 测试必须继续通过。
+2. 注册新的 route-data test 与 fragment require，在 fragment 尚不存在时运行
+   `npm run test:route-data`，得到预期 `MODULE_NOT_FOUND` RED。
+3. 添加最小静态 fragment 达到 GREEN，不编写 KML parser 或通用 registry。
+
+最终必须通过：
+
+```text
+npm run test:route-domain
+npm run test:route-data
+npm test
+npm run test:integration
+npm run lint
+npm run typecheck
+npm run build:weapp
+git diff --check
+```
+
+route-data test 必须深比较三条 Sources（含有序 supports 方法和说明）、Route、Variant 与 fragment
+边界，并固定最终聚合为：14 Sources、175 Places、6 Routes、6 Variants、5 full、1 blocked。
+先前路线应继续获得各自既定的聚合视图，避免机械改写它们的历史计数断言。
+
+## 6. 非范围与禁止事项
+
+- 不提交、复制、转换或在测试中读取原始 KML。
+- 不保存账户、轨迹 ID、头像/缩略图、精确个人日期时间或完整点序。
+- 不新增生产 KML/GPX parser、上传入口、数据库、依赖或公共响应字段。
+- 不修改既有四条 `reviewed_gpx` Source，不做迁移或全局重命名。
+- 不修改 `routes.js` 的 legacy 党岭记录，不使用其中不准确的坐标和海拔。
+- 不把历史冬季关闭永久化为 `blocked`，也不把二手恢复消息写成 `open`。
+- 不启动 I13、I21、I22 或 I23，不修改 UI、云函数 handler、搜索、天气或规则行为。
+- 不为一个孤立速度采样增加复杂清洗或防御分支。
+
+## 7. 允许自主决定与升级条件
+
+Terra 可自行决定测试 helper 名称、断言组织和不改变冻结值的局部数据排版。
+
+遇到以下情况必须停止并交回 Sol：需要改变任一稳定 ID、字段值、Source 职责、Source enum 方案、
+公共接口、架构、依赖、allowlist；现有目录无法在不降低验证标准下接收合同；测试暴露跨模块问题；
+路线管理资料与合同发生新的实质冲突。
+
+部署、生产配置、数据迁移、权限/隐私边界变化和不可逆操作不在授权内。
+
+## 8. 验收与交付物
+
+- `reviewed_track` 以最小 additive 方式进入内部目录且 `reviewed_gpx` 保持兼容。
+- 新 fragment 通过 I07 全部验证，五条 full + 一条 blocked 聚合成立。
+- 数据、supports、测试与本合同逐字段一致；没有原始或个人轨迹元数据。
+- 全部指定命令通过，无隐藏失败或 Goal 外修改。
+- Terra 返回结果包：完成情况、修改摘要、实际文件、RED/GREEN 证据、完整测试结果、计划差异、
+  自主决定、限制、PR 和重点 Review 位置。
+- Terra 只可提交 `READY_FOR_CONTROLLER_REVIEW`；不得批准或合并自己的 PR。
+
+## 9. 当前下一步
+
+独立 Sol XHigh Review 已返回 `APPROVED`，P0–P3 均无剩余 finding。下一步创建规划 PR；只有
+该 PR 通过 latest-head CI 并合并后，才把实现交给 Terra XHigh，并在新实现分支上将状态切换为
+`IMPLEMENTATION`。

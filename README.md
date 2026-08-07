@@ -117,7 +117,7 @@ corepack npm@10.9.2 run test:integration
 corepack npm@10.9.2 run build:weapp
 ```
 
-`test` 保留三个稳定契约脚本：路线 93/0、天气 86/0、单元 55/0。`test:integration`
+`test` 保留三个稳定契约脚本：路线 91/0、天气 86/0、单元 55/0。`test:integration`
 运行离线 E2E：Open-Meteo 使用固定 fixture，CloudBase 使用本地 mock，并覆盖当前
 `tripDays` 与 `routeType` 契约；它不会访问真实 Open-Meteo、CloudBase 或 DeepSeek。
 `lint` 以 ESLint flat config 检查云函数、Taro 源码和脚本，`typecheck` 用 TypeScript

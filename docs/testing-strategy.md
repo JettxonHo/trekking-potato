@@ -117,16 +117,23 @@ established count assertions remain meaningful.
 
 TP-D039 后的 full 试点测试采用同一 seam，并额外固定以下代表性行为：
 
-- `reviewed_gpx` Source 必须为 tier B，逐字段说明 direct/derived 方法；单一完整社区 GPX
-  可以覆盖其实际路线的几何，不要求官方 GPX或机械的第二轨迹。
-- 每个 Variant 的名称、fixedDays、stage 点序和类型必须与该 GPX 实际记录一致；旧 exact
+- `reviewed_gpx` 与 additive `reviewed_track` Source 必须为 tier B，逐字段说明 direct/derived
+  方法；单一完整社区轨迹可以覆盖其实际路线的几何，不要求官方 GPX 或机械的第二轨迹。
+- 每个 Variant 的名称、fixedDays、stage 点序和类型必须与对应社区轨迹实际记录一致；旧 exact
   pilot 的名称、天数、距离和海拔不得残留。
 - 测试断言分日距离/升降与总量在明确舍入规则内一致、最高点来自清洗后的有效轨迹点、每个
   stage 引用 1–3 个已核对坐标系的实际采样点。
-- GPX 不能把状态写成 `open`；无路线级管理事实时固定为 `unknown`，五台官方 blocked 记录
+- 社区轨迹不能把状态写成 `open`；无路线级管理事实时固定为 `unknown`，五台官方 blocked 记录
   仍单独验证且不进入 full 候选。
-- 原始 GPX、平台账号、轨迹 ID 和个人时间不进入 fixture 或快照；CI 只验证派生静态数据和
+- 原始 GPX/KML、平台账号、轨迹 ID 和个人时间不进入 fixture 或快照；CI 只验证派生静态数据和
   来源声明，不引入网络下载或第三方平台依赖。
+
+I10c 先在 `test:route-domain` 中用最小正例证明 additive `reviewed_track` 被接受且不影响
+`reviewed_gpx`，再注册党岭 route-data test 形成缺少 fragment 的真实 RED。GREEN 必须深比较
+三条 Source、Route 和 full Variant，固定 `19.067km / +1009.4m / -955.8m / 12.18h`、
+4341m 路线高点、两个 WGS84 样点、`unknown` 状态、1 日 stage 与最终聚合
+`14 Sources / 175 Places / 6 Routes / 6 Variants / 5 full / 1 blocked`。原 KML 和生产解析均
+不进入测试。
 
 I14 新增独立离线 `test:hourly-weather` 并纳入根 `test`；既有 `test:weather` 的 86 项
 legacy 单点日天气契约保持不变。测试使用经 I07 `createRouteCatalog` 验证的最小合成 full

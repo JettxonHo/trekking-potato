@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — COMMUNITY_GPX_REPLAN; I20 COMPLETE; I21 BLOCKED_BY_I13`
+- Status: `ACTIVE — I10c DANGLING CONTRACT APPROVED; I20 COMPLETE; I21 BLOCKED_BY_I13`
 - Updated: `2026-08-07`
 
 ## 1. 依赖图
@@ -19,7 +19,8 @@ I19 + I23 → I24 → I25
 ```
 
 默认串行。I10a 已建立共享 route-data test seam 和可独立证明的大朝台 blocked
-记录。I08、I09、I11、I12 分别录入四条已审阅社区轨迹；I10c/#77 等待第五条 GPX。
+记录。I08、I09、I11、I12 分别录入四条已审阅社区轨迹；I10c/#77 已选择用户自有党岭 KML，
+合同审阅与实现保持串行。
 首个 route-data PR 通过后，文件不重叠且使用隔离 worktree 时最多两路并行。I14 只依赖已冻结的 I07 schema，可在 full 试点数据阻塞期使用
 合成变体和离线 fixture 独立实现；它不解锁 I13，也不改变任何真实路线事实。
 
@@ -38,7 +39,7 @@ I19 + I23 → I24 → I25
 | I09 | #18 | 四姑娘山二峰社区轨迹数据 | 2 日 climb full variant |
 | I10a | #19 parent; #50 | 五台山官方限制 | blocked 大朝台；已完成 |
 | I10b | #51 | 原小朝台目标 | 被 TP-D039 取代，规划合并后关闭 |
-| I10c | #77 | 第五条社区 GPX 试点 | 选择、审阅并另建数据合同 |
+| I10c | #77 | 党岭村—葫芦海—卓雍措 reviewed track | 1 日往返 trek full variant |
 | I11 | #20 | 蓝月谷—云杉坪社区轨迹数据 | 1 日 trek full variant |
 | I12 | #21 | 贡嘎西南坡社区轨迹数据 | 3 日点到点 trek variant |
 | I13 | #22 | 稳定 ID 搜索解析 | 地点/路线/变体区分 |
@@ -147,15 +148,18 @@ I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补�
   point-to-point route.
 - I10a remains complete through PR #53 with the tier A Wutai blocked record and shared
   `test:route-data` seam. The Wutai multi-summit GPX cannot create a full Variant under that official
-  restriction. Former I10b/#51 is superseded; I10c/#77 waits for a fifth non-blocked GPX.
-- A reviewed GPX may independently support geometry and time fields, but not `open`, permission,
+  restriction. Former I10b/#51 is superseded; I10c/#77 uses the reviewed user-owned Dangling KML.
+- A reviewed community track may independently support geometry and time fields, but not `open`, permission,
   mandatory-guide or restriction claims. Each route contract must freeze its actual name, type,
   activity-day split, derived-field method, coordinate interpretation, weather samples and unknown
   status semantics before implementation.
-- Implementation order is I08 first, then I09/I11/I12. I13 remains blocked until those four and
+- Implementation order is I08 first, then I09/I11/I12, then I10c. I13 remains blocked until those four and
   I10c's fifth full Variant are all merged; no temporary fifth record is allowed.
-- I08/I09/I11/I12 are merged through PRs #79–#82. I10c/#77 is now the only route-data input blocker;
-  no implementation is assigned until one additional suitable GPX is supplied and reviewed.
+- I08/I09/I11/I12 are merged through PRs #79–#82. I10c/#77 is now the only route-data implementation
+  blocker. The supplied KML passed quality, identity, privacy and management review; its exact contract is
+  `docs/research/dangling-kml-audit-2026-08-07.md` and `docs/tasks/ACTIVE_TASK.md`. Implementation may start
+  only after the approved contract's planning PR merges. Independent Review returned `APPROVED` with no
+  P0–P3 findings.
 
 ## 8. I14 冻结合同摘要
 
