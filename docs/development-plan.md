@@ -154,6 +154,8 @@ I06–I25 在进入 Ready 前，Sol XHigh 必须基于已合并前置工作补�
   status semantics before implementation.
 - Implementation order is I08 first, then I09/I11/I12. I13 remains blocked until those four and
   I10c's fifth full Variant are all merged; no temporary fifth record is allowed.
+- I08/I09/I11/I12 are merged through PRs #79–#82. I10c/#77 is now the only route-data input blocker;
+  no implementation is assigned until one additional suitable GPX is supplied and reviewed.
 
 ## 8. I14 冻结合同摘要
 

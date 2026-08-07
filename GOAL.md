@@ -24,8 +24,9 @@ public official track/elevation package capable of completing any full Variant; 
 requests are recorded in `docs/research/exact-route-source-recovery-2026-08-07.md`.
 The human then approved TP-D039: official/operator material governs management and restriction facts,
 while a Sol-reviewed community GPX may independently provide geometry for the route it actually
-records. Four supplied tracks now replace four old exact pilots; the Wutai summit track remains
-non-plannable under the official restriction, and #77 tracks the still-missing fifth plannable GPX.
+records. Four supplied tracks have been reviewed, implemented and merged through PRs #79–#82 as four
+full replacement Variants; the Wutai summit track remains non-plannable under the official restriction,
+and #77 tracks the still-missing fifth plannable GPX.
 
 ## 1. Objective
 
@@ -37,7 +38,7 @@ The Taro app and two CloudBase functions are the current product. Engineering ga
 trip date windows, route type propagation, fuzzy confirmation, hourly evaluation and deterministic
 safety composition, trusted second-stage context and private-only history are complete. Full pilot route
 records and the RouteVariant-backed input/result experience remain. Four reviewed community tracks
-are ready for route-specific data contracts; the fifth plannable pilot is still unselected. I20's
+are merged as full RouteVariants; the fifth plannable pilot is still unselected. I20's
 explicit reducer and getAdvice service seam is complete; I21 still waits until five full variants
 meet the hybrid A/B policy and I13 can resolve them.
 
