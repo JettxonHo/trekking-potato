@@ -385,9 +385,10 @@ semantics and non-destructive public UGC shutdown.
 - I19 implementation recorded real RED coverage for the old history DTO leak and geocode public-routes
   access, then completed the private history DTO/ownership/delete/clear contract, authenticated UGC
   tombstones, zero geocode UGC reads, and the frontend local history error/delete/clear/degraded-save
-  paths. Focused tests, root test, integration (56/0), lint and typecheck are green. The local WeChat
-  build process completes after emitting a macOS `system-configuration` background panic but does not
-  expose an exit code through this runner; no dependency or build-config change was made to conceal it.
+  paths. Focused tests, root test, integration (56/0), lint and typecheck are green. In this sandbox,
+  WeChat build triggers a macOS `system-configuration` panic and hangs; Sol verified outside the sandbox
+  with `env CI=1 npm run build:weapp` that it exits 0 and Webpack completes in 3.24s. No dependency or
+  build-config change was made to conceal the sandbox-only phenomenon.
 
 The baseline checks were rerun during M1 verification. Local Markdown links and `git diff --check` also pass.
 

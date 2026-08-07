@@ -252,9 +252,9 @@ I19 已把现有 `scripts/security-test.js` 收敛为聚焦 history/privacy 的 
 - 普通 advice 失败保存确定性降级摘要，`query_context_unavailable` 保持零 history。
 
 实现已运行 `test:history`、route、confirmation、response、integration、root test、lint、
-typecheck、WeChat build 和 diff check。当前 macOS runner 的 WeChat build 只输出 Taro 后台
-`system-configuration` panic，未提供可读取退出码；未改变依赖或构建配置来掩盖该环境现象。
-deep/redteam/live 网络脚本不进入默认门禁。
+typecheck 与 diff check。本沙箱的 WeChat build 会触发 macOS `system-configuration` panic 并挂起；
+Sol 在沙箱外以 `env CI=1 npm run build:weapp` 验证 exit 0、Webpack 3.24s 成功。未改变依赖或
+构建配置来规避该环境现象；deep/redteam/live 网络脚本不进入默认门禁。
 
 ## 3. 测试层级
 

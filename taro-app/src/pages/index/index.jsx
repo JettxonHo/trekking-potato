@@ -87,6 +87,7 @@ export default class Index extends Component {
     historyList: [],
     historyLoading: false,
     historyError: null,
+    historySaveError: null,
     showCandidatePopup: false,
     candidates: [],
     candidateSnapshot: null,
@@ -608,9 +609,9 @@ export default class Index extends Component {
       },
       success: (res) => {
         const result = res.result
-        this.setState({ historyError: result && result.ok ? null : HISTORY_SAVE_ERROR })
+        this.setState({ historySaveError: result && result.ok ? null : HISTORY_SAVE_ERROR })
       },
-      fail: () => this.setState({ historyError: HISTORY_SAVE_ERROR }),
+      fail: () => this.setState({ historySaveError: HISTORY_SAVE_ERROR }),
     })
   }
 
@@ -728,7 +729,7 @@ export default class Index extends Component {
   }
 
   render() {
-    const { route, date, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, pendingResolvedLocation, showHistory, historyList, historyLoading, historyError, showCandidatePopup, candidates } = this.state
+    const { route, date, days, levels, levelIndex, minDate, loading, loadingStage, error, showResult, result, adviceLoading, showManualCoords, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, pendingResolvedLocation, showHistory, historyList, historyLoading, historyError, historySaveError, showCandidatePopup, candidates } = this.state
     const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
     const funnyMsg = this.state.funnyMsg
 
@@ -767,7 +768,7 @@ export default class Index extends Component {
           )}
 
           {error && <View className="error-box"><Text>{error}</Text></View>}
-          {historyError && <View className="history-error-box"><Text>{historyError}</Text></View>}
+          {historySaveError && <View className="history-error-box"><Text>{historySaveError}</Text></View>}
 
           {adviceLoading && (
             <View className="status-bar">
