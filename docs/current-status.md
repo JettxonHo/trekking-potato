@@ -1038,3 +1038,16 @@ The executor cannot approve/merge and Terra remains unauthorized.
 - This is the final permitted fix round for this same frozen finding. If it does not pass exact-head independent
   re-review, stop and escalate to the human rather than starting round 3. No other implementation or contract change
   is authorized.
+
+## I23b Review-fix round 2 implementation checkpoint — 2026-08-09
+
+- Added only a local `history-meta` hint, `正在刷新历史…`, when `historyLoading === true` and existing history
+  items are present. The prior items remain rendered in the same branch; the empty-list loading state is unchanged.
+- Extended `assertMutationSensitivePageWiring` so removing that non-empty hint makes `test:recovery` RED while the
+  existing `historyList.map` evidence remains required. No new state, CSS, request, identity, schema or dependency
+  was introduced.
+- Focused recovery is GREEN. The frozen matrix and `git diff --check` are recorded in the verification doc; no
+  DevTools/screenshot evidence was run. This is the final bounded round and is ready for one additive commit,
+  normal push and latest-head Actions; if the same finding repeats, escalate to the human.
+- Final-round local results: `npm test` PASS; integration `56/0`; lint 0 errors/9 existing warnings; typecheck,
+  `build:weapp`, `git diff --check`, and focused trip-flow/result-page/recovery/response/trip-context/history PASS.

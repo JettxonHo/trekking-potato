@@ -1268,19 +1268,22 @@ export default class Index extends Component {
                 ) : !historyLoading && historyList.length === 0 ? (
                   <Text className="history-empty">还没有记录，去查一次路线吧</Text>
                 ) : (
-                  historyList.map((item) => (
-                    <View key={item.id} className="history-item quirky-active" onClick={() => this.onRestoreHistory(item)}>
-                      <View className="history-item-main">
-                        <Text className="history-route">{item.route}</Text>
-                        <Text className="history-meta">{item.date} · {item.days}天 · {item.level}</Text>
-                        {item.elevation && <Text className="history-meta">📍 {item.elevation}m</Text>}
+                  <View>
+                    {historyLoading && historyList.length > 0 && <Text className="history-meta">正在刷新历史…</Text>}
+                    {historyList.map((item) => (
+                      <View key={item.id} className="history-item quirky-active" onClick={() => this.onRestoreHistory(item)}>
+                        <View className="history-item-main">
+                          <Text className="history-route">{item.route}</Text>
+                          <Text className="history-meta">{item.date} · {item.days}天 · {item.level}</Text>
+                          {item.elevation && <Text className="history-meta">📍 {item.elevation}m</Text>}
+                        </View>
+                        <View className="history-item-actions">
+                          <Text className="history-summary">{item.summary || ''}</Text>
+                          <Text className="history-delete" onClick={(event) => this.onDeleteHistory(item.id, event)}>删除</Text>
+                        </View>
                       </View>
-                      <View className="history-item-actions">
-                        <Text className="history-summary">{item.summary || ''}</Text>
-                        <Text className="history-delete" onClick={(event) => this.onDeleteHistory(item.id, event)}>删除</Text>
-                      </View>
-                    </View>
-                  ))
+                    ))}
+                  </View>
                 )}
               </ScrollView>
             </View>

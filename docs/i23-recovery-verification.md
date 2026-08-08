@@ -117,3 +117,35 @@ npm run typecheck            PASS
 npm run build:weapp          Webpack compiled successfully
 git diff --check             PASS
 ```
+
+## I23b Sol Review-fix round 2 — 2026-08-09
+
+本轮只补充非空 history list 重试时的局部 loading indication：旧 items 仍继续渲染，空列表仍使用原有
+`history-empty` loading 文案；未改变 lifecycle token、请求、recovery identity、状态、schema、依赖或其他样式。
+
+### RED → GREEN / mutation evidence
+
+- `render` 在 `historyLoading && historyList.length > 0` 分支显示现有 `history-meta` class 的
+  `正在刷新历史…`，随后继续 `historyList.map`；`historyLoading && historyList.length === 0` 分支保持
+  原 loading 空态。
+- `assertMutationSensitivePageWiring` 精确提取该 render 分支，并将 hint 表达式替换为 `false` 做代表性
+  mutation；mutation 保留旧 items map 但使 `test:recovery` RED，证明提示不会被 marker-only 证据遗漏。
+
+### Review-fix round 2 command results
+
+```text
+npm run test:recovery        PASS
+npm run test:trip-flow       PASS
+npm run test:result-page     PASS
+npm run test:response        PASS
+npm run test:trip-context    PASS
+npm run test:history         PASS
+npm test                     PASS
+npm run test:integration     PASS: 56, FAIL: 0
+npm run lint                 0 errors; 9 existing warnings
+npm run typecheck            PASS
+npm run build:weapp          Webpack compiled successfully
+git diff --check             PASS
+```
+
+未运行微信开发者工具或 DevTools；本轮不声称截图/真机交互证据。

@@ -331,3 +331,13 @@ closed. Make only this final correction:
 Use one additive commit and normal push. Do not modify recovery identities, reducers, network behavior, schemas,
 dependencies or styling beyond the minimal existing-class hint. This is the final round for this finding; a repeat
 failure must return `ESCALATE_TO_HUMAN`, not start round 3. The implementer cannot approve or merge.
+
+## I23b Review-fix round 2 implementation checkpoint — 2026-08-09
+
+- Added only the existing `history-meta` class hint `正在刷新历史…` when a history refresh is loading alongside
+  non-empty old items; old items remain visible and the empty-list loading branch is unchanged.
+- Focused render/mutation evidence now requires the hint and proves that replacing it with `false` makes
+  `test:recovery` RED while `historyList.map` remains present.
+- No reducer/request/identity/schema/dependency/new state or other styling changed. Final-round matrix is GREEN and
+  verification evidence is synchronized; if this same finding repeats, escalate to the human rather than starting
+  round 3. Status: `READY_FOR_CONTROLLER_REVIEW`; executor cannot approve or merge.

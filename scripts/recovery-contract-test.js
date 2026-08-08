@@ -296,6 +296,7 @@ function assertPageWiring(source) {
   assert.match(render, /recoveryActions\.adviceRetry && <Button[\s\S]{0,160}onClick=\{this\.onAdviceRetry\}/)
   assert.match(render, /\{historyLoading && historyList\.length === 0 \?/)
   assert.match(render, /: !historyLoading && historyList\.length === 0 \?/)
+  assert.match(render, /historyLoading && historyList\.length > 0 && <Text className="history-meta">正在刷新历史…<\/Text>/)
   assert.match(render, /historyList\.map\(\(item\)/)
 }
 
@@ -306,6 +307,7 @@ function assertMutationSensitivePageWiring() {
     ['weather eligibility', (value) => replaceMethodBody(value, 'render()', 'recoveryActions.weatherRetry &&', 'true &&')],
     ['old-result refreshing priority', (value) => replaceMethodBody(value, 'render()', 'if (loading) {', 'if (loading || refreshing) {')],
     ['history list loading priority', (value) => replaceMethodBody(value, 'render()', 'historyLoading && historyList.length === 0', 'historyLoading')],
+    ['non-empty history refresh hint', (value) => replaceMethodBody(value, 'render()', 'historyLoading && historyList.length > 0 && <Text className="history-meta">正在刷新历史…</Text>', 'false')],
     ['same-query AI retry', (value) => replaceMethodBody(value, 'onAdviceRetry = () =>', '_fetchAdvice(nextFlow.queryId', "_fetchAdvice('wrong-query'")],
     ['base snapshot replay', (value) => replaceMethodBody(value, '_beginReprepare(kind', '_replayBaseRequest(snapshot, nextFlow.token)', '_replayBaseRequest(null, nextFlow.token)')],
     ['same-base history intent', (value) => replaceMethodBody(value, '_saveHistory(params, resultData)', '_historySaveIntent.baseRef !== this._baseHistoryIdentity', 'false')],
