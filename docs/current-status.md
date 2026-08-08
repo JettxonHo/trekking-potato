@@ -2,16 +2,20 @@
 
 - Updated: `2026-08-08`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I22a IMPLEMENTATION_ACTIVE`
+- Goal status: `ACTIVE — M6 I22a REVIEW_FIX_ACTIVE`
 - Active milestone: `M6 Core UX`
-- Active task: `I22a / #94 / IMPLEMENTATION_ACTIVE`
+- Active task: `I22a / #94 / REVIEW_FIX_ACTIVE`
 - Branch: `codex/94-source-summaries`
 - Base: `main` at `ac4ba9e`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page; contract Review approved
 - I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
-- Assignment: exact custom Agent `luna-worker` is authorized for #94 only; #95 remains dependency-blocked
+- Assignment: exact custom Agent `luna-worker` completed #94 implementation at `c46de83`; PR `#97` latest-head
+  `quality` passed, status is `READY_FOR_CONTROLLER_REVIEW`, and Sol review-fix is active; #95 remains
+  dependency-blocked
+- I22a implementation PR: `#97` — head `c46de83`; latest-head GitHub `quality` passed; `READY_FOR_CONTROLLER_REVIEW`
+  with Sol review-fix active
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -143,9 +147,10 @@
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1–M5, I20 and I21 are complete. I07, I10a, all five reviewed community-track Variants and I13's production
-catalog resolver are merged; M3 is complete. M6 is active at I22 contract planning. I22 runs serially as
-#94 trusted provenance followed by #95 structured result page; implementation starts only after the I22 planning
-PR merges from a green latest head.
+catalog resolver are merged; M3 is complete. M6 is active at I22a #94 review-fix: implementation commit
+`c46de83` is on PR `#97`, whose latest-head `quality` passed, and the executor is `READY_FOR_CONTROLLER_REVIEW`.
+I22 runs serially as #94 trusted provenance followed by #95 structured result page; #95 remains blocked until
+#94 completes independent Sol Review and merge.
 
 ## Completed
 
@@ -640,8 +645,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Implement #94 from `main@ac4ba9e` under its exact allowlist and frozen interface.
-2. Run independent Sol Review and merge #94 before activating #95.
+1. Complete the bounded Sol review-fix for #94; implementation `c46de83` is pushed to PR `#97` and its
+   latest-head `quality` passed. The executor remains `READY_FOR_CONTROLLER_REVIEW`.
+2. Obtain independent Sol re-review and merge #94 before activating #95.
 
 ## Blockers and risks
 
@@ -675,8 +681,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Commit this controller-owned activation checkpoint, synchronize #94 to implementation-active, then dispatch only
-#94 to the exact custom Agent `luna-worker`. Do not start #95 and do not automatically route implementation to Terra.
+Finish the active Sol review-fix on PR `#97` for implementation `c46de83`; after independent Sol approval, Sol may
+merge #94 and then activate #95. The executor must not approve or merge, and #95 must not start early or route to
+Terra.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
