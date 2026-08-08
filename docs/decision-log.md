@@ -599,3 +599,20 @@
 - Manual boundary: partial, non-number, non-finite or out-of-range manual coordinates/elevation return the single
   non-retryable `invalid_manual_place` code before downstream calls. This is the real client boundary, not a
   general defensive framework.
+
+## 2026-08-08 — TP-D046 实现路由切换到准确自定义 Agent `luna-worker`
+
+- Status: Human-directed; accepted and active
+- Decision: 停止把 Terra 作为自动实现回退。后续边界明确实现必须创建准确名称
+  `luna-worker` 的自定义 Agent，使其加载 `~/.codex/agents/luna-worker.toml`；该配置声明
+  `gpt-5.6-luna` 与 `max` 推理强度，逻辑角色为 `IMPLEMENTER`。Sol 继续负责合同、调度、独立
+  Review 与合并判断。未经人工再次明确授权，不得创建新的 Terra 实现 Agent。
+- Migration: 路由检查时当前 Agent 树不存在 Active Terra，工作区也没有 Terra 未提交修改，因此
+  无需中断或生成运行中交接。历史 Terra 提交、PR、测试和审计证据全部保留且不重做。I21 合同、
+  范围、验收和测试不因模型切换而改变。
+- Verification: `~/.codex/agents/luna-worker.toml` 已核对名称、模型和推理强度；实际实例创建时仍须
+  记录运行时可见模型与 `CONFIG_VERIFIED`、`RUNTIME_VERIFIED` 或
+  `UNVERIFIED_RUNTIME_MODEL`。若 Agent 不可发现或无法启动，状态为
+  `BLOCKED_LUNA_WORKER_UNAVAILABLE`，不得自动回退 Terra。
+- Why: 自定义 Agent 已由人工安装验证；用准确 Agent 名称可加载固定配置，也避免把逻辑角色名或
+  单独模型字符串误当成可执行 Agent。保留历史成果并只迁移未完成工作，可以避免重复实现和分支覆盖。

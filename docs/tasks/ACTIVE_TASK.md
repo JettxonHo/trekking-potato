@@ -3,18 +3,18 @@
 - Task ID: `I21`
 - GitHub Issue: `#30`
 - Title: 实现搜索、确认与行程输入流程
-- Status: `CONTRACT_APPROVED — PLANNING_PR_READY / IMPLEMENTATION_PAUSED`
+- Status: `CONTRACT_APPROVED — ROUTING_MIGRATED / IMPLEMENTATION_PENDING`
 - Mode: `IMPLEMENTATION`（尚未激活）
 - Owner: Sol XHigh
-- Planned implementation Agent: Terra XHigh
+- Planned implementation Agent: `luna-worker`
 - Planning branch: `codex/i21-core-flow-contract`
-- Planning PR: `#90` (open; quality passed; must not merge before `继续`)
+- Planning PR: `#90` (open; quality passed before routing-sync update)
 - Planned implementation branch: `codex/30-core-input-flow`
 - Planning base: `main` at `c5d7d7c`
 - Goal: `TP-BETA-001`
 
-> 人工停止条件：完成本合同的文档固化、GitHub 同步、独立 Review 与规划 PR 后暂停。未收到明确
-> `继续` 前，不得创建实现分支、分派 Terra、写 TDD RED 或修改业务代码。
+> 先前人工暂停已由模型路由纠偏指令解除。必须先合并规划 PR #90，再从最新 `main` 创建实现分支；
+> 只可把本合同交给准确自定义 Agent `luna-worker`，不得自动回退 Terra。
 
 ## 1. 目标与背景
 
@@ -284,7 +284,7 @@ git diff --check
 
 ## 10. 自主决定、升级与交付
 
-Terra 可自行决定 `trip-base.js` 内私有 helper 名称、函数顺序、测试 fixture 排版和 CSS 局部布局，
+`luna-worker` 可自行决定 `trip-base.js` 内私有 helper 名称、函数顺序、测试 fixture 排版和 CSS 局部布局，
 前提是不改变冻结出口、日天气摘要规则、公共请求、错误码、三类 target、BaseData 权威字段、状态数
 与信任边界。
 
@@ -293,10 +293,10 @@ Terra 可自行决定 `trip-base.js` 内私有 helper 名称、函数顺序、�
 主要栈替换和 Goal 外产品取舍必须人工确认。
 
 交付包必须包含：完成状态、实际文件、真实 RED/GREEN、测试命令与结果、计划偏差、自主实现决策、
-限制、PR 和重点 Review 位置。Terra 只能提交 `READY_FOR_CONTROLLER_REVIEW`，不得批准或合并自己的 PR。
+限制、PR 和重点 Review 位置。`luna-worker` 只能提交 `READY_FOR_CONTROLLER_REVIEW`，不得批准或合并自己的 PR。
 
 ## 11. 当前下一步
 
-合同已通过第三次聚焦独立 Review，P0–P3 无剩余 finding。规划 PR #90 的 latest-head quality 已通过；
-该 PR 不合并，实施模式不激活。等待人工明确
-`继续` 后，Sol 才能合并规划 PR、创建实现分支并向 Terra 下发本合同。
+合同已通过第三次聚焦独立 Review，P0–P3 无剩余 finding。人工已解除暂停并纠正实现模型路由。
+Sol 先同步并复核规划 PR #90；合并后从最新 `main` 创建 `codex/30-core-input-flow`，再向准确自定义
+Agent `luna-worker` 下发本合同。不得自动回退 Terra。

@@ -1,7 +1,7 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M3 COMPLETE; I21 CONTRACT_APPROVED / IMPLEMENTATION_PAUSED`
-- Updated: `2026-08-07`
+- Status: `ACTIVE — M3 COMPLETE; I21 CONTRACT_APPROVED / ROUTING_MIGRATED`
+- Updated: `2026-08-08`
 
 ## 1. 依赖图
 
@@ -327,8 +327,8 @@ PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29
 - I13 合并后，I21 以一个原子垂直 PR 同时交付：输入 UI、`prepare/confirm` 请求、服务端
   `date/startTimeLocal/level/days/climbSupport` 校验、确认快照、TripContext requestSummary 和回归测试。
 - I13 implementation PR #89 passed latest-head quality and merged as `c5d7d7c`; #22 closed and M3 is
-  complete. #30 may be planned and unblocked, but implementation remains explicitly paused until the
-  human says `继续`.
+  complete. #30 is planned and unblocked. The earlier implementation pause is released; implementation
+  begins only after the routing-synchronized planning PR #90 merges.
 - I21 removes the obsolete public `mode='base'` alias and performs one vertical cutover. It preserves
   the ten I20 states and reuses `awaiting_route_type` for place-only/manual type selection.
 - The form shows daily departure time (default `08:00`) and a clearly labelled technical-climb support
@@ -345,4 +345,5 @@ PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29
   TripContext store and page wiring. It owns target-to-BaseData construction and the one-way compatibility
   projection; `index.js` retains authentication, public mode routing, persistence and advice orchestration.
 - #30's contract is frozen in `docs/tasks/ACTIVE_TASK.md`. Planning may be published for review now; branch
-  creation, Terra handoff, TDD RED or implementation edits wait for the human command `继续`.
+  creation and TDD implementation begin only after planning PR #90 merges; I21 is assigned to the exact
+  custom Agent `luna-worker`, with no automatic Terra fallback.

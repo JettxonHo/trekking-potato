@@ -1,6 +1,6 @@
 # 多 Agent 协作规范
 
-- Version: `1.0.0`
+- Version: `1.1.0`
 - Governance: `TP-GOV-2.0.0`
 
 ## 1. 角色与权限
@@ -11,9 +11,17 @@
 
 Sol 仅在执行 Agent两轮返工仍失败、跨模块架构阻塞、复杂根因、紧急 Goal 阻塞或验证原型无法再拆分时直接修改业务代码，并必须记录原因。
 
-### Luna/Terra XHigh
+### `luna-worker`
 
-Luna 是首选实现模型，当前不可用；Terra 是人工授权替代者。实现 Agent读取合同、实现、测试、自检、提交和返工。不得扩大范围、改变架构/公共协议/依赖策略、进行迁移或降低验收，也不得合并自身 PR。
+`luna-worker` 是边界明确实现任务的准确自定义 Agent 名称；其配置文件为
+`~/.codex/agents/luna-worker.toml`，模型为 `gpt-5.6-luna`，推理强度为 `max`，逻辑角色为
+`IMPLEMENTER`。创建时必须选择该自定义 Agent，不得以“Luna Max”逻辑角色或仅模型字符串代替。
+实现 Agent读取合同、检查已有成果、实现、测试、自检、提交和返工。不得扩大范围、改变架构/公共
+协议/依赖策略、进行迁移或降低验收，也不得批准或合并自身 PR。
+
+Terra 的既有提交、PR、测试和审计证据继续有效，但不再是自动实现回退。未经人工再次明确授权，
+Sol 不得创建新的 Terra 实现 Agent。若 `luna-worker` 不可发现或无法启动，停止新实现并记录
+`STATUS: BLOCKED_LUNA_WORKER_UNAVAILABLE`。
 
 ## 2. 下发上下文包
 
@@ -47,7 +55,7 @@ Sol 阅读实际 diff 和测试，不依赖 PR 自述。`CHANGES_REQUESTED` 必�
 1. 首轮失败：同一执行 Agent按具体 Review 修复。
 2. 第二轮失败：Sol 暂停局部修补，重新定位根因或拆分任务。
 3. 架构或合同错误：Sol 修订决策和合同，旧 PR 保持未合并或关闭。
-4. 执行模型不可用：记录实际替代模型；不冒充、不降低权限边界。
+4. `luna-worker` 不可用：不得自动回退 Terra；记录配置检查、可见 Agent、交接状态和需要的人工操作。
 5. 无法安全继续：标记 BLOCKED，更新 current-status，继续完全独立的任务。
 
 ## 9. 上下文检查点
