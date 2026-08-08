@@ -23,8 +23,9 @@ cache normalization and private history-context isolation.
 
 After explicit human authorization and Mac unlock, Sol XHigh injected deterministic fixtures only into the local
 WeChat DevTools runtime, refreshed the page and captured all four required states. Each image was inspected against
-the visible assertions above. The full/caution capture is intentionally scrolled to the AI card so the degraded copy
-is visible; the other three captures show the deterministic result and capability boundary directly.
+the visible assertions above. The two full-route captures use a temporary local-only page scale so the verdict,
+deterministic reasons, weather, minimum gear, sources and AI section are visible together in one simulator frame.
+That scale is evidence-only and was removed with the fixture code after capture.
 
 The temporary fixture module and cache adapter were removed immediately after capture, and the normal WeChat build
 was rerun successfully. No fixture switch, production mock, service-port change or runtime debug code remains in the

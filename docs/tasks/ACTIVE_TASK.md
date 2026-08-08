@@ -196,8 +196,9 @@ focused PR. Return `READY_FOR_CONTROLLER_REVIEW`; do not approve or merge.
   screenshots. Sol captured and inspected `full/go`, `full/caution + AI degraded`, `blocked/no_go` and
   `place-only/null`; evidence is stored under `docs/evidence/i22/` and indexed by
   `docs/i22-result-page-verification.md`.
-- The caution screenshot is scrolled to the independent AI-unavailable card; the other captures show the relevant
-  deterministic verdict, route/capability and weather boundary. No screenshot was fabricated.
+- The two full-route screenshots use a temporary local-only page scale so each single image shows verdict, reasons,
+  weather, minimum gear, sources and AI status together. The blocked and place-only captures show their relevant
+  capability/weather boundary directly. No screenshot was fabricated.
 - The temporary fixture module and local cache adapter were removed, and the normal WeChat build passed afterward.
   The project contains no production mock switch or persistent DevTools service-port change.
 - Status is `READY_FOR_FINAL_REVIEW`. Sol retains approval and merge authority; I23 remains out of scope until #98

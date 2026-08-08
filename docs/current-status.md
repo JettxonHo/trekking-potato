@@ -879,6 +879,9 @@ dispatch only #95 to exact `luna-worker`. The executor must not approve or merge
   `place-only/null` states under `docs/evidence/i22/`.
 - The screenshots show the deterministic verdict/capability boundaries, hourly or reference-weather semantics,
   official no-weather blocked behavior, minimum gear/source cards and the independent AI degraded message.
+- After independent review found the initial full-route framing incomplete, Sol recaptured `full/go` and
+  `full/caution + AI degraded` as complete-page simulator frames; each now shows the verdict, reasons, weather,
+  minimum gear, sources and AI section together.
 - Temporary local fixture code was removed and the normal WeChat build passed afterward. No production mock,
   service-port change or debug adapter remains. Status is `READY_FOR_FINAL_REVIEW`; I23 remains blocked until #98 is
   approved and merged.
