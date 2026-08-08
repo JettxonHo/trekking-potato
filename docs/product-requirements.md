@@ -63,9 +63,10 @@
 前四条 GPX 质量与身份审计见 `docs/research/user-gpx-audit-2026-08-07.md`；第五条用户自有 KML
 审计见 `docs/research/dangling-kml-audit-2026-08-07.md`。#77 已通过规划 PR #86 和实现 PR #87
 完成独立 Review、latest-head quality 与合并；五条 full Variants 和五台 blocked 记录均已在 main。
-I13 永久 ID resolver 已通过 PRs #88/#89 合并并关闭 #22；M3 已完成。I21 公共输入接线合同已经
-独立 Review 冻结。先前人工暂停已经解除；规划 PR #90 从绿色 latest head 合并后，只把实现交给
-准确自定义 Agent `luna-worker`，不得自动回退 Terra。
+I13 永久 ID resolver 已通过 PRs #88/#89 合并并关闭 #22；M3 已完成。I21 公共输入接线通过规划
+PR #90 与实现 PR #93 合并为 `be24b07`，GitHub #30 已关闭。当前阶段是 I22 结果体验合同规划：
+#94 先补可信来源摘要与路线状态，#95 再切换结构化结果页。合同 Review 与规划 PR 合并前不启动
+实现；后续只交准确自定义 Agent `luna-worker`，不得自动回退 Terra。
 
 ## 6. 隐私与信任
 
@@ -94,3 +95,9 @@ I13 永久 ID resolver 已通过 PRs #88/#89 合并并关闭 #22；M3 已完成�
 - 数据不足不生成建议出发。
 - AI、天气和历史的失败互不污染可信结果。
 - 用户能看到路线变体、类型、天数、来源、更新时间和置信度。
+- I22 结果页顶部固定显示四态结论；verdict、数据完整度与 AI degraded 是三条独立轴。用户先看到
+  确定性 reasons/dataIssues、路线小时天气或明确的有限天气边界、最低装备和来源，AI 后到只补充解释。
+- 每条 full 路线显示 `unknown/open/blocked` 管理状态；现有 `unknown` 试点提示出发前核验，但不因
+  unknown 自动修改规则结论。place-only 标明非完整路线，blocked 标明本次未请求天气。
+- 路线来源显示标题、发布方、A/B 等级、类型、核验日期和可选链接；社区轨迹无公开 URL 时保持无链接，
+  不伪造来源。最低装备支持本地勾选，勾选状态不持久化。

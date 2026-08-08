@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M3 COMPLETE; I21 APPROVED_PR_PENDING`
+- Status: `ACTIVE — M3 COMPLETE; I21 COMPLETE; I22 CONTRACT_APPROVED / PLANNING_PR_PENDING`
 - Updated: `2026-08-08`
 
 ## 1. 依赖图
@@ -13,8 +13,8 @@ I10a → {I08, I09, I11, I12}
 I07 → I14 → I15 → I16
 I15 + I16 → I17 → I18 → I19
 I17 → I18 → I19 → I20
-I13 + I16 + I20 → I21 → I22
-I19 + I22 → I23
+I13 + I16 + I20 → I21 → I22a → I22b
+I19 + I22b → I23
 I19 + I23 → I24 → I25
 ```
 
@@ -51,7 +51,7 @@ I19 + I23 → I24 → I25
 | I19 | #28 | 私人历史和停用 UGC | save/list/delete/clear + UGC shutdown |
 | I20 | #29 | 前端 reducer 与服务层 | 显式状态和竞态保护 |
 | I21 | #30 | 搜索确认输入流程 | variant/date/time/support |
-| I22 | #31 | 结果体验 | verdict/hourly/checklist/sources |
+| I22 | #31 parent; #94 I22a; #95 I22b | 结果体验 | trusted provenance → structured result page |
 | I23 | #32 | 降级与恢复 | weather/AI/history 独立恢复 |
 | I24 | #33 | Beta 综合验证 | 回归、构建、人工清单、文档 |
 | I25 | #34 | Goal 最终 Review | 完成报告和验收结论 |
@@ -317,7 +317,7 @@ I20 implementation 已完成 RED→GREEN：新增 reducer/service、最小页面
 I05/I18 的页面静态断言迁移到 reducer token/service seam。Sol 两轮 Review 后批准，
 PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29 关闭。
 
-## 17. I21 依赖门与原子交付
+## 17. I21 依赖门与原子交付（已完成历史）
 
 - I21 不拆分为“前端先加控件”或“后端先强制字段”的可合并子 Issue。前者会让
   `startTimeLocal/climbSupport` 被生产 handler 忽略，后者会让当前页面无法提交。
@@ -326,9 +326,9 @@ PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29
   固定天数、放行自由 1–7 天和是否必须收集 climb support。
 - I13 合并后，I21 以一个原子垂直 PR 同时交付：输入 UI、`prepare/confirm` 请求、服务端
   `date/startTimeLocal/level/days/climbSupport` 校验、确认快照、TripContext requestSummary 和回归测试。
-- I13 implementation PR #89 passed latest-head quality and merged as `c5d7d7c`; #22 closed and M3 is
-  complete. #30 is planned and unblocked. The earlier implementation pause is released; implementation
-  begins only after the routing-synchronized planning PR #90 merges.
+- I13 implementation PR #89 passed latest-head quality and merged as `c5d7d7c`; #22 closed and M3 completed.
+  I21 planning PR #90 then merged as `c817bbb`; implementation PR #93 passed latest-head quality and two
+  independent Sol Reviews, squash merged as `be24b07`, and closed #30.
 - I21 removes the obsolete public `mode='base'` alias and performs one vertical cutover. It preserves
   the ten I20 states and reuses `awaiting_route_type` for place-only/manual type selection.
 - The form shows daily departure time (default `08:00`) and a clearly labelled technical-climb support
@@ -344,6 +344,27 @@ PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29
 - The implementation seam is one new injected `trip-base.js` orchestration module plus the public handler,
   TripContext store and page wiring. It owns target-to-BaseData construction and the one-way compatibility
   projection; `index.js` retains authentication, public mode routing, persistence and advice orchestration.
-- #30's contract is frozen in `docs/tasks/ACTIVE_TASK.md`. Planning may be published for review now; branch
-  creation and TDD implementation begin only after planning PR #90 merges; I21 is assigned to the exact
-  custom Agent `luna-worker`, with no automatic Terra fallback.
+- #30's completed contract/history remains in GitHub #30, PRs #90/#93 and the decision/status records; the active
+  task file now belongs to I22. I21 was executed by the exact custom Agent `luna-worker`; Terra was not used as
+  an automatic fallback.
+
+## 18. I22 可信来源与结构化结果体验
+
+- I21 implementation PR #93 passed latest-head quality and two independent Sol Reviews, squash merged as
+  `be24b07`, and closed #30. I22 therefore plans against real structured BaseData rather than a speculative shape.
+- Parent #31 is split serially into #94 I22a and #95 I22b. I22a additively exposes server-resolved route source
+  summaries and Variant `verificationLevel/operationalStatus/sourceCheckedAt`, while intentionally removing Place
+  identity evidence from `routeSourceIds`; it changes no UI or phase. I22b then introduces one
+  pure result-page model and switches the page from compatibility aliases to structured BaseData.
+- I22a must merge first because source IDs alone cannot satisfy user-facing traceability. I22b may not infer
+  source titles from IDs, fetch client-controlled URLs, or duplicate the route catalog in the frontend.
+- I22b owns verdict, deterministic reasons/data issues, full hourly windows, place-only reference weather,
+  blocked/no-weather semantics, minimum gear, route/weather sources, AI loading/explanation/degraded display,
+  cache-version cutover/old-cache invalidation and result-page visual evidence; it does not migrate old cache.
+- I22b does not change the ten-state reducer, add retry/recovery controls, alter history schema/save timing/error
+  semantics, redesign the whole product, or remove server compatibility fields still used by prompt/safety. It
+  only captures their five existing history values into a private non-rendered/non-cached context before advice;
+  recovery and final cleanup remain I23/I24.
+- Both child tasks are implemented serially by the exact custom Agent `luna-worker` only after this pure planning
+  contract passes independent Review and merges. Each child uses its own branch/PR and returns
+  `READY_FOR_CONTROLLER_REVIEW`; implementation never self-approves or self-merges.
