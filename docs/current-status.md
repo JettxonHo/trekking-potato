@@ -12,6 +12,13 @@
   `APPROVED` with P0–P3 none. Sol squash merged the PR as `f311d1b` and closed #106. I24c/#107 is now the only
   active child. Its permanent deliverable is documentation and representative evidence only; authorized fixture
   hooks are local, reversible and must be absent from the final diff and fixture-free rebuild.
+- I24c executor evidence checkpoint (2026-08-09): `npm run test:beta-acceptance`, `npm test`, offline integration
+  `55/0`, lint (`0 errors / 9 existing warnings`), typecheck, host `build:weapp` and `git diff --check` all pass.
+  The Computer Use skill was read before one bounded DevTools discovery attempt and one required app-state/list-apps
+  retry; the local tool reported `The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock
+  the Mac manually before continuing.` No fixture was injected, no screenshot was captured, and all DevTools rows are
+  recorded as `UNVERIFIED_RUNTIME_TOOL` in `docs/beta-acceptance-checklist.md`. Residue scan is clean; final changes
+  are docs/evidence only.
 - Historical I24a completion / I24b activation checkpoint (2026-08-09): PR #108 exact latest head passed GitHub `quality`;
   backend/contract and frontend/history independent Reviews both returned `APPROVED` with P0–P3 none. Sol squash
   merged it as `1a2f485` and closed #105. I24b/#106 is now the only active child; I24c/#107 remains blocked.
@@ -195,7 +202,8 @@
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1–M6 are complete. I23b PR #103 passed latest-head quality and two independent Sol Reviews, squash merged as
 `097c921`, and closed #100 plus parent #32. I24 planning PR #104 merged as `6869a7b`; I24a PR #108 merged as
-`1a2f485` and closed #105. M7 is active at I24b/#106; I24c/#107 remains dependency-blocked.
+`1a2f485` and closed #105; I24b PR #109 merged as `f311d1b` and closed #106. M7 is active at I24c/#107, whose
+deliverable is the evidence/docs package with truthful runtime status.
 
 ## Completed
 
@@ -1142,15 +1150,16 @@ committing. The final PR is docs/evidence only; the executor cannot approve or m
   `~/.codex/agents/luna-worker.toml`; configured model `gpt-5.6-luna`; reasoning `max`; configuration status
   `CONFIG_VERIFIED`; runtime visibility must be reported by the executor. Terra remains unauthorized.
 
-## I24a completion / I24b activation checkpoint — 2026-08-09
+## Historical I24a completion / I24b activation checkpoint — 2026-08-09
 
 - I24a PR #108 passed latest-head GitHub `quality`; two independent final Reviews returned `APPROVED` with no
   P0–P3 finding. Sol squash merged it as `1a2f485` and closed #105.
 - I24b/#106 is activated serially from exact `main@1a2f485` on `codex/106-beta-acceptance`. Its allowlist is limited
   to one new acceptance script, one new fixture module, package registration, one verification document and the two
   current-state documents. Production, existing tests, route data, dependencies, CI and visual files are forbidden.
-- I24c/#107 retains `status:blocked`. Any production defect found by I24b must become a separate focused Bug
-  Issue/PR; it cannot be repaired inside the acceptance PR.
+- At this earlier activation checkpoint I24c/#107 was still dependency-blocked. The later I24b merge moved the active
+  scope to I24c; any production defect found by acceptance remains a separate focused Bug Issue/PR and cannot be
+  repaired inside the evidence PR.
 - Routing before spawn: logical role `IMPLEMENTER`; exact custom Agent `luna-worker`; config
   `~/.codex/agents/luna-worker.toml`; configured model `gpt-5.6-luna`; reasoning `max`; `CONFIG_VERIFIED`;
   runtime model visibility must be reported by the executor. Terra remains unauthorized.

@@ -17,11 +17,12 @@ reviews, latest-head quality, and squash merged through PR #93 as `be24b07`; Git
 I22b PR #98 then passed two bounded Review-fix rounds, complete local WeChat DevTools visual evidence,
 latest-head quality and independent Sol Review, and squash merged as `852e86d`; #95 and parent #31 are closed.
 I23a private-history idempotency merged through PR #102 as `107fab4`; I23b bounded recovery passed two independent
-final Reviews and merged through PR #103 as `097c921`. #99, #100 and parent #32 are closed. M7 now begins with
-I24 planning PR #104 passed two independent actual-diff Reviews and latest-head quality, then merged as `6869a7b`.
+final Reviews and merged through PR #103 as `097c921`. #99, #100 and parent #32 are closed. M7 is now in the
+I24c evidence/documentation phase after I24 planning PR #104 passed two independent actual-diff Reviews and
+latest-head quality, then merged as `6869a7b`.
 Serial children are #105/#106/#107. I24a/#105 merged through PR #108 as `1a2f485`; I24b/#106 passed latest-head
 quality and two independent final Reviews, then PR #109 squash merged as `f311d1b`. Both are closed. I24c/#107 is now
-the only active child.
+the only active child; its checklist/report must distinguish automated proof from local DevTools runtime evidence.
 
 ## 1. Objective
 

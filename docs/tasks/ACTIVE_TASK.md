@@ -186,3 +186,14 @@ I24b/#106 passed latest-head quality and two independent actual-diff Reviews, th
 `f311d1b`. The I24c branch starts from that exact main. The requested Agent is the exact custom `luna-worker`; its
 configuration is `gpt-5.6-luna` with `max` reasoning. Runtime metadata must be recorded as observed and never inferred
 from configuration. Terra fallback is not authorized.
+
+## 13. Executor evidence checkpoint — 2026-08-09
+
+The executor ran the complete post-cleanup command matrix: `test:beta-acceptance`, root `npm test`, offline
+integration (`55/0`), lint (`0 errors / 9 existing warnings`), typecheck, host WeChat `build:weapp` and
+`git diff --check`; all passed. The `computer-use:computer-use` skill was read in full before the authorized local
+runtime attempt. One bounded discovery plus one app-state/list-apps retry encountered the exact blocker
+`The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock the Mac manually before
+continuing.` No temporary fixture source or screenshot was created. The row-by-row evidence is in
+`docs/beta-acceptance-checklist.md` and the report in `docs/beta-acceptance-report.md`; all DevTools rows remain
+`UNVERIFIED_RUNTIME_TOOL`, and the final diff is docs/evidence only.
