@@ -1,10 +1,10 @@
 # TP-BETA-001 当前状态
 
-- Updated: `2026-08-08`
+- Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I22b IMPLEMENTATION_ACTIVE`
+- Goal status: `ACTIVE — M6 I22b FINAL_REVIEW`
 - Active milestone: `M6 Core UX`
-- Active task: `I22b / #95 / IMPLEMENTATION_ACTIVE`
+- Active task: `I22b / #95 / READY_FOR_FINAL_REVIEW`
 - Branch: `codex/95-structured-result-page`
 - Base: `main` at `6e12f25`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
@@ -871,3 +871,14 @@ dispatch only #95 to exact `luna-worker`. The executor must not approve or merge
 - The result-page fixture wording now uses an advice event with a new result object. Four DevTools screenshots remain
   intentionally absent because Mac is locked (`UNVERIFIED_RUNTIME_TOOL`). Final handoff status is
   `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER`; no round 3 will be started autonomously.
+
+## I22b local visual verification checkpoint — 2026-08-09
+
+- The human explicitly authorized local WeChat DevTools fixture injection and screenshot capture, then unlocked the
+  Mac. Sol XHigh captured and inspected the required `full/go`, `full/caution + AI degraded`, `blocked/no_go` and
+  `place-only/null` states under `docs/evidence/i22/`.
+- The screenshots show the deterministic verdict/capability boundaries, hourly or reference-weather semantics,
+  official no-weather blocked behavior, minimum gear/source cards and the independent AI degraded message.
+- Temporary local fixture code was removed and the normal WeChat build passed afterward. No production mock,
+  service-port change or debug adapter remains. Status is `READY_FOR_FINAL_REVIEW`; I23 remains blocked until #98 is
+  approved and merged.

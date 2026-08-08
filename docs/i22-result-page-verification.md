@@ -4,31 +4,31 @@
 - Branch: `codex/95-structured-result-page`
 - Base: `main@6e12f25`; activation `8bf0ef6`
 - Model boundary: `taro-app/src/pages/index/result-page-model.js`
-- Visual verification status: `UNVERIFIED_RUNTIME_TOOL`
+- Visual verification status: `VERIFIED_LOCAL_DEVTOOLS`
 
 ## Fixture capability matrix
 
 | Fixture | capability | verdict | dataStatus | AI state | Required visible assertions | Screenshot |
 | --- | --- | --- | --- | --- | --- | --- |
-| full/go | `full` | `go / 建议出发` | `complete` | `loading` then `ready` | route name/region/type/fixed days/highest point; every day/sample/hour; WMO condition; average wind and gust; minimum gear; route/weather sources | not captured |
-| full/caution + AI degraded | `full` | `caution / 谨慎出发` | `complete` | `unavailable` | deterministic reasons remain; AI supplement unavailable copy; minimum gear and weather remain visible; no AI verdict/weather override | not captured |
-| blocked/no_go | `blocked` | `no_go / 暂不建议` | `complete` | `unavailable` or no request | official restriction; `官方禁行，本次未请求天气`; no weather readings; route source card | not captured |
-| place-only/null | `place_only` | `null / 暂无法判断` | `place_only` | `ready` or `unavailable` | place reference weather only; explicit non-complete-route boundary; no route-hourly claim; null/zero elevation preserved | not captured |
+| full/go | `full` | `go / 建议出发` | `complete` | `ready` | route name/region/type/fixed days/highest point; hourly weather; minimum gear; route/weather sources | [full-go.png](evidence/i22/full-go.png) |
+| full/caution + AI degraded | `full` | `caution / 谨慎出发` | `complete` | `unavailable` | deterministic reasons remain; AI supplement unavailable copy; minimum gear and weather remain visible; no AI verdict/weather override | [full-caution-ai-degraded.png](evidence/i22/full-caution-ai-degraded.png) |
+| blocked/no_go | `blocked` | `no_go / 暂不建议` | `complete` | `unavailable` | official restriction; `官方禁行，本次未请求天气`; no weather readings; route source card | [blocked-no-go.png](evidence/i22/blocked-no-go.png) |
+| place-only/null | `place_only` | `null / 暂无法判断` | `place_only` | `ready` | place reference weather only; explicit non-complete-route boundary; no route-hourly claim; zero elevation preserved | [place-only-null.png](evidence/i22/place-only-null.png) |
 
 The pure contract fixture covers all four rows and asserts the visible model facts, including `no_go + insufficient`,
 known/unknown data-issue labels, source URL `null`, WMO normal/freezing/snow/thunderstorm groups, checklist state,
 cache normalization and private history-context isolation.
 
-## Visual-tool attempt
+## Local DevTools visual verification — 2026-08-09
 
-The installed WeChat DevTools app was detected at `/Applications/wechatwebdevtools.app`. On 2026-08-08 the available
-Computer Use session attempted to open that app, but the tool returned this exact blocker:
+After explicit human authorization and Mac unlock, Sol XHigh injected deterministic fixtures only into the local
+WeChat DevTools runtime, refreshed the page and captured all four required states. Each image was inspected against
+the visible assertions above. The full/caution capture is intentionally scrolled to the AI card so the degraded copy
+is visible; the other three captures show the deterministic result and capability boundary directly.
 
-> The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock the Mac manually before continuing.
-
-The four screenshots are therefore intentionally not fabricated and no production mock switch was added. A controller
-or human with an unlocked Mac must rerun the four local-debug fixtures and add images under `docs/evidence/i22/` before
-visual acceptance. Build success below is not visual evidence.
+The temporary fixture module and cache adapter were removed immediately after capture, and the normal WeChat build
+was rerun successfully. No fixture switch, production mock, service-port change or runtime debug code remains in the
+repository.
 
 ## Automated evidence
 

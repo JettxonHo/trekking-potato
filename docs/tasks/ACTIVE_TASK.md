@@ -3,7 +3,7 @@
 - Goal: `TP-BETA-001`
 - Parent: `I22 / #31`
 - GitHub Issue: `#95`
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER / IMPLEMENTATION`
+- Status/Mode: `READY_FOR_FINAL_REVIEW / REVIEW`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
 - Branch: `codex/95-structured-result-page`
@@ -189,3 +189,16 @@ focused PR. Return `READY_FOR_CONTROLLER_REVIEW`; do not approve or merge.
 - The result-page wording now treats a new advice result object as an advice event, not as a repeated base receipt with
   the same object reference. Visual status remains `UNVERIFIED_RUNTIME_TOOL` with the exact Mac locked blocker.
 - Handoff remains `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER`; this is the final autonomous review-fix round.
+
+## 13. Sol local visual verification — 2026-08-09
+
+- The human explicitly authorized temporary fixture injection in local WeChat DevTools, page refresh and four
+  screenshots. Sol captured and inspected `full/go`, `full/caution + AI degraded`, `blocked/no_go` and
+  `place-only/null`; evidence is stored under `docs/evidence/i22/` and indexed by
+  `docs/i22-result-page-verification.md`.
+- The caution screenshot is scrolled to the independent AI-unavailable card; the other captures show the relevant
+  deterministic verdict, route/capability and weather boundary. No screenshot was fabricated.
+- The temporary fixture module and local cache adapter were removed, and the normal WeChat build passed afterward.
+  The project contains no production mock switch or persistent DevTools service-port change.
+- Status is `READY_FOR_FINAL_REVIEW`. Sol retains approval and merge authority; I23 remains out of scope until #98
+  is merged.
