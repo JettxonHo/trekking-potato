@@ -305,8 +305,8 @@ Use additive commits and normal push only. Update `docs/i23-recovery-verificatio
   reset/return/unmount paths remain the only local invalidation boundaries.
 - History list retry/loading keeps existing items rendered; the loading empty state is selected only for an empty list.
 - `recovery-contract-test.js` now uses bounded method/branch assertions and executable action projection, with RED
-  mutation checks for all seven review representatives: weather eligibility, refresh priority, same-query AI,
-  snapshot replay, same-base history intent, stale list guards and zero-I/O prefill.
+  mutation checks for all review representatives: weather eligibility, old-result/list loading priority, same-query
+  AI, snapshot replay, same-base history intent, stale list guards and zero-I/O prefill.
 - Scope remains the frozen #100 allowlist; no Cloud Function/public contract/cache/history schema/dependency/new
   state/automatic retry/visual redesign. Pending additive commit, normal push, latest-head Actions and controller
   review; executor must return `READY_FOR_CONTROLLER_REVIEW` and cannot approve or merge.

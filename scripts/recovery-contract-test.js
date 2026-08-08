@@ -289,6 +289,9 @@ function assertPageWiring(source) {
 
   const render = methodBody(source, 'render()')
   assert.match(render, /const recoveryActions = selectRecoveryActions\(tripFlow,\s*this\._recoverySlots\)/)
+  assert.match(render, /if \(loading\) \{/)
+  assert.match(render, /if \(showResult && result\) \{/)
+  assert.match(render, /refreshing && <View className="refreshing-indicator"/)
   assert.match(render, /recoveryActions\.weatherRetry && <Button[\s\S]{0,180}onClick=\{this\.onWeatherRetry\}/)
   assert.match(render, /recoveryActions\.adviceRetry && <Button[\s\S]{0,160}onClick=\{this\.onAdviceRetry\}/)
   assert.match(render, /\{historyLoading && historyList\.length === 0 \?/)
@@ -301,7 +304,8 @@ function assertMutationSensitivePageWiring() {
   assertPageWiring(source)
   const mutations = [
     ['weather eligibility', (value) => replaceMethodBody(value, 'render()', 'recoveryActions.weatherRetry &&', 'true &&')],
-    ['refreshing list priority', (value) => replaceMethodBody(value, 'render()', 'historyLoading && historyList.length === 0', 'historyLoading')],
+    ['old-result refreshing priority', (value) => replaceMethodBody(value, 'render()', 'if (loading) {', 'if (loading || refreshing) {')],
+    ['history list loading priority', (value) => replaceMethodBody(value, 'render()', 'historyLoading && historyList.length === 0', 'historyLoading')],
     ['same-query AI retry', (value) => replaceMethodBody(value, 'onAdviceRetry = () =>', '_fetchAdvice(nextFlow.queryId', "_fetchAdvice('wrong-query'")],
     ['base snapshot replay', (value) => replaceMethodBody(value, '_beginReprepare(kind', '_replayBaseRequest(snapshot, nextFlow.token)', '_replayBaseRequest(null, nextFlow.token)')],
     ['same-base history intent', (value) => replaceMethodBody(value, '_saveHistory(params, resultData)', '_historySaveIntent.baseRef !== this._baseHistoryIdentity', 'false')],

@@ -86,8 +86,8 @@ git diff --check
   map 渲染旧列表。
 - `assertMutationSensitivePageWiring` 提取 `_beginReprepare`、`onAdviceRetry`、`_saveHistory`、
   `onHistoryTap`、`onRestoreHistory` 和 `render` 的有限方法/分支，并对以下代表性删除/替换 mutation
-  逐一要求 focused test RED：天气 eligibility、旧结果刷新优先级、same-query AI、base snapshot replay、
-  same-base save identity、两处 stale list token guard、history prefill zero-I/O。纯 `selectRecoveryActions`
+  逐一要求 focused test RED：天气 eligibility、旧结果刷新优先级、history list loading 优先级、same-query AI、
+  base snapshot replay、same-base save identity、两处 stale list token guard、history prefill zero-I/O。纯 `selectRecoveryActions`
   seam 同时执行验证 action projection，避免只依赖 marker-only whole-file evidence。
 
 ### Review-fix finding → test
