@@ -91,6 +91,15 @@ let llmRequestCount = 0
 let lastLlmRequestBody = null
 Module._load = function loadOfflineCloudbase(request, parent, isMain) {
   if (request === 'wx-server-sdk') return cloudbaseMock
+  if (request === './weather' && parent && parent.filename.endsWith('/cloudfunctions/getAdvice/index.js')) {
+    const weather = originalModuleLoad.call(this, request, parent, isMain)
+    return {
+      ...weather,
+      fetchWeather(...args) {
+        return weather.fetchWeather(...args, { now: new Date('2026-08-06T00:00:00.000Z') })
+      },
+    }
+  }
   return originalModuleLoad.call(this, request, parent, isMain)
 }
 
