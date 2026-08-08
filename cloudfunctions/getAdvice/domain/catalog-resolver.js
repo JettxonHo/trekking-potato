@@ -1,5 +1,6 @@
 const { editDistance } = require('../data/routes')
 const { createProductionRouteCatalog } = require('../data/catalog/runtime-catalog')
+const { summarizeSources: projectSourceSummaries } = require('./source-summary')
 
 const PRODUCTION_RESOLVER = createCatalogResolver({
   catalog: createProductionRouteCatalog(),
@@ -58,16 +59,28 @@ function createCatalogResolver({ catalog }) {
       if (targets.length !== 1) return notFound()
       return direct('legacy_candidate_id', targets[0])
     },
+
+    summarizeSources(sourceIds) {
+      if (!Array.isArray(sourceIds)) throw new TypeError('Source IDs required')
+      const records = sourceIds.map((sourceId) => {
+        const source = state.sourcesById.get(sourceId)
+        if (!source) throw new Error(`Unknown source ID: ${sourceId}`)
+        return source
+      })
+      return projectSourceSummaries(records)
+    },
   }
 }
 
 function createResolverState(catalog) {
   const snapshot = copy({
+    sources: Array.isArray(catalog && catalog.sources) ? catalog.sources : [],
     places: Array.isArray(catalog && catalog.places) ? catalog.places : [],
     routes: Array.isArray(catalog && catalog.routes) ? catalog.routes : [],
     variants: Array.isArray(catalog && catalog.variants) ? catalog.variants : [],
   })
   const placesById = new Map(snapshot.places.map((place) => [place.id, place]))
+  const sourcesById = new Map(snapshot.sources.map((source) => [source.id, source]))
   const routesById = new Map(snapshot.routes.map((route) => [route.id, route]))
   const variantsById = new Map(snapshot.variants.map((variant) => [variant.id, variant]))
   const routesByPlaceId = new Map()
@@ -81,6 +94,7 @@ function createResolverState(catalog) {
   }
 
   return {
+    sourcesById,
     placesById,
     routesById,
     variantsById,
@@ -275,8 +289,13 @@ function resolveRouteCandidateId(candidateId) {
   return PRODUCTION_RESOLVER.resolveCandidateId(candidateId)
 }
 
+function resolveRouteSourceSummaries(sourceIds) {
+  return PRODUCTION_RESOLVER.summarizeSources(sourceIds)
+}
+
 module.exports = {
   createCatalogResolver,
   resolveRouteQuery,
   resolveRouteCandidateId,
+  resolveRouteSourceSummaries,
 }

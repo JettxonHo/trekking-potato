@@ -140,3 +140,16 @@ Sol for any public phase, source schema/data, I13 semantic, dependency, rule, Pr
 The result package must contain completion status, actual files, RED/GREEN evidence, all commands/results,
 plan deviations, autonomous implementation choices, limitations, PR URL and review focus. The executor returns
 `READY_FOR_CONTROLLER_REVIEW`; it must not approve or merge.
+
+## 9. Implementation checkpoint — 2026-08-08
+
+- TDD RED: after registering `test:source-summary` before the module existed, `npm run test:source-summary`
+  failed with the real Node `MODULE_NOT_FOUND` for `domain/source-summary`.
+- GREEN: added the pure source-summary projection and resolver-owned Source snapshot seam; full/blocked
+  `routeSnapshot` now carries trusted Variant status fields, place-only origins carry explicit nulls, and
+  `routeSourceIds` excludes Place identity evidence while `routeSources` preserves exact ID order.
+- Validation: `npm run test:source-summary`, `test:core-input-flow`, `test:trip-context`, `test:response`,
+  `test:route-resolver`, `test:route-domain`, `test:route-data`, `npm test`, `test:integration` (56/0),
+  lint (0 errors/10 existing warnings), typecheck, `CI=1 npm run build:weapp` and `git diff --check` all pass.
+- Runtime model status: `UNVERIFIED_RUNTIME_MODEL`; the environment exposed no runtime metadata and the agent did
+  not infer it from the custom-agent configuration. Current implementation status: `READY_FOR_CONTROLLER_REVIEW`.

@@ -801,3 +801,20 @@ Commit this controller-owned activation checkpoint, synchronize #94 to implement
   `CONFIG_VERIFIED`. Runtime status is recorded after spawn; Terra remains unauthorized as an automatic fallback.
 - Active allowlist is the server resolver/source-summary/BaseData seam, focused tests, package command and two
   status documents defined in #94/ACTIVE_TASK. No frontend, route data, rules, Prompt/safety/history or dependency work.
+
+## I22a implementation checkpoint — 2026-08-08
+
+- Agent: exact custom `luna-worker`; runtime model/reasoning remains `UNVERIFIED_RUNTIME_MODEL` in this session
+  because runtime metadata was not exposed. Configuration remains `CONFIG_VERIFIED` for `gpt-5.6-luna` / `max`.
+- TDD: `test:source-summary` was registered before the implementation module and produced the real
+  `MODULE_NOT_FOUND` RED. GREEN now covers the pure seven-field projection, resolver-owned Source snapshot,
+  custom catalog lookup, copy isolation and unknown-ID integrity error.
+- Implementation: `createCatalogResolver` owns one catalog Source snapshot and exposes `summarizeSources`; the
+  production resolver exports `resolveRouteSourceSummaries`. `trip-base` receives that function through injection,
+  adds Variant provenance/status fields, emits display-safe `routeSources`, and excludes Place identity evidence from
+  `routeSourceIds`. `index.js` injects the production function; compatibility fields and queryId-only advice remain unchanged.
+- Focused GREEN: source-summary, core-input-flow, trip-context and response contracts pass. Route resolver/domain/data,
+  root test, integration `56/0`, lint `0 errors / 10 existing warnings`, typecheck, host WeChat build and diff check pass.
+- Scope check: only the #94 allowlist changed; no frontend, route data/schema, I13 query semantics, weather/verdict,
+  Prompt/safety/history, dependency, network, deployment or production configuration change. Status is
+  `READY_FOR_CONTROLLER_REVIEW`; PR/CI and independent Sol Review remain required.

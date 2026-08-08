@@ -14,11 +14,16 @@ function trustedBase(overrides = {}) {
     routeSnapshot: {
       entityKind: 'route_variant', capability: 'full', placeId: 'place:test', routeId: 'route:test', routeVariantId: 'variant:test',
       canonicalName: '测试路线', region: '测试地区', routeType: 'trek', fixedDays: 1, stages: [], referenceCoordinate: null, referenceElevationM: null, restriction: null,
+      routeHighestPointElevationM: 3200, verificationLevel: 'B', operationalStatus: 'unknown', sourceCheckedAt: '2026-08-07',
     },
     weatherSnapshot: { ok: true, dataStatus: 'complete', evaluatedWindows: [] },
     deterministicResult: { verdict: 'go', dataStatus: 'complete', reasons: [], dataIssues: [], evaluatedWindows: [] },
     minimumGear: { essential: [], recommended: [], optional: [] },
-    sourceMetadata: { routeSourceIds: ['source:test'], routeTypeSource: 'builtin', weatherSource: 'Open-Meteo', checkedAt: FIXTURE_TIME },
+    sourceMetadata: {
+      routeSourceIds: ['source:test'],
+      routeSources: [{ id: 'source:test', tier: 'B', kind: 'reviewed_track', title: '测试来源', publisher: '测试发布方', url: null, checkedAt: '2026-08-07' }],
+      routeTypeSource: 'builtin', weatherSource: 'Open-Meteo', checkedAt: FIXTURE_TIME,
+    },
     route: '测试路线', date: '2026-08-09', level: '中级', days: 1, elevation: null, location: '测试地区', coords: null,
     routeType: 'trek', routeTypeSource: 'builtin', weather: [], sunEvents: null, gearRules: { essential: [], recommended: [], optional: [], fatalRisks: [], ruleNotes: [] },
     meta: { source: 'base', capability: 'full', dataStatus: 'complete' },
