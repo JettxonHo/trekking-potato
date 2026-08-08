@@ -2,9 +2,9 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M7 I24c REVIEW_FIX_ACTIVE`
+- Goal status: `ACTIVE — M7 I24c READY_FOR_CONTROLLER_REVIEW`
 - Active milestone: `M7 Acceptance`
-- Active task: `I24c / #107 / REVIEW_FIX_ACTIVE`
+- Active task: `I24c / #107 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/107-beta-acceptance-evidence`
 - Base: `main` at `f311d1b`
 - I24b completion / I24c activation checkpoint (2026-08-09): PR #109 review-fix head `59f7a18` and controller
@@ -25,6 +25,13 @@
   directly runnable artifact or exact command, narrow A6 so real cancel/edit observation remains R2
   `UNVERIFIED_RUNTIME_TOOL`, and synchronize all authority sources to the review handoff state. No production defect,
   fixture residue or human product decision was found.
+- I24c Review-fix completion checkpoint (2026-08-09): the durable
+  `node docs/evidence/i24/repeated-prepare-probe.js` passed, asserting two `base` responses, distinct server query IDs
+  and unchanged trusted route identity from the existing public offline fixture. A6 now only claims candidate/
+  confirmation, RESET/token isolation and pre-confirm side effects; real cancel-followed-by-edit remains R2
+  `UNVERIFIED_RUNTIME_TOOL`. The complete required gate matrix passed. Status is `READY_FOR_CONTROLLER_REVIEW`; PR
+  #110's live latest-head `quality` check is the CI fact source. I24c/#107, #33, M7 and TP-BETA-001 remain open pending
+  Sol approval/merge.
 - Historical I24a completion / I24b activation checkpoint (2026-08-09): PR #108 exact latest head passed GitHub `quality`;
   backend/contract and frontend/history independent Reviews both returned `APPROVED` with P0–P3 none. Sol squash
   merged it as `1a2f485` and closed #105. I24b/#106 is now the only active child; I24c/#107 remains blocked.

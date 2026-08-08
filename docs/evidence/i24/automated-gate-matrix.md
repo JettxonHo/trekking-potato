@@ -2,7 +2,7 @@
 
 - Run date: `2026-08-09`
 - Branch: `codex/107-beta-acceptance-evidence`
-- Head before docs changes: `f8731a387638fd9a3f0e0ce979448e3ed86d4095`
+- Review-fix baseline: `6e448b2`
 - Scope: fixture-free source and normal generated `taro-app/dist`.
 - Runtime model: `UNVERIFIED_RUNTIME_MODEL`.
 
@@ -12,7 +12,8 @@ The following commands were run from the repository root after the bounded resid
 
 ```text
 npm run test:beta-acceptance       PASS: I24b five-pilot Beta acceptance contract
-node -e repeated prepare probe      PASS: repeated prepare keeps old base observable and issues distinct server queryIds
+node docs/evidence/i24/repeated-prepare-probe.js
+                                    PASS: two base responses, distinct queryIds, stable trusted route identity
 npm run test:confirmation            PASS: I21 candidate confirmation and follow-up contract
 npm run test:core-input-flow         PASS: I21 core input-flow BaseData 编排契约
 npm run test:result-page             PASS: I22b structured result-page contract

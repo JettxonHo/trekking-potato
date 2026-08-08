@@ -31,6 +31,13 @@ multi-sample hourly windows, deterministic verdict/gear/safety, server-owned Tri
 also exercises fuzzy confirmation, manual/AMap place-only, official blocked Wutai, insufficient retryable weather,
 available/invalid/unavailable AI, idempotent private history and the I23 recovery seams.
 
+The evidence rows deliberately separate adjacent claims. `test:recovery` proves that the old deterministic result
+remains visible while an eligible weather re-prepare is in progress; the directly runnable
+[`repeated-prepare-probe.js`](evidence/i24/repeated-prepare-probe.js) calls the existing public offline fixture and
+proves two `base` responses with distinct server query IDs and unchanged trusted route identity. The A6 automated row
+is limited to candidate/confirmation contract, reducer RESET/token isolation and zero pre-confirm side effects;
+actual cancel-followed-by-form-edit remains a runtime-observation row.
+
 The focused and complete commands were run after the fixture-free build:
 
 | Gate | Result | Notes |

@@ -3,7 +3,7 @@
 - Goal: `TP-BETA-001`
 - Parent: `I24 / #33`
 - GitHub Issue: `I24c / #107`
-- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW_FIX`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
 - Branch: `codex/107-beta-acceptance-evidence`
@@ -222,3 +222,15 @@ fixture scope stays unused. Use additive commits only and do not amend, rebase o
 `npm run test:beta-acceptance`, `npm test`, integration, lint, typecheck, build and diff check; then update PR #110 and
 return `READY_FOR_CONTROLLER_REVIEW`. A repeated evidence-integrity finding after a second bounded round requires
 human escalation under the Goal stop condition.
+
+## 15. Executor Review-fix completion — 2026-08-09
+
+The durable probe now lives at `docs/evidence/i24/repeated-prepare-probe.js` and directly calls the existing public
+offline acceptance fixture. It asserts two `base` responses, distinct server query IDs and unchanged trusted route
+identity, and was executed successfully. The checklist separates this replacement-authority proof from
+`test:recovery`'s old-result visibility proof; A6 is narrowed to candidate/confirmation, RESET/token isolation and
+pre-confirm side effects, while real cancel-followed-by-edit remains runtime `UNVERIFIED_RUNTIME_TOOL`.
+
+The complete Review-fix gate matrix passed. PR #110 and its live latest-head `quality` check remain the CI fact source;
+this task is `READY_FOR_CONTROLLER_REVIEW`. I24c/#107, parent #33, M7 and the Goal remain open and incomplete pending
+Sol approval and merge.

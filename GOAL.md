@@ -1,7 +1,7 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `ACTIVE — M7 I24c REVIEW_FIX_ACTIVE`
+- Status: `ACTIVE — M7 I24c READY_FOR_CONTROLLER_REVIEW`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
@@ -68,7 +68,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Complete | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
-| M7 Acceptance | Active — I24c implementation | I24–I25 | Full validation, documentation sync and Goal report are complete |
+| M7 Acceptance | Active — I24c ready for controller review | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10a's
 official Wutai blocked record remains complete; the former small-pilgrimage full route is superseded,
