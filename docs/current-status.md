@@ -2,13 +2,15 @@
 
 - Updated: `2026-08-08`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I21 APPROVED_PR_PENDING`
+- Goal status: `ACTIVE — M6 I22 CONTRACT_APPROVED; PLANNING_PR_PENDING`
 - Active milestone: `M6 Core UX`
-- Active task: `I21 / #30 / CONTROLLER_APPROVED — PR_MERGE_PENDING`
-- Branch: `codex/30-core-input-flow`
-- Base: `main` at `c817bbb`
+- Active task: `I22 / #31 / CONTRACT_APPROVED — PLANNING_PR_PENDING`
+- Branch: `codex/i22-result-page-contract`
+- Base: `main` at `be24b07`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
-- Assignment: `luna-worker` completed and stopped; Sol XHigh approved and owns the pending merge
+- I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
+- I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page; contract Review approved
+- Assignment: Sol XHigh owns the planning PR; no implementation Agent is active
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -42,7 +44,7 @@
 - I13 implementation PR: `#89` — merged as `c5d7d7c`; GitHub #22 closed; M3 complete
 - CI date-fixture PR: `#92` — merged as `8387554`; GitHub #91 closed; latest-head quality passed
 - I21 planning PR: `#90` — merged as `c817bbb`; GitHub #30 activated for implementation
-- I21 contract branch: `codex/i21-core-flow-contract` from `c5d7d7c`; routing sync and planning merge pending
+- I22 contract branch: `codex/i22-result-page-contract` from `be24b07`; pure planning is approved for PR
 - M3 source refresh PR: `#73` — merged as `31eab6d`; latest-head quality passed
 - User GPX audit PR: `#74` — merged as `97c6728`; latest-head quality passed
 - Exact-pilot retention PR: `#75` — merged as `62ba8c5`; latest-head quality passed
@@ -139,9 +141,10 @@
   squash merged as `8387554`; production date validation was not changed.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
-M1–M5 and I20 are complete. I07, I10a, all five reviewed community-track Variants and I13's production
-catalog resolver are merged; M3 is complete. M6 is active at the I21 routing handoff. The earlier pause is
-released; implementation starts only after the updated planning PR merges from a green latest head.
+M1–M5, I20 and I21 are complete. I07, I10a, all five reviewed community-track Variants and I13's production
+catalog resolver are merged; M3 is complete. M6 is active at I22 contract planning. I22 runs serially as
+#94 trusted provenance followed by #95 structured result page; implementation starts only after the I22 planning
+PR merges from a green latest head.
 
 ## Completed
 
@@ -629,15 +632,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Agent assignments
 
 - Sol XHigh: controller, contract owner, independent reviewer and merge authority.
-- `luna-worker`: active I21 executor; runtime verified as `gpt-5.6-luna` with `max` reasoning.
+- `luna-worker`: I21 executor completed and stopped; runtime verified as `gpt-5.6-luna` with `max` reasoning.
 - First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 - Independent Sol XHigh: reserved for the implementation PR Review; no implementation authority.
 
 ## Open work
 
-1. Require latest-head CI on the controller-approved PR #93 checkpoint.
-2. Squash merge only if the check remains green and PR head is unchanged.
+1. Publish the independently approved #31/#94/#95 contracts in one pure planning PR.
+2. Require latest-head quality and Sol Review, then merge before implementation dispatch.
 
 ## Blockers and risks
 
@@ -658,21 +661,22 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - TP-D029 resolves I16's sunset evidence boundary as the earliest value across each route-day's trusted
   I14 samples. If any necessary sunset cannot be calculated, the result is unavailable unless a known
   hard no-go independently applies.
-- I21 cannot be split into a frontend-only or backend-only merge: either direction creates a dead input or
-  protocol-incompatible main. I13 is now merged; I21 owns the atomic public cutover.
+- Historical constraint: I21 could not be split into frontend-only/backend-only merges and therefore shipped as
+  one atomic public cutover in PR #93. It is no longer an active blocker. I22 is intentionally split because #94
+  adds display-safe provenance before #95 consumes it.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I21 implementation
+## Forbidden actions during I22 planning
 
-- Temporary variants, cross-route fields, unreviewed tracks, nearby-peak geometry or treating
-  absence of an official notice as `open`
-- I22/I23 work that depends on the absent trusted I21 result
+- Changing deterministic verdicts, route/weather facts, minimum gear, source policy or the ten-state reducer.
+- Starting I22 implementation before the contract passes independent Review and the planning PR merges.
+- Starting I23 retry/recovery controls, broad visual redesign, deployment or production configuration.
 
 ## Next action
 
-Two independent Sol final reviews approved I21 with no P0–P3 findings. Push this controller-owned approval
-checkpoint, require latest-head GitHub quality, then squash merge PR #93 if the head is unchanged. Do not start
-I22/I23 before the merge; do not automatically route implementation to Terra.
+Publish the independently approved I22 contracts from `main@be24b07` as a pure planning PR, require latest-head
+quality and controller Review, then squash merge. Do not dispatch `luna-worker` before that merge and do not automatically
+route implementation to Terra.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
@@ -756,3 +760,31 @@ I22/I23 before the merge; do not automatically route implementation to Terra.
   quality must pass before squash merge. PR check remains the CI fact source, so no run ID is persisted here.
 - Historical force-push incident remains disclosed; subsequent implementation, tests, Review-fix and controller
   commits are additive.
+
+## I21 merge closeout / I22 planning checkpoint — 2026-08-08
+
+- PR #93 latest head `c7bdf39` passed GitHub `quality`; Sol recorded final `APPROVED` and squash merged it as
+  `be24b07`. GitHub #30 was closed manually because the PR intentionally used `Refs #30`.
+- I21 is complete on `main`; its ten-state flow, trusted structured BaseData, queryId-only advice and compatibility
+  projection are now real dependencies rather than planning assumptions.
+- I22 parent #31 and children #94/#95 are open. Current read-only evidence shows the page still consumes compatibility aliases while
+  structured verdict/hourly/minimum-gear fields are available, and route sources expose only IDs. Planning must
+  establish a trusted server source-summary lookup before a user-facing source card can claim traceability.
+- No implementation Agent is active. `luna-worker` may be dispatched only after the I22 contract passes independent
+  Review and its planning PR merges; Terra remains unauthorized as an automatic fallback.
+
+## I22 contract Review checkpoint — 2026-08-08
+
+- Parent #31 is split serially into #94 trusted provenance and #95 structured result page. The live Issue bodies
+  and repository documents define the same scope, allowlists, interfaces, tests and merge order.
+- First Review requested bounded corrections for the single resolver-owned source catalog seam, Place-source
+  semantics, structured-cache cutover, checklist lifetime, WMO condition labels, history compatibility isolation,
+  exact four-state visual evidence and stale status copy. Sol resolved them without changing product scope.
+- The private `historyContext` preserves the existing I19 save DTO without rendering/caching compatibility facts or
+  allowing advice meta to change them. Restored non-terminal AI loading normalizes to unavailable; I23 retry scope
+  remains untouched.
+- Two independent Sol XHigh second-round reviews returned `APPROVED` with no P0–P3 findings. No human product
+  decision is required.
+- Pure-planning baseline: root `npm test`, integration `56/0`, lint `0 errors / 10 existing warnings`, typecheck,
+  host Taro 4.0.9 `build:weapp` and `git diff --check` pass. No implementation Agent is active.
+- Current gate: create the planning PR, require latest-head GitHub quality and Sol approval, then squash merge.

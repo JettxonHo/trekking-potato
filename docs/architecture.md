@@ -373,9 +373,10 @@ base，不是伪装成通用 error。
 其他类型/能力为 null。full 有三层永久 ID；place-only 的 routeId/routeVariantId/fixedDays/stages/
 restriction 为 null；blocked 保留三层 ID 和 restriction，但 fixedDays/stages/reference weather 为 null。
 
-I21 的 `routeSourceIds` 只汇总已验证 Route/Variant/restriction 上的现有 Source ID，去重并稳定排序；
-resolver 不携带完整 Source 记录，因此 I21 不伪造标题或发布者。I22 若需要展示完整来源，必须建立独立的
-可信 Source lookup，而不是从客户端或 ID 文本推导。
+I21 的目标语义是 `routeSourceIds` 只汇总 Route/Variant/restriction evidence，但已合并实现仍把
+Place identity source 一并加入。该字段当时只供内部兼容投影，未展示标题或发布者。I22a 明确修正
+这一语义偏差，同时增加可信 Source 摘要；现有 renderer 不消费这些 IDs，因此该收窄不造成用户流程
+中间态。Source 内容必须由 resolver 所持 catalog lookup，不得由客户端或 ID 文本推导。
 
 ### Advice
 
@@ -799,6 +800,77 @@ legacy 候选推断。这一接线不新增流程状态，只扩展 I20 的 `con
 同样只在当前 token 下写 cache/history；`query_context_unavailable` 只转为保留 base 的 flow error，
 不写 history。候选取消、手动弹窗取消和 `onBack` 统一使用 `RESET` 推进 token；卸载继续用
 生命周期标记阻断组件更新。
+
+### I22 可信来源与结构化结果页
+
+I22 不改变 `prepare/confirm/advice` phase、I20 十状态、I14/I15/I16 规则或 AI 权限。它分为两个
+串行且可独立合并的子任务：先以加法补齐服务端可信来源摘要，再让前端结果页只消费 structured
+BaseData。后端字段先合并不会改变旧 renderer；前端切换后才关闭用户界面对兼容别名的依赖。
+
+I22a 在现有 BaseData 上增加：
+
+```js
+routeSnapshot: {
+  // existing fields...
+  routeHighestPointElevationM: number | null,
+  verificationLevel: 'A' | 'B' | null,
+  operationalStatus: 'open' | 'unknown' | 'blocked' | null,
+  sourceCheckedAt: 'YYYY-MM-DD' | null
+}
+sourceMetadata: {
+  routeSourceIds: string[],
+  routeSources: [{ id, tier, kind, title, publisher, url, checkedAt }],
+  routeTypeSource, weatherSource, checkedAt
+}
+```
+
+full/blocked 的三个路线状态字段只来自已验证 Variant；place-only 三者固定为 null，不能把地点
+来源状态冒充完整路线状态。`routeHighestPointElevationM` 只对 full 使用可信 Variant 最高点；
+place-only 继续使用既有 `referenceElevationM`，blocked 为 null。`routeSourceIds` 只汇总
+Route/Variant/restriction evidence，不混入 Place identity source。`routeSources[]` 由服务端对这些
+ID 做同一 production resolver 所持有的 catalog snapshot 查找，顺序与稳定排序后的 ID 一致，省略内部 `supports` 和任何
+原始轨迹/个人元数据。URL 可为 null；
+天气来源继续单独使用 `weatherSource`，不得伪造成路线 Source。catalog 已验证引用完整性，lookup
+只维护一个清晰的缺失引用不变量，不建立重复防御框架或外部 I/O。具体 seam 为：
+`createCatalogResolver({catalog})` 同时暴露 `resolveQuery/resolveCandidateId/summarizeSources`，production
+导出 `resolveRouteSourceSummaries` 委托同一个 resolver；纯 `source-summary` 只投影 resolver 提供的
+Source records，禁止自行调用 `createProductionRouteCatalog()` 建立第二套 production catalog。
+`index.js` 把该函数注入 `createTripBaseBuilder`，测试可以注入有界 fake。
+
+I22b 新增纯 `result-page-model` 边界，把 base 与 advice 投影为页面模型。其权威输入只有
+`routeSnapshot/weatherSnapshot/deterministicResult/minimumGear/sourceMetadata/requestSummary`：
+
+- verdict 映射固定为 `go=建议出发`、`caution=谨慎出发`、`no_go=暂不建议`、`null=暂无法判断`；
+  null 是数据/能力不足，不渲染成天气危险。
+- full complete 展示每个 route day、采样点名称/海拔和活动窗口内全部小时 bucket；insufficient 不展示
+  被 I14 丢弃的部分读数，只展示 data issues。place-only 只展示明确标注的参考点日天气；blocked
+  明确说明因官方禁行未查询天气。
+- 每个 full 小时 bucket 展示可信 `weatherCode` 对应的简洁中文天气状况。映射只做 WMO 分组：
+  0 晴，1–3 多云，45/48 雾，51–55 毛毛雨，56/57 冻毛毛雨，61–65 雨，66/67 冻雨，71–77 雪，
+  80–82 阵雨，85/86 阵雪，95–99 雷暴；未知合法值用“天气现象待确认”，不建立评分 rubric。
+- 确定性 reasons/dataIssues 与 minimumGear 在 base 到达后立即可见。所有 full `unknown` 运营状态
+  必须提示“开放状态待出发前核验”；blocked 展示 restriction；place-only 展示“非完整路线”边界。
+- route Source 卡展示 title/publisher/tier/kind/checkedAt 和可选 URL；天气来源与 fetchedAt 独立展示。
+- advice 仅进入 `ai` 命名空间。AI 可增加 recommended/optional 展示项并解释既有 fatal risk，但不能
+  替换 verdict、reasons、weather、minimumGear、route 或 sources。loading/degraded/error 时这些
+  确定性内容保持原样可见。
+- 现有 advice 返回服务端已合并的 `gear/risks/notes/disclaimer`，不是 raw gear additions。结果模型
+  以 item 文本和 structured minimumGear 做集合差，只把新增 recommended/optional 项标为 AI 补充；
+  advice risks/notes/disclaimer 进入解释区，weather/photoTiming/meta 不参与确定性展示。
+- I19 历史 DTO 仍需兼容层中的代表坐标等字段。页面在收到 base 时一次性捕获私有
+  `historyContext={elevation,location,coords,routeType,routeTypeSource}`，只传给既有 `_saveHistory`；它不进入
+  displayed result/cache、不与 advice 合并，history schema/保存时机/错误行为不变。这样 advice `meta`
+  不能影响历史事实，也不要求从可能为空的 insufficient weather snapshot 反推 full-route 坐标。
+- minimumGear 是可本地勾选的 checklist；勾选键使用 category/index 这类页面局部稳定键，不用 hash，
+  仅不同 base/queryId 到达或重新查询时清空；同一查询的 advice started/succeeded/failed/context unavailable
+  均保留勾选。cache 恢复初始为未勾选，且不写 TripContext、结果 cache 或私人 history。
+
+I21 的顶层 `weather/gearRules/meta/...` 兼容别名在 I22 后仍可留在服务端快照中，仅供当前
+`prompt.js`/`safety-advice.js` 与上述受限 I19 history adapter 使用；I22 页面和新版本 cache 不得再以它们为事实源。I22 仅提升
+cache key/version 以忽略 30 分钟内的旧 compatibility-only result，不迁移旧缓存。恢复的新版本 cache
+若带非终态 AI `loading`，必须归一为 `unavailable`，因为 restore 没有 queryId/请求可恢复；I24 在结构化 AI adapter
+具备独立证据后统一删除或收敛这些别名，I22 不做半套服务端兼容清理。I23 独占重试、恢复按钮、
+历史恢复与新的异步 RECOVER 事件；I22 只保留现有“返回重新查询”动作。
 
 ## 10. 历史与 UGC
 

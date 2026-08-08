@@ -616,3 +616,34 @@
   无法启动，状态为 `BLOCKED_LUNA_WORKER_UNAVAILABLE`，不得自动回退 Terra。
 - Why: 自定义 Agent 已由人工安装验证；用准确 Agent 名称可加载固定配置，也避免把逻辑角色名或
   单独模型字符串误当成可执行 Agent。保留历史成果并只迁移未完成工作，可以避免重复实现和分支覆盖。
+
+## 2026-08-08 — TP-D047 I22 分为可信来源摘要与结构化结果页
+
+- Status: Accepted; two independent Sol contract Reviews approved with no P0–P3 findings
+- Context: I21 已通过 PR #93 合并真实 structured BaseData，但现有结果页仍以 compatibility
+  `weather/gearRules/meta` 投影为展示事实源；AI advice 会替换对应 legacy display fields。现有
+  `sourceMetadata` 只有 Source IDs，无法诚实展示标题、发布者和核验日期；full Variant 的
+  `operationalStatus='unknown'`、verification level 与路线最高点也没有进入 structured snapshot。
+- Decision: parent I22/#31 拆为串行 I22a/#94 与 I22b/#95。I22a 以向后兼容方式在服务端补齐精简 route Source DTO，
+  并把可信 Variant 的 `routeHighestPointElevationM/verificationLevel/operationalStatus/sourceCheckedAt`
+  放入 `routeSnapshot`；同时有意修正 I21 实现仍混入 Place identity source 的 `routeSourceIds` 语义，
+  现有 renderer 不受影响。I22b 新增纯 result-page model，使页面只从 structured fields 渲染四态结论、
+  原因/数据问题、多日多点小时天气、地点级/禁行边界、最低装备 checklist 与来源。AI 只进入独立
+  命名空间；I20 十状态不变。
+- Source boundary: route source DTO 精确为 `{id,tier,kind,title,publisher,url,checkedAt}`，由同一
+  production resolver 持有的 catalog snapshot 服务端 lookup；resolver 同时暴露 query/candidate/source
+  三个查询，纯投影模块不得另建 production catalog。`routeSourceIds` 只含 Route/Variant/restriction evidence，不混入
+  Place identity source，DTO 顺序匹配这些 IDs；不公开 `supports`、原始轨迹或个人
+  数据，不从 ID 文本推断内容，不把 Open-Meteo 伪造成 route Source。
+- Compatibility: I22 页面与新 cache 停止消费 legacy aliases；服务端 aliases 暂留给 prompt/safety 和
+  一次性捕获的私有 I19 history adapter，后者不渲染、不缓存、不与 advice 合并，history schema/时机不变。
+  I24 在结构化 AI adapter 具备证据后统一清理。I22 只提升 cache key/version并忽略旧 cache，不做迁移；
+  cache restore 把无法恢复请求的 AI loading 归一为 unavailable。I23 继续独占重试、恢复与新异步事件。
+- UI detail: full 小时天气包含 trusted WMO condition 的少量可解释分组；checklist 只在不同 base/queryId
+  或重新查询时清空，同一查询的 AI 生命周期保持勾选。视觉证据固定为 full/go、full/caution+AI
+  degraded、blocked/no_go、place-only/null，避免四张图重复一个 verdict。
+- Alternatives: 直接显示 Source ID；让客户端查 URL/推导标题；一个跨层大 PR；立即删除所有服务端
+  compatibility；为结果页增加第十一流程状态；隐藏 unknown 开放状态。
+- Why: additive backend child 可独立验证和合并，随后 UI child 能只消费稳定事实；这满足可追溯性
+  与开放状态披露，同时避免破坏 queryId-only AI、扩大 reducer 或把恢复行为偷渡进 I22。不存在需
+  人工重新选择的产品方向；隐藏来源、隐藏 unknown 或改变四态文案才需要升级。

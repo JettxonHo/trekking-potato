@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M3 COMPLETE; I21 APPROVED_PR_PENDING`
+- Status: `ACTIVE — M3 COMPLETE; I21 COMPLETE; I22 CONTRACT_APPROVED / PLANNING_PR_PENDING`
 - Updated: `2026-08-08`
 
 ## 1. 依赖图
@@ -13,8 +13,8 @@ I10a → {I08, I09, I11, I12}
 I07 → I14 → I15 → I16
 I15 + I16 → I17 → I18 → I19
 I17 → I18 → I19 → I20
-I13 + I16 + I20 → I21 → I22
-I19 + I22 → I23
+I13 + I16 + I20 → I21 → I22a → I22b
+I19 + I22b → I23
 I19 + I23 → I24 → I25
 ```
 
@@ -51,7 +51,7 @@ I19 + I23 → I24 → I25
 | I19 | #28 | 私人历史和停用 UGC | save/list/delete/clear + UGC shutdown |
 | I20 | #29 | 前端 reducer 与服务层 | 显式状态和竞态保护 |
 | I21 | #30 | 搜索确认输入流程 | variant/date/time/support |
-| I22 | #31 | 结果体验 | verdict/hourly/checklist/sources |
+| I22 | #31 parent; #94 I22a; #95 I22b | 结果体验 | trusted provenance → structured result page |
 | I23 | #32 | 降级与恢复 | weather/AI/history 独立恢复 |
 | I24 | #33 | Beta 综合验证 | 回归、构建、人工清单、文档 |
 | I25 | #34 | Goal 最终 Review | 完成报告和验收结论 |
@@ -347,3 +347,24 @@ PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29
 - #30's contract is frozen in `docs/tasks/ACTIVE_TASK.md`. Planning may be published for review now; branch
   creation and TDD implementation begin only after planning PR #90 merges; I21 is assigned to the exact
   custom Agent `luna-worker`, with no automatic Terra fallback.
+
+## 18. I22 可信来源与结构化结果体验
+
+- I21 implementation PR #93 passed latest-head quality and two independent Sol Reviews, squash merged as
+  `be24b07`, and closed #30. I22 therefore plans against real structured BaseData rather than a speculative shape.
+- Parent #31 is split serially into #94 I22a and #95 I22b. I22a additively exposes server-resolved route source
+  summaries and Variant `verificationLevel/operationalStatus/sourceCheckedAt`, while intentionally removing Place
+  identity evidence from `routeSourceIds`; it changes no UI or phase. I22b then introduces one
+  pure result-page model and switches the page from compatibility aliases to structured BaseData.
+- I22a must merge first because source IDs alone cannot satisfy user-facing traceability. I22b may not infer
+  source titles from IDs, fetch client-controlled URLs, or duplicate the route catalog in the frontend.
+- I22b owns verdict, deterministic reasons/data issues, full hourly windows, place-only reference weather,
+  blocked/no-weather semantics, minimum gear, route/weather sources, AI loading/explanation/degraded display,
+  cache-version cutover/old-cache invalidation and result-page visual evidence; it does not migrate old cache.
+- I22b does not change the ten-state reducer, add retry/recovery controls, alter history schema/save timing/error
+  semantics, redesign the whole product, or remove server compatibility fields still used by prompt/safety. It
+  only captures their five existing history values into a private non-rendered/non-cached context before advice;
+  recovery and final cleanup remain I23/I24.
+- Both child tasks are implemented serially by the exact custom Agent `luna-worker` only after this pure planning
+  contract passes independent Review and merges. Each child uses its own branch/PR and returns
+  `READY_FOR_CONTROLLER_REVIEW`; implementation never self-approves or self-merges.

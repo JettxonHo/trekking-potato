@@ -380,6 +380,50 @@ I13 未合并前没有新增 I21 生产测试或控件，因为“前端字段�
 - full/place-only/blocked 的 queryId-only advice 必须成功或按 AI unavailable 降级，不得因 compatibility
   shape 进入 internal_error；gearRules 三类装备必须逐项等于 minimumGear，AI 不得改写 deterministicResult。
 
+### I22 串行结果体验矩阵
+
+I22a 先新增 `test:source-summary`，并扩展现有 core/TripContext/response 合同：
+
+- pure lookup 从已验证 production-style catalog 按输入 ID 稳定返回
+  `{id,tier,kind,title,publisher,url,checkedAt}`，不返回 `supports`、坐标、原始轨迹或其他实体字段；
+  返回值与 catalog 深拷贝隔离。
+- full/blocked 的 `routeSnapshot.verificationLevel/operationalStatus/sourceCheckedAt` 精确来自 Variant；
+  place-only 三者固定 null，不从地点或 route type 猜测。
+- `sourceMetadata.routeSources[].id` 与仅由 Route/Variant/restriction evidence 组成的 `routeSourceIds`
+  同序同集合；合成 Place identity source 不得混入 route sources；full、blocked、catalog place、
+  AMap/manual 和 reference-weather unavailable 都有代表性断言。天气来源不进入 routeSources。
+- BaseData 与 TripContext snapshot 深比较保留新增字段；queryId-only advice、I13 resolver、I14/I16、
+  compatibility prompt/safety 和零副作用矩阵不回归。
+
+I22b 新增纯 `test:result-page`，并只对页面接线保留少量源码断言：
+
+- 四种 verdict 文案与 tone 精确；`null` 的 place-only/insufficient 原因可区分，且不出现天气危险文案。
+- full complete 的每个 day/sample/hour 保持顺序、名称、海拔、活动窗口和单位；insufficient 不渲染
+  partial readings，只显示去重后的 data issues。place-only 只显示“地点参考天气”；blocked 明确未查天气。
+- full hour 的 trusted WMO `weatherCode` 映射为简洁中文天气状况；用多云、冻雨/雪和雷暴代表值证明
+  分组行为，不做所有 code 与所有状态的机械笛卡尔积。
+- deterministic reasons 保持服务端顺序/message/severity；known data issue 使用固定中文，未知 code
+  使用一个通用数据不足文案，不建立机械 code 评分器。
+- minimumGear 三类逐项保留；base_ready/advice_loading 时已可见。advice 只能进入 AI 命名空间；
+  注入伪造 verdict/weather/minimumGear/source 的 advice payload 不得改变页面的确定性投影。
+- advice 合并 gear 只通过 item 差集产生 recommended/optional AI 补充；重复 minimum item 不重复显示，
+  advice risks/notes/disclaimer 留在解释区，advice weather/photoTiming/meta 不覆盖结构化展示。
+- full `operationalStatus=unknown`、blocked restriction、place-only 非完整路线边界、Route Source 卡、
+  天气 source/fetchedAt 和可空 URL 均可见；内部 source ID/supports 不作为用户主文案。
+- 结果 cache key/version 提升后不读取旧 compatibility-only cache；新 structured cache 可恢复，装备
+  checklist 在同一 base/queryId 的 advice started/succeeded/failed/context unavailable 中保持，仅不同
+  base/queryId 或重新查询时清空，cache 恢复初始未勾选；恢复时不能让无 queryId 的 `ai.loading` 永久存在，
+  必须归一为 unavailable。这里不迁移旧 cache。私有 historyContext 在 advice 前一次性捕获，advice/meta
+  注入不能改变 I19 保存 DTO；I20 token/reducer、I19 schema/保存时机、I18 queryId-only service 和 I23
+  未实现的恢复动作不变化。
+- `npm test` 注册两个新 focused command；每个子任务继续运行 integration `56/0`、lint、typecheck、
+  WeChat build 和 diff check。
+
+I22b 在已安装的微信开发者工具中用本地 mock/调试会话依次捕获 full/go、full/caution+AI degraded、
+blocked/no_go、place-only/null 四种结果证据，并记录 capability/verdict/dataStatus/AI state/可见断言；
+不得为截图提交生产测试开关或客户端可信 mock。若工具运行环境确实不可用，
+必须记录未验证项并升级给 Sol，不能把 build 成功冒充视觉验证。
+
 ## 4. 关键矩阵
 
 ### 路线确认
