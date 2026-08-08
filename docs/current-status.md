@@ -2,9 +2,9 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M7 I24b IMPLEMENTATION_ACTIVE`
+- Goal status: `ACTIVE — M7 I24b READY_FOR_CONTROLLER_REVIEW`
 - Active milestone: `M7 Acceptance`
-- Active task: `I24b / #106 / IMPLEMENTATION_ACTIVE`
+- Active task: `I24b / #106 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/106-beta-acceptance`
 - Base: `main` at `1a2f485`
 - I24a completion / I24b activation checkpoint (2026-08-09): PR #108 exact latest head passed GitHub `quality`;
@@ -25,6 +25,14 @@
   integration contracts are green; integration is `55/0` because the retired sun/advice compatibility assertion
   was replaced by a mutation-sensitive assertion that advice has no weather/sunEvents/photoTiming/microclimate.
   Full lint/typecheck/build/diff evidence is recorded in `docs/i24a-structured-adapter-verification.md`.
+- I24b implementation checkpoint (2026-08-09): the required focused RED was recorded before the fixture existed
+  (`npm run test:beta-acceptance` → `MODULE_NOT_FOUND`, exit 1). The additive acceptance contract now passes its
+  five exact full pilot rows independently, including source/status, multi-sample hourly windows, mutation-sensitive
+  ID/fixedDays/type/capability checks, server candidate confirmation, place-only/manual/AMap, official blocked,
+  insufficient-weather hard no-go, queryId-only AI outcomes, private history idempotency and I23 recovery seams.
+  `npm test`, integration `55/0`, lint `0 errors / 9 existing warnings`, typecheck, host WeChat build and
+  `git diff --check` pass. No production defect was exposed. Evidence is recorded in
+  `docs/i24b-beta-acceptance-verification.md`; implementation is ready for Sol independent Review and PR creation.
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page — all closed
@@ -664,8 +672,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Implement and independently Review I24b/#106 as a test/fixture-only five-pilot public-pipeline acceptance PR.
-2. If I24b exposes production behavior defects, stop the acceptance PR and create a separate focused Bug Issue/PR.
+1. Sol XHigh must independently review the I24b diff, latest-head quality and verification evidence, then create and
+   review the focused PR for #106.
+2. If review exposes a production behavior defect, keep the acceptance RED evidence and create a separate focused Bug
+   Issue/PR; do not expand I24b.
 3. After I24b merges, activate I24c/#107; do not run the two children in parallel.
 
 ## Blockers and risks
@@ -702,9 +712,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Commit the controller activation from exact `main@1a2f485`, remove #106's blocked label, synchronize parent #33 and
-#106, then dispatch exact custom Agent `luna-worker` on the frozen test/fixture-only contract. The executor cannot
-approve or merge; I24c/#107 remains blocked and Terra remains unauthorized.
+Create the additive implementation commit and `Refs #106` draft PR from exact `main@1a2f485`, then run latest-head
+quality and independent Sol Review. The executor cannot approve or merge; I24c/#107 remains blocked and Terra remains
+unauthorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

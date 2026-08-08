@@ -3,12 +3,26 @@
 - Goal: `TP-BETA-001`
 - Parent: `I24 / #33`
 - GitHub Issue: `I24b / #106`
-- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / IMPLEMENTATION`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
 - Branch: `codex/106-beta-acceptance`
 - Base: `main@1a2f485`
 - Dependencies: I24a/#105 merged through PR #108 as `1a2f485`; I24c/#107 remains blocked
+
+## Implementation checkpoint (2026-08-09)
+
+- The required TDD RED was recorded before the fixture existed: `npm run test:beta-acceptance` exited 1 with
+  `MODULE_NOT_FOUND: ./fixtures/beta-acceptance`.
+- The focused contract is now GREEN. It calls the real public `getAdvice.main` path with deterministic offline
+  CloudBase/Open-Meteo/AMap/LLM adapters and verifies the five exact pilots, row-isolated ID/fixedDays/type/capability
+  mutations, confirmation/place-only/blocked/insufficient boundaries, queryId-only AI outcomes, private history
+  idempotency and I23 recovery seams.
+- Required local commands pass: `npm run test:beta-acceptance`, `npm test`, `npm run test:integration` (`55/0`),
+  `npm run lint` (0 errors / 9 existing warnings), `npm run typecheck`, `npm run build:weapp` and `git diff --check`.
+- No production defect or contract ambiguity was exposed. Evidence: `docs/i24b-beta-acceptance-verification.md`.
+- The executor is `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh must inspect the actual diff, create/review the focused
+  draft PR (`Refs #106`) and decide mergeability. I24c/#107 remains blocked until that merge.
 
 ## 1. Goal and user value
 
