@@ -303,7 +303,7 @@ git diff --check
 合并为 `c817bbb`。当前从该 base 创建的 `codex/30-core-input-flow` 已激活，向准确自定义 Agent
 `luna-worker` 下发本合同。不得自动回退 Terra。
 
-## 12. 实施检查点（2026-08-08）
+## 12. 实施检查点（2026-08-08，初始 head 69475df）
 
 - 当前执行者：`luna-worker`，运行时模型 `gpt-5.6-luna`，推理强度 `max`；分支
   `codex/30-core-input-flow`，基准 `main@c817bbb`。
@@ -313,5 +313,28 @@ git diff --check
   `npm run test:core-input-flow` 为 GREEN，并已纳入根 `npm test`。
 - 本地门禁：I21 聚焦测试、根测试、离线集成 `56/0`、lint（0 errors，10 existing warnings）、
   typecheck、host `build:weapp` 与 `git diff --check` 均通过。
-- 当前状态：`IMPLEMENTATION_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`。实现 Agent 不得批准或合并；
-  Sol XHigh 必须独立检查实际 diff、契约、测试及文档后决定 Review 状态。
+- 初始状态：`IMPLEMENTATION_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`。实现 Agent 不得批准或合并；
+  Sol XHigh 后续 Review 发现问题后进入第 13 节修复轮次。
+
+## 13. REVIEW_FIX round 1（2026-08-08）
+
+- 起点：PR #93 / head `69475df`，Sol XHigh 结论为 `CHANGES_REQUESTED`。本轮仅允许在该提交上
+  新增修复提交；禁止 amend、rebase、force push 或 force-with-lease。
+- 已处理发现：
+  1. `trip-base.js` 的完整天气兼容投影恢复为 `weather.days` 对象，并保留来源、单位、时区及
+     温度/降水 caveat；天气不足与官方禁行保持 `null`。新增 core/response 行为证据。
+  2. I13 `not_found` 不再泄漏历史 `builtin-route:*` 候选；`prepare('大朝台')` 返回
+     `route_not_found`，真实 AMap/manual 类型流程仍可用。
+  3. handler 默认仍用生产 wall clock，仅通过 `_setNowForTests` 注入测试时钟；response/confirmation
+     固定 2026-08-08 并验证过去日期 `invalid_date`。
+  4. 前端完整候选显示服务端 `fixedDays` 只读值；手动海拔接受有限 `[-500,9000]`，保留 0/负值，
+     空值仍交给服务端自动查找；trip-flow 合同覆盖 fallback 和解析行为。
+  5. acceptance evidence 补回 trek/climb/tour、manual/AMap、严格输入零副作用、永久 ID/gear、
+     blocked weather/gear/sunset 零调用、queryId-only advice 和 deterministicResult 不可被 AI 改写。
+- 当前修复文件仍在 Issue #30 allowlist 内；`GOAL.md` 与 `docs/development-plan.md` 的 activation
+  变更自 `fac56d0` 起由 Sol 所有，不属于实现 Agent 交付。
+- 当前门禁：focused contracts、`npm test`、integration `56/0`、lint（0 errors，10 existing warnings）、
+  typecheck、host Taro 4.0.9 `build:weapp`、`git diff --check` 均 GREEN。待 additive commit、PR
+  description ownership note、最新 Actions 和 Sol 独立 Review。
+- 状态：`REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`。不得自行批准或合并；收到 Sol
+  verdict 后再按其结果处理。

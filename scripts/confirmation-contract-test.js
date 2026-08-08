@@ -18,6 +18,7 @@ const cloudbaseMock = {
 }
 const originalLoad = Module._load
 const originalGet = https.get
+let getAdviceForTests = null
 Module._load = function patchedLoad(request, parent, isMain) { if (request === 'wx-server-sdk') return cloudbaseMock; return originalLoad.call(this, request, parent, isMain) }
 https.get = function offlineGet(url, callback) {
   const parsed = new URL(String(url))
@@ -35,6 +36,11 @@ function respond(callback, payload) {
 
 async function main() {
   const getAdvice = require('../cloudfunctions/getAdvice/index')
+  getAdviceForTests = getAdvice
+  assert.equal(typeof getAdvice._setNowForTests, 'function', 'confirmation tests need a deterministic handler clock')
+  getAdvice._setNowForTests(() => new Date('2026-08-08T00:00:00.000Z'))
+  const invalidDate = await getAdvice.main({ mode: 'prepare', route: '泰山', date: '2026-08-07', startTimeLocal: '08:00', level: '中级', days: 1 })
+  assert.equal(invalidDate.code, 'invalid_date')
   const required = await getAdvice.main({ mode: 'prepare', route: '泰山', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1 })
   assert.equal(required.phase, 'route_type_required')
   assert.equal(required.data.resolutionKind, 'catalog_place')
@@ -64,7 +70,12 @@ async function main() {
   const page = require('node:fs').readFileSync(require('node:path').join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
   assert.ok(page.includes('confirmationInput: { date: params.date, startTimeLocal: params.startTimeLocal'))
   assert.ok(page.includes('candidate.capability === \'place_only\''))
+  assert.ok(page.includes('candidate.fixedDays') && page.includes('只读'), '完整候选必须显示服务端固定天数且不可编辑')
   console.log('PASS: I21 candidate confirmation and follow-up contract')
 }
 
-main().catch((error) => { console.error('FAIL: ' + error.message); process.exitCode = 1 }).finally(() => { Module._load = originalLoad; https.get = originalGet })
+main().catch((error) => { console.error('FAIL: ' + error.message); process.exitCode = 1 }).finally(() => {
+  if (getAdviceForTests && typeof getAdviceForTests._setNowForTests === 'function') getAdviceForTests._setNowForTests(null)
+  Module._load = originalLoad
+  https.get = originalGet
+})

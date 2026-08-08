@@ -674,19 +674,48 @@ Dispatch the frozen #30 contract to the runtime-verified exact custom Agent `lun
 `codex/30-core-input-flow` and begin the required TDD loop. Do not start I22/I23 before I21 is accepted;
 do not automatically route implementation to Terra.
 
-## I21 implementation checkpoint — 2026-08-08
+## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
 - Agent: `luna-worker` (`gpt-5.6-luna`, max); branch `codex/30-core-input-flow`; base `main@c817bbb`.
-- Status: implementation complete locally; awaiting Sol XHigh independent Review. No Terra agent is active.
+- Status: initial implementation complete locally; PR #93 then entered Sol XHigh Review-fix round 1. No Terra agent is active.
 - TDD: the required missing `trip-base.js` RED was recorded before implementation; the new
   `test:core-input-flow` now passes and is included in the root `npm test` command.
 - Connected path: `prepare/confirm/advice` → I13 resolver → injected `trip-base` → openid-bound
   TripContext → queryId-only advice. Full, place-only, manual, AMap follow-up and blocked paths are
   covered without changing I13/I14/I15/I16 pure modules.
-- Changed allowlist files: `cloudfunctions/getAdvice/{index.js,trip-base.js,trip-context.js,response-contract.js}`;
+- Initial changed allowlist files: `cloudfunctions/getAdvice/{index.js,trip-base.js,trip-context.js,response-contract.js}`;
   `taro-app/src/pages/index/index.jsx`; `scripts/{core-input-flow-contract-test.js,response-contract-test.js,confirmation-contract-test.js,trip-context-contract-test.js}`;
-  `package.json`. `index.css`, `trip-flow-contract-test.js` and `e2e-local.js` required no changes.
+  `package.json`. Review-fix round 1 additionally updates `scripts/trip-flow-contract-test.js`; `index.css`
+  and `e2e-local.js` remain unchanged.
 - Validation: focused I21 contracts, root `npm test`, integration `56/0`, `lint` (0 errors, 10 existing
   warnings), `typecheck`, host Taro 4.0.9 `build:weapp`, and `git diff --check` pass.
-- Remaining: inspect final diff against the Issue allowlist, commit/push the focused PR, and return
+- Remaining at the initial head: inspect final diff against the Issue allowlist, commit/push the focused PR, and return
   `READY_FOR_CONTROLLER_REVIEW`; Sol must decide `APPROVED`/`CHANGES_REQUESTED`/`BLOCKED`/`ESCALATE_TO_HUMAN`.
+
+## I21 REVIEW_FIX round 1 checkpoint — 2026-08-08
+
+- Review state: PR #93 received `CHANGES_REQUESTED` from Sol XHigh at head `69475df`.
+  This round is additive only; no amend, rebase, force push, or force-with-lease is permitted.
+- Finding-to-change map:
+  - P1 weather compatibility: `trip-base.js` now projects complete route weather as the
+    legacy object `{days, source, windUnit, fetchedAt, timezone, elevationCaveat, precipNote,
+    dateOutOfRange, dateRangeNote}`; insufficient and blocked remain `null`. Core and response
+    contracts assert the shape and the exact queryId-only advice snapshot remains immutable.
+  - P1 resolver boundary: `index.js` rejects legacy `builtin-route:*`/historical builtin fallback
+    candidates after I13 `not_found`, while AMap and manual route-type paths remain available.
+    Response contract covers `prepare('大朝台') -> route_not_found` with no candidate leakage.
+  - P1 clock: `index.js` keeps the production wall clock by default and exposes only a test seam
+    for pinned Shanghai date validation. Response and confirmation contracts pin 2026-08-08 and
+    retain a direct past-date `invalid_date` assertion.
+  - P2 UI/input: `index.jsx` renders full-candidate server `fixedDays` as read-only text and
+    preserves finite manual elevations in `[-500, 9000]`, including zero and negative values;
+    the trip-flow contract exercises the parser and fallback wiring.
+  - Acceptance evidence: core contract now covers trek/climb/tour, manual/AMap, strict invalid
+    input side-effect counters, trusted IDs/gear, blocked weather/gear/sunset zero calls and
+    compatibility risk; response covers full weather, blocked/place base and AI immutability.
+- Validation after fixes: focused I21 contracts, `npm test`, offline integration `56/0`, lint
+  (0 errors; existing warnings only), typecheck, host Taro 4.0.9 `build:weapp`, and diff check pass.
+- Current status: `REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`. The additive commit
+  and latest-head Actions result are the next recorded states; Sol XHigh remains the only approver
+  and merge authority. `GOAL.md` and `docs/development-plan.md` activation changes from `fac56d0`
+  remain Sol-owned and are outside the Luna allowlist.

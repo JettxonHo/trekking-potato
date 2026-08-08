@@ -115,7 +115,7 @@ function highestSample(variant) {
 
 function summaryWeather(weather, deterministicResult) {
   if (!weather || weather.ok !== true || weather.dataStatus !== 'complete') return null
-  return (weather.evaluatedWindows || []).map((window) => {
+  const days = (weather.evaluatedWindows || []).map((window) => {
     const hours = (window.samples || []).flatMap((sample) => sample.hours || [])
     if (hours.length === 0) return null
     const reasonForDay = (deterministicResult.reasons || []).some((reason) => (
@@ -130,6 +130,27 @@ function summaryWeather(weather, deterministicResult) {
       confidence: reasonForDay ? '参考' : '正常',
     }
   }).filter(Boolean)
+
+  // Keep the legacy weather contract consumed by prompt/safety/UI while
+  // projecting only the deterministic daily summary from the trusted hourly
+  // snapshot.  I14 does not carry the old caveat fields, so the stable
+  // explanations remain explicit defaults and any supplied source metadata is
+  // preserved without exposing raw transport data.
+  return {
+    days,
+    source: typeof weather.source === 'string' ? weather.source : 'Open-Meteo',
+    windUnit: 'm/s',
+    fetchedAt: typeof weather.fetchedAt === 'string' ? weather.fetchedAt : null,
+    timezone: typeof weather.timezone === 'string' ? weather.timezone : 'Asia/Shanghai',
+    elevationCaveat: typeof weather.elevationCaveat === 'string'
+      ? weather.elevationCaveat
+      : 'Open-Meteo 用标准递减率线性修正，逆温层/辐射冷却场景温度可能反向偏差，山区微气候仅供参考',
+    precipNote: typeof weather.precipNote === 'string'
+      ? weather.precipNote
+      : 'precipProb 来自 GFS 集合，中国区域验证度低于欧美',
+    dateOutOfRange: weather.dateOutOfRange === true,
+    dateRangeNote: typeof weather.dateRangeNote === 'string' ? weather.dateRangeNote : '',
+  }
 }
 
 function normalizeReferenceResult(result) {

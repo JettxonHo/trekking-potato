@@ -7,6 +7,7 @@ const { makeHourlyResponse } = require('./fixtures/open-meteo-hourly')
 let openid = 'offline-i21-user'
 let weatherRequests = 0
 let llmRequests = 0
+let llmMode = 'offline'
 const records = new Map()
 
 function copy(value) { return JSON.parse(JSON.stringify(value)) }
@@ -32,6 +33,7 @@ const cloudbaseMock = {
 const originalLoad = Module._load
 const originalGet = https.get
 const originalRequest = https.request
+let getAdviceForTests = null
 Module._load = function patchedLoad(request, parent, isMain) {
   if (request === 'wx-server-sdk') return cloudbaseMock
   return originalLoad.call(this, request, parent, isMain)
@@ -51,7 +53,29 @@ https.get = function offlineGet(url, callback) {
 https.request = function offlineRequest(options, callback) {
   llmRequests++
   const handlers = {}
-  const req = { on(event, handler) { handlers[event] = handler; return req }, write() {}, end() { process.nextTick(() => handlers.error(new Error('offline LLM'))) }, destroy() {} }
+  const req = {
+    on(event, handler) { handlers[event] = handler; return req },
+    write() {},
+    end() {
+      process.nextTick(() => {
+        if (llmMode === 'malicious') {
+          const responseListeners = {}
+          const response = { statusCode: 200, on(event, handler) { responseListeners[event] = handler; return response } }
+          callback(response)
+          const content = {
+            gearAdditions: { recommended: [], optional: [] },
+            riskExplanations: [], notes: [],
+            deterministicResult: { verdict: 'go' },
+          }
+          responseListeners.data(JSON.stringify({ choices: [{ message: { content: JSON.stringify(content) } }] }))
+          responseListeners.end()
+          return
+        }
+        handlers.error(new Error('offline LLM'))
+      })
+    },
+    destroy() {},
+  }
   return req
 }
 
@@ -64,7 +88,20 @@ function assertError(response, code) {
 
 async function main() {
   const getAdvice = require('../cloudfunctions/getAdvice/index')
+  getAdviceForTests = getAdvice
+  assert.equal(typeof getAdvice._setNowForTests, 'function', 'handler must expose a test-only clock seam')
+  const fixedNow = new Date('2026-08-08T00:00:00.000Z')
+  getAdvice._setNowForTests(() => fixedNow)
   assertError(await getAdvice.main({ mode: 'base', route: '武功山反穿', date: '2026-08-09', startTimeLocal: '08:00', level: '中级' }), 'invalid_mode')
+  assertError(await getAdvice.main({ mode: 'prepare', route: '武功山反穿', date: '2026-08-07', startTimeLocal: '08:00', level: '中级' }), 'invalid_date')
+
+  // I13 not_found must not fall through to the historical four-field
+  // builtin-route candidate list.  A missing trusted candidate is a route
+  // error; external AMap/manual fallback is exercised below separately.
+  delete process.env.AMAP_KEY
+  const legacyFallback = await getAdvice.main({ mode: 'prepare', route: '大朝台', date: '2026-08-09', startTimeLocal: '08:00', level: '中级' })
+  assertError(legacyFallback, 'route_not_found')
+  assert.equal(legacyFallback.candidates, undefined)
   const confirmation = await getAdvice.main({ mode: 'prepare', route: '山', date: '2026-08-09', startTimeLocal: '08:00', level: '中级' })
   assert.equal(confirmation.phase, 'confirmation')
   assert.ok(confirmation.candidates.length >= 1)
@@ -74,6 +111,9 @@ async function main() {
   assert.equal(placeRequired.data.resolutionKind, 'catalog_place')
   assert.equal(Object.hasOwn(placeRequired.data, 'lat'), false)
   assert.equal(weatherRequests, beforePlace)
+  const beforeInvalidDays = weatherRequests
+  assertError(await getAdvice.main({ mode: 'prepare', route: '泰山', routeType: 'trek', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 0 }), 'invalid_trip_days')
+  assert.equal(weatherRequests, beforeInvalidDays, '地点级无效天数不得触发天气请求')
 
   const manualRequired = await getAdvice.main({ mode: 'prepare', route: '手动坐标', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1, manualLat: 40.2, manualLon: 116.5 })
   assert.equal(manualRequired.phase, 'route_type_required')
@@ -81,7 +121,16 @@ async function main() {
   assert.equal(manualRequired.data.lat, 40.2)
   assert.equal(manualRequired.data.lon, 116.5)
   assert.equal(weatherRequests, beforePlace)
+  const beforeInvalidManual = weatherRequests
   assertError(await getAdvice.main({ mode: 'prepare', route: '手动坐标', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1, manualLat: null, manualLon: 116.5, routeType: 'trek' }), 'invalid_manual_place')
+  assert.equal(weatherRequests, beforeInvalidManual, '无效手动坐标不得触发天气请求')
+
+  const manualZero = await getAdvice.main({ mode: 'prepare', route: '手动零海拔', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1, manualLat: 0, manualLon: 0, manualElevation: 0, routeType: 'trek' })
+  assert.equal(manualZero.phase, 'base', JSON.stringify(manualZero))
+  assert.equal(manualZero.data.elevation, 0, '手动海拔 0 必须保持有效')
+  const manualNegative = await getAdvice.main({ mode: 'prepare', route: '手动负海拔', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1, manualLat: 1, manualLon: 2, manualElevation: -20, routeType: 'trek' })
+  assert.equal(manualNegative.phase, 'base', JSON.stringify(manualNegative))
+  assert.equal(manualNegative.data.elevation, -20, '手动负海拔必须保持有效')
 
   process.env.AMAP_KEY = 'offline'
   const amapRequired = await getAdvice.main({ mode: 'prepare', route: '外部测试点', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1 })
@@ -99,10 +148,14 @@ async function main() {
   assert.equal(base.data.schemaVersion, 'beta_base_v1')
   assert.equal(base.data.routeSnapshot.capability, 'full')
   assert.equal(base.data.requestSummary.days, 2)
+  assert.ok(base.data.weather && Array.isArray(base.data.weather.days), '完整路线 base 必须返回兼容 weather.days')
+  assert.equal(base.data.weather.source, 'Open-Meteo')
+  assert.equal(base.data.weather.windUnit, 'm/s')
   assert.ok(base.queryId && records.has(base.queryId))
   assert.deepEqual(records.get(base.queryId).snapshot, base.data)
 
   process.env.LLM_KEY = 'offline'
+  const deterministicBeforeAdvice = copy(records.get(base.queryId).snapshot.deterministicResult)
   const advice = await getAdvice.main({
     mode: 'advice', queryId: base.queryId,
     route: 'forged', weather: { verdict: 'go' }, baseData: { verdict: 'go' },
@@ -110,6 +163,21 @@ async function main() {
   assert.equal(advice.phase, 'advice')
   assert.equal(advice.degraded, true)
   assert.equal(llmRequests, 1)
+  assert.deepEqual(records.get(base.queryId).snapshot.deterministicResult, deterministicBeforeAdvice, 'queryId-only advice 不得让 AI 或客户端修改确定性结果')
+
+  llmMode = 'malicious'
+  const maliciousAdvice = await getAdvice.main({ mode: 'advice', queryId: base.queryId, baseData: { deterministicResult: { verdict: 'go' } } })
+  assert.equal(maliciousAdvice.phase, 'advice')
+  assert.equal(maliciousAdvice.degraded, false)
+  assert.equal(maliciousAdvice.data.deterministicResult, undefined)
+  assert.deepEqual(records.get(base.queryId).snapshot.deterministicResult, deterministicBeforeAdvice, '可用 AI 也不得修改服务端确定性结果')
+  assert.equal(llmRequests, 2)
+  llmMode = 'offline'
+
+  const placeAdvice = await getAdvice.main({ mode: 'advice', queryId: amapBase.queryId, baseData: { deterministicResult: { verdict: 'go' }, weather: { days: [] } } })
+  assert.equal(placeAdvice.phase, 'advice')
+  assert.equal(placeAdvice.degraded, true)
+  assert.equal(llmRequests, 3)
 
   const blockedBefore = weatherRequests
   const blocked = await getAdvice.main({ mode: 'prepare', route: '五台山大朝台', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 4 })
@@ -117,7 +185,16 @@ async function main() {
   assert.equal(blocked.data.deterministicResult.verdict, 'no_go')
   assert.equal(blocked.data.requestSummary.days, null)
   assert.equal(blocked.data.weatherSnapshot, null)
+  assert.ok(blocked.queryId && records.has(blocked.queryId))
   assert.equal(weatherRequests, blockedBefore)
+  const blockedAdvice = await getAdvice.main({ mode: 'advice', queryId: blocked.queryId, route: 'forged', baseData: { deterministicResult: { verdict: 'go' } } })
+  assert.equal(blockedAdvice.phase, 'advice')
+  assert.equal(blockedAdvice.degraded, true)
+  assert.equal(llmRequests, 4)
+
+  const beforeMissingSupport = weatherRequests
+  assertError(await getAdvice.main({ mode: 'prepare', route: '四姑娘山二峰', date: '2026-08-09', startTimeLocal: '08:00', level: '小白' }), 'missing_climb_support')
+  assert.equal(weatherRequests, beforeMissingSupport, '缺少攀登支持不得触发天气请求')
 
   assertError(await getAdvice.main({ mode: 'prepare', route: '武功山反穿', date: '2026-08-09', startTimeLocal: 'bad', level: '中级' }), 'invalid_start_time')
   assertError(await getAdvice.main({ mode: 'prepare', route: '武功山反穿', date: '2026-08-09', startTimeLocal: '08:00', level: 'unknown' }), 'invalid_level')
@@ -127,6 +204,7 @@ async function main() {
 }
 
 main().catch((error) => { console.error('FAIL: ' + error.message); process.exitCode = 1 }).finally(() => {
+  if (getAdviceForTests && typeof getAdviceForTests._setNowForTests === 'function') getAdviceForTests._setNowForTests(null)
   Module._load = originalLoad
   https.get = originalGet
   https.request = originalRequest

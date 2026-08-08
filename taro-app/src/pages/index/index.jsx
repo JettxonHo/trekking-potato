@@ -37,6 +37,17 @@ const DETERMINISTIC_RISK_ADVICE = '本风险由海拔/季节规则判定，请�
 const AI_UNAVAILABLE_NOTE = 'AI 说明暂不可用，当前仅展示确定性规则结果。'
 const HISTORY_SAVE_ERROR = '历史未保存，不影响本次结果'
 
+function parseManualElevation(value) {
+  const text = value === undefined || value === null ? '' : String(value).trim()
+  if (text === '') return { provided: false, value: undefined, valid: true }
+  const number = Number(text)
+  return {
+    provided: true,
+    value: number,
+    valid: Number.isFinite(number) && number >= -500 && number <= 9000,
+  }
+}
+
 function buildBaseSafetyResult(gearRules) {
   const rules = gearRules || {}
   const gear = {
@@ -127,7 +138,7 @@ export default class Index extends Component {
           manualRouteType: restoreManualContext ? cached.form.manualRouteType : '',
           manualLat: restoreManualContext ? String(cached.form.manualLat) : '',
           manualLon: restoreManualContext ? String(cached.form.manualLon) : '',
-          manualElev: restoreManualContext ? (cached.form.manualElevation || '') : '',
+          manualElev: restoreManualContext ? (cached.form.manualElevation != null ? cached.form.manualElevation : '') : '',
           tripFlow: reduceTripFlow(this.state.tripFlow, {
             type: 'RESTORE_CACHED',
             result: cached.result,
@@ -214,9 +225,12 @@ export default class Index extends Component {
     if (manualContextActive) {
       const lat = parseFloat(manualLat)
       const lon = parseFloat(manualLon)
-      const elev = parseFloat(manualElev) || 0
+      const elevation = parseManualElevation(manualElev)
       const typeValid = routeTypeOptions.indexOf(manualRouteType) >= 0
       const coordsValid = !isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180
+      if (!elevation.valid) {
+        Taro.showToast({ title: '海拔格式错误', icon: 'none' }); return
+      }
       if (!typeValid || !coordsValid) {
         Taro.showToast({ title: '手动坐标或路线类型不完整，请确认后重新提交', icon: 'none' })
         const error = { code: 'invalid_manual_context', message: '手动坐标或路线类型不完整，请确认后重新提交', retryable: false }
@@ -228,7 +242,7 @@ export default class Index extends Component {
         date, startTimeLocal, level, days: tripDays, climbSupport,
         manualLat: lat,
         manualLon: lon,
-        manualElevation: elev > 0 ? elev : undefined,
+        manualElevation: elevation.provided ? elevation.value : undefined,
         routeType: manualRouteType,
       })
       return
@@ -423,7 +437,10 @@ export default class Index extends Component {
       Taro.showToast({ title: '请选择路线类型', icon: 'none' }); return
     }
     const tripDays = Math.max(1, Math.min(7, parseInt(days) || 1))
-    const elev = parseFloat(manualElev) || 0
+    const elevation = parseManualElevation(manualElev)
+    if (!elevation.valid) {
+      Taro.showToast({ title: '海拔格式错误', icon: 'none' }); return
+    }
     // TP-P0-003 REVIEW_FIX：手动弹窗成功发起查询即激活手动可信上下文，
     // 后续普通提交复用该坐标与类型
     this.setState({ manualContextActive: true })
@@ -431,7 +448,7 @@ export default class Index extends Component {
       route: route.trim() || '手动坐标',
       date, startTimeLocal, level, days: tripDays, climbSupport,
       manualLat: lat, manualLon: lon,
-      manualElevation: elev > 0 ? elev : undefined,
+      manualElevation: elevation.provided ? elevation.value : undefined,
       routeType: manualRouteType,
     })
   }
@@ -1079,7 +1096,7 @@ export default class Index extends Component {
               <View key={candidate.candidateId} className="candidate-row quirky-active" onClick={() => this.onCandidateSelect(candidate.candidateId)}>
                 <Text className="candidate-name">{candidate.canonicalName}</Text>
                 <Text className="candidate-region">{candidate.region}</Text>
-                <Text className="candidate-type">{candidate.capability === 'place_only' ? '地点级参考' : ROUTE_TYPE_TEXT[candidate.routeType]}</Text>
+                <Text className="candidate-type">{candidate.capability === 'place_only' ? '地点级参考' : `${ROUTE_TYPE_TEXT[candidate.routeType]} · 固定${candidate.fixedDays}天（只读）`}</Text>
               </View>
             ))}
             <Button block className="candidate-cancel-btn" onClick={this.onCandidateClose}>取消</Button>

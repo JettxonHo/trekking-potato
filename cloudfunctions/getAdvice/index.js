@@ -31,6 +31,7 @@ const LLM_MODEL = 'deepseek-chat'
 const LLM_TIMEOUT = 20000
 const LEVELS = new Set(['小白', '中级', '老手'])
 const CLIMB_SUPPORTS = new Set(['solo_or_unsure', 'experienced_team', 'professional_guide'])
+let nowProvider = () => new Date()
 
 function httpsPost(url, body, headers, timeout) {
   return new Promise((resolve, reject) => {
@@ -79,11 +80,43 @@ function mapLocationResolutionFailure(locResult) {
   return errorResponse('location_failed', (locResult && locResult.message) || '位置服务暂时不可用，请重试')
 }
 
+function currentNow() {
+  const value = nowProvider()
+  return value instanceof Date ? new Date(value.getTime()) : new Date(value)
+}
+
+// Test-only seam. Production keeps the wall-clock provider above; contract
+// tests can pin "today" without changing date validation semantics.
+function setNowForTests(provider) {
+  if (provider === null || provider === undefined) {
+    nowProvider = () => new Date()
+    return
+  }
+  if (typeof provider !== 'function') throw new TypeError('test clock provider must be a function')
+  nowProvider = provider
+}
+
+function isTrustedResolverCandidate(candidate) {
+  return candidate && typeof candidate === 'object'
+    && typeof candidate.candidateId === 'string'
+    && !candidate.candidateId.startsWith('builtin-route:')
+    && (candidate.entityKind === 'route_variant' || candidate.entityKind === 'place')
+    && (candidate.capability === 'full' || candidate.capability === 'place_only')
+    && typeof candidate.canonicalName === 'string'
+    && typeof candidate.region === 'string'
+    && (candidate.routeType === null || isKnownRouteType(candidate.routeType))
+    && (candidate.fixedDays === null || (Number.isInteger(candidate.fixedDays) && candidate.fixedDays >= 1))
+}
+
+function isLegacyBuiltinLocation(loc) {
+  return !!loc && (loc.source === '内置路线表' || loc.typeSource === 'builtin')
+}
+
 function isValidStartTime(value) {
   return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value)
 }
 
-function todayInShanghai(now = new Date()) {
+function todayInShanghai(now = currentNow()) {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now)
   const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
   return `${values.year}-${values.month}-${values.day}`
@@ -189,7 +222,7 @@ const tripBaseBuilder = createTripBaseBuilder({
     return calcSunEvents(wgs84.lat, wgs84.lng, date)
   },
   getGearRules,
-  now: () => new Date(),
+  now: () => currentNow(),
 })
 
 function mapBuilderError(result) {
@@ -253,7 +286,16 @@ async function main(event, context) {
         return mapLocationResolutionFailure(locResult)
       }
       const loc = locResult.data
-      if (loc.needsConfirm && Array.isArray(loc.candidates)) return confirmationResponse(`请确认你要查询的路线：${event.route}`, loc.candidates)
+      // I13 is authoritative for route candidates.  The historical geocode
+      // table may still return four-field builtin-route candidates after I13
+      // says not_found; never expose those as a confirmation response.
+      if (isLegacyBuiltinLocation(loc)) return errorResponse('route_not_found', '未找到可用路线，请修改搜索词')
+      if (loc.needsConfirm && Array.isArray(loc.candidates)) {
+        if (loc.candidates.length === 0 || !loc.candidates.every(isTrustedResolverCandidate)) {
+          return errorResponse('route_not_found', '未找到可用路线，请修改搜索词')
+        }
+        return confirmationResponse(`请确认你要查询的路线：${event.route}`, loc.candidates)
+      }
       const days = parseTripDaysInput(event.days)
       if (days === null) return errorResponse('invalid_trip_days', '行程天数必须为 1 至 7 天')
       const invalidType = invalidRouteTypeInput(event)
@@ -318,3 +360,4 @@ exports.main = async (event, context) => {
 }
 
 exports._mapLocationResolutionFailure = mapLocationResolutionFailure
+exports._setNowForTests = setNowForTests
