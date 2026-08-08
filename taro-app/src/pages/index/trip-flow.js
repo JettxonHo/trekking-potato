@@ -1,4 +1,5 @@
 const INITIAL_TOKEN = 0
+const { isAdviceRetryEligible, isReprepareEligible } = require('./recovery-model')
 
 function createInitialTripFlow() {
   return {
@@ -83,6 +84,37 @@ function reduceTripFlow(state, event) {
   }
 
   if (!hasCurrentToken(current, event)) return current
+
+  if (type === 'BEGIN_ADVICE_RETRY') {
+    if (!isAdviceRetryEligible(current, event)) return current
+    return clearFlow(current, {
+      status: 'advice_loading',
+      token: current.token + 1,
+      result: {
+        ...current.result,
+        ai: { ...(current.result.ai || {}), status: 'loading' },
+      },
+      queryId: current.queryId,
+      candidates: [],
+      confirmationInput: null,
+      routeTypeRequest: null,
+      error: null,
+    })
+  }
+
+  if (type === 'BEGIN_REPREPARE') {
+    if (!isReprepareEligible(current, event)) return current
+    return clearFlow(current, {
+      status: 'preparing',
+      token: current.token + 1,
+      result: event.result === undefined ? current.result : event.result,
+      queryId: null,
+      candidates: [],
+      confirmationInput: null,
+      routeTypeRequest: null,
+      error: null,
+    })
+  }
 
   if (type === 'CONFIRMATION_REQUIRED') {
     if (current.status !== 'searching') return current
@@ -201,8 +233,10 @@ function reduceTripFlow(state, event) {
 
 function selectTripFlowView(state) {
   const current = state || createInitialTripFlow()
+  const refreshing = current.status === 'preparing' && current.result !== null
   return {
-    loading: current.status === 'searching' || current.status === 'preparing',
+    loading: current.status === 'searching' || (current.status === 'preparing' && current.result === null),
+    refreshing,
     adviceLoading: current.status === 'base_ready' || current.status === 'advice_loading',
     showResult: current.result !== null,
     showCandidatePopup: current.status === 'awaiting_confirmation',

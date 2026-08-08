@@ -252,3 +252,23 @@ need, amend/force-push, approve or merge.
   documents. Required local gates pass: `npm run test:history`, `npm test`, integration `56/0`, lint (0 errors;
   9 existing warnings), typecheck, `build:weapp`, and `git diff --check`; additive commit `877cd6c` latest-head
   GitHub `quality` passed in 44 seconds (run `31272070159`, job `93139614802`).
+
+## I23b implementation checkpoint — 2026-08-09
+
+- RED/GREEN evidence is recorded in `docs/i23-recovery-verification.md`. Registration-only RED was a real
+  `MODULE_NOT_FOUND` for `recovery-model.js`; focused recovery behavior is now GREEN.
+- The implementation keeps I20's ten states/fields. `BEGIN_ADVICE_RETRY` requires degraded + non-null result/
+  queryId + unavailable AI and accepted advice degradation/retryable advice error; it advances token and changes
+  only the AI namespace. `BEGIN_REPREPARE` requires a bounded current-token recovery authority, clears queryId/error,
+  and preserves a non-null result with a local refreshing selector/indicator.
+- Page-private pending/last snapshots are captured before every prepare/confirm, retained on failure, promoted only
+  on BaseData success, replayed from the proper authority, and cleared on reset/history prefill. Cache/history never
+  restore queryId or auto-retry. Save retry freezes one payload plus one non-security attempt ID and keys callbacks
+  by BaseData/attempt rather than trip token; list retry uses a separate monotonic identity and closed/unmounted
+  callbacks cannot replace items. History selection resets flow/checklist/cache and only prefills existing DTO fields,
+  preserving current/default start time and climb support with confirmation copy.
+- Required commands pass: `test:recovery`, `test:trip-flow`, `test:result-page`, `test:response`, `test:trip-context`,
+  `test:history`, root `npm test`, integration `56/0`, lint (0 errors; 9 existing warnings), typecheck,
+  `build:weapp`, and `git diff --check`. No DevTools evidence is claimed.
+- Allowlist remains exact and no public/service/cache/history schema/dependency/Cloud Function changes were made.
+  Status: `READY_FOR_CONTROLLER_REVIEW`; controller owns additive commit, focused draft PR, Actions wait, review and merge.

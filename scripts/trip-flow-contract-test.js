@@ -57,6 +57,7 @@ function assertInitialState() {
   ], 'TripFlowState 不得混入页面、缓存或 history 字段')
   assert.deepStrictEqual(selectTripFlowView(state), {
     loading: false,
+    refreshing: false,
     adviceLoading: false,
     showResult: false,
     showCandidatePopup: false,
@@ -325,8 +326,8 @@ function assertPageWiring() {
   assert(manualSubmitStart >= 0 && manualSubmitEnd > manualSubmitStart, 'onManualSubmit 源码边界必须可切出')
   assert(!manualSubmitSource.includes('showManualCoords'), 'onManualSubmit 必须通过 BEGIN_PREPARE 关闭 reducer Popup，而非页面局部状态')
   assert(/manualElevation:\s*elevation\.provided\s*\?\s*elevation\.value\s*:\s*undefined/.test(manualSubmitSource), 'onManualSubmit 必须按 provided 传递海拔')
-  assert(pageSource.includes("error === 'location_failed' || error === 'route_not_found'"), 'location_failed 与 route_not_found 都必须打开手动 fallback')
-  assert(pageSource.includes("type: 'ROUTE_TYPE_REQUIRED', token: generation, routeTypeRequest: null, error: flowError"), 'route_not_found fallback 必须保留错误并进入统一类型选择状态')
+  assert(pageSource.includes("result.code === 'location_failed' || result.code === 'route_not_found'"), 'location_failed 与 route_not_found 都必须打开手动 fallback')
+  assert(pageSource.includes("type: 'ROUTE_TYPE_REQUIRED', token, routeTypeRequest: null, error: flowError"), 'route_not_found fallback 必须保留错误并进入统一类型选择状态')
   assert(pageSource.includes('candidate.fixedDays') && pageSource.includes('固定${candidate.fixedDays}天（只读）'), '完整候选必须渲染服务端固定天数，不提供可编辑输入')
   const elevationMatch = pageSource.match(/function parseManualElevation\(value\) \{([\s\S]*?)\n\}/)
   assert(elevationMatch, '页面必须包含可独立验证的手动海拔解析函数')
@@ -352,20 +353,20 @@ function assertPageWiring() {
   assert(baseBody.includes("this._applyChecklistLifecycle({ type: 'base_received', queryId, baseRef: base }, true)"), '真实 base/query 到达必须调用 base_received lifecycle seam')
   assert(baseBody.includes("this._applyChecklistLifecycle({ type: 'advice_started' })"), '真实 advice start 必须调用 advice_started lifecycle seam')
 
-  const adviceBody = extractMethodBody(pageSource, /_fetchAdvice\(queryId,\s*historyParams,\s*generation\)\s*\{/)
+  const adviceBody = extractMethodBody(pageSource, /_fetchAdvice\(queryId,\s*historyParams,\s*generation(?:,\s*options\s*=\s*\{\})?\)\s*\{/)
   assert(adviceBody.includes("this._applyChecklistLifecycle({ type: 'advice_succeeded' })"), 'advice success 必须调用 advice_succeeded lifecycle seam')
   assert(adviceBody.includes("historyResultForAdviceOutcome('success', { adviceData: d, degraded })"), 'advice success 必须产生 success history intent')
-  assert(adviceBody.includes('this._saveHistory(historyParams, historyResult, generation)'), 'advice success 必须实际保存一次 history')
+  assert(adviceBody.includes('this._saveHistory(historyParams, historyResult)'), 'advice success 必须实际保存一次 history')
   const contextStart = adviceBody.indexOf("if (result && result.phase === 'error' && result.code === 'query_context_unavailable')")
   const adviceBranchStart = adviceBody.indexOf("if (result && result.phase === 'advice')", contextStart)
   const contextBranch = contextStart >= 0 && adviceBranchStart > contextStart ? adviceBody.slice(contextStart, adviceBranchStart) : ''
   assert(contextBranch.includes("this._applyChecklistLifecycle({ type: 'context_unavailable' })"), 'context-unavailable 必须调用 context lifecycle seam')
   assert(!contextBranch.includes('_saveHistory('), 'context-unavailable 分支不得保存 history')
 
-  const degradedBody = extractMethodBody(pageSource, /_finishDegradedAdvice\(token,\s*historyParams,\s*error\)\s*\{/)
+  const degradedBody = extractMethodBody(pageSource, /_finishDegradedAdvice\(token,\s*historyParams,\s*error(?:,\s*options\s*=\s*\{\})?\)\s*\{/)
   assert(degradedBody.includes("this._applyChecklistLifecycle({ type: 'advice_failed' })"), '普通 degraded 必须调用 advice_failed lifecycle seam')
   assert(degradedBody.includes("historyResultForAdviceOutcome('degraded', { baseRisks: this._baseHistoryRisks })"), '普通 degraded 必须产生 degraded history intent')
-  assert(degradedBody.includes('this._saveHistory(historyParams, historyResult, token)'), '普通 degraded 必须实际保存一次 history')
+  assert(degradedBody.includes('this._saveHistory(historyParams, historyResult)'), '普通 degraded 必须实际保存一次 history')
 }
 
 async function main() {

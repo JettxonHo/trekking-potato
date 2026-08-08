@@ -967,3 +967,25 @@ The executor cannot approve/merge and Terra remains unauthorized.
 - Routing before spawn: logical role `IMPLEMENTER`; requested custom Agent `luna-worker`; config
   `~/.codex/agents/luna-worker.toml`; configured `gpt-5.6-luna` / `max`; configuration status `CONFIG_VERIFIED`;
   runtime visibility is recorded by the executor. Terra remains unauthorized as an automatic fallback.
+
+## I23b implementation checkpoint — 2026-08-09
+
+- TDD RED was recorded before implementation: after registering `test:recovery`, the first
+  `npm run test:recovery` failed with Node `MODULE_NOT_FOUND` for the not-yet-created `recovery-model.js`.
+- GREEN adds only the #100 allowlist. `recovery-model.js` owns bounded pending/last base-request snapshots,
+  retryable-event guards, non-security history save identity/frozen payload, and independent history-list tokens.
+  `trip-flow.js` keeps the ten states/fields and adds only `BEGIN_ADVICE_RETRY` and `BEGIN_REPREPARE`; a non-null
+  result in `preparing` stays rendered under `refreshing` instead of the skeleton. `index.jsx` replays existing
+  prepare/confirm/advice seams, preserves deterministic facts/checklist, serializes same-base history retry,
+  guards stale list callbacks, and treats history selection as zero-network form prefill. `result-page-model.js`
+  exposes `refreshing` and optionally attaches the accepted `saveAttemptId`; CSS is limited to recovery indicators.
+- Focused behavior tests pass: `test:recovery`, `test:trip-flow`, `test:result-page`. Recovery tests cover event
+  eligibility/no-op, token advancement, same-query AI, new-query replay, request slots, old-result refresh,
+  frozen history payload/identity, list stale/close guards, weather boundaries and actual page wiring.
+- Required local matrix passes: `npm run test:response`, `npm run test:trip-context`, `npm run test:history`,
+  root `npm test`, integration `56/0`, lint (0 errors; 9 existing warnings), typecheck, WeChat build and
+  `git diff --check`. No DevTools or screenshot evidence was run; it is deferred to I24 unless separately authorized.
+- Actual files changed remain within the allowlist: page/reducer/result/CSS, recovery test and focused test,
+  package script, verification doc, and these two status documents. No Cloud Function, service payload, cache
+  schema, history DTO, dependency, route/weather/verdict rule or production configuration changed.
+- Status: `READY_FOR_CONTROLLER_REVIEW`; additive commit/PR and latest-head Actions remain controller-owned.

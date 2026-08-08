@@ -138,6 +138,8 @@
 
 .error-box { background: #f5f5f7; border-radius: 16rpx; padding: 24rpx 32rpx; margin-top: 24rpx; box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.015); }
 .error-box text { color: #ff3b30; font-size: 26rpx; line-height: 1.6; }
+.history-prefill-notice { background: #f5f5f7; border-radius: 14rpx; padding: 18rpx 24rpx; margin-top: 18rpx; }
+.history-prefill-notice text { color: #3a3a3c; font-size: 24rpx; line-height: 1.6; }
 
 /* ============================================
  * Loading 视图（骨架屏 + 薯仔简笔画）
@@ -183,6 +185,9 @@
 
 .spinner { width: 48rpx; height: 48rpx; border: 4rpx solid #f5f5f7; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
 .spinner-small { width: 28rpx; height: 28rpx; border: 3rpx solid #f5f5f7; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+.refreshing-indicator { display: flex; align-items: center; gap: 12rpx; padding: 18rpx 24rpx; margin-bottom: 20rpx; background: #f5f5f7; border-radius: 14rpx; color: #3a3a3c; font-size: 24rpx; }
+.inline-retry-btn { margin-top: 16rpx !important; background: #ffffff !important; color: #1d1d1f !important; border: 1rpx solid rgba(0,0,0,0.12) !important; border-radius: 12rpx !important; font-size: 24rpx !important; }
+.inline-retry-btn::after { border: none !important; }
 
 /* ============================================
  * 降级横幅（iOS 红 + 摇头）
