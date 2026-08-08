@@ -3,7 +3,7 @@
 - Task ID: `I21`
 - GitHub Issue: `#30`
 - Title: 实现搜索、确认与行程输入流程
-- Status: `REVIEW_FIX_ACTIVE — ROUND_2`
+- Status: `REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`
 - Mode: `REVIEW_FIX`
 - Owner: Sol XHigh
 - Implementation Agent: `luna-worker`
@@ -337,8 +337,8 @@ git diff --check
   变更自 `fac56d0` 起由 Sol 所有，不属于实现 Agent 交付。
 - 当前门禁：focused contracts、`npm test`、integration `56/0`、lint（0 errors，10 existing warnings）、
   typecheck、host Taro 4.0.9 `build:weapp`、`git diff --check` 均 GREEN；additive commit `4171d35`
-  已推送，PR description 已记录 Sol-owned activation 边界，最新-head Actions `quality`
-  run `31258001426` 于 42s GREEN。剩余仅为 Sol 独立 Review。
+  已推送，PR description 已记录 Sol-owned activation 边界。GitHub PR check 是 latest-head CI 事实源，
+  本文不固化会因后续文档提交而过期的 Actions run ID。剩余仅为 Sol 独立 Review。
 - 状态：`REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`。不得自行批准或合并；收到 Sol
   verdict 后再按其结果处理。
 
@@ -359,3 +359,17 @@ git diff --check
   6. 同步顶部状态和检查点。GitHub PR check 是 latest-head CI 的事实源，文档不再写会因后续文档
      提交而立即过期的 run ID。
 - 过程：只允许在 `4827c09` 上追加提交；禁止 amend、rebase、force push 或 force-with-lease。
+- Round-2 checkpoint：`luna-worker` 已以 additive commit `71ebb95` 完成测试辨别力修复；当前状态
+  `REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`。本轮未修改生产业务文件；文档状态在后续
+  独立 additive commit 中同步。
+- Finding→test：response 公共副作用 snapshot 覆盖 HTTP/weather/elevation/AMap、TripContext 读写、LLM，
+  并覆盖代表性 invalid date/time/level/days/support/manual、`route_not_found` 与 confirmation 零副作用；
+  core 覆盖 full/place-only/blocked 三组装备投影；trip-flow 同时断言 `onSubmit`/`onManualSubmit` 的
+  `elevation.provided ? elevation.value : undefined` 以及 service 的 `0`/`-20` 原样 payload；route-type
+  覆盖 `location_failed` 和 `route_not_found` 两个 fallback 分支。
+- Mutation evidence：内存移除 manual-elevation 表达式或任一 fallback 分支时新增断言均失败，恢复后 focused
+  tests 全部 GREEN。
+- 最终本地验证：`test:core-input-flow`、`test:response`、`test:confirmation`、`test:trip-context`、
+  `test:trip-flow`、`test:route-resolver`、`test:hourly-weather`、`test:trip-verdict`、`npm test`、
+  `test:integration`（56/0）、`lint`（0 errors/10 existing warnings）、`typecheck`、`build:weapp`、
+  `git diff --check` 全部通过。PR #93 latest-head GitHub quality check 为 CI 事实源；不写入 Actions run ID。

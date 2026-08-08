@@ -2,13 +2,13 @@
 
 - Updated: `2026-08-08`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I21 REVIEW_FIX_ROUND_2`
+- Goal status: `ACTIVE — M6 I21 REVIEW_FIX_ROUND_2 — READY_FOR_CONTROLLER_REVIEW_PENDING`
 - Active milestone: `M6 Core UX`
-- Active task: `I21 / #30 / REVIEW_FIX_ACTIVE — ROUND_2`
+- Active task: `I21 / #30 / REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`
 - Branch: `codex/30-core-input-flow`
 - Base: `main` at `c817bbb`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
-- Assignment: `luna-worker` performs the bounded round-2 test repair; Sol XHigh owns independent Review and merge authority
+- Assignment: `luna-worker` completed the bounded round-2 test repair; Sol XHigh owns independent Review and merge authority
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -636,8 +636,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Execute the frozen I21 contract on `codex/30-core-input-flow` through the exact custom Agent `luna-worker`.
-2. Require complete local gates, latest-head CI and independent Sol Review before any merge.
+1. Sol XHigh independently reviews the additive round-2 evidence on PR #93.
+2. Require latest-head CI and explicit Sol Review before any merge.
 
 ## Blockers and risks
 
@@ -670,10 +670,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Complete the bounded I21 Review-fix round 2 on `codex/30-core-input-flow`, rerun every required gate and
-return to independent Sol Review. If the same frozen acceptance still fails after this round, stop local
-patching and escalate to the human. Do not start I22/I23 before I21 is accepted; do not automatically route
-implementation to Terra.
+The bounded I21 Review-fix round 2 is complete on `codex/30-core-input-flow`; return to independent Sol
+Review with the full local gate evidence below. If the same frozen acceptance still fails after this round,
+stop local patching and escalate to the human. Do not start I22/I23 before I21 is accepted; do not automatically
+route implementation to Terra.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
@@ -724,11 +724,27 @@ implementation to Terra.
 
 ## I21 REVIEW_FIX round 2 checkpoint — 2026-08-08
 
-- Status: `REVIEW_FIX_ACTIVE — ROUND_2`; base head `4827c09`; additive commits only.
-- Remaining work: complete public zero-side-effect snapshots, representative manual backend negatives,
-  three-capability gear projection equality, both UI manual-elevation request paths, the stale route-type
-  fallback assertion and final status synchronization.
+- Status: `REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`; base head `4827c09`; additive commits only.
+- Test/evidence commit: `71ebb95` (`test: strengthen I21 round-two evidence`). The documentation checkpoint
+  is a separate additive commit; no production business file changed in this round.
+- Completed: public zero-side-effect snapshots, representative manual backend negatives, three-capability
+  gear projection equality, both UI manual-elevation request paths, the stale route-type fallback assertion
+  and final status synchronization.
 - Contract expansion: Sol added `scripts/route-type-contract-test.js` only for the exact stale test correction;
   no production route-type scope was added.
+- Finding-to-test map: `response-contract-test.js` now shares a public side-effect snapshot for HTTP/weather/
+  elevation/AMap, TripContext reads/writes and LLM calls across representative early exits and confirmation;
+  it also covers manual string/NaN/Infinity/lat-lon/elevation negatives with zero effects. `core-input-flow-
+  contract-test.js` compares all three `minimumGear` arrays to `gearRules` for full/place-only/blocked.
+  `trip-flow-contract-test.js` checks both page manual-submit branches and service payload preservation for
+  elevation `0` and `-20`. `route-type-contract-test.js` rejects removal of either `location_failed` or
+  `route_not_found` fallback.
+- Mutation evidence: an in-memory removal of the manual-elevation expression or either route fallback path
+  is rejected by the new assertions; focused tests then returned GREEN.
+- Validation: `test:core-input-flow`, `test:response`, `test:confirmation`, `test:trip-context`, `test:trip-flow`,
+  `test:route-resolver`, `test:hourly-weather`, `test:trip-verdict`, root `npm test`, offline integration
+  `56/0`, lint `0 errors / 10 existing warnings`, typecheck, host `build:weapp` and `git diff --check` all
+  pass. The GitHub PR #93 latest-head `quality` check remains the CI fact source; no Actions run ID is
+  persisted in this checkpoint.
 - Stop rule: if the same frozen acceptance remains unsatisfied after round 2, escalate to the human instead
   of beginning a third local repair round.
