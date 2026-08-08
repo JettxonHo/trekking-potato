@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M7 I24c READY_FOR_CONTROLLER_REVIEW`
+- Status: `ACTIVE — M7 I25 FINAL_REVIEW_ACTIVE`
 - Updated: `2026-08-09`
 
 ## 1. 依赖图
@@ -423,6 +423,6 @@ Review, squash merged as `852e86d`, and closed #95 plus parent #31.
   `docs/tasks/ACTIVE_TASK.md` and the live child Issues.
 - I24a/#105 passed latest-head quality and two independent final Reviews, then PR #108 squash merged as `1a2f485`.
   I24b/#106 passed latest-head quality and two independent final Reviews, then PR #109 squash merged as `f311d1b`.
-  I24c/#107 is active from that exact main. Its automated acceptance and fixture-free gate results are recorded in
-  `docs/beta-acceptance-checklist.md` and `docs/beta-acceptance-report.md`; local DevTools rows remain truthful
-  `UNVERIFIED_RUNTIME_TOOL` when the runtime cannot be observed.
+  I24c/#107 passed latest-head quality and two independent final Reviews, then PR #110 squash merged as `1bba5f9`;
+  parent #33 is closed. I25/#34 is now the sole active task and must perform the Goal-wide read-only Review, final
+  main gate rerun, GitHub audit and completion report before any completion claim.

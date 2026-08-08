@@ -2,11 +2,16 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M7 I24c READY_FOR_CONTROLLER_REVIEW`
+- Goal status: `ACTIVE — M7 I25 FINAL_REVIEW_ACTIVE`
 - Active milestone: `M7 Acceptance`
-- Active task: `I24c / #107 / READY_FOR_CONTROLLER_REVIEW`
-- Branch: `codex/107-beta-acceptance-evidence`
-- Base: `main` at `f311d1b`
+- Active task: `I25 / #34 / FINAL_REVIEW_ACTIVE`
+- Branch: `codex/34-goal-final-review`
+- Base: `main` at `1bba5f9`
+- I24c completion / I25 activation checkpoint (2026-08-09): PR #110 exact head `bfb9f43` passed latest-head
+  GitHub `quality`; two independent final Reviews returned `APPROVED` with P0–P3 none. Sol squash merged it as
+  `1bba5f9`, then closed #107 and parent #33. The durable checklist truthfully retains DevTools rows as
+  `UNVERIFIED_RUNTIME_TOOL`; automated and fixture-free gates are green. I25/#34 is now the only active task and is
+  owned by Sol XHigh as a Goal-wide Review, not an implementation-Agent self-approval.
 - I24b completion / I24c activation checkpoint (2026-08-09): PR #109 review-fix head `59f7a18` and controller
   status head `28db822` passed latest-head GitHub `quality`; two independent actual-diff Reviews returned
   `APPROVED` with P0–P3 none. Sol squash merged the PR as `f311d1b` and closed #106. I24c/#107 is now the only

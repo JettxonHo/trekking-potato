@@ -1,136 +1,75 @@
-# ACTIVE TASK — I24c DevTools 验证包与最终文档
+# ACTIVE TASK — I25 Goal 统一 Review 与完成报告
 
 - Goal: `TP-BETA-001`
-- Parent: `I24 / #33`
-- GitHub Issue: `I24c / #107`
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW_FIX`
-- Controller: Sol XHigh
-- Implementation Agent: exact custom Agent `luna-worker`
-- Branch: `codex/107-beta-acceptance-evidence`
-- Base: `main@f311d1b`
-- Dependencies: I24a/#105 merged as `1a2f485`; I24b/#106 merged as `f311d1b`; I25 remains blocked until this Issue merges
+- GitHub Issue: `I25 / #34`
+- Status/Mode: `FINAL_REVIEW_ACTIVE / FINAL_REVIEW`
+- Controller and reviewer of record: Sol XHigh
+- Branch: `codex/34-goal-final-review`
+- Base: `main@1bba5f9`
+- Dependencies: I01–I24 complete; #105/#106/#107 and parent #33 closed; deployment and real beta remain out of scope
 
-## 1. Goal and user value
+## 1. Objective
 
-Deliver a reproducible local Beta acceptance checklist, evidence package and final synchronized documentation for
-the current code. The package must distinguish automated proof, locally observed WeChat DevTools behavior and
-unavailable runtime checks. It proves code-level closed-beta readiness only; it does not claim deployment, real
-CloudBase execution, device testing or real-user beta completion.
+Perform the one Goal-wide final Review required after all implementation and I24 acceptance work. Decide whether
+`TP-BETA-001` meets its code-ready completion standard across product scope, architecture, data provenance, public
+contracts, tests, GitHub workflow, documentation, known risks and maintainability. Produce a durable completion
+report without mixing ordinary implementation fixes into the report PR.
 
-The user explicitly authorized temporary fixture injection, page refresh and screenshot capture in the local WeChat
-DevTools, and confirmed that the Mac is unlocked. This authorization is limited to reversible local validation. It
-does not authorize production configuration, secrets, paid/live APIs, real data mutation, deployment or publication.
+This task is controlled and authored by Sol XHigh. `luna-worker` does not approve the Goal or write implementation
+code in I25. Independent read-only reviewers may audit bounded dimensions and return findings; Sol integrates the
+evidence and owns the final verdict.
 
 ## 2. Final committed allowlist
 
-The final committed diff may contain only:
-
-- new `docs/beta-acceptance-checklist.md`
-- new `docs/beta-acceptance-report.md`
-- new files under `docs/evidence/i24/`
+- new `docs/goal-completion-report.md`
 - `README.md`
 - `GOAL.md`
-- `docs/product-requirements.md`
-- `docs/architecture.md`
+- `docs/current-status.md`
 - `docs/development-plan.md`
 - `docs/testing-strategy.md`
 - `docs/decision-log.md`
-- `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
+- `docs/beta-acceptance-report.md` only if its post-merge status needs factual synchronization
 
-No other committed file may change without Sol expanding this contract before the edit.
+No production code, existing test, fixture, route data, dependency, CI, package/config or generated output may change
+in the I25 report PR. A required code correction becomes a separate focused Issue/PR and blocks completion until it
+merges and the affected review is repeated.
 
-## 3. Temporary local validation scope
+## 3. Required review dimensions
 
-Temporary, uncommitted work is allowed only in:
+Sol must review and record:
 
-- `taro-app/src/pages/index/index.jsx`
-- temporary `taro-app/src/pages/index/local-beta-fixtures.js`
-- generated `taro-app/dist`
+1. Goal, milestone and Issue completion, including replacement child #77 and parent/child closures.
+2. PR compliance: focused scope, required Review/CI evidence and merged state for the Goal delivery chain.
+3. Product requirements: five exact full pilots, official Wutai blocked record, confirmation/place/blocked/insufficient
+   flows, four verdict labels, minimum gear, private history, recovery and AI explanatory boundary.
+4. Architecture: structured `beta_base_v2`, trusted server `queryId`, TripContext v2/openid/TTL, deterministic weather
+   and verdict ownership, source DTOs, ten-state frontend and no duplicate compatibility implementation.
+5. Route/source integrity: exact current pilot IDs, source tier/status policy, reviewed community track boundary,
+   no inference that `unknown` means open, and no stale superseded pilot identity.
+6. Quality: final `main` commands, CI state, build, contract/integration coverage, residue checks and visible failures.
+7. Security/privacy in proportion to actual risk: server-owned facts, openid-private history, disabled public UGC,
+   queryId-only advice and no secret/production/deployment change; do not introduce speculative hardening or hashes.
+8. Performance/stability/maintainability: material regressions, duplicate modules, temporary paths, stale compatibility,
+   recovery/race handling and documented deployment boundary.
+9. Documentation consistency across README, Goal, product, architecture, plans, tests, decisions, status, acceptance
+   checklist/report and actual implementation.
+10. Known limitations, technical debt, unverified runtime evidence and the recommendation for entering deployment.
 
-The fixture may expose a local-only scenario selector or inject deterministic page state needed to exercise the
-existing rendering and recovery paths. It must not add a package, port, network service, secret, production switch,
-public contract or alternate business-rule implementation. The fixture is a validation adapter, not a second product.
+## 4. GitHub audit
 
-Before any GUI action, the executor must read the `computer-use:computer-use` skill completely. It must operate only
-the local WeChat DevTools project and must not sign in to, upload, preview, deploy or mutate a real cloud environment.
+- Enumerate all Goal Issues and support/replacement Issues; explain any issue that remains open.
+- Confirm all planned implementation parents/children are correctly closed before #34.
+- Confirm no Goal PR remains open and record the key merged PR chain rather than hiding planning/review PRs.
+- Treat GitHub live metadata as the fact source for state and latest checks; do not persist a self-staling current run
+  ID as a completion condition.
+- Close #34 only after the approved report PR merges.
 
-All temporary source/debug hooks must be restored to the accepted base before the implementation commit. Generated
-`taro-app/dist` is never committed.
+## 5. Final commands
 
-## 4. Required checklist
+Run from clean `main@1bba5f9` before writing the conclusion, and rerun on the report branch when documentation is done:
 
-The checklist must cover, without inventing evidence:
-
-1. Each of the five exact pilot RouteVariants from input through structured result:
-   - `variant:wugongshan-longshan-to-main-gate-2d`
-   - `variant:siguniang-erfeng-haizigou-out-and-back-2d`
-   - `variant:yulong-blue-moon-yunshanping-out-and-back-1d`
-   - `variant:gongga-laoyulin-yulongxi-point-to-point-3d`
-   - `variant:dangling-huluhai-zhuoyongcuo-out-and-back-1d`
-2. Fuzzy confirmation, cancellation and editing; manual/AMap place-only; official Wutai blocked behavior.
-3. The four result labels (`go`, `caution`, `no_go`, `verdict=null`) while showing that data completeness is an
-   independent axis.
-4. AI ready, unavailable and explicit retry while route/weather/verdict/minimum-gear facts and checklist state stay
-   deterministic.
-5. Weather re-prepare with the old deterministic result still visible until replacement BaseData arrives, followed
-   by a new `queryId`.
-6. Private-history save retry, list retry/stale-response protection and history selection as zero-network form prefill.
-7. Checklist lifecycle across same-query advice events and reset on a different base, back action or cache restore.
-8. Visible route source, operational status, local time/window and data-status semantics.
-9. A normal fixture-free build/import smoke in WeChat DevTools when that runtime action is available.
-
-五台山大朝台 remains a separate blocked record, not a sixth plannable pilot.
-
-## 5. Evidence status and screenshot policy
-
-Every required row must record exactly one truthful status:
-
-- `VERIFIED`: the stated command or GUI behavior was actually executed and the linked evidence supports the claim.
-- `UNVERIFIED_RUNTIME_TOOL`: execution was attempted but a named local tool/runtime blocker prevented observation;
-  record the exact blocker and do not describe the row as passed.
-
-I24c may be code-ready with honestly recorded `UNVERIFIED_RUNTIME_TOOL` rows because GUI execution is best-effort,
-but no unexecuted row may be relabeled `VERIFIED`. Since the Mac is now unlocked and fixture use is authorized, the
-executor must make a real DevTools attempt before using that status.
-
-Keep a small representative screenshot set rather than one image per click. A screenshot may support several rows
-only when its visible content actually proves them. Use complete-page frames where the relevant verdict, reasons,
-weather, equipment, sources or degraded state would otherwise be split across the viewport. Do not fabricate, crop
-away required assertions or claim hidden content.
-
-## 6. Cleanup and fixture-free proof
-
-After collecting the needed local evidence, perform this sequence:
-
-1. Restore both allowed temporary source paths exactly to the accepted base; remove the temporary module if created.
-2. Rebuild the normal fixture-free `taro-app/dist`.
-3. Search source, scripts, package/config files and normal dist for bounded residue markers, including
-   `VISUAL_FIXTURE`, `LOCAL_BETA_FIXTURE`, `local-beta-fixtures` and fixture/debug scenario hooks.
-4. If WeChat DevTools remains usable, import or refresh the normal fixture-free dist and record the smoke result.
-5. Run the complete automated gate matrix in section 8.
-6. Confirm the final diff is docs/evidence only and contains no generated build output.
-
-Residue checks should target realistic fixture markers and imports; do not add speculative security machinery,
-hashing/SHA or mechanical scans unrelated to this task.
-
-## 7. Documentation deliverables
-
-- `docs/beta-acceptance-checklist.md`: row-by-row status, exact command/interaction, evidence link and blocker/notes.
-- `docs/beta-acceptance-report.md`: scope, environment, automated results, representative observed flows, limitations,
-  cleanup proof and code-ready conclusion.
-- `docs/evidence/i24/`: only the minimum useful screenshots or text evidence needed by the checklist.
-- Synchronize README, Goal, product, architecture, development, testing, decisions, current status and active-task
-  documents so they agree that I24a/I24b are complete, I24c is the active evidence phase, deployment/real beta remain
-  out of scope, and GUI evidence is not equivalent to production validation.
-
-Do not create a new architectural decision unless a hard-to-reverse trade-off actually arises. Routine execution
-facts belong in the checklist/report/current-status rather than a new ADR.
-
-## 8. Required validation
-
-After temporary fixture cleanup, run and record:
-
+- `node docs/evidence/i24/repeated-prepare-probe.js`
 - `npm run test:beta-acceptance`
 - `npm test`
 - `npm run test:integration`
@@ -139,98 +78,49 @@ After temporary fixture cleanup, run and record:
 - `npm run build:weapp`
 - `git diff --check`
 
-All failures remain visible. The expected current baselines include offline integration `55/0` and lint with zero
-errors plus the existing warnings; do not lower a gate or rewrite a failing result as success.
+Also run focused route-domain/data and any directly relevant privacy/recovery contracts needed to validate report
+claims. Record exact outcomes and existing warning counts. Do not hide expected degraded-path logs or failures.
 
-## 9. Non-work scope and stop conditions
+## 6. Report requirements
 
-Do not:
+`docs/goal-completion-report.md` must include:
 
-- change business code, existing tests, route data, dependencies, CI, public contracts, schema or deterministic rules;
-- commit fixtures, debug selectors, generated dist, package/config changes or screenshots that do not prove their claim;
-- use real CloudBase, paid/live APIs, secrets, production configuration, preview/upload/deploy or real user data;
-- perform migration, deletion, publication, device/real-user beta, hashing/SHA or broad visual redesign;
-- start I25, approve or merge the executor's own PR.
+- final verdict and the exact code-ready boundary;
+- completed milestones and delivered features;
+- Issues and Pull Requests summary;
+- final test/build/CI results;
+- key product and technical decisions and architecture changes;
+- resolved problems;
+- current known limitations;
+- residual risks and technical debt;
+- incomplete/out-of-scope items;
+- recommended next work;
+- explicit release/deployment-stage recommendation.
 
-Stop and return the exact blocker for any production defect, required permanent file outside the allowlist, inability
-to remove fixture residue, need for a real external service, evidence whose truth cannot be established, public
-contract conflict or lowered acceptance. A bounded GUI/tool failure becomes `UNVERIFIED_RUNTIME_TOOL`; it does not
-authorize a workaround that expands scope.
+The report must distinguish `UNVERIFIED_RUNTIME_TOOL` from a failed behavior and from a verified GUI pass. It must not
+claim deployment, real CloudBase, device execution or real-user beta. If the completion verdict is conditional, state
+the exact condition and whether it is inside or outside this Goal.
 
-## 10. Allowed autonomous decisions
+## 7. Stop and escalation conditions
 
-`luna-worker` may choose temporary fixture object names, local scenario order, representative screenshot grouping,
-checklist table layout and evidence filenames. It may not change the five pilots, product facts, acceptance meaning,
-public behavior, final allowlist, proof threshold or Goal boundary.
+Return `BLOCKED` or `ESCALATE_TO_HUMAN` rather than completing when there is an undisclosed P0/P1, failed required
+main gate, unresolved architecture conflict, missing trusted route evidence, incorrect Issue/PR state, product trade-off,
+production/deployment operation, or a code fix needed inside the Goal. Do not lower acceptance or relabel a missing
+runtime observation as passed.
 
-## 11. Delivery and Review
+P2/P3 documentation-only findings may be fixed in this report PR if they remain within the allowlist and do not alter
+product behavior or architecture. Any ordinary code change requires a new Issue/PR.
 
-Use additive commits only; do not amend, rebase or force push. Create one focused draft PR using `Refs #107`, not an
-auto-close keyword. The executor returns `READY_FOR_CONTROLLER_REVIEW` with:
+## 8. Delivery and approval
 
-- committed and temporary files touched;
-- fixture injection/removal and residue proof;
-- checklist status summary and screenshot paths;
-- exact commands/results;
-- runtime/model visibility;
-- deviations, blockers, limitations and重点 Review locations;
-- PR URL and exact latest head.
+Use additive commits only. Create one focused draft PR with `Refs #34`; do not auto-close the Issue. Obtain latest-head
+quality and at least two independent read-only final-review inputs covering different dimensions. Sol must inspect the
+actual final diff and evidence, then return one of `APPROVED`, `CHANGES_REQUESTED`, `BLOCKED` or
+`ESCALATE_TO_HUMAN`. Only an approved squash merge may close #34, mark M7/Goal complete and publish the final report
+to the user. Deployment is a separate future stage and requires human authorization.
 
-The final committed PR must be docs/evidence only. Sol independently inspects actual screenshots, evidence claims,
-the final diff, cleanup proof and latest-head CI before returning `APPROVED`, `CHANGES_REQUESTED`, `BLOCKED` or
-`ESCALATE_TO_HUMAN`. Only an approved merge may close #107 and parent #33 and unblock I25.
+## 9. Controller activation checkpoint — 2026-08-09
 
-## 12. Controller activation checkpoint — 2026-08-09
-
-I24b/#106 passed latest-head quality and two independent actual-diff Reviews, then PR #109 squash merged as
-`f311d1b`. The I24c branch starts from that exact main. The requested Agent is the exact custom `luna-worker`; its
-configuration is `gpt-5.6-luna` with `max` reasoning. Runtime metadata must be recorded as observed and never inferred
-from configuration. Terra fallback is not authorized.
-
-## 13. Executor evidence checkpoint — 2026-08-09
-
-The executor ran the complete post-cleanup command matrix: `test:beta-acceptance`, root `npm test`, offline
-integration (`55/0`), lint (`0 errors / 9 existing warnings`), typecheck, host WeChat `build:weapp` and
-`git diff --check`; all passed. The `computer-use:computer-use` skill was read in full before the authorized local
-runtime attempt. One bounded discovery plus one app-state/list-apps retry encountered the exact blocker
-`The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock the Mac manually before
-continuing.` No temporary fixture source or screenshot was created. The row-by-row evidence is in
-`docs/beta-acceptance-checklist.md` and the report in `docs/beta-acceptance-report.md`; all DevTools rows remain
-`UNVERIFIED_RUNTIME_TOOL`, and the final diff is docs/evidence only.
-
-## 14. Sol Review-fix round 1 — 2026-08-09
-
-PR #110 exact head `b3ff65e` passed latest-head GitHub `quality`. Two independent actual-evidence Reviews found no
-production, residue, allowlist or GUI-truth defect, but returned `CHANGES_REQUESTED` for three bounded corrections:
-
-1. Replace the placeholder `node -e repeated prepare probe` evidence with a directly runnable, durable artifact under
-   `docs/evidence/i24/` (preferred) or an exact copy-paste command. It must call the existing public offline fixture,
-   assert both responses are `base`, assert distinct server `queryId` values and unchanged trusted route identity,
-   print a clear PASS result, and be executed once. It must not become a second product implementation or alter root
-   tests/package configuration. The checklist must distinguish `test:recovery` evidence for old-result visibility
-   from this probe's evidence for replacement query authority.
-2. Narrow A6's automated `VERIFIED` wording to what the contracts actually prove: candidate/confirmation contract,
-   reducer RESET/token isolation and zero pre-confirm side effects. Actual cancellation followed by form editing is
-   not automatically proven and must remain in R2 as `UNVERIFIED_RUNTIME_TOOL`; do not add production/UI code or
-   claim that observation occurred.
-3. After the correction and complete revalidation, synchronize `GOAL.md`, `docs/current-status.md`, this file, live
-   #107 and parent #33 to `READY_FOR_CONTROLLER_REVIEW`. Record PR #110 and its live latest-head check as the CI fact
-   source. Do not mark I24c, #107, #33, M7 or the Goal complete before Sol approval and merge.
-
-This is Review-fix round 1. The final committed diff remains inside the existing docs/evidence allowlist; temporary
-fixture scope stays unused. Use additive commits only and do not amend, rebase or force push. Rerun the durable probe,
-`npm run test:beta-acceptance`, `npm test`, integration, lint, typecheck, build and diff check; then update PR #110 and
-return `READY_FOR_CONTROLLER_REVIEW`. A repeated evidence-integrity finding after a second bounded round requires
-human escalation under the Goal stop condition.
-
-## 15. Executor Review-fix completion — 2026-08-09
-
-The durable probe now lives at `docs/evidence/i24/repeated-prepare-probe.js` and directly calls the existing public
-offline acceptance fixture. It asserts two `base` responses, distinct server query IDs and unchanged trusted route
-identity, and was executed successfully. The checklist separates this replacement-authority proof from
-`test:recovery`'s old-result visibility proof; A6 is narrowed to candidate/confirmation, RESET/token isolation and
-pre-confirm side effects, while real cancel-followed-by-edit remains runtime `UNVERIFIED_RUNTIME_TOOL`.
-
-The complete Review-fix gate matrix passed. PR #110 and its live latest-head `quality` check remain the CI fact source;
-this task is `READY_FOR_CONTROLLER_REVIEW`. I24c/#107, parent #33, M7 and the Goal remain open and incomplete pending
-Sol approval and merge.
+I24c PR #110 merged as `1bba5f9` after latest-head quality and two independent `APPROVED` Reviews. #107 and parent
+#33 are closed. The I25 branch starts from that exact main. The final Review is Sol-owned; no implementation Agent is
+assigned, and Terra fallback is irrelevant to this read-only/report task.

@@ -1,7 +1,7 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `ACTIVE — M7 I24c READY_FOR_CONTROLLER_REVIEW`
+- Status: `ACTIVE — M7 I25 FINAL_REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
@@ -68,7 +68,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Complete | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
-| M7 Acceptance | Active — I24c ready for controller review | I24–I25 | Full validation, documentation sync and Goal report are complete |
+| M7 Acceptance | Active — I25 final review | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10a's
 official Wutai blocked record remains complete; the former small-pilgrimage full route is superseded,
@@ -77,7 +77,7 @@ closed #22, completing M3. I21 planning PR #90 merged as `c817bbb`; implementati
 `be24b07` and closed #30. I22 planning PR #96 merged as `ac4ba9e`; #94 merged as `6e12f25`; #95 and parent
 #31 closed after PR #98 merged as `852e86d`. I23a/#99 and I23b/#100 then merged through PRs #102/#103 and parent
 #32 closed. I24 planning PR #104 merged as `6869a7b`; I24a PR #108 merged as `1a2f485`; I24b PR #109 merged as
-`f311d1b`. Children #105/#106/#107 remain serial and only I24c/#107 is active.
+`f311d1b`; I24c PR #110 merged as `1bba5f9`, closing #107 and parent #33. I25/#34 is the only active scope.
 
 ## 6. Agent routing
 

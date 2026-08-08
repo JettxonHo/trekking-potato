@@ -1,7 +1,7 @@
 # 徒步薯核心 Beta 测试策略
 
 - Goal: `TP-BETA-001`
-- Status: `APPROVED — M7 I24c evidence package in progress`
+- Status: `APPROVED — M7 I25 final review active`
 - Updated: `2026-08-09`
 
 ## 1. 原则
