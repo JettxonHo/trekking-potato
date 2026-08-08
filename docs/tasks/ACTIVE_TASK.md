@@ -1,14 +1,14 @@
-# ACTIVE TASK — I23a 私人历史保存重试幂等
+# ACTIVE TASK — I23b 前端降级与恢复编排
 
 - Goal: `TP-BETA-001`
 - Parent: `I23 / #32`
-- GitHub Issue: `I23a / #99`; `I23b / #100` remains dependency-blocked
-- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
+- GitHub Issue: `I23b / #100`; I23a/#99 is closed
+- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
-- Branch: `codex/99-history-save-idempotency`
-- Base: `main@a12ab46`
-- Dependency: I19/I22b merged; I23 planning PR #101 merged as `a12ab46`
+- Branch: `codex/100-frontend-recovery`
+- Base: `main@107fab4`
+- Dependency: I23a/#99 merged through PR #102 as `107fab4`
 
 ## 1. Objective and serial split
 
@@ -205,9 +205,9 @@ after spawn; Terra fallback unauthorized.
 ## 6. Activation gate
 
 Planning PR #101 passed latest-head quality and independent actual-diff Review, then squash merged as `a12ab46`.
-I23a/#99 is the only active implementation contract. I23b/#100 stays blocked until I23a passes its own CI, Sol Review
-and merge. The controller activation commit contains only status/routing changes; the executor begins with a clean
-business-code baseline.
+I23a/#99 then passed latest-head quality and independent Sol re-review, merged through PR #102 as `107fab4`, and
+closed. I23b/#100 is now the only active implementation contract. The controller activation commit contains only
+status/routing changes; the executor begins with a clean I23b business-code baseline.
 
 ## Implementation checkpoint — 2026-08-09
 

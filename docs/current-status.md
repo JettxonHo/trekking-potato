@@ -2,19 +2,20 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I23a REVIEW_FIX_ACTIVE`
+- Goal status: `ACTIVE — M6 I23b IMPLEMENTATION_ACTIVE`
 - Active milestone: `M6 Core UX`
-- Active task: `I23a / #99 / REVIEW_FIX_ACTIVE`
-- Branch: `codex/99-history-save-idempotency`
-- Base: `main` at `a12ab46`
+- Active task: `I23b / #100 / IMPLEMENTATION_ACTIVE`
+- Branch: `codex/100-frontend-recovery`
+- Base: `main` at `107fab4`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page — all closed
 - I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
 - I22a implementation PR: `#97` — squash merged as `6e12f25`; GitHub #94 closed
 - I22b implementation PR: `#98` — squash merged as `852e86d`; GitHub #95 and parent #31 closed
-- Assignment: exact custom Agent `luna-worker` is assigned to I23a Review-fix round 1; I23b remains blocked
+- Assignment: exact custom Agent `luna-worker` is assigned to I23b after this controller activation commit
 - I23 planning PR: `#101` — latest-head quality and independent actual-diff Review passed; squash merged as `a12ab46`
+- I23a PR: `#102` — latest-head quality and independent Sol re-review passed; squash merged as `107fab4`; #99 closed
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -146,9 +147,8 @@
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1–M5 and I20–I22 are complete. I22b PR #98 passed latest-head quality, full local DevTools evidence and
-independent Sol Review, squash merged as `852e86d`, and closed #95 plus parent #31. M6 is now at I23/#32
-planning PR open. No implementation Agent is active; I23a history-save idempotency must merge before I23b
-frontend recovery is dispatched.
+independent Sol Review, squash merged as `852e86d`, and closed #95 plus parent #31. I23 planning PR #101 and
+I23a PR #102 are merged. M6 is now at I23b/#100 implementation from `main@107fab4`.
 
 ## Completed
 
@@ -636,15 +636,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Agent assignments
 
 - Sol XHigh: controller, contract owner, independent reviewer and merge authority.
-- `luna-worker`: assigned I23a executor after the controller activation commit; configuration verified as `gpt-5.6-luna` with `max` reasoning.
+- `luna-worker`: assigned I23b executor after the controller activation commit; configuration verified as `gpt-5.6-luna` with `max` reasoning.
 - First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 - Independent Sol XHigh: reserved for the implementation PR Review; no implementation authority.
 
 ## Open work
 
-1. Commit/push the controller I23a activation checkpoint and synchronize live #32/#99.
-2. Dispatch exact `luna-worker` for #99; implement, test and independently Review I23a before activating I23b.
+1. Commit/push the controller I23b activation checkpoint and synchronize live #32/#100.
+2. Dispatch exact `luna-worker` for #100; implement, test and independently Review I23b before closing parent #32.
 
 ## Blockers and risks
 
@@ -675,12 +675,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Changing deterministic verdicts, route/weather facts, minimum gear, source policy, getAdvice phases or the ten states.
 - Adding history replay fields, queryId to cache/history, data migration/index, dependencies, background retry loops,
   public UGC, broad visual redesign, deployment or production configuration.
-- Starting I23b before I23a merge, or expanding #99 beyond its frozen history-save allowlist.
+- Expanding #100 beyond its frozen frontend recovery allowlist or changing the accepted I23a primitive.
 
 ## Next action
 
-Commit and push the controller activation checkpoint, then dispatch only I23a/#99 to exact `luna-worker`.
-The executor cannot approve/merge and Terra remains unauthorized; #100 stays dependency-blocked.
+Commit and push the controller activation checkpoint, then dispatch only I23b/#100 to exact `luna-worker`.
+The executor cannot approve/merge and Terra remains unauthorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
@@ -955,3 +955,15 @@ The executor cannot approve/merge and Terra remains unauthorized; #100 stays dep
 - Required local matrix passes: `npm test`, integration `56/0`, lint (0 errors; 9 existing warnings), typecheck,
   host WeChat `build:weapp`, and `git diff --check`. Additive commit `877cd6c` is pushed; fresh latest-head GitHub
   `quality` passed in 44 seconds (run `31272070159`, job `93139614802`). No production handler change is pending.
+
+## I23a merge / I23b activation checkpoint — 2026-08-09
+
+- PR #102 final head passed latest-head quality and independent Sol re-review returned `APPROVED` with no P0–P3
+  findings. Sol squash merged it as `107fab4` and closed #99.
+- I23a now provides the accepted sequential history-save retry primitive. Its bounded limitation remains explicit:
+  it does not promise simultaneous distributed exactly-once and adds no index, migration, lock, hash or queryId.
+- Active Issue is only #100 on `codex/100-frontend-recovery` from exact `main@107fab4`. The fixed allowlist is the
+  page-local recovery model/reducer/result model/page/CSS, focused tests/package, verification doc and two status docs.
+- Routing before spawn: logical role `IMPLEMENTER`; requested custom Agent `luna-worker`; config
+  `~/.codex/agents/luna-worker.toml`; configured `gpt-5.6-luna` / `max`; configuration status `CONFIG_VERIFIED`;
+  runtime visibility is recorded by the executor. Terra remains unauthorized as an automatic fallback.
