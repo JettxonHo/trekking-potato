@@ -724,11 +724,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Complete the Goal-wide product, architecture, data, privacy, stability, GitHub and documentation audit.
-2. Rerun final gates on `main@1bba5f9`, disclose deployment-stage dependency/runtime risks and resolve docs-only
-   consistency findings without changing production code.
-3. Create the I25 completion-report PR using `Refs #34`; after latest-head quality and independent read-only Reviews,
-   merge only on Sol `APPROVED`, then close #34 and M7 and mark the Goal complete.
+1. Obtain the two independent exact-head final Reviews for docs-only PR #111 and resolve any remaining documentation
+   or live-metadata finding without changing product behavior.
+2. After latest-head quality and both Reviews are `APPROVED`, record the final completion-on-merge state in the same
+   PR, recheck the metadata-only head, and squash merge.
+3. Close #34 and M7 after the approved merge, update local `main`, and publish the Goal completion result. Deployment
+   validation remains a separate, human-authorized stage.
 
 ## Blockers and risks
 
@@ -764,9 +765,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Create one focused I25 draft PR using `Refs #34` from the completed audit/report diff. #34, M7 and TP-BETA-001 remain
-open until latest-head quality and independent final Review approve that PR; deployment and Goal-external #83/#84
-remain outside it.
+Complete the two independent exact-head Reviews of docs-only PR #111. #34, M7 and TP-BETA-001 remain open until an
+approved latest-head merge; deployment and Goal-external #83/#84 remain outside this PR.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
