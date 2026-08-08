@@ -17,6 +17,7 @@ const store = { history: [], routes: [{ _id: 'legacy-route', name: '旧公共路
 let openid = ''
 let nextId = 1
 let failingOperation = null
+let addCalls = 0
 
 function copy(value) {
   return JSON.parse(JSON.stringify(value))
@@ -41,6 +42,7 @@ function historyCollection() {
       return { data: copy(records.slice(0, limit)) }
     },
     async add({ data }) {
+      addCalls += 1
       if (failingOperation === 'add') throw new Error('offline history add')
       const record = { _id: `history-${nextId++}`, ...copy(data) }
       store.history.push(record)
@@ -94,6 +96,7 @@ function reset() {
   store.routes = [{ _id: 'legacy-route', name: '旧公共路线' }]
   nextId = 1
   failingOperation = null
+  addCalls = 0
 }
 
 async function run() {
@@ -129,6 +132,36 @@ async function run() {
   console.log('PASS: private save/list ownership and DTO contract')
 
   reset()
+  openid = 'user-A'
+  const firstAttempt = await history.main({
+    mode: 'save', route: '武功山', date: '2026-08-08', saveAttemptId: ' retry-1 ',
+  }, {})
+  const repeatedAttempt = await history.main({
+    mode: 'save', route: '另一条路线', date: '2026-08-09', saveAttemptId: 'retry-1',
+  }, {})
+  assert(firstAttempt.ok === true && repeatedAttempt.ok === true, 'same save attempt should remain successful on retry')
+  assert(repeatedAttempt.id === firstAttempt.id && store.history.length === 1, 'same owner and saveAttemptId must not add a duplicate')
+  assert(store.history[0].saveAttemptId === 'retry-1' && store.history[0].route === '武功山', 'same owner and saveAttemptId must be first-write-wins')
+
+  openid = 'user-B'
+  const sameIdDifferentOwner = await history.main({
+    mode: 'save', route: '四姑娘山', date: '2026-08-10', saveAttemptId: 'retry-1',
+  }, {})
+  assert(sameIdDifferentOwner.ok === true && sameIdDifferentOwner.id !== firstAttempt.id && store.history.length === 2, 'same saveAttemptId must be independent across owners')
+
+  openid = 'user-A'
+  const differentAttempt = await history.main({
+    mode: 'save', route: '贡嘎', date: '2026-08-11', saveAttemptId: 'retry-2',
+  }, {})
+  assert(differentAttempt.ok === true && differentAttempt.id !== firstAttempt.id && store.history.length === 3, 'different saveAttemptId must create a new record')
+  const idempotentList = await history.main({ mode: 'list' }, {})
+  assert(idempotentList.ok === true && idempotentList.data.length === 2, 'owner list must include each distinct save attempt once')
+  idempotentList.data.forEach((item) => {
+    assert(!('saveAttemptId' in item) && !('_id' in item) && !('_openid' in item) && !('queryId' in item), 'list DTO must hide saveAttemptId and database/context fields')
+  })
+  console.log('PASS: sequential save retry idempotency and private identity boundary')
+
+  reset()
   store.history = [
     { _id: 'history-A', _openid: 'user-A', route: '武功山', date: '2026-08-08', days: 2, level: '中级' },
     { _id: 'history-B', _openid: 'user-B', route: '四姑娘山', date: '2026-08-09', days: 3, level: '老手' },
@@ -158,6 +191,7 @@ async function run() {
   failingOperation = 'add'
   unavailable.push(await history.main({ mode: 'save', route: '武功山', date: '2026-08-08' }, {}))
   failingOperation = 'get'
+  unavailable.push(await history.main({ mode: 'save', route: '武功山', date: '2026-08-08', saveAttemptId: 'lookup-failure' }, {}))
   unavailable.push(await history.main({ mode: 'list' }, {}))
   failingOperation = 'remove'
   unavailable.push(await history.main({ mode: 'delete', id: 'history-A' }, {}))
@@ -176,6 +210,14 @@ async function run() {
   console.log('PASS: storage errors and public UGC tombstones')
 
   const invalidSave = await history.main({ mode: 'save', route: ' ', date: '' }, {})
+  reset()
+  openid = 'user-A'
+  const addCallsBeforeInvalidAttempt = addCalls
+  const invalidAttempt = await history.main({ mode: 'save', route: '武功山', date: '2026-08-08', saveAttemptId: '   ' }, {})
+  assert(invalidAttempt.error === 'invalid_history_input' && invalidAttempt.retryable === false, 'empty saveAttemptId must use the existing non-retryable invalid input envelope')
+  assert(addCalls === addCallsBeforeInvalidAttempt, 'malformed saveAttemptId must be rejected before database add')
+  const tooLongAttempt = await history.main({ mode: 'save', route: '武功山', date: '2026-08-08', saveAttemptId: 'x'.repeat(81) }, {})
+  assert(tooLongAttempt.error === 'invalid_history_input' && addCalls === addCallsBeforeInvalidAttempt, 'overlong saveAttemptId must be rejected before database add')
   const missingId = await history.main({ mode: 'delete' }, {})
   const invalidMode = await history.main({ mode: 'client-secret-mode' }, {})
   for (const result of [invalidSave, missingId, invalidMode]) {

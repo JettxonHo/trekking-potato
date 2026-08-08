@@ -208,3 +208,18 @@ Planning PR #101 passed latest-head quality and independent actual-diff Review, 
 I23a/#99 is the only active implementation contract. I23b/#100 stays blocked until I23a passes its own CI, Sol Review
 and merge. The controller activation commit contains only status/routing changes; the executor begins with a clean
 business-code baseline.
+
+## Implementation checkpoint — 2026-08-09
+
+- TDD RED: before the handler change, `npm run test:history` failed the new same-owner/same-ID sequential retry
+  assertion because the second save added a duplicate record.
+- GREEN: `saveAttemptId` is optional, trimmed, non-empty and limited to 80 characters; malformed supplied IDs
+  return `invalid_history_input` before add. Valid IDs are stored privately and deduplicated by exact server
+  `{_openid, saveAttemptId}` lookup. A sequential repeat returns the first record ID, preserves first-write-wins,
+  keeps same IDs independent across owners and creates distinct IDs normally. Missing IDs keep legacy behavior.
+- Tests now cover the required retry, owner, payload, validation, storage-error and list-DTO boundaries. Required
+  local commands pass: `npm run test:history`, `npm test`, `npm run test:integration` (`56/0`), `npm run lint`
+  (0 errors; 9 existing warnings), `npm run typecheck`, `npm run build:weapp`, and `git diff --check`.
+- Allowlist remains exact: `cloudfunctions/history/index.js`, `scripts/security-test.js`,
+  `docs/current-status.md`, and this file. Status: `READY_FOR_CONTROLLER_REVIEW`; no PR/merge or I23b dispatch
+  has been performed by the executor.

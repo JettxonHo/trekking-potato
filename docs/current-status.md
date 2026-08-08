@@ -917,3 +917,22 @@ The executor cannot approve/merge and Terra remains unauthorized; #100 stays dep
 - Routing before spawn: logical role `IMPLEMENTER`; requested custom Agent `luna-worker`; config
   `~/.codex/agents/luna-worker.toml`; configured model `gpt-5.6-luna`; reasoning `max`; configuration status
   `CONFIG_VERIFIED`; runtime model is recorded by the executor. Terra remains unauthorized as an automatic fallback.
+
+## I23a implementation checkpoint — 2026-08-09
+
+- TDD recorded the required real RED first: the new same-owner/same-`saveAttemptId` sequential retry assertion
+  failed against the pre-change handler with `same owner and saveAttemptId must not add a duplicate`.
+- GREEN is limited to the #99 allowlist. `mode='save'` trims and validates an optional non-empty ID up to 80
+  characters, stores it only on the private record, looks up the exact server `{_openid, saveAttemptId}` pair
+  before add, and returns the first existing record ID without a dedupe marker. Missing IDs retain legacy add;
+  malformed IDs return the existing non-retryable `invalid_history_input` before database add. `list` remains the
+  explicit DTO and never exposes `saveAttemptId`, `_id`, `_openid` or `queryId`; lookup/add failures map to
+  `history_unavailable` without raw errors.
+- Focused GREEN (`npm run test:history`) proves stable same-owner retry IDs, first-write-wins payloads, independent
+  owners, distinct IDs, validation-before-add, lookup/add error mapping, legacy missing-ID behavior and DTO/privacy
+  boundaries. Root `npm test`, integration `56/0`, lint (0 errors; 9 existing warnings), typecheck, host WeChat
+  build and `git diff --check` pass.
+- Actual files changed: `cloudfunctions/history/index.js`, `scripts/security-test.js`, this status document and
+  `docs/tasks/ACTIVE_TASK.md`. No frontend, dependencies, indexes/migrations, queryId, list DTO or production
+  configuration changed. Handoff status: `READY_FOR_CONTROLLER_REVIEW`; focused PR, latest-head CI and Sol Review
+  remain required before I23b is unblocked.
