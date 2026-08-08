@@ -41,7 +41,9 @@ I22b merged through PR #98 as `852e86d`. I23a/I23b merged through PRs #102/#103,
 I24 is split into serial #105 compatibility cleanup, #106 automated acceptance and #107 DevTools verification
 package. #105 is the only active implementation scope; #106/#107 remain blocked until their predecessors merge.
 
-Current verified baselines are route type `91/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
+Current verified baselines are route type `91/0`, weather `86/0`, unit `55/0`, and offline integration `55/0` after
+I24a retires two legacy advice weather/sun checks and replaces them with one structured non-exposure check. The
+GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 
 ## 3. Read first
 
