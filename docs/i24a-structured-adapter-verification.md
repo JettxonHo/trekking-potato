@@ -5,6 +5,7 @@
 - Branch: `codex/105-structured-advice-adapter`
 - Base: `main@6869a7b`
 - Activation head: `6d366fb`
+- Controller baseline correction: `4de1ff2` (GOAL integration-baseline documentation only)
 - Agent: `luna-worker` (`gpt-5.6-luna`, `max`); runtime model metadata: `UNVERIFIED_RUNTIME_MODEL`
 - Status: `READY_FOR_CONTROLLER_REVIEW`
 - Date: `2026-08-09`
@@ -25,6 +26,30 @@ legacy aliases, bounded daily weather, route/source isolation, AI grounding, and
 mutations. `advice-safety-contract-test.js` rejects the old projection input and keeps deterministic facts when
 AI output is invalid or unavailable. `result-page-contract-test.js` exercises full/place/blocked structured
 history derivation, including full highest-point elevation with null coordinates.
+
+## Review-fix RED → GREEN evidence
+
+The review-fix first tightened `core-input-flow-contract-test.js` with a per-call sentinel gear stub. Each full and
+place-only build now proves exactly one gear-rule call and deep-equals both `minimumGear` and `deterministicSafety`
+to that call's sentinel return; blocked builds prove zero calls. An in-memory mutant replacing the deterministic
+rule note with `MUTATED_RULE_NOTE` produced the expected focused RED:
+
+```text
+npm run test:core-input-flow
+FAIL: full deterministicSafety must come from this call's sentinel result
+```
+
+History coverage now runs `captureHistoryContext` and `buildHistorySavePayload` for full, catalog place/builtin,
+manual/user, AMap/amap and blocked snapshots. An in-memory mutant hardcoding `routeTypeSource: 'builtin'` produced
+the expected focused RED at `place/amap` before the source-sensitive assertions were restored:
+
+```text
+AssertionError: place/amap captureHistoryContext must preserve structured source facts
+actual routeTypeSource: builtin; expected: amap
+```
+
+The unused `buildAdviceContext` and `adaptAdviceContext` exports were removed; the adapter exposes only
+`createAdviceContext` (plus its validation/constants used by the contract).
 
 ## Validation matrix
 
@@ -49,10 +74,10 @@ pre-existing warnings and zero errors.
 | `npm run build:weapp` | PASS (`taro build --type weapp`) |
 | `git diff --check` | PASS |
 
-The offline integration count is `55/0` rather than the former `56/0`: one retired assertion for advice
-`photoTiming`/`microclimate` compatibility fields was removed. It was replaced by a mutation-sensitive assertion
-that the advice DTO contains neither weather, sunEvents, photoTiming nor microclimate; no integration path or
-rule threshold was removed.
+The offline integration count is `55/0` rather than the former `56/0`: two retired assertions for advice
+`photoTiming` and `microclimate` compatibility fields were removed, and one combined mutation-sensitive assertion
+was added that the advice DTO contains neither weather, sunEvents, photoTiming nor microclimate. The net count is
+therefore -1; no integration path or rule threshold was removed.
 
 ## Contract outcome
 
@@ -67,6 +92,14 @@ rule threshold was removed.
   non-retryable `query_context_unavailable` path without an LLM call or version detail.
 - Frontend history context uses structured route/source fields: full elevation is the route highest point with null
   coordinates; place-only uses reference elevation/coordinate; blocked uses null elevation/coordinates.
+
+## Controller activation versus executor scope
+
+The controller activation commit `6d366fb` predated executor dispatch and changed `GOAL.md`,
+`docs/development-plan.md`, `docs/current-status.md` and `docs/tasks/ACTIVE_TASK.md`. Controller-only baseline
+correction `4de1ff2` subsequently changed `GOAL.md` to record the corrected integration baseline. Neither commit is
+executor implementation scope. Executor implementation/review-fix commits touch only the exact I24a allowlist;
+the executor did not modify `GOAL.md` or `docs/development-plan.md`.
 
 ## Scope and limitations
 

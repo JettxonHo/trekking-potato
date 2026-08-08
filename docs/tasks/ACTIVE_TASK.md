@@ -124,5 +124,13 @@ The required RED was recorded before `advice-context.js` existed. The implementa
 `beta_base_v2` snapshots, uses a pure bounded structured adapter, projects advice from
 `minimumGear + deterministicSafety + aiOutcome`, and derives history from route/source snapshots. TripContext
 persists `trip_context_v2`; stored v1 records map to the existing non-retryable `query_context_unavailable`
-without an LLM call. Focused and root contracts are green; exact command evidence and the one retired
-integration assertion replacement are recorded in `docs/i24a-structured-adapter-verification.md`.
+without an LLM call. Focused and root contracts are green; exact command evidence and the two-removed/one-added
+integration assertion accounting are recorded in `docs/i24a-structured-adapter-verification.md`.
+
+## Review-fix round 1 checkpoint — 2026-08-09
+
+Controller baseline `4de1ff2` is confirmed and remains outside executor scope. The bounded review fix proves
+per-call deterministic gear provenance (full/place exactly once and blocked zero), covers full/catalog place/manual
+`user`/AMap `amap`/blocked history capture and save projection, removes unused adapter aliases, and records the
+two-removed/one-added integration assertion accounting plus in-memory mutation RED evidence in the verification
+record. No production behavior or non-allowlisted file is changed.

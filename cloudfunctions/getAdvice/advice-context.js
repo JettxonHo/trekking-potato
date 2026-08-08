@@ -193,7 +193,5 @@ module.exports = {
   TRANSITIONAL_ALIASES,
   assertBaseV2,
   createAdviceContext,
-  buildAdviceContext: createAdviceContext,
-  adaptAdviceContext: createAdviceContext,
   summarizeWeather,
 }

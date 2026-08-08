@@ -86,7 +86,7 @@ function fullResult(overrides = {}) {
 function placeResult(weatherSnapshot) {
   return {
     requestSummary: { date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1, climbSupport: null },
-    routeSnapshot: { entityKind: 'place', capability: 'place_only', canonicalName: '测试地点', region: '测试地区', routeType: 'tour', fixedDays: null, referenceElevationM: 0, routeHighestPointElevationM: null, verificationLevel: null, operationalStatus: null, sourceCheckedAt: null },
+    routeSnapshot: { entityKind: 'place', capability: 'place_only', canonicalName: '测试地点', region: '测试地区', routeType: 'tour', fixedDays: null, referenceElevationM: 0, referenceCoordinate: { lat: 1, lon: 2, coordinateSystem: 'GCJ-02' }, routeHighestPointElevationM: null, verificationLevel: null, operationalStatus: null, sourceCheckedAt: null },
     weatherSnapshot,
     deterministicResult: { verdict: null, dataStatus: 'place_only', reasons: [], dataIssues: [{ code: 'place_only_route', retryable: false }] },
     minimumGear: { essential: [], recommended: [], optional: [] },
@@ -201,16 +201,60 @@ function assertCacheChecklistAndHistory() {
   assert.equal(checked[checklistKey('essential', 0)], false)
   assert.deepEqual(toggleChecklist(checked, 'recommended', 1), { 'essential:0': false, 'recommended:1': true })
 
-  const context = captureHistoryContext({ routeSnapshot: { capability: 'place_only', region: '测试地区', referenceElevationM: 0, referenceCoordinate: { lat: 1, lon: 2 }, routeType: 'trek' }, sourceMetadata: { routeTypeSource: 'builtin' }, meta: { elevation: 9999 } })
-  assert.deepEqual(context, { elevation: 0, location: '测试地区', coords: { lat: 1, lon: 2 }, routeType: 'trek', routeTypeSource: 'builtin' })
-  assert.equal(Object.prototype.hasOwnProperty.call(context, 'meta'), false)
-  context.coords.lat = 99
-  assert.equal(context.coords.lat, 99)
+  function assertHistoryProjection(result, expected, label) {
+    const context = captureHistoryContext(result)
+    assert.deepEqual(context, expected, `${label} captureHistoryContext must preserve structured source facts`)
+    assert.equal(Object.prototype.hasOwnProperty.call(context, 'meta'), false, `${label} history context must exclude meta`)
+    const request = result.requestSummary
+    const payload = buildHistorySavePayload({
+      params: { route: result.routeSnapshot.canonicalName, date: request.date, days: request.days, level: request.level },
+      historyContext: context,
+      resultData: { risks: [{ risk: `${label}风险` }], degraded: false, meta: { routeTypeSource: 'builtin', elevation: 9999 } },
+    })
+    assert.equal(payload.elevation, expected.elevation, `${label} history payload elevation must use captured context`)
+    assert.equal(payload.location, expected.location, `${label} history payload location must use captured context`)
+    assert.deepEqual(payload.coords, expected.coords, `${label} history payload coords must use captured context`)
+    assert.equal(payload.routeType, expected.routeType, `${label} history payload route type must use captured context`)
+    assert.equal(payload.routeTypeSource, expected.routeTypeSource, `${label} history payload type source must use captured context`)
+  }
 
-  const fullContext = captureHistoryContext(fullResult())
-  assert.deepEqual(fullContext, { elevation: 0, location: '测试地区', coords: null, routeType: 'trek', routeTypeSource: 'builtin' }, 'full history uses highest-point elevation and null coords')
-  const blockedContext = captureHistoryContext(blockedResult())
-  assert.deepEqual(blockedContext, { elevation: null, location: '测试地区', coords: null, routeType: 'trek', routeTypeSource: 'builtin' }, 'blocked history has null elevation/coords')
+  const full = fullResult()
+  assertHistoryProjection(full, {
+    elevation: 0, location: '测试地区', coords: null, routeType: 'trek', routeTypeSource: 'builtin',
+  }, 'full')
+
+  const place = placeResult({ status: 'available', scope: 'reference_point', source: 'Open-Meteo', data: { days: [] } })
+  assertHistoryProjection(place, {
+    elevation: 0, location: '测试地区', coords: { lat: 1, lon: 2, coordinateSystem: 'GCJ-02' }, routeType: 'tour', routeTypeSource: 'amap',
+  }, 'place/amap')
+
+  const manual = placeResult({ status: 'available', scope: 'reference_point', source: 'Open-Meteo', data: { days: [] } })
+  manual.routeSnapshot = {
+    ...manual.routeSnapshot,
+    canonicalName: '手动地点',
+    routeType: 'trek',
+    referenceElevationM: -20,
+    referenceCoordinate: { lat: 3, lon: 4, coordinateSystem: 'GCJ-02' },
+  }
+  manual.sourceMetadata = { ...manual.sourceMetadata, routeTypeSource: 'user' }
+  assertHistoryProjection(manual, {
+    elevation: -20, location: '测试地区', coords: { lat: 3, lon: 4, coordinateSystem: 'GCJ-02' }, routeType: 'trek', routeTypeSource: 'user',
+  }, 'manual/user')
+
+  const catalogPlace = placeResult({ status: 'available', scope: 'reference_point', source: 'Open-Meteo', data: { days: [] } })
+  catalogPlace.sourceMetadata = { ...catalogPlace.sourceMetadata, routeTypeSource: 'builtin' }
+  assertHistoryProjection(catalogPlace, {
+    elevation: 0, location: '测试地区', coords: { lat: 1, lon: 2, coordinateSystem: 'GCJ-02' }, routeType: 'tour', routeTypeSource: 'builtin',
+  }, 'place/builtin')
+
+  const blocked = blockedResult()
+  assertHistoryProjection(blocked, {
+    elevation: null, location: '测试地区', coords: null, routeType: 'trek', routeTypeSource: 'builtin',
+  }, 'blocked')
+
+  const isolated = captureHistoryContext({ routeSnapshot: { capability: 'place_only', region: '测试地区', referenceElevationM: 0, referenceCoordinate: { lat: 1, lon: 2 }, routeType: 'trek' }, sourceMetadata: { routeTypeSource: 'builtin' }, meta: { elevation: 9999 } })
+  isolated.coords.lat = 99
+  assert.equal(isolated.coords.lat, 99, 'captured coordinates remain an independent copy')
 }
 
 function assertLifecycleAndHistoryOrchestration() {
