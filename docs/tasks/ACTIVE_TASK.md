@@ -3,7 +3,7 @@
 - Goal: `TP-BETA-001`
 - Parent: `I23 / #32`
 - GitHub Issue: `I23a / #99`; `I23b / #100` remains dependency-blocked
-- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
+- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
 - Branch: `codex/99-history-save-idempotency`
@@ -223,3 +223,19 @@ business-code baseline.
 - Allowlist remains exact: `cloudfunctions/history/index.js`, `scripts/security-test.js`,
   `docs/current-status.md`, and this file. Status: `READY_FOR_CONTROLLER_REVIEW`; no PR/merge or I23b dispatch
   has been performed by the executor.
+
+## Sol Review-fix round 1 — 2026-08-09
+
+Verdict: `CHANGES_REQUESTED`; P0/P1 none, no production implementation finding, no human decision.
+
+Only `scripts/security-test.js` plus the two status documents may change unless a new failing test proves a production
+defect. Add behavior evidence for:
+
+1. two same-owner saves without `saveAttemptId` create two records, two distinct IDs and two add calls;
+2. one representative non-string supplied ID returns non-retryable `invalid_history_input` before add;
+3. a sequential duplicate response deep-equals exactly `{ok:true,id:<first id>}` with no dedupe marker;
+4. a valid ID with no existing record followed by add failure returns retryable `history_unavailable` without raw error.
+
+Use additive commits and normal push only. Re-run focused/full gates and latest-head Actions; return
+`READY_FOR_CONTROLLER_REVIEW`. Do not broaden into a format matrix, change the correct handler without a demonstrated
+need, amend/force-push, approve or merge.

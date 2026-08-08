@@ -2,9 +2,9 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I23a IMPLEMENTATION_ACTIVE`
+- Goal status: `ACTIVE — M6 I23a REVIEW_FIX_ACTIVE`
 - Active milestone: `M6 Core UX`
-- Active task: `I23a / #99 / IMPLEMENTATION_ACTIVE`
+- Active task: `I23a / #99 / REVIEW_FIX_ACTIVE`
 - Branch: `codex/99-history-save-idempotency`
 - Base: `main` at `a12ab46`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
@@ -13,7 +13,7 @@
 - I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
 - I22a implementation PR: `#97` — squash merged as `6e12f25`; GitHub #94 closed
 - I22b implementation PR: `#98` — squash merged as `852e86d`; GitHub #95 and parent #31 closed
-- Assignment: exact custom Agent `luna-worker` is assigned to I23a after this controller activation commit; I23b remains blocked
+- Assignment: exact custom Agent `luna-worker` is assigned to I23a Review-fix round 1; I23b remains blocked
 - I23 planning PR: `#101` — latest-head quality and independent actual-diff Review passed; squash merged as `a12ab46`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
@@ -934,5 +934,8 @@ The executor cannot approve/merge and Terra remains unauthorized; #100 stays dep
   build and `git diff --check` pass.
 - Actual files changed: `cloudfunctions/history/index.js`, `scripts/security-test.js`, this status document and
   `docs/tasks/ACTIVE_TASK.md`. No frontend, dependencies, indexes/migrations, queryId, list DTO or production
-  configuration changed. Handoff status: `READY_FOR_CONTROLLER_REVIEW`; focused PR, latest-head CI and Sol Review
-  remain required before I23b is unblocked.
+  configuration changed. Draft PR #102 exists and its live latest-head check is the CI fact source.
+- Sol Review returned `CHANGES_REQUESTED` with no P0/P1 and no production implementation finding. Round 1 is limited
+  to four test-sensitivity gaps: explicit missing-ID legacy double-add, a representative non-string invalid ID,
+  exact duplicate response shape without a dedupe flag, and valid-ID lookup followed by add-failure error mapping.
+  Controller owns PR/status description cleanup. No third-party, migration, index or business change is authorized.
