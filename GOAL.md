@@ -1,7 +1,7 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `ACTIVE — M7 I25 READY_FOR_CONTROLLER_REVIEW`
+- Status: `COMPLETE — CODE_READY`（approved PR #111 merge 生效）
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
@@ -40,7 +40,8 @@ I21's dependency was satisfied and its public cutover is merged through PR #93. 
 `ac4ba9e`; I22a PR #97 passed latest-head quality and independent Sol Review, merged as `6e12f25`, and closed #94.
 I22b merged through PR #98 as `852e86d`. I23a/I23b merged through PRs #102/#103, completing the recovery flow.
 I24's serial #105 compatibility cleanup, #106 automated acceptance and #107 DevTools evidence package are complete.
-I25/#34 is the only active scope; it changes no production behavior and decides the code-ready Goal verdict.
+I25/#34 completed the Goal-wide Review with two independent `APPROVED` results and no P0–P3 finding. Its docs-only
+PR #111 makes the code-ready completion verdict effective when merged.
 
 Current verified baselines are route type `91/0`, weather `86/0`, unit `55/0`, and offline integration `55/0` after
 I24a retires two legacy advice weather/sun checks and replaces them with one structured non-exposure check. The
@@ -66,7 +67,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Complete | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
-| M7 Acceptance | Active — I25 ready for final approval | I24–I25 | Full validation, documentation sync and Goal report are complete |
+| M7 Acceptance | Complete on PR #111 merge | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10a's
 official Wutai blocked record remains complete; the former small-pilgrimage full route is superseded,

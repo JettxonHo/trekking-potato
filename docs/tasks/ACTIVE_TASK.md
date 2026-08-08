@@ -2,7 +2,7 @@
 
 - Goal: `TP-BETA-001`
 - GitHub Issue: `I25 / #34`
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / FINAL_REVIEW`
+- Status/Mode: `APPROVED — COMPLETE_ON_MERGE / FINAL_REVIEW_COMPLETE`
 - Controller and reviewer of record: Sol XHigh
 - Branch: `codex/34-goal-final-review`
 - Base: `main@1bba5f9`
@@ -135,3 +135,10 @@ M3/M6 milestones were closed while M7 remains open for #34. Final local gates pa
 `docs/goal-completion-report.md` records the code-ready verdict, dependency advisories, unavailable runtime rows,
 Goal-external #83/#84 and deployment-stage follow-ups. The task is ready for its focused PR, latest-head quality and
 independent final report Review; it is not complete or deploy-authorized yet.
+
+## 11. Final approval checkpoint — 2026-08-09
+
+PR #111 passed latest-head quality. Two independent exact-head Reviews returned `APPROVED` with P0–P3 none after
+the only lifecycle-metadata finding was fixed. This final docs-only status commit makes I25, M7 and TP-BETA-001
+complete when the approved PR merges. Sol then closes #34 and M7; no deployment, production or real-beta authority
+is created by that merge.

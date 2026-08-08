@@ -2,11 +2,11 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M7 I25 READY_FOR_CONTROLLER_REVIEW`
-- Active milestone: `M7 Acceptance`
-- Active task: `I25 / #34 / READY_FOR_CONTROLLER_REVIEW`
-- Branch: `codex/34-goal-final-review`
-- Base: `main` at `1bba5f9`
+- Goal status: `COMPLETE — CODE_READY`（approved PR #111 merge 生效）
+- Active milestone: `M7 Acceptance — COMPLETE_ON_MERGE`
+- Active task: `I25 / #34 / APPROVED — CLOSE_ON_MERGE`
+- Completion source: docs-only PR #111 from `codex/34-goal-final-review`
+- Review baseline: `main@1bba5f9`; completion state enters `main` through PR #111
 - I24c completion / I25 activation checkpoint (2026-08-09): PR #110 exact head `bfb9f43` passed latest-head
   GitHub `quality`; two independent final Reviews returned `APPROVED` with P0–P3 none. Sol squash merged it as
   `1bba5f9`, then closed #107 and parent #33. The durable checklist truthfully retains DevTools rows as
@@ -18,6 +18,10 @@
   M3/M6 stale GitHub milestones were closed; M7 remains open only for #34. The completion report discloses
   `UNVERIFIED_RUNTIME_TOOL` rows, transitive dependency advisories and Goal-external #83/#84 instead of expanding
   I25 into implementation, dependency upgrades or deployment.
+- I25 final Review checkpoint (2026-08-09): PR #111 latest-head quality passed. Product/frontend/evidence and
+  architecture/data/privacy exact-head Reviews both returned `APPROVED` with P0–P3 none after the single lifecycle
+  metadata finding was closed. This final status commit changes no behavior; its approved merge makes the report,
+  M7 and TP-BETA-001 completion state effective, after which #34 and M7 are closed.
 - I24b completion / I24c activation checkpoint (2026-08-09): PR #109 review-fix head `59f7a18` and controller
   status head `28db822` passed latest-head GitHub `quality`; two independent actual-diff Reviews returned
   `APPROVED` with P0–P3 none. Sol squash merged the PR as `f311d1b` and closed #106. I24c/#107 is now the only
@@ -724,12 +728,11 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Obtain the two independent exact-head final Reviews for docs-only PR #111 and resolve any remaining documentation
-   or live-metadata finding without changing product behavior.
-2. After latest-head quality and both Reviews are `APPROVED`, record the final completion-on-merge state in the same
-   PR, recheck the metadata-only head, and squash merge.
-3. Close #34 and M7 after the approved merge, update local `main`, and publish the Goal completion result. Deployment
-   validation remains a separate, human-authorized stage.
+1. Confirm latest-head quality and focused metadata Review for the completion-on-merge commit, then squash merge
+   docs-only PR #111.
+2. Close #34 and M7 after the merge, update local `main`, and publish the Goal completion result.
+3. Treat dependency reachability, normal DevTools R1–R3, staging CloudBase/API and device/user testing as a new,
+   separately human-authorized deployment-validation stage.
 
 ## Blockers and risks
 
@@ -765,8 +768,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Complete the two independent exact-head Reviews of docs-only PR #111. #34, M7 and TP-BETA-001 remain open until an
-approved latest-head merge; deployment and Goal-external #83/#84 remain outside this PR.
+Run latest-head quality and focused metadata recheck for docs-only PR #111, then squash merge. Immediately after the
+merge, close #34 and M7 and publish the code-ready result; deployment and Goal-external #83/#84 remain outside it.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

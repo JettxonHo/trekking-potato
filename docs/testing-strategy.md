@@ -1,7 +1,7 @@
 # 徒步薯核心 Beta 测试策略
 
 - Goal: `TP-BETA-001`
-- Status: `APPROVED — M7 I25 ready for controller review`
+- Status: `COMPLETE — TP-BETA-001 CODE_READY`
 - Updated: `2026-08-09`
 
 ## 1. 原则

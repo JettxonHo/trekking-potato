@@ -3,7 +3,7 @@
 - Goal: `TP-BETA-001`
 - Review scope: I01–I25、替代任务 #77、相关父子 Issues、合并 PR、最终 `main` 门禁与长期文档
 - Review baseline: `main@1bba5f9`
-- Report status: `READY_FOR_CONTROLLER_REVIEW`
+- Report status: `APPROVED`；两位独立 exact-head Review 均无 P0–P3，PR #111 merge 生效
 - Verdict: `APPROVED_FOR_CODE_READY_CLOSED_BETA`，在本报告 PR 通过 latest-head quality、最终 Review 并合并后生效
 - Boundary: 代码闭测就绪；不代表已部署、已连接生产 CloudBase、已完成真机验证或真实用户闭测
 

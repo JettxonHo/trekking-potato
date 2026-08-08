@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M7 I25 READY_FOR_CONTROLLER_REVIEW`
+- Status: `COMPLETE — TP-BETA-001 CODE_READY`（PR #111 merge 生效）
 - Updated: `2026-08-09`
 
 ## 1. 依赖图
