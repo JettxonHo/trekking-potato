@@ -21,8 +21,9 @@
 - Required local commands pass: `npm run test:beta-acceptance`, `npm test`, `npm run test:integration` (`55/0`),
   `npm run lint` (0 errors / 9 existing warnings), `npm run typecheck`, `npm run build:weapp` and `git diff --check`.
 - No production defect or contract ambiguity was exposed. Evidence: `docs/i24b-beta-acceptance-verification.md`.
-- The executor is `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh must inspect the actual diff, create/review the focused
-  draft PR (`Refs #106`) and decide mergeability. I24c/#107 remains blocked until that merge.
+- The executor is `READY_FOR_CONTROLLER_REVIEW`; draft PR #109 exists at exact review-fix head `59f7a18` and passed
+  latest-head quality. Sol XHigh must inspect that actual diff, complete independent Review and decide mergeability.
+  I24c/#107 remains blocked until the approved merge.
 
 ## 1. Goal and user value
 
@@ -199,6 +200,6 @@ finding after two rounds requires human escalation under the Goal stop condition
   forged client facts have no authority. No production behavior, route data, dependency, CI or existing test changed.
 - Current modified allowlist files: `scripts/beta-acceptance-contract-test.js`, `scripts/fixtures/beta-acceptance.js`,
   `docs/i24b-beta-acceptance-verification.md`, `docs/current-status.md`, `docs/tasks/ACTIVE_TASK.md`.
-- Full required command matrix, allowlist/diff self-check and focused mutation assertions pass. Next: create an
-  additive commit and normal push, then hand the clean branch to Sol for independent Review. Do not approve or merge
-  this PR.
+- Full required command matrix, allowlist/diff self-check and focused mutation assertions pass. Additive review-fix
+  commit `59f7a18` was normally pushed to draft PR #109 and latest-head quality passed. The clean branch is handed to
+  Sol for final independent Review and merge judgment; the executor did not approve or merge.

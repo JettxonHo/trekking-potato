@@ -45,7 +45,8 @@
   empty/out-of-window hours, request mismatch and lost deterministic gear/risk/note facts. Full command matrix,
   additive commit and controller handoff are now ready. `npm test`, integration `55/0`, lint (0 errors / 9 existing
   warnings), typecheck, host WeChat build and `git diff --check` pass. No production defect or contract ambiguity was
-  exposed; Sol XHigh must perform independent Review and decide mergeability.
+  exposed. Additive commit `59f7a18` is pushed to draft PR #109 and latest-head quality passed; Sol XHigh must finish
+  independent Review and decide mergeability.
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page — all closed
@@ -685,8 +686,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Complete I24b PR #109 Review-fix round 1 within the existing test/fixture/document allowlist, then rerun
-   latest-head quality and two independent focused Reviews.
+1. Complete final independent focused Review of PR #109 exact head `59f7a18`; merge only if no P0–P3 finding remains.
 2. If review exposes a production behavior defect, keep the acceptance RED evidence and create a separate focused Bug
    Issue/PR; do not expand I24b.
 3. After I24b merges, activate I24c/#107; do not run the two children in parallel.
@@ -725,9 +725,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Return PR #109 to exact `luna-worker` for bounded Review-fix round 1. After additive commit, latest-head quality and
-two independent `APPROVED` Reviews, Sol may merge and unblock #107. The executor cannot approve or merge;
-I24c/#107 remains blocked and Terra remains unauthorized.
+PR #109 review-fix head `59f7a18` and latest-head quality are complete. Finish independent re-review, record Sol's
+verdict and merge only on `APPROVED`; then close #106 and activate #107. The executor cannot approve or merge;
+I24c/#107 remains blocked until that merge and Terra remains unauthorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
