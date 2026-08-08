@@ -2,13 +2,13 @@
 
 - Updated: `2026-08-08`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I21 IMPLEMENTATION_ACTIVE`
+- Goal status: `ACTIVE — M6 I21 REVIEW_FIX_ROUND_2`
 - Active milestone: `M6 Core UX`
-- Active task: `I21 / #30 / IMPLEMENTATION_ACTIVE`
+- Active task: `I21 / #30 / REVIEW_FIX_ACTIVE — ROUND_2`
 - Branch: `codex/30-core-input-flow`
 - Base: `main` at `c817bbb`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
-- Assignment: `luna-worker` implements the frozen contract; Sol XHigh owns independent Review and merge authority
+- Assignment: `luna-worker` performs the bounded round-2 test repair; Sol XHigh owns independent Review and merge authority
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -670,9 +670,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Dispatch the frozen #30 contract to the runtime-verified exact custom Agent `luna-worker` on
-`codex/30-core-input-flow` and begin the required TDD loop. Do not start I22/I23 before I21 is accepted;
-do not automatically route implementation to Terra.
+Complete the bounded I21 Review-fix round 2 on `codex/30-core-input-flow`, rerun every required gate and
+return to independent Sol Review. If the same frozen acceptance still fails after this round, stop local
+patching and escalate to the human. Do not start I22/I23 before I21 is accepted; do not automatically route
+implementation to Terra.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
@@ -715,7 +716,19 @@ do not automatically route implementation to Terra.
     compatibility risk; response covers full weather, blocked/place base and AI immutability.
 - Validation after fixes: focused I21 contracts, `npm test`, offline integration `56/0`, lint
   (0 errors; existing warnings only), typecheck, host Taro 4.0.9 `build:weapp`, and diff check pass.
-- Current status: `REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`. Additive commit `4171d35`
-  is pushed to PR #93; latest-head Actions `quality` run `31258001426` passed in 42s. Sol XHigh
+- Round-1 result: additive commits `4171d35` and `4827c09` are pushed to PR #93. Latest-head quality passed,
+  but independent Sol re-review requested one bounded P2 test-evidence round. GitHub PR check is the current
+  CI fact source; do not persist a run ID that becomes stale after the next documentation commit. Sol XHigh
   remains the only approver and merge authority. `GOAL.md` and `docs/development-plan.md` activation
   changes from `fac56d0` remain Sol-owned and are outside the Luna allowlist.
+
+## I21 REVIEW_FIX round 2 checkpoint — 2026-08-08
+
+- Status: `REVIEW_FIX_ACTIVE — ROUND_2`; base head `4827c09`; additive commits only.
+- Remaining work: complete public zero-side-effect snapshots, representative manual backend negatives,
+  three-capability gear projection equality, both UI manual-elevation request paths, the stale route-type
+  fallback assertion and final status synchronization.
+- Contract expansion: Sol added `scripts/route-type-contract-test.js` only for the exact stale test correction;
+  no production route-type scope was added.
+- Stop rule: if the same frozen acceptance remains unsatisfied after round 2, escalate to the human instead
+  of beginning a third local repair round.

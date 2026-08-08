@@ -3,8 +3,8 @@
 - Task ID: `I21`
 - GitHub Issue: `#30`
 - Title: 实现搜索、确认与行程输入流程
-- Status: `IMPLEMENTATION_ACTIVE`
-- Mode: `IMPLEMENTATION`
+- Status: `REVIEW_FIX_ACTIVE — ROUND_2`
+- Mode: `REVIEW_FIX`
 - Owner: Sol XHigh
 - Implementation Agent: `luna-worker`
 - Planning branch: `codex/i21-core-flow-contract`
@@ -59,9 +59,11 @@ I13 PR #89 已合并为 `c5d7d7c`，I14/I16/I17–I20 均已完成，依赖已�
 13. `package.json`
 14. `docs/current-status.md`
 15. `docs/tasks/ACTIVE_TASK.md`
+16. `scripts/route-type-contract-test.js`（仅 REVIEW_FIX round 2 更正 `route_not_found` 手动兜底的过时断言与文案）
 
 本任务跨前后端与可信快照，文件数超过通常拆分信号是原子协议切换的必要结果，不是放宽范围。
-若实际实现需要 `prompt.js`、`safety-advice.js`、history、service、reducer 或其他文件，先停止并由 Sol
+第 16 项是 Sol 在 round 2 前批准的精确测试合同扩展，不授权修改生产路线类型逻辑。若实际实现需要
+`prompt.js`、`safety-advice.js`、history、service、reducer 或其他文件，先停止并由 Sol
 更新合同；不得自行扩大 allowlist。
 
 ## 4. 固定公共请求与响应
@@ -339,3 +341,21 @@ git diff --check
   run `31258001426` 于 42s GREEN。剩余仅为 Sol 独立 Review。
 - 状态：`REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`。不得自行批准或合并；收到 Sol
   verdict 后再按其结果处理。
+
+## 14. REVIEW_FIX round 2（2026-08-08）
+
+- 起点：PR #93 / head `4827c09`。Round 1 复审已关闭全部 P0/P1；剩余为测试辨别力和状态一致性，
+  结论 `CHANGES_REQUESTED`。这是合并前最后一个常规修复轮；若本轮后仍不能满足同一冻结验收，
+  停止继续局部修补并升级人工。
+- 精确任务：
+  1. 为 invalid date/time/level/days/support/manual、`route_not_found` 与 confirmation 建立可复用的
+     公共副作用快照，至少覆盖 HTTP/elevation、TripContext 写入和 LLM 调用；不做输入笛卡尔积。
+  2. 补代表性 manual string、NaN/Infinity 和经纬度边界负例，并证明零副作用。
+  3. 对 full/place-only/blocked 逐一断言 `minimumGear` 与兼容 `gearRules` 三个装备数组一致。
+  4. 证明 `onSubmit` 手动分支和 `onManualSubmit` 都把解析后的 0/负海拔传给 `_submitBase`，并证明
+     service payload 保留 0/负值；不得只测 parser。
+  5. 在新增允许文件 `scripts/route-type-contract-test.js` 中把“仅 location_failed”更正为
+     `location_failed` 与 `route_not_found`，使移除任一路径都会失败。
+  6. 同步顶部状态和检查点。GitHub PR check 是 latest-head CI 的事实源，文档不再写会因后续文档
+     提交而立即过期的 run ID。
+- 过程：只允许在 `4827c09` 上追加提交；禁止 amend、rebase、force push 或 force-with-lease。
