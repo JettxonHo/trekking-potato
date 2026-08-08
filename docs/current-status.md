@@ -847,3 +847,16 @@ dispatch only #95 to exact `luna-worker`. The executor must not approve or merge
   four fixture screenshots under `docs/evidence/i22/`.
 - Handoff: `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER`; Sol XHigh owns independent review, CI interpretation,
   approval and merge. I23/retry/recovery remains blocked and untouched.
+
+## I22b REVIEW_FIX round 1 checkpoint — 2026-08-08
+
+- PR #98 review P1s are addressed additively on the same branch. The root `npm test` now runs
+  `test:result-page`; a temporary mutation showed the pre-fix root command missed that contract (root exit 0 versus
+  focused exit 1), then GREEN was restored.
+- `result-page-model.js` exposes a small executable checklist/history orchestration seam, and `index.jsx` calls it
+  for base receipt, advice lifecycle, return/cache resets and history DTO construction. The fixture covers same
+  base/query retention, different base/query reset, onBack/cache restore reset, success/degraded single-save
+  intents, context-unavailable zero-save and five-field history isolation from advice/meta.
+- Mac locked remains the independent visual blocker; four screenshots are still intentionally absent and status is
+  `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER`. No backend, schema, dependency, service, reducer-state or
+  retry/recovery files changed.

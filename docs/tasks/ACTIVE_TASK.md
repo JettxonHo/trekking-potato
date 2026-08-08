@@ -164,3 +164,17 @@ focused PR. Return `READY_FOR_CONTROLLER_REVIEW`; do not approve or merge.
   before continuing.` Four screenshot files are intentionally absent and must be captured on an unlocked Mac.
 - Handoff status: `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER`. Sol XHigh retains review, approval and merge
   authority; I23/retry work remains out of scope.
+
+## 11. I22b REVIEW_FIX round 1 — 2026-08-08
+
+- Review requested root-test coverage and executable checklist/history orchestration evidence. A temporary throw
+  mutation proved the old root `npm test` exited 0 while focused `npm run test:result-page` exited 1; the mutation was
+  removed and the root command now executes the focused contract.
+- The page now calls a bounded pure lifecycle seam for base/query identity, same-query advice events, return/cache
+  resets, and a history payload/outcome seam. No second trip-flow state machine, reducer state count, history schema,
+  service payload, queryId behavior or retry/recovery behavior changed.
+- Focused fixture asserts same base/query advice started/succeeded/failed/context-unavailable preserves checklist;
+  different base/queryId, onBack/return and cache restore reset it; success and ordinary degraded create one save
+  intent each; context-unavailable creates none; forged advice/meta cannot change the captured five-field DTO.
+- Visual evidence remains `UNVERIFIED_RUNTIME_TOOL` with the exact Mac locked blocker; no screenshots or production
+  mock switch were added. Handoff remains `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER` pending controller review.

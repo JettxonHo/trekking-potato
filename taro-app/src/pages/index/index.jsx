@@ -11,9 +11,13 @@ const { createGetAdviceService } = require('./get-advice-service')
 const {
   RESULT_CACHE_KEY,
   RESULT_CACHE_VERSION,
+  applyChecklistLifecycleEvent,
+  buildHistorySavePayload,
   buildResultPageModel,
   captureHistoryContext,
   checklistKey,
+  createChecklistLifecycle,
+  historyResultForAdviceOutcome,
   mergeAdviceResult,
   normalizeCachedResult,
   toggleChecklist,
@@ -106,6 +110,9 @@ export default class Index extends Component {
     gearChecked: {},
   }
 
+  // Page-local checklist projection; trip-flow remains the only query state machine.
+  _checklistLifecycle = createChecklistLifecycle()
+
   componentDidMount() {
     const d = new Date()
     const y = d.getFullYear()
@@ -119,6 +126,7 @@ export default class Index extends Component {
       const cached = Taro.getStorageSync(CACHE_KEY)
       const restoredResult = cached && cached.version === CACHE_VERSION ? normalizeCachedResult(cached.result) : null
       if (cached && cached.cachedAt && (Date.now() - cached.cachedAt < CACHE_TTL) && restoredResult && cached.form) {
+        this._applyChecklistLifecycle({ type: 'cache_restore' })
         // 缓存的日期若已过期（跨天场景），回填为今天
         const restoreDate = this._isDateExpired(cached.form.date) ? todayStr : cached.form.date
         // TP-P0-003 REVIEW_FIX：只有缓存明确标记 manualContextActive === true
@@ -158,10 +166,15 @@ export default class Index extends Component {
     }
   }
 
+  _applyChecklistLifecycle(event, syncState = false) {
+    this._checklistLifecycle = applyChecklistLifecycleEvent(this._checklistLifecycle, event)
+    if (syncState) this.setState({ gearChecked: this._checklistLifecycle.checked })
+  }
+
   _clearResultLocalState() {
     this._historyContext = null
     this._baseHistoryRisks = []
-    this.setState({ gearChecked: {} })
+    this._applyChecklistLifecycle({ type: 'return_to_search' }, true)
   }
 
   onRouteInput = (e) => {
@@ -489,6 +502,7 @@ export default class Index extends Component {
     // it is never rendered, cached or merged with advice.
     this._historyContext = captureHistoryContext(base)
     this._baseHistoryRisks = baseSafetyResult.risks
+    this._applyChecklistLifecycle({ type: 'base_received', queryId, baseRef: base }, true)
     const baseResult = {
         requestSummary: base.requestSummary,
         routeSnapshot: base.routeSnapshot,
@@ -498,12 +512,13 @@ export default class Index extends Component {
         sourceMetadata: base.sourceMetadata,
         ai: { status: 'loading' },
     }
-    this.setState({ gearChecked: {}, historySaveError: null })
+    this.setState({ historySaveError: null })
     this._updateTripFlow({ type: 'BASE_RECEIVED', token: generation, result: baseResult, queryId }, null, (flow) => {
       if (this._unmounted || flow.token !== generation || flow.status !== 'base_ready') return
       this._saveCache(generation)
       this._updateTripFlow({ type: 'ADVICE_STARTED', token: generation }, null, (adviceFlow) => {
         if (this._unmounted || adviceFlow.token !== generation || adviceFlow.status !== 'advice_loading') return
+        this._applyChecklistLifecycle({ type: 'advice_started' })
         this._adviceSteps = ['薯仔正在分析天气窗口...', '薯仔正在匹配装备清单...', '薯仔正在评估风险等级...', '薯仔正在生成行前建议...']
         this._adviceStepIdx = 0
         this._adviceStepTimer = setInterval(() => {
@@ -522,7 +537,7 @@ export default class Index extends Component {
     this._unmounted = false
     this._historyContext = null
     this._baseHistoryRisks = []
-    this.setState({ gearChecked: {} })
+    this._applyChecklistLifecycle({ type: 'return_to_search' }, true)
     const status = this.state.tripFlow.status
     const type = ['awaiting_confirmation', 'awaiting_route_type', 'error'].indexOf(status) >= 0
       ? 'BEGIN_PREPARE'
@@ -602,6 +617,7 @@ export default class Index extends Component {
         }
         const result = outcome.result
         if (result && result.phase === 'error' && result.code === 'query_context_unavailable') {
+          this._applyChecklistLifecycle({ type: 'context_unavailable' })
           this._updateTripFlow({
             type: 'CONTEXT_UNAVAILABLE',
             token: generation,
@@ -613,13 +629,11 @@ export default class Index extends Component {
           const d = result.data
           const degraded = result.degraded === true
           const base = this.state.tripFlow.result
+          this._applyChecklistLifecycle({ type: 'advice_succeeded' })
           const mergedResult = mergeAdviceResult(base, d, degraded)
           this._updateTripFlow({ type: 'ADVICE_SUCCEEDED', token: generation, result: mergedResult, degraded }, { funnyMsg: '', daysBounce: false }, (flow) => {
             if (this._unmounted || flow.token !== generation || ['complete', 'degraded'].indexOf(flow.status) < 0) return
-            const historyResult = {
-              risks: d.risks || [],
-              degraded,
-            }
+            const historyResult = historyResultForAdviceOutcome('success', { adviceData: d, degraded })
             this._saveCache(generation)
             this._saveHistory(historyParams, historyResult, generation)
           })
@@ -634,6 +648,7 @@ export default class Index extends Component {
   }
 
   _finishDegradedAdvice(token, historyParams, error) {
+    this._applyChecklistLifecycle({ type: 'advice_failed' })
     const base = this.state.tripFlow.result
     const result = {
       ...base,
@@ -647,10 +662,7 @@ export default class Index extends Component {
     }
     this._updateTripFlow({ type: 'ADVICE_FAILED', token, result, error }, { funnyMsg: '', daysBounce: false }, (flow) => {
       if (this._unmounted || flow.token !== token || flow.status !== 'degraded') return
-      const historyResult = {
-        risks: this._baseHistoryRisks || [],
-        degraded: true,
-      }
+      const historyResult = historyResultForAdviceOutcome('degraded', { baseRisks: this._baseHistoryRisks })
       this._saveCache(token)
       this._saveHistory(historyParams, historyResult, token)
     })
@@ -662,9 +674,11 @@ export default class Index extends Component {
   }
 
   onGearToggle = (category, index) => {
-    this.setState((previous) => ({
-      gearChecked: toggleChecklist(previous.gearChecked, category, index),
-    }))
+    this.setState((previous) => {
+      const gearChecked = toggleChecklist(previous.gearChecked, category, index)
+      this._checklistLifecycle = { ...this._checklistLifecycle, checked: gearChecked }
+      return { gearChecked }
+    })
   }
 
   // ===== 结果缓存 =====
@@ -699,30 +713,25 @@ export default class Index extends Component {
   // ===== 历史记录 =====
   _saveHistory(params, resultData) {
     const token = arguments[2]
-    const historyContext = this._historyContext || {}
-    const meta = historyContext // private history context alias; never result.meta/advice meta
-    const risks = resultData.risks || []
-    const summary = risks.length > 0
-      ? risks[0].risk + (risks.length > 1 ? ' 等' + risks.length + '项风险' : '')
-      : (resultData.degraded ? 'AI 降级·基础参考' : '无重大风险')
+    const meta = this._historyContext || {}
+    // Compatibility adapter only: this object is the private five-field
+    // historyContext, never result.meta or advice meta.
+    const historyContext = {
+      elevation: meta.elevation,
+      location: meta.location,
+      coords: meta.coords,
+      routeType: meta.routeType,
+      routeTypeSource: meta.routeTypeSource,
+    }
+    const historyPayload = buildHistorySavePayload({
+      params,
+      resultData,
+      historyContext,
+    })
 
     Taro.cloud.callFunction({
       name: 'history',
-      data: {
-        mode: 'save',
-        route: params.route,
-        date: params.date,
-        days: params.days,
-        level: params.level,
-        elevation: meta.elevation,
-        location: meta.location,
-        coords: meta.coords,
-        // TP-P0-003：历史记录保存路线类型与来源
-        routeType: meta.routeType,
-        routeTypeSource: meta.routeTypeSource,
-        summary,
-        degraded: resultData.degraded === true,
-      },
+      data: historyPayload,
       success: (res) => {
         if (this._unmounted || this.state.tripFlow.token !== token) return
         const result = res.result

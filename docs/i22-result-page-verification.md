@@ -46,3 +46,19 @@ visual acceptance. Build success below is not visual evidence.
 - `npm run typecheck` — PASS
 - `npm run build:weapp` — PASS (host build)
 - `git diff --check` — PASS
+
+## REVIEW_FIX round 1 evidence
+
+- Root-test mutation probe: a temporary throw at the top of `scripts/result-page-contract-test.js` left `npm test`
+  green (`exit 0`), while `npm run test:result-page` failed on that throw (`exit 1`). This proves the old root
+  command omitted the structured result-page contract.
+- GREEN repair: root `test` now ends with `npm run test:result-page`; with the mutation removed, both root `npm test`
+  and the focused command execute and pass the result-page contract.
+- The executable page-local lifecycle seam is `createChecklistLifecycle`/`applyChecklistLifecycleEvent`. Its fixture
+  applies advice started/succeeded/failed/context-unavailable to one base/query and preserves checked items; a
+  different base, different queryId, return-to-search or cache restore clears them. The page calls this seam on
+  actual base/advice/reset/cache paths; Trip-flow remains the only query state machine.
+- `historyResultForAdviceOutcome` produces exactly two write intents for success and ordinary degraded outcomes and
+  `null` for context-unavailable. `buildHistorySavePayload` is the page's actual history DTO seam and reads only
+  the captured elevation/location/coords/routeType/routeTypeSource; forged advice/meta values are ignored by the
+  fixture.

@@ -479,6 +479,77 @@ function toggleChecklist(state, category, index) {
   return { ...current, [key]: current[key] !== true }
 }
 
+/**
+ * Small page-local lifecycle seam. Trip-flow remains the authority for query
+ * states; this projection only decides whether the checklist survives a
+ * result/advice event and remembers the current base identity without hashing.
+ */
+function createChecklistLifecycle() {
+  return { queryId: null, baseRef: null, checked: {} }
+}
+
+function applyChecklistLifecycleEvent(state, event = {}) {
+  const current = isRecord(state) ? state : createChecklistLifecycle()
+  const type = event && event.type
+  if (type === 'base_received') {
+    const sameBase = current.queryId === event.queryId && current.baseRef === event.baseRef
+    return {
+      queryId: event.queryId === undefined ? null : event.queryId,
+      baseRef: event.baseRef === undefined ? null : event.baseRef,
+      checked: sameBase ? clone(current.checked) : {},
+    }
+  }
+  if (type === 'return_to_search' || type === 'cache_restore') {
+    return createChecklistLifecycle()
+  }
+  return {
+    queryId: current.queryId === undefined ? null : current.queryId,
+    baseRef: current.baseRef === undefined ? null : current.baseRef,
+    checked: clone(current.checked) || {},
+  }
+}
+
+function historyResultForAdviceOutcome(outcome, { adviceData, baseRisks, degraded } = {}) {
+  if (outcome === 'context_unavailable') return null
+  if (outcome === 'success') {
+    return {
+      risks: adviceData && Array.isArray(adviceData.risks) ? clone(adviceData.risks) : [],
+      degraded: degraded === true,
+    }
+  }
+  if (outcome === 'degraded') {
+    return {
+      risks: Array.isArray(baseRisks) ? clone(baseRisks) : [],
+      degraded: true,
+    }
+  }
+  return null
+}
+
+function buildHistorySavePayload({ params, historyContext, resultData } = {}) {
+  const input = isRecord(params) ? params : {}
+  const context = captureHistoryContext(historyContext)
+  const result = isRecord(resultData) ? resultData : {}
+  const risks = Array.isArray(result.risks) ? result.risks : []
+  const summary = risks.length > 0
+    ? risks[0].risk + (risks.length > 1 ? ' 等' + risks.length + '项风险' : '')
+    : (result.degraded ? 'AI 降级·基础参考' : '无重大风险')
+  return {
+    mode: 'save',
+    route: input.route,
+    date: input.date,
+    days: input.days,
+    level: input.level,
+    elevation: context.elevation,
+    location: context.location,
+    coords: context.coords,
+    routeType: context.routeType,
+    routeTypeSource: context.routeTypeSource,
+    summary,
+    degraded: result.degraded === true,
+  }
+}
+
 module.exports = {
   DATA_ISSUE_LABELS,
   RESULT_CACHE_KEY,
@@ -486,11 +557,15 @@ module.exports = {
   ROUTE_TYPE_LABELS,
   VERDICT_LABELS,
   WMO_GROUPS,
+  applyChecklistLifecycleEvent,
+  buildHistorySavePayload,
   buildResultPageModel,
   captureHistoryContext,
   checklistKey,
+  createChecklistLifecycle,
   conditionForWeatherCode,
   createChecklistState,
+  historyResultForAdviceOutcome,
   isStructuredResult,
   mergeAdviceResult,
   normalizeCachedResult,

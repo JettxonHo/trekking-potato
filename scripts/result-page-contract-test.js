@@ -4,11 +4,15 @@ const assert = require('assert')
 const {
   RESULT_CACHE_KEY,
   RESULT_CACHE_VERSION,
+  applyChecklistLifecycleEvent,
+  buildHistorySavePayload,
   buildResultPageModel,
   captureHistoryContext,
   checklistKey,
   conditionForWeatherCode,
+  createChecklistLifecycle,
   isStructuredResult,
+  historyResultForAdviceOutcome,
   mergeAdviceResult,
   normalizeCachedResult,
   toggleChecklist,
@@ -201,6 +205,77 @@ function assertCacheChecklistAndHistory() {
   assert.equal(context.coords.lat, 99)
 }
 
+function assertLifecycleAndHistoryOrchestration() {
+  const baseA = { id: 'base-a' }
+  const baseB = { id: 'base-b' }
+  let lifecycle = createChecklistLifecycle()
+  lifecycle = applyChecklistLifecycleEvent(lifecycle, { type: 'base_received', queryId: 'query-a', baseRef: baseA })
+  lifecycle.checked = toggleChecklist(lifecycle.checked, 'essential', 0)
+
+  for (const type of ['advice_started', 'advice_succeeded', 'advice_failed', 'context_unavailable']) {
+    lifecycle = applyChecklistLifecycleEvent(lifecycle, { type })
+  }
+  assert.equal(lifecycle.checked['essential:0'], true, '同一 base/query 的 advice 生命周期不得清 checklist')
+
+  lifecycle = applyChecklistLifecycleEvent(lifecycle, { type: 'base_received', queryId: 'query-a', baseRef: baseA })
+  assert.equal(lifecycle.checked['essential:0'], true, '同一 base/query 的新 result 对象不得清 checklist')
+
+  lifecycle = applyChecklistLifecycleEvent(lifecycle, { type: 'base_received', queryId: 'query-a', baseRef: baseB })
+  assert.deepEqual(lifecycle.checked, {}, 'different base 必须清 checklist')
+  lifecycle.checked = toggleChecklist(lifecycle.checked, 'recommended', 1)
+  lifecycle = applyChecklistLifecycleEvent(lifecycle, { type: 'base_received', queryId: 'query-b', baseRef: baseB })
+  assert.deepEqual(lifecycle.checked, {}, 'different queryId 必须清 checklist')
+  lifecycle.checked = toggleChecklist(lifecycle.checked, 'optional', 2)
+  lifecycle = applyChecklistLifecycleEvent(lifecycle, { type: 'return_to_search' })
+  assert.deepEqual(lifecycle.checked, {}, 'onBack/return-to-search 必须清 checklist')
+  lifecycle.checked = toggleChecklist(lifecycle.checked, 'essential', 3)
+  lifecycle = applyChecklistLifecycleEvent(lifecycle, { type: 'cache_restore' })
+  assert.deepEqual(lifecycle.checked, {}, 'cache restore 必须从未勾选开始')
+
+  const trustedContext = {
+    elevation: 0,
+    location: '可信地点',
+    coords: { lat: 1, lon: 2 },
+    routeType: 'trek',
+    routeTypeSource: 'builtin',
+  }
+  const params = { route: '可信路线', date: '2026-08-09', days: 2, level: '中级' }
+  const successResult = historyResultForAdviceOutcome('success', {
+    adviceData: { risks: [{ risk: 'AI 解释风险' }], meta: { elevation: 99999 } },
+    degraded: false,
+  })
+  const degradedResult = historyResultForAdviceOutcome('degraded', {
+    baseRisks: [{ risk: '规则风险' }],
+  })
+  const contextUnavailableResult = historyResultForAdviceOutcome('context_unavailable', {
+    adviceData: { risks: [{ risk: '不应保存' }] },
+  })
+  assert.equal([successResult, degradedResult, contextUnavailableResult].filter(Boolean).length, 2, 'success 与普通 degraded 各产生一次保存意图，context unavailable 零保存')
+  assert.equal(successResult.degraded, false)
+  assert.equal(degradedResult.degraded, true)
+  assert.equal(contextUnavailableResult, null)
+
+  const payload = buildHistorySavePayload({
+    params,
+    historyContext: { ...trustedContext, meta: { elevation: 99999, routeType: 'climb' } },
+    resultData: { ...successResult, meta: { elevation: 99999, location: '伪造地点', routeType: 'climb' } },
+  })
+  assert.deepEqual(payload, {
+    mode: 'save',
+    route: '可信路线',
+    date: '2026-08-09',
+    days: 2,
+    level: '中级',
+    elevation: 0,
+    location: '可信地点',
+    coords: { lat: 1, lon: 2 },
+    routeType: 'trek',
+    routeTypeSource: 'builtin',
+    summary: 'AI 解释风险',
+    degraded: false,
+  }, '实际 history DTO 只能来自捕获的五字段，advice/meta 不得改写')
+}
+
 function assertWmoGroups() {
   assert.equal(conditionForWeatherCode(0), '晴')
   assert.equal(conditionForWeatherCode(2), '多云')
@@ -218,5 +293,6 @@ assertVerdictAndFullWeather()
 assertBoundariesAndDataIssues()
 assertAdviceIsolationAndLifecycle()
 assertCacheChecklistAndHistory()
+assertLifecycleAndHistoryOrchestration()
 assertWmoGroups()
 console.log('PASS: I22b structured result-page contract')
