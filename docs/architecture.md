@@ -1,7 +1,7 @@
 # 徒步薯核心 Beta 架构
 
 - Architecture scope: `TP-BETA-001`
-- Status: `APPROVED — M7 I24c evidence phase`
+- Status: `COMPLETE — TP-BETA-001 CODE_READY`
 - Updated: `2026-08-09`
 
 ## 1. 系统边界
@@ -13,10 +13,10 @@
 
 依赖方向为 UI → 云函数契约 → 领域/规则纯模块 → 外部 API。LLM 位于解释层，不能反向覆盖领域事实或规则结果。
 
-I24a/#105 与 I24b/#106 已完成并合并；当前 M7 阶段为 I24c/#107 的本地证据与文档同步。其临时
-DevTools fixture 只允许在本地可逆验证中存在，最终构建和提交必须无 fixture/debug 残留。自动化合同或
-CLI 构建成功不等同于微信开发者工具、真实 CloudBase、部署或真实用户闭测证据；不可用的本地运行时必须
-在验收清单中标记为 `UNVERIFIED_RUNTIME_TOOL`。
+I24a/#105、I24b/#106 与 I24c/#107 已完成并合并，parent #33 已关闭；I25/#34 的 Goal 统一 Review
+通过两位独立审查者批准，代码就绪结论随 docs-only PR #111 合并生效。I24c 的临时 DevTools fixture
+未能注入且最终提交无 fixture/debug 残留。自动化合同或 CLI 构建成功不等同于微信开发者工具、真实
+CloudBase、部署或真实用户闭测证据；不可用的本地运行时保持 `UNVERIFIED_RUNTIME_TOOL`。
 
 ## 2. 领域模型
 

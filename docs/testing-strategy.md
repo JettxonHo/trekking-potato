@@ -1,7 +1,7 @@
 # 徒步薯核心 Beta 测试策略
 
 - Goal: `TP-BETA-001`
-- Status: `APPROVED — M7 I24c evidence package in progress`
+- Status: `COMPLETE — TP-BETA-001 CODE_READY`
 - Updated: `2026-08-09`
 
 ## 1. 原则
@@ -11,7 +11,8 @@
 - 确定性规则优先使用纯函数和离线 fixture。
 - 网络、CloudBase 与 LLM 在默认 CI 中使用 fixture/mock；现有 E2E 对 Open-Meteo 的实时调用必须在 I02 移除，不把 live API 或真实部署当门禁。
 - 不设机械覆盖率百分比。新增或改变的关键行为必须有对应测试。
-- 深层审计和红队脚本保留为按需诊断，不进入默认 CI。
+- 深层审计和红队脚本不进入默认 CI。`redteam-audit.js`、`deep-audit.js` 与 `test-glm-json.js` 仍基于已
+  退役的漏洞/Prompt/GLM 契约，当前只能作为历史材料，不能作为有效诊断门禁；后续应单独归档、删除或重写。
 
 ## 2. M1 后统一门禁
 
@@ -50,8 +51,9 @@ confirmation、route-type、base、advice/degraded 出口。断言兼容字段�
 I05a 新增离线 `test:confirmation`，覆盖全局 canonical 优先、唯一/重复 alias、
 prefix/contains/fuzzy 候选、稳定 ID、candidate_not_found、confirm 只读服务端事实和
 确认前零天气/规则/AI 副作用。I05b 在同一命令补充页面源码契约：候选显示、最小
-confirm 请求、空/畸形候选失败、取消/编辑清理，以及仅 prepare/confirm 的组件私有
-单调 generation；不借此建立 I20 reducer/service。
+confirm 请求、空/畸形候选失败和仅 prepare/confirm 的组件私有单调 generation；I20 trip-flow
+另验证 RESET/token isolation。真实 cancel-followed-by-edit 仍是 I24 R2 的 `UNVERIFIED_RUNTIME_TOOL`，
+不能由源码/纯 reducer 测试冒充 GUI 行为证据。
 
 I06 新增离线 `test:safety` 并纳入根 `test`。它首先直接验证纯投影接口：恶意 AI
 payload 不能删除、移动、改名或覆盖确定性装备和风险，不能注入 verdict、路线、天气或
@@ -570,3 +572,7 @@ I24c 的当前执行记录见 `docs/beta-acceptance-checklist.md` 与 `docs/beta
 自动化门禁全部通过（离线 integration `55/0`、lint 0 errors/9 existing warnings、typecheck、WeChat
 build、diff check）；Computer Use 尝试因 Mac 锁定而无法发现本地 DevTools，相关行必须保持
 `UNVERIFIED_RUNTIME_TOOL`，不得由命令行 build 结果代替。
+
+I25 已在 `main@1bba5f9` 与完成报告分支重跑 repeated-prepare probe、五试点验收、根测试、integration、
+lint、typecheck、fixture-free WeChat build 与 diff check。测试输出与部署阶段风险汇总在
+`docs/goal-completion-report.md`；latest-head GitHub `quality` 仍是最终报告 PR 的 CI 事实源。

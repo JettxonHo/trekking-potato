@@ -12,10 +12,9 @@
 
 ## 项目状态
 
-项目正在执行 `TP-BETA-001`，目标是交付代码层面的核心闭测就绪版本。M1–M6 已完成：可信路线、
-小时天气、确定性结论、服务端 `queryId`、结构化结果、私人历史和显式恢复流程均已合并。当前处于
-M7/I24c 本地证据与最终文档阶段；自动化五试点验收已完成，DevTools 运行时证据按实际工具可用性记录，
-部署、真实闭测和生产发布仍不属于本 Goal。
+`TP-BETA-001` 已完成代码层面的核心闭测就绪版本：可信路线、小时天气、确定性结论、服务端 `queryId`、
+结构化结果、私人历史和显式恢复流程均已合并；M7/I25 Goal 统一 Review 通过，完成结论由 PR #111
+固化。DevTools 运行时证据仍按实际工具可用性记录，部署、真实闭测和生产发布不属于本 Goal。
 
 - 当前产品入口：`taro-app/`
 - 云函数：`cloudfunctions/getAdvice/`、`cloudfunctions/history/`
@@ -24,6 +23,7 @@ M7/I24c 本地证据与最终文档阶段；自动化五试点验收已完成，
 - 当前状态：[docs/current-status.md](docs/current-status.md)
 - Beta 验收清单：[docs/beta-acceptance-checklist.md](docs/beta-acceptance-checklist.md)
 - Beta 验收报告：[docs/beta-acceptance-report.md](docs/beta-acceptance-report.md)
+- Goal 完成报告：[docs/goal-completion-report.md](docs/goal-completion-report.md)
 
 部署、真实闭测和生产发布不属于当前 Goal。
 
@@ -141,7 +141,7 @@ RouteVariant 的 `prepare/confirm → queryId → advice` 跨层验收，不把�
 ├── taro-app/                 # 当前微信小程序前端
 ├── cloudfunctions/
 │   ├── getAdvice/            # 路线、天气、规则和 AI 编排
-│   └── history/              # 当前历史/旧 UGC，Goal 后收敛为私人历史
+│   └── history/              # 私人历史；旧公共 UGC 入口已停用
 ├── scripts/                  # 离线测试与审计脚本
 ├── docs/                     # 产品、架构、开发、测试和治理事实
 └── miniprogram/              # 历史原生原型

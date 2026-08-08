@@ -708,3 +708,22 @@
   adapter.
 - Why: three independently reviewable PRs keep a public contract cleanup out of the evidence PR, make final cross-layer
   coverage honest, and preserve the code-ready boundary without inventing production/deployment obligations.
+
+## 2026-08-09 — TP-D050 Goal 完成边界与部署前门禁
+
+- Status: Accepted by Sol for I25 final report Review; effective on the approved report merge
+- Context: I01–I24 and replacement #77 are complete. Final production, product and test audits found no P0/P1 defect;
+  main gates are green. I24 DevTools rows remain `UNVERIFIED_RUNTIME_TOOL`. Official npm audit reports no root
+  vulnerability, but transitive Taro/NutUI and CloudBase SDK trees contain critical/high advisories with no
+  demonstrated current application reachability. Deferred Issue #83/PR #84 removes the historical native entry but
+  is outside TP-BETA-001 and its old PR is conflicted.
+- Decision: accept TP-BETA-001 as code-ready for closed-beta preparation after the I25 report PR is approved and
+  merged. Do not call it deployed, production-ready or real-beta verified. Keep #83/#84 as disclosed Goal-external
+  maintainability debt rather than merging stale unrelated work. Treat dependency reachability/upgrade, normal
+  DevTools R1–R3, staging CloudBase/openid/permission/live-API smoke, route-status refresh, context drain and device
+  testing as separately authorized deployment-stage gates.
+- Alternatives: block the code-ready Goal on every transitive advisory or unavailable GUI row; silently ignore the
+  risks; merge the stale #84 cleanup into I25; upgrade Taro/SDKs without a focused Issue.
+- Why: the Goal explicitly ends at code readiness and excludes deployment. Proportional review found no current
+  exploit or P0/P1 behavior defect, while honest disclosure and separate deployment gates preserve safety without
+  over-defensive scope expansion.
