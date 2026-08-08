@@ -399,6 +399,7 @@ function buildResultPageModel({ result, flowStatus, flowError } = {}) {
     dataIssues,
   })
   return {
+    refreshing: flowStatus === 'preparing' && result !== null && result !== undefined,
     route: buildRoute(routeSnapshot, requestSummary),
     verdict: {
       code,
@@ -526,7 +527,7 @@ function historyResultForAdviceOutcome(outcome, { adviceData, baseRisks, degrade
   return null
 }
 
-function buildHistorySavePayload({ params, historyContext, resultData } = {}) {
+function buildHistorySavePayload({ params, historyContext, resultData, saveAttemptId } = {}) {
   const input = isRecord(params) ? params : {}
   const context = captureHistoryContext(historyContext)
   const result = isRecord(resultData) ? resultData : {}
@@ -534,7 +535,7 @@ function buildHistorySavePayload({ params, historyContext, resultData } = {}) {
   const summary = risks.length > 0
     ? risks[0].risk + (risks.length > 1 ? ' 等' + risks.length + '项风险' : '')
     : (result.degraded ? 'AI 降级·基础参考' : '无重大风险')
-  return {
+  const payload = {
     mode: 'save',
     route: input.route,
     date: input.date,
@@ -548,6 +549,8 @@ function buildHistorySavePayload({ params, historyContext, resultData } = {}) {
     summary,
     degraded: result.degraded === true,
   }
+  if (typeof saveAttemptId === 'string' && saveAttemptId.length > 0) payload.saveAttemptId = saveAttemptId
+  return payload
 }
 
 module.exports = {

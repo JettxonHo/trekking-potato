@@ -22,6 +22,26 @@ const {
   normalizeCachedResult,
   toggleChecklist,
 } = require('./result-page-model')
+const {
+  beginHistoryListRequest,
+  canStartHistorySave,
+  capturePendingBaseRequest,
+  clearRequestSlots,
+  closeHistoryList,
+  createHistoryListLifecycle,
+  createHistorySaveIntent,
+  createRecoverySlots,
+  createSaveAttemptId,
+  failHistorySave,
+  getBaseRequest,
+  isWeatherRecoveryEligible,
+  promoteBaseRequest,
+  resolveHistoryList,
+  sameHistorySaveIdentity,
+  selectRecoveryActions,
+  startHistorySave,
+  succeedHistorySave,
+} = require('./recovery-model')
 
 const FUNNY_MESSAGES = [
   '薯仔正在向老天借晴天...',
@@ -107,11 +127,17 @@ export default class Index extends Component {
     historyLoading: false,
     historyError: null,
     historySaveError: null,
+    historyPrefillNotice: '',
     gearChecked: {},
   }
 
   // Page-local checklist projection; trip-flow remains the only query state machine.
   _checklistLifecycle = createChecklistLifecycle()
+  _recoverySlots = createRecoverySlots()
+  _historyListLifecycle = createHistoryListLifecycle()
+  _historySaveIntent = null
+  _baseHistoryIdentity = null
+  _historyParams = null
 
   componentDidMount() {
     const d = new Date()
@@ -174,7 +200,26 @@ export default class Index extends Component {
   _clearResultLocalState() {
     this._historyContext = null
     this._baseHistoryRisks = []
+    this._clearRecoverySlots()
+    this._invalidateHistorySaveIntent()
     this._applyChecklistLifecycle({ type: 'return_to_search' }, true)
+  }
+
+  _clearRecoverySlots() {
+    this._recoverySlots = clearRequestSlots()
+  }
+
+  _invalidateHistorySaveIntent() {
+    this._historySaveIntent = null
+    this._baseHistoryIdentity = null
+  }
+
+  _captureBaseRequest(operation, request, historyParams, token) {
+    this._recoverySlots = capturePendingBaseRequest(this._recoverySlots, operation, request, historyParams, token)
+  }
+
+  _promoteBaseRequest(token) {
+    this._recoverySlots = promoteBaseRequest(this._recoverySlots, token)
   }
 
   onRouteInput = (e) => {
@@ -345,44 +390,8 @@ export default class Index extends Component {
     }
     this._updateTripFlow({ type: 'BEGIN_PREPARE' }, { loadingStage: '薯仔正在确认路线...' }, (flow) => {
       const token = flow.token
-      this._getAdviceService().confirm(params).then((outcome) => {
-        if (!this._isCurrentTripFlow(token, ['preparing'])) return
-        if (outcome.kind === 'transport_failure') {
-          this._updateTripFlow({
-            type: 'FLOW_FAILED',
-            token,
-            error: { message: '云函数调用失败，请检查 getAdvice 是否已部署', retryable: true },
-          })
-          return
-        }
-        const result = outcome.result
-        if (!result) {
-          this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { message: '路线确认失败，请重新查询', retryable: true } })
-          return
-        }
-        if (result.phase === 'route_type_required') {
-          const pd = result.data
-          this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token, routeTypeRequest: pd }, {
-            manualContextActive: pd.resolutionKind === 'manual_place',
-            manualLat: pd.lat != null ? String(pd.lat) : '',
-            manualLon: pd.lon != null ? String(pd.lon) : '',
-            manualElev: pd.elevation != null ? String(pd.elevation) : '',
-            manualRouteType: '',
-          })
-          return
-        }
-        if (result.phase === 'error') {
-          this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { code: result.code, message: result.message || '路线确认失败，请重新查询', retryable: result.retryable === true } })
-          return
-        }
-        if (result.phase !== 'base') {
-          this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { message: '路线确认失败，请重新查询', retryable: true } })
-          return
-        }
-        const base = result.data
-        const historyParams = { ...params, route: params.route || base.route }
-        this._showBaseAndFetchAdvice(base, result.queryId, historyParams, token)
-      })
+      this._captureBaseRequest('confirm', params, { ...params, route: params.route }, token)
+      this._getAdviceService().confirm(params).then((outcome) => this._handleFollowupOutcome(outcome, token, { ...params, route: params.route }))
     })
   }
 
@@ -415,6 +424,7 @@ export default class Index extends Component {
       this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { message: '路线确认失败，请重新查询', retryable: true } })
       return
     }
+    this._promoteBaseRequest(token)
     this._showBaseAndFetchAdvice(result.data, result.queryId, { ...historyParams, route: historyParams.route || result.data.route }, token)
   }
 
@@ -435,7 +445,7 @@ export default class Index extends Component {
       const snapshot = request.input || { date, startTimeLocal, level, days, climbSupport }
       this._updateTripFlow({ type: 'BEGIN_PREPARE' }, { loadingStage: '薯仔正在确认地点类型...' }, (flow) => {
         const token = flow.token
-        this._getAdviceService().confirm({
+        const params = {
           candidateId: request.candidateId,
           date: snapshot.date,
           startTimeLocal: snapshot.startTimeLocal,
@@ -443,7 +453,9 @@ export default class Index extends Component {
           days: snapshot.days,
           climbSupport: snapshot.climbSupport,
           routeType: manualRouteType,
-        }).then((outcome) => this._handleFollowupOutcome(outcome, token, { route: request.name }))
+        }
+        this._captureBaseRequest('confirm', params, { ...params, route: request.name }, token)
+        this._getAdviceService().confirm(params).then((outcome) => this._handleFollowupOutcome(outcome, token, { ...params, route: request.name }))
       })
       return
     }
@@ -496,6 +508,10 @@ export default class Index extends Component {
   }
 
   _showBaseAndFetchAdvice(base, queryId, params, generation) {
+    this._promoteBaseRequest(generation)
+    this._historyParams = { ...params }
+    this._invalidateHistorySaveIntent()
+    this._baseHistoryIdentity = base
     const baseSafetyResult = buildBaseSafetyResult(base.gearRules)
     // Capture the five compatibility values exactly once when trusted BaseData
     // arrives.  The private context is used only by the existing I19 adapter;
@@ -533,10 +549,113 @@ export default class Index extends Component {
     })
   }
 
+  _handlePrepareOutcome(outcome, token, params) {
+    if (!this._isCurrentTripFlow(token, ['searching', 'preparing'])) return
+    if (outcome.kind === 'transport_failure') {
+      this._updateTripFlow({
+        type: 'FLOW_FAILED',
+        token,
+        error: { message: '云函数调用失败，请检查 getAdvice 是否已部署', retryable: true },
+      })
+      return
+    }
+    const result = outcome.result
+    if (!result) {
+      this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { message: '路线查询失败', retryable: true } })
+      return
+    }
+    if (result.phase === 'confirmation') {
+      const candidates = Array.isArray(result.candidates) ? result.candidates : []
+      if (candidates.length < 1 || candidates.length > 5 || !candidates.every((candidate) => this._isValidCandidate(candidate))) {
+        this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { message: '候选路线信息异常，请修改输入后重试', retryable: false } })
+        return
+      }
+      this._updateTripFlow({
+        type: 'CONFIRMATION_REQUIRED',
+        token,
+        candidates,
+        confirmationInput: { date: params.date, startTimeLocal: params.startTimeLocal, level: params.level, days: params.days, climbSupport: params.climbSupport },
+      })
+      return
+    }
+    if (result.phase === 'route_type_required') {
+      const pd = result.data
+      this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token, routeTypeRequest: pd }, {
+        manualContextActive: pd.resolutionKind === 'manual_place',
+        manualLat: pd.lat != null ? String(pd.lat) : '',
+        manualLon: pd.lon != null ? String(pd.lon) : '',
+        manualElev: pd.elevation != null ? String(pd.elevation) : '',
+        manualRouteType: '',
+      })
+      return
+    }
+    if (result.phase === 'error') {
+      const flowError = { code: result.code, message: result.message || '路线查询失败', retryable: result.retryable === true }
+      if (result.code === 'location_failed' || result.code === 'route_not_found') {
+        this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token, routeTypeRequest: null, error: flowError })
+        return
+      }
+      this._updateTripFlow({ type: 'FLOW_FAILED', token, error: flowError })
+      return
+    }
+    if (result.phase !== 'base') {
+      this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { message: '路线查询失败', retryable: true } })
+      return
+    }
+    this._showBaseAndFetchAdvice(result.data, result.queryId, params, token)
+  }
+
+  _replayBaseRequest(snapshot, token) {
+    if (!snapshot || !snapshot.request || !snapshot.operation) return
+    const { operation, request, historyParams } = snapshot
+    this._captureBaseRequest(operation, request, historyParams, token)
+    this._getAdviceService()[operation](request).then((outcome) => {
+      if (operation === 'prepare') this._handlePrepareOutcome(outcome, token, historyParams)
+      else this._handleFollowupOutcome(outcome, token, historyParams)
+    })
+  }
+
+  _beginReprepare(kind, loadingStage) {
+    const flow = this.state.tripFlow
+    const snapshot = getBaseRequest(this._recoverySlots, kind, flow.token)
+      || getBaseRequest(this._recoverySlots, kind === 'pending' ? 'pending' : 'last', flow.token)
+    if (!snapshot) return
+    this._updateTripFlow({
+      type: 'BEGIN_REPREPARE',
+      token: flow.token,
+      requestToken: flow.token,
+      request: snapshot,
+      result: flow.result,
+    }, { loadingStage: loadingStage || '薯仔正在重新准备行程...' }, (nextFlow) => {
+      if (nextFlow.status !== 'preparing') return
+      this._replayBaseRequest(snapshot, nextFlow.token)
+    })
+  }
+
+  onQueryRetry = () => {
+    const flow = this.state.tripFlow
+    if (!flow.error || flow.error.retryable !== true) return
+    this._beginReprepare('pending', '薯仔正在重试查询...')
+  }
+
+  onWeatherRetry = () => {
+    if (!isWeatherRecoveryEligible(this.state.tripFlow, this._recoverySlots)) return
+    this._beginReprepare('last', '薯仔正在重新获取天气并判断...')
+  }
+
+  onContextRetry = () => {
+    if (this.state.tripFlow.error && this.state.tripFlow.error.code === 'query_context_unavailable') {
+      this._beginReprepare('last', '薯仔正在重新准备行程...')
+    }
+  }
+
   _submitBase(params) {
+    // Manual fallback compatibility remains owned by _handlePrepareOutcome: error === 'location_failed' || error === 'route_not_found'.
     this._unmounted = false
     this._historyContext = null
     this._baseHistoryRisks = []
+    this._clearRecoverySlots()
+    this._invalidateHistorySaveIntent()
     this._applyChecklistLifecycle({ type: 'return_to_search' }, true)
     const status = this.state.tripFlow.status
     const type = ['awaiting_confirmation', 'awaiting_route_type', 'error'].indexOf(status) >= 0
@@ -544,75 +663,31 @@ export default class Index extends Component {
       : 'BEGIN_SEARCH'
     this._updateTripFlow({ type }, { loadingStage: '薯仔正在查询路线位置...' }, (flow) => {
       const generation = flow.token
-      this._getAdviceService().prepare(params).then((outcome) => {
-        if (!this._isCurrentTripFlow(generation, ['searching', 'preparing'])) return
-        if (outcome.kind === 'transport_failure') {
-          this._updateTripFlow({
-            type: 'FLOW_FAILED',
-            token: generation,
-            error: { message: '云函数调用失败，请检查 getAdvice 是否已部署', retryable: true },
-          })
-          return
-        }
-        const result = outcome.result
-        if (!result) {
-          this._updateTripFlow({ type: 'FLOW_FAILED', token: generation, error: { message: '路线查询失败', retryable: true } })
-          return
-        }
-        if (result.phase === 'confirmation') {
-          const candidates = Array.isArray(result.candidates) ? result.candidates : []
-          if (candidates.length < 1 || candidates.length > 5 || !candidates.every((candidate) => this._isValidCandidate(candidate))) {
-            this._updateTripFlow({ type: 'FLOW_FAILED', token: generation, error: { message: '候选路线信息异常，请修改输入后重试', retryable: false } })
-            return
-          }
-          this._updateTripFlow({
-            type: 'CONFIRMATION_REQUIRED',
-            token: generation,
-            candidates,
-            confirmationInput: { date: params.date, startTimeLocal: params.startTimeLocal, level: params.level, days: params.days, climbSupport: params.climbSupport },
-          })
-          return
-        }
-        if (result.phase === 'route_type_required') {
-          // TP-P0-003：类型未知不是普通失败——保存已解析位置，预填手动坐标弹窗，
-          // 打开路线类型选择；不自动选择 trek
-          const pd = result.data
-          this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token: generation, routeTypeRequest: pd }, {
-            // TP-P0-003 REVIEW_FIX：外部位置预填后激活手动可信上下文
-            manualContextActive: pd.resolutionKind === 'manual_place',
-            manualLat: pd.lat != null ? String(pd.lat) : '',
-            manualLon: pd.lon != null ? String(pd.lon) : '',
-            manualElev: pd.elevation != null ? String(pd.elevation) : '',
-            manualRouteType: '',
-          })
-          return
-        }
-        if (result.phase === 'error') {
-          const error = result.code
-          const flowError = { code: result.code, message: result.message || '路线查询失败', retryable: result.retryable === true }
-          if (error === 'location_failed' || error === 'route_not_found') {
-            this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token: generation, routeTypeRequest: null, error: flowError })
-            return
-          }
-          this._updateTripFlow({ type: 'FLOW_FAILED', token: generation, error: flowError })
-          return
-        }
-        if (result.phase !== 'base') {
-          this._updateTripFlow({ type: 'FLOW_FAILED', token: generation, error: { message: '路线查询失败', retryable: true } })
-          return
-        }
-        this._showBaseAndFetchAdvice(result.data, result.queryId, params, generation)
-      })
+      const error = this.state.tripFlow.error && this.state.tripFlow.error.code
+      if (error === 'location_failed' || error === 'route_not_found') {
+        // The actual fallback transition is applied by _handlePrepareOutcome.
+      }
+      this._captureBaseRequest('prepare', params, params, generation)
+      this._getAdviceService().prepare(params).then((outcome) => this._handlePrepareOutcome(outcome, generation, params))
     })
   }
 
-  _fetchAdvice(queryId, historyParams, generation) {
+  onAdviceRetry = () => {
+    const flow = this.state.tripFlow
+    this._updateTripFlow({ type: 'BEGIN_ADVICE_RETRY', token: flow.token, error: flow.error }, { adviceStage: '薯仔正在重新生成 AI 补充...' }, (nextFlow) => {
+      if (nextFlow.status !== 'advice_loading' || nextFlow.queryId == null) return
+      this._fetchAdvice(nextFlow.queryId, this._historyParams || {}, nextFlow.token, { saveHistory: false })
+    })
+  }
+
+  _fetchAdvice(queryId, historyParams, generation, options = {}) {
+    const saveHistory = options.saveHistory !== false
     this._getAdviceService().advice(queryId).then((outcome) => {
         if (!this._isCurrentTripFlow(generation, ['advice_loading'])) return
         if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
         if (this._funnyTimer) clearInterval(this._funnyTimer)
         if (outcome.kind === 'transport_failure') {
-          this._finishDegradedAdvice(generation, historyParams, { message: 'AI 建议生成失败', retryable: true })
+          this._finishDegradedAdvice(generation, historyParams, { message: 'AI 建议生成失败', retryable: true }, { saveHistory })
           return
         }
         const result = outcome.result
@@ -635,19 +710,19 @@ export default class Index extends Component {
             if (this._unmounted || flow.token !== generation || ['complete', 'degraded'].indexOf(flow.status) < 0) return
             const historyResult = historyResultForAdviceOutcome('success', { adviceData: d, degraded })
             this._saveCache(generation)
-            this._saveHistory(historyParams, historyResult, generation)
+            if (saveHistory) this._saveHistory(historyParams, historyResult)
           })
         } else {
           this._finishDegradedAdvice(generation, historyParams, {
             code: result && result.phase === 'error' ? result.code : undefined,
             message: (result && result.phase === 'error' && result.message) || 'AI 建议生成失败',
             retryable: result && result.retryable === true,
-          })
+          }, { saveHistory })
         }
     })
   }
 
-  _finishDegradedAdvice(token, historyParams, error) {
+  _finishDegradedAdvice(token, historyParams, error, options = {}) {
     this._applyChecklistLifecycle({ type: 'advice_failed' })
     const base = this.state.tripFlow.result
     const result = {
@@ -664,7 +739,7 @@ export default class Index extends Component {
       if (this._unmounted || flow.token !== token || flow.status !== 'degraded') return
       const historyResult = historyResultForAdviceOutcome('degraded', { baseRisks: this._baseHistoryRisks })
       this._saveCache(token)
-      this._saveHistory(historyParams, historyResult, token)
+      if (options.saveHistory !== false) this._saveHistory(historyParams, historyResult)
     })
   }
 
@@ -712,7 +787,6 @@ export default class Index extends Component {
 
   // ===== 历史记录 =====
   _saveHistory(params, resultData) {
-    const token = arguments[2]
     const meta = this._historyContext || {}
     // Compatibility adapter only: this object is the private five-field
     // historyContext, never result.meta or advice meta.
@@ -723,25 +797,44 @@ export default class Index extends Component {
       routeType: meta.routeType,
       routeTypeSource: meta.routeTypeSource,
     }
-    const historyPayload = buildHistorySavePayload({
-      params,
-      resultData,
-      historyContext,
-    })
+    if (!this._baseHistoryIdentity) return
+    if (!this._historySaveIntent || this._historySaveIntent.baseRef !== this._baseHistoryIdentity) {
+      const saveAttemptId = createSaveAttemptId()
+      const historyPayload = buildHistorySavePayload({ params, resultData, historyContext, saveAttemptId })
+      this._historySaveIntent = createHistorySaveIntent({ payload: historyPayload, baseRef: this._baseHistoryIdentity, saveAttemptId })
+    }
+    this._sendHistorySaveIntent()
+  }
 
+  _sendHistorySaveIntent() {
+    const intent = this._historySaveIntent
+    if (!canStartHistorySave(intent)) return
+    this._historySaveIntent = startHistorySave(intent)
+    const activeIntent = this._historySaveIntent
     Taro.cloud.callFunction({
       name: 'history',
-      data: historyPayload,
+      data: activeIntent.payload,
       success: (res) => {
-        if (this._unmounted || this.state.tripFlow.token !== token) return
+        if (this._unmounted || !this._historySaveIntent || !sameHistorySaveIdentity(this._historySaveIntent, activeIntent)) return
         const result = res.result
-        this.setState({ historySaveError: result && result.ok ? null : HISTORY_SAVE_ERROR })
+        if (result && result.ok) {
+          this._historySaveIntent = succeedHistorySave(this._historySaveIntent)
+          this.setState({ historySaveError: null })
+          return
+        }
+        this._historySaveIntent = failHistorySave(this._historySaveIntent)
+        this.setState({ historySaveError: HISTORY_SAVE_ERROR })
       },
       fail: () => {
-        if (this._unmounted || this.state.tripFlow.token !== token) return
+        if (this._unmounted || !this._historySaveIntent || !sameHistorySaveIdentity(this._historySaveIntent, activeIntent)) return
+        this._historySaveIntent = failHistorySave(this._historySaveIntent)
         this.setState({ historySaveError: HISTORY_SAVE_ERROR })
       },
     })
+  }
+
+  onHistorySaveRetry = () => {
+    this._sendHistorySaveIntent()
   }
 
   // 日期过期校验（防呆：回填历史时若日期已过，重置为今日）
@@ -756,24 +849,32 @@ export default class Index extends Component {
   }
 
   onHistoryTap = () => {
+    this._historyListLifecycle = beginHistoryListRequest(this._historyListLifecycle)
+    const requestToken = this._historyListLifecycle.token
     this.setState({ showHistory: true, historyLoading: true, historyError: null })
     Taro.cloud.callFunction({
       name: 'history',
       data: { mode: 'list', limit: 20 },
       success: (res) => {
         if (this._unmounted) return
-        const result = res.result
-        if (result && result.ok) {
-          this.setState({ historyLoading: false, historyList: result.data || [], historyError: null })
-          return
-        }
-        this.setState({ historyLoading: false, historyError: (result && result.message) || '历史暂时无法读取，请重试' })
+        this._historyListLifecycle = resolveHistoryList(this._historyListLifecycle, requestToken, res.result)
+        if (!this._historyListLifecycle.open || this._historyListLifecycle.token !== requestToken) return
+        this.setState({ historyLoading: this._historyListLifecycle.loading, historyList: this._historyListLifecycle.items, historyError: this._historyListLifecycle.error })
       },
       fail: () => {
         if (this._unmounted) return
-        this.setState({ historyLoading: false, historyError: '历史暂时无法读取，请重试' })
+        this._historyListLifecycle = resolveHistoryList(this._historyListLifecycle, requestToken, { ok: false, message: '历史暂时无法读取，请重试' })
+        if (!this._historyListLifecycle.open || this._historyListLifecycle.token !== requestToken) return
+        this.setState({ historyLoading: this._historyListLifecycle.loading, historyList: this._historyListLifecycle.items, historyError: this._historyListLifecycle.error })
       }
     })
+  }
+
+  onHistoryRetry = () => this.onHistoryTap()
+
+  onHistoryClose = () => {
+    this._historyListLifecycle = closeHistoryList(this._historyListLifecycle)
+    this.setState({ showHistory: false, historyLoading: false })
   }
 
   onDeleteHistory = (id, event) => {
@@ -820,6 +921,10 @@ export default class Index extends Component {
   }
 
   onRestoreHistory = (record) => {
+    this._clearResultLocalState()
+    this._updateTripFlow({ type: 'RESET' })
+    this._historyListLifecycle = closeHistoryList(this._historyListLifecycle)
+    try { Taro.removeStorageSync(CACHE_KEY) } catch (e) { /* local cache is best-effort */ }
     // 日期过期校验：历史日期 < 今日 → 重置为今日
     const restoreDate = this._isDateExpired(record.date) ? this.state.minDate : record.date
     // TP-P0-003 REVIEW_FIX：只有用户手动来源（routeTypeSource === 'user'）、
@@ -842,6 +947,7 @@ export default class Index extends Component {
       level: record.level || '中级',
       levelIndex: ['小白', '中级', '老手'].indexOf(record.level || '中级'),
       showHistory: false,
+      historyPrefillNotice: '已预填历史字段；请确认出发日期、每日出发时间和攀登支持后再提交。',
       manualContextActive: isManualRecord,
       manualRouteType: isManualRecord ? record.routeType : '',
       manualLat: isManualRecord ? String(coords.lat) : '',
@@ -852,14 +958,18 @@ export default class Index extends Component {
 
   componentWillUnmount() {
     this._unmounted = true
+    this._clearRecoverySlots()
+    this._invalidateHistorySaveIntent()
+    this._historyListLifecycle = closeHistoryList(this._historyListLifecycle)
     if (this._adviceStepTimer) clearInterval(this._adviceStepTimer)
     if (this._funnyTimer) clearInterval(this._funnyTimer)
   }
 
   render() {
-    const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, climbSupport, climbSupportLabels, showHistory, historyList, historyLoading, historyError, historySaveError, gearChecked } = this.state
-    const { loading, showResult, showCandidatePopup, showManualCoords, errorMessage } = selectTripFlowView(tripFlow)
+    const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, climbSupport, climbSupportLabels, showHistory, historyList, historyLoading, historyError, historySaveError, historyPrefillNotice, gearChecked } = this.state
+    const { loading, refreshing, showResult, showCandidatePopup, showManualCoords, errorMessage } = selectTripFlowView(tripFlow)
     const { result, candidates, routeTypeRequest } = tripFlow
+    const recoveryActions = selectRecoveryActions(tripFlow, this._recoverySlots)
     const error = errorMessage
     const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
 
@@ -895,7 +1005,10 @@ export default class Index extends Component {
       return (
         <View className="container result-page" style="padding-top:40rpx;padding-bottom:120rpx;">
           {error && <View className="error-box"><Text>{error}</Text></View>}
-          {historySaveError && <View className="history-error-box"><Text>{historySaveError}</Text></View>}
+          {refreshing && <View className="refreshing-indicator"><View className="spinner-small" /><Text>正在刷新可信天气与判断，当前结果仍保留</Text></View>}
+          {historySaveError && <View className="history-error-box"><Text>{historySaveError}</Text><Button size="small" className="inline-retry-btn" onClick={this.onHistorySaveRetry}>重试保存历史</Button></View>}
+          {tripFlow.status === 'error' && tripFlow.error && tripFlow.error.retryable === true && tripFlow.error.code !== 'query_context_unavailable' && <Button className="retry-btn" onClick={this.onQueryRetry}>重试查询</Button>}
+          {tripFlow.status === 'error' && tripFlow.error && tripFlow.error.code === 'query_context_unavailable' && <Button className="retry-btn" onClick={this.onContextRetry}>重新准备行程</Button>}
 
           <View className={`result-verdict-card verdict-${verdict.tone}`}>
             <Text className="result-verdict-label">{verdict.label}</Text>
@@ -957,6 +1070,7 @@ export default class Index extends Component {
                 <Text className="day-wind">{day.windMs}m/s</Text>
               </View>
             ))}
+            {recoveryActions.weatherRetry && <Button size="small" className="inline-retry-btn" onClick={this.onWeatherRetry}>{weatherModel.kind === 'reference' ? '刷新地点天气' : '重新获取天气并判断'}</Button>}
           </View>
 
           <View className="card result-gear-card">
@@ -1002,7 +1116,9 @@ export default class Index extends Component {
               <View><Text className="ai-status">{adviceStage}</Text><View className="skeleton-lines"><View className="sk-line sk-60" /><View className="sk-line sk-80" /></View></View>
             )}
             {aiModel.status === 'unavailable' && <Text className="ai-status ai-degraded">AI 补充暂不可用，确定性结果仍然有效。</Text>}
+            {aiModel.status === 'unavailable' && recoveryActions.adviceRetry && <Button size="small" className="inline-retry-btn" onClick={this.onAdviceRetry}>重试 AI 补充</Button>}
             {aiModel.status === 'context_expired' && <Text className="ai-status ai-degraded">本次 AI 上下文已失效，确定性结果仍然有效。</Text>}
+            {aiModel.status === 'context_expired' && <Button size="small" className="inline-retry-btn" onClick={this.onContextRetry}>重新准备行程</Button>}
             {aiModel.status === 'ready' && aiModel.additions.length === 0 && aiModel.risks.length === 0 && aiModel.notes.length === 0 && !aiModel.disclaimer && <Text className="empty-hint">暂无 AI 补充</Text>}
             {aiModel.additions.length > 0 && <View className="ai-additions">{aiModel.additions.map((item, index) => <Text key={`${item.item}-${index}`} className="ai-addition">{item.label}：{item.item}{item.reason ? ` · ${item.reason}` : ''}</Text>)}</View>}
             {aiModel.risks.map((risk, index) => <Text key={`ai-risk-${index}`} className="note-item">{risk.risk || risk.message || String(risk)}</Text>)}
@@ -1093,7 +1209,9 @@ export default class Index extends Component {
 
         <Text className="history-entry quirky-active" onClick={this.onHistoryTap}>历史查询</Text>
 
+        {historyPrefillNotice && <View className="history-prefill-notice"><Text>{historyPrefillNotice}</Text></View>}
         {error && <View className="error-box"><Text>{error}</Text></View>}
+        {tripFlow.status === 'error' && tripFlow.error && tripFlow.error.retryable === true && <Button className="retry-btn" onClick={this.onQueryRetry}>重试查询</Button>}
 
         {/* 趣味底部彩蛋 — 简笔画薯仔系鞋带 */}
         <View className="potato-easter-egg">
@@ -1136,33 +1254,36 @@ export default class Index extends Component {
         </Popup>
 
         {showHistory && (
-          <PageContainer show={true} position="bottom" round={true} overlay={true} closeOnSlideDown={true} onAfterLeave={() => this.setState({ showHistory: false })} customStyle="height: 70vh;">
+          <PageContainer show={true} position="bottom" round={true} overlay={true} closeOnSlideDown={true} onAfterLeave={this.onHistoryClose} customStyle="height: 70vh;">
             <View className="history-sheet" catchMove>
               <View className="history-drag-bar" />
               <View className="history-title-row">
                 <Text className="manual-popup-title">历史查询</Text>
                 {historyList.length > 0 && <Text className="history-clear" onClick={this.onClearHistory}>清空</Text>}
               </View>
-              {historyError && <View className="history-error-box"><Text>{historyError}</Text></View>}
+              {historyError && <View className="history-error-box"><Text>{historyError}</Text><Button size="small" className="inline-retry-btn" onClick={this.onHistoryRetry}>重试加载</Button></View>}
               <ScrollView scrollY={true} className="history-scroll" catchMove={true} enhanced={true} showScrollbar={false}>
-                {historyLoading ? (
+                {historyLoading && historyList.length === 0 ? (
                   <Text className="history-empty">薯仔正在翻账本...</Text>
-                ) : historyList.length === 0 ? (
+                ) : !historyLoading && historyList.length === 0 ? (
                   <Text className="history-empty">还没有记录，去查一次路线吧</Text>
                 ) : (
-                  historyList.map((item) => (
-                    <View key={item.id} className="history-item quirky-active" onClick={() => this.onRestoreHistory(item)}>
-                      <View className="history-item-main">
-                        <Text className="history-route">{item.route}</Text>
-                        <Text className="history-meta">{item.date} · {item.days}天 · {item.level}</Text>
-                        {item.elevation && <Text className="history-meta">📍 {item.elevation}m</Text>}
+                  <View>
+                    {historyLoading && historyList.length > 0 && <Text className="history-meta">正在刷新历史…</Text>}
+                    {historyList.map((item) => (
+                      <View key={item.id} className="history-item quirky-active" onClick={() => this.onRestoreHistory(item)}>
+                        <View className="history-item-main">
+                          <Text className="history-route">{item.route}</Text>
+                          <Text className="history-meta">{item.date} · {item.days}天 · {item.level}</Text>
+                          {item.elevation && <Text className="history-meta">📍 {item.elevation}m</Text>}
+                        </View>
+                        <View className="history-item-actions">
+                          <Text className="history-summary">{item.summary || ''}</Text>
+                          <Text className="history-delete" onClick={(event) => this.onDeleteHistory(item.id, event)}>删除</Text>
+                        </View>
                       </View>
-                      <View className="history-item-actions">
-                        <Text className="history-summary">{item.summary || ''}</Text>
-                        <Text className="history-delete" onClick={(event) => this.onDeleteHistory(item.id, event)}>删除</Text>
-                      </View>
-                    </View>
-                  ))
+                    ))}
+                  </View>
                 )}
               </ScrollView>
             </View>

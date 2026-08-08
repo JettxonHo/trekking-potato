@@ -1,14 +1,14 @@
-# ACTIVE TASK — I23a 私人历史保存重试幂等
+# ACTIVE TASK — I23b 前端降级与恢复编排
 
 - Goal: `TP-BETA-001`
 - Parent: `I23 / #32`
-- GitHub Issue: `I23a / #99`; `I23b / #100` remains dependency-blocked
+- GitHub Issue: `I23b / #100`; I23a/#99 is closed
 - Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
-- Branch: `codex/99-history-save-idempotency`
-- Base: `main@a12ab46`
-- Dependency: I19/I22b merged; I23 planning PR #101 merged as `a12ab46`
+- Branch: `codex/100-frontend-recovery`
+- Base: `main@107fab4`
+- Dependency: I23a/#99 merged through PR #102 as `107fab4`
 
 ## 1. Objective and serial split
 
@@ -205,9 +205,9 @@ after spawn; Terra fallback unauthorized.
 ## 6. Activation gate
 
 Planning PR #101 passed latest-head quality and independent actual-diff Review, then squash merged as `a12ab46`.
-I23a/#99 is the only active implementation contract. I23b/#100 stays blocked until I23a passes its own CI, Sol Review
-and merge. The controller activation commit contains only status/routing changes; the executor begins with a clean
-business-code baseline.
+I23a/#99 then passed latest-head quality and independent Sol re-review, merged through PR #102 as `107fab4`, and
+closed. I23b/#100 is now the only active implementation contract. The controller activation commit contains only
+status/routing changes; the executor begins with a clean I23b business-code baseline.
 
 ## Implementation checkpoint — 2026-08-09
 
@@ -252,3 +252,92 @@ need, amend/force-push, approve or merge.
   documents. Required local gates pass: `npm run test:history`, `npm test`, integration `56/0`, lint (0 errors;
   9 existing warnings), typecheck, `build:weapp`, and `git diff --check`; additive commit `877cd6c` latest-head
   GitHub `quality` passed in 44 seconds (run `31272070159`, job `93139614802`).
+
+## I23b implementation checkpoint — 2026-08-09
+
+- RED/GREEN evidence is recorded in `docs/i23-recovery-verification.md`. Registration-only RED was a real
+  `MODULE_NOT_FOUND` for `recovery-model.js`; focused recovery behavior is now GREEN.
+- The implementation keeps I20's ten states/fields. `BEGIN_ADVICE_RETRY` requires degraded + non-null result/
+  queryId + unavailable AI and accepted advice degradation/retryable advice error; it advances token and changes
+  only the AI namespace. `BEGIN_REPREPARE` requires a bounded current-token recovery authority, clears queryId/error,
+  and preserves a non-null result with a local refreshing selector/indicator.
+- Page-private pending/last snapshots are captured before every prepare/confirm, retained on failure, promoted only
+  on BaseData success, replayed from the proper authority, and cleared on reset/history prefill. Cache/history never
+  restore queryId or auto-retry. Save retry freezes one payload plus one non-security attempt ID and keys callbacks
+  by BaseData/attempt rather than trip token; list retry uses a separate monotonic identity and closed/unmounted
+  callbacks cannot replace items. History selection resets flow/checklist/cache and only prefills existing DTO fields,
+  preserving current/default start time and climb support with confirmation copy.
+- Required commands pass: `test:recovery`, `test:trip-flow`, `test:result-page`, `test:response`, `test:trip-context`,
+  `test:history`, root `npm test`, integration `56/0`, lint (0 errors; 9 existing warnings), typecheck,
+  `build:weapp`, and `git diff --check`. No DevTools evidence is claimed.
+- Allowlist remains exact and no public/service/cache/history schema/dependency/Cloud Function changes were made.
+  Status: `READY_FOR_CONTROLLER_REVIEW`; controller owns additive commit, focused draft PR, Actions wait, review and merge.
+
+## Sol Review-fix round 1 — 2026-08-09
+
+Verdict: `CHANGES_REQUESTED`; P0 none; no human decision.
+
+The executor must make the smallest bounded corrections inside the existing #100 allowlist:
+
+1. Render weather recovery only when both the deterministic weather issue and the same state/request authority used
+   by `BEGIN_REPREPARE` are eligible. `base_ready` and `advice_loading` must not expose a silent no-op button;
+   `complete/degraded/error` plus a valid last-base request must enter `preparing` and replay it.
+2. Replace marker-only whole-file `source.includes` evidence with a bounded executable page seam or precise
+   method/branch wiring assertions. Representative removal mutations must RED for button eligibility, old-result
+   refresh priority, same-query advice, base snapshot replay, same-base history intent, stale list guards and
+   zero-I/O history prefill. Do not add a second state machine or UI framework.
+3. Do not invalidate `_historySaveIntent` when reprepare merely starts. Preserve a failed/in-flight old-BaseData
+   intent through reprepare and reprepare failure. Invalidate it, and clear its old local error, only when replacement
+   BaseData arrives or on the already-authorized reset/return/unmount boundaries.
+4. While history list retry is loading, keep existing items rendered alongside the loading indication. Use an empty
+   loading state only when no items exist, with focused render evidence.
+
+Use additive commits and normal push only. Update `docs/i23-recovery-verification.md`, this task and
+`docs/current-status.md`; re-run every command in the frozen matrix and latest-head Actions. Return
+`READY_FOR_CONTROLLER_REVIEW`; do not approve or merge PR #103.
+
+## I23b Review-fix round 1 implementation checkpoint — 2026-08-09
+
+- Weather retry controls now use the bounded `isWeatherRecoveryEligible`/`selectRecoveryActions` seam, requiring
+  retryable weather facts plus accepted terminal flow status and valid last-base authority; base-ready/advice-loading
+  cannot expose a no-op button.
+- `_beginReprepare` no longer invalidates the old history-save intent at start. Replacement BaseData and the existing
+  reset/return/unmount paths remain the only local invalidation boundaries.
+- History list retry/loading keeps existing items rendered; the loading empty state is selected only for an empty list.
+- `recovery-contract-test.js` now uses bounded method/branch assertions and executable action projection, with RED
+  mutation checks for all review representatives: weather eligibility, old-result/list loading priority, same-query
+  AI, snapshot replay, same-base history intent, stale list guards and zero-I/O prefill.
+- Scope remains the frozen #100 allowlist; no Cloud Function/public contract/cache/history schema/dependency/new
+  state/automatic retry/visual redesign. Pending additive commit, normal push, latest-head Actions and controller
+  review; executor must return `READY_FOR_CONTROLLER_REVIEW` and cannot approve or merge.
+- Review-fix local matrix is GREEN: focused recovery/trip-flow/result-page/response/trip-context/history, root
+  `npm test`, integration `56/0`, lint 0 errors/9 existing warnings, typecheck, `build:weapp`, and `git diff --check`.
+  No DevTools or screenshot evidence was run.
+
+## Sol Review-fix round 2 — 2026-08-09
+
+Verdict on exact head `42b4e8d`: `CHANGES_REQUESTED`; no P0/P1 and no human/product/architecture decision yet.
+All prior weather eligibility, page wiring, old-result refresh, history-save identity and stale-list findings are
+closed. Make only this final correction:
+
+- When `historyLoading === true` and `historyList.length > 0`, render a small local “正在刷新历史…” indication
+  together with the existing items. Keep the empty-list loading state for `historyList.length === 0`; do not hide,
+  disable or replace the old list.
+- Extend the focused render/mutation assertion so removing this non-empty loading indication makes
+  `test:recovery` RED while the old items remain required.
+- Synchronize this task, `docs/current-status.md`, `docs/i23-recovery-verification.md`, and the live #100/PR #103
+  status. Re-run the frozen full matrix and latest-head Actions.
+
+Use one additive commit and normal push. Do not modify recovery identities, reducers, network behavior, schemas,
+dependencies or styling beyond the minimal existing-class hint. This is the final round for this finding; a repeat
+failure must return `ESCALATE_TO_HUMAN`, not start round 3. The implementer cannot approve or merge.
+
+## I23b Review-fix round 2 implementation checkpoint — 2026-08-09
+
+- Added only the existing `history-meta` class hint `正在刷新历史…` when a history refresh is loading alongside
+  non-empty old items; old items remain visible and the empty-list loading branch is unchanged.
+- Focused render/mutation evidence now requires the hint and proves that replacing it with `false` makes
+  `test:recovery` RED while `historyList.map` remains present.
+- No reducer/request/identity/schema/dependency/new state or other styling changed. Final-round matrix is GREEN and
+  verification evidence is synchronized; if this same finding repeats, escalate to the human rather than starting
+  round 3. Status: `READY_FOR_CONTROLLER_REVIEW`; executor cannot approve or merge.

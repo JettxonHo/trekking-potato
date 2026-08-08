@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M6 I23a IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — M6 I23b IMPLEMENTATION_ACTIVE`
 - Updated: `2026-08-09`
 
 ## 1. 依赖图

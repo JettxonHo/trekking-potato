@@ -2,19 +2,20 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I23a REVIEW_FIX_ACTIVE`
+- Goal status: `ACTIVE — M6 I23b REVIEW_FIX_ACTIVE`
 - Active milestone: `M6 Core UX`
-- Active task: `I23a / #99 / REVIEW_FIX_ACTIVE`
-- Branch: `codex/99-history-save-idempotency`
-- Base: `main` at `a12ab46`
+- Active task: `I23b / #100 / REVIEW_FIX_ACTIVE`
+- Branch: `codex/100-frontend-recovery`
+- Base: `main` at `107fab4`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page — all closed
 - I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
 - I22a implementation PR: `#97` — squash merged as `6e12f25`; GitHub #94 closed
 - I22b implementation PR: `#98` — squash merged as `852e86d`; GitHub #95 and parent #31 closed
-- Assignment: exact custom Agent `luna-worker` is assigned to I23a Review-fix round 1; I23b remains blocked
+- Assignment: exact custom Agent `luna-worker` owns the final bounded PR #103 Review-fix round 2; Terra fallback remains unauthorized
 - I23 planning PR: `#101` — latest-head quality and independent actual-diff Review passed; squash merged as `a12ab46`
+- I23a PR: `#102` — latest-head quality and independent Sol re-review passed; squash merged as `107fab4`; #99 closed
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -146,9 +147,8 @@
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1–M5 and I20–I22 are complete. I22b PR #98 passed latest-head quality, full local DevTools evidence and
-independent Sol Review, squash merged as `852e86d`, and closed #95 plus parent #31. M6 is now at I23/#32
-planning PR open. No implementation Agent is active; I23a history-save idempotency must merge before I23b
-frontend recovery is dispatched.
+independent Sol Review, squash merged as `852e86d`, and closed #95 plus parent #31. I23 planning PR #101 and
+I23a PR #102 are merged. M6 is now at I23b/#100 implementation from `main@107fab4`.
 
 ## Completed
 
@@ -636,15 +636,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Agent assignments
 
 - Sol XHigh: controller, contract owner, independent reviewer and merge authority.
-- `luna-worker`: assigned I23a executor after the controller activation commit; configuration verified as `gpt-5.6-luna` with `max` reasoning.
+- `luna-worker`: assigned I23b executor after the controller activation commit; configuration verified as `gpt-5.6-luna` with `max` reasoning.
 - First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 - Independent Sol XHigh: reserved for the implementation PR Review; no implementation authority.
 
 ## Open work
 
-1. Commit/push the controller I23a activation checkpoint and synchronize live #32/#99.
-2. Dispatch exact `luna-worker` for #99; implement, test and independently Review I23a before activating I23b.
+1. Commit/push the controller I23b activation checkpoint and synchronize live #32/#100.
+2. Dispatch exact `luna-worker` for #100; implement, test and independently Review I23b before closing parent #32.
 
 ## Blockers and risks
 
@@ -675,12 +675,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Changing deterministic verdicts, route/weather facts, minimum gear, source policy, getAdvice phases or the ten states.
 - Adding history replay fields, queryId to cache/history, data migration/index, dependencies, background retry loops,
   public UGC, broad visual redesign, deployment or production configuration.
-- Starting I23b before I23a merge, or expanding #99 beyond its frozen history-save allowlist.
+- Expanding #100 beyond its frozen frontend recovery allowlist or changing the accepted I23a primitive.
 
 ## Next action
 
-Commit and push the controller activation checkpoint, then dispatch only I23a/#99 to exact `luna-worker`.
-The executor cannot approve/merge and Terra remains unauthorized; #100 stays dependency-blocked.
+Commit and push the controller activation checkpoint, then dispatch only I23b/#100 to exact `luna-worker`.
+The executor cannot approve/merge and Terra remains unauthorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
@@ -955,3 +955,99 @@ The executor cannot approve/merge and Terra remains unauthorized; #100 stays dep
 - Required local matrix passes: `npm test`, integration `56/0`, lint (0 errors; 9 existing warnings), typecheck,
   host WeChat `build:weapp`, and `git diff --check`. Additive commit `877cd6c` is pushed; fresh latest-head GitHub
   `quality` passed in 44 seconds (run `31272070159`, job `93139614802`). No production handler change is pending.
+
+## I23a merge / I23b activation checkpoint — 2026-08-09
+
+- PR #102 final head passed latest-head quality and independent Sol re-review returned `APPROVED` with no P0–P3
+  findings. Sol squash merged it as `107fab4` and closed #99.
+- I23a now provides the accepted sequential history-save retry primitive. Its bounded limitation remains explicit:
+  it does not promise simultaneous distributed exactly-once and adds no index, migration, lock, hash or queryId.
+- Active Issue is only #100 on `codex/100-frontend-recovery` from exact `main@107fab4`. The fixed allowlist is the
+  page-local recovery model/reducer/result model/page/CSS, focused tests/package, verification doc and two status docs.
+- Routing before spawn: logical role `IMPLEMENTER`; requested custom Agent `luna-worker`; config
+  `~/.codex/agents/luna-worker.toml`; configured `gpt-5.6-luna` / `max`; configuration status `CONFIG_VERIFIED`;
+  runtime visibility is recorded by the executor. Terra remains unauthorized as an automatic fallback.
+
+## I23b implementation checkpoint — 2026-08-09
+
+- TDD RED was recorded before implementation: after registering `test:recovery`, the first
+  `npm run test:recovery` failed with Node `MODULE_NOT_FOUND` for the not-yet-created `recovery-model.js`.
+- GREEN adds only the #100 allowlist. `recovery-model.js` owns bounded pending/last base-request snapshots,
+  retryable-event guards, non-security history save identity/frozen payload, and independent history-list tokens.
+  `trip-flow.js` keeps the ten states/fields and adds only `BEGIN_ADVICE_RETRY` and `BEGIN_REPREPARE`; a non-null
+  result in `preparing` stays rendered under `refreshing` instead of the skeleton. `index.jsx` replays existing
+  prepare/confirm/advice seams, preserves deterministic facts/checklist, serializes same-base history retry,
+  guards stale list callbacks, and treats history selection as zero-network form prefill. `result-page-model.js`
+  exposes `refreshing` and optionally attaches the accepted `saveAttemptId`; CSS is limited to recovery indicators.
+- Focused behavior tests pass: `test:recovery`, `test:trip-flow`, `test:result-page`. Recovery tests cover event
+  eligibility/no-op, token advancement, same-query AI, new-query replay, request slots, old-result refresh,
+  frozen history payload/identity, list stale/close guards, weather boundaries and actual page wiring.
+- Required local matrix passes: `npm run test:response`, `npm run test:trip-context`, `npm run test:history`,
+  root `npm test`, integration `56/0`, lint (0 errors; 9 existing warnings), typecheck, WeChat build and
+  `git diff --check`. No DevTools or screenshot evidence was run; it is deferred to I24 unless separately authorized.
+- Actual files changed remain within the allowlist: page/reducer/result/CSS, recovery test and focused test,
+  package script, verification doc, and these two status documents. No Cloud Function, service payload, cache
+  schema, history DTO, dependency, route/weather/verdict rule or production configuration changed.
+- Status: `READY_FOR_CONTROLLER_REVIEW`; additive commit/PR and latest-head Actions remain controller-owned.
+
+## I23b Sol Review / Review-fix round 1 — 2026-08-09
+
+- Draft PR #103 at implementation head `45c454a` passed latest-head GitHub `quality`, but two independent read-only
+  Reviews returned `CHANGES_REQUESTED`. No P0 or human/product/architecture decision is involved.
+- Fix the four bounded page-orchestration findings only: gate weather recovery controls by the same reducer/request
+  eligibility used by the click handler; replace marker-only wiring evidence with mutation-sensitive focused page
+  evidence; keep the old BaseData history-save intent valid until replacement BaseData actually arrives; and keep
+  existing history items visible while a list retry is loading.
+- The old history save error/retry action must remain usable across a failed reprepare, while replacement BaseData,
+  reset/return and unmount still invalidate it. A visible recovery button must never silently no-op because its event
+  is ineligible.
+- Review-fix remains inside #100's existing allowlist. No Cloud Function, public contract, dependency, cache/history
+  schema, eleventh state, automatic retry or visual redesign is authorized. Use additive commits and normal push,
+  update the verification/status evidence, run the complete required matrix and latest-head Actions, then return
+  `READY_FOR_CONTROLLER_REVIEW` for a fresh Sol Review.
+
+## I23b Review-fix round 1 implementation checkpoint — 2026-08-09
+
+- Fixed weather recovery rendering and click handling by introducing the executable page-local
+  `isWeatherRecoveryEligible`/`selectRecoveryActions` seam. It requires a retryable deterministic weather issue,
+  terminal `complete`/`degraded`/`error` state and a valid `lastBaseRequest`; `base_ready` and `advice_loading`
+  therefore expose no silent no-op action.
+- Removed only the early `_invalidateHistorySaveIntent()` from `_beginReprepare`. Failed/in-flight old BaseData
+  save intent remains available through reprepare failure; replacement BaseData, reset/return and unmount retain
+  their existing invalidation boundaries.
+- History list rendering now shows existing items while a refresh is loading and uses the empty loading copy only
+  when there are no items. Lifecycle token/error preservation is unchanged.
+- Replaced whole-file marker-only page evidence with bounded method/branch extraction plus executable action
+  projection. Focused mutations for eligibility, refreshing priority, same-query advice, snapshot replay, same-base
+  save identity, stale list guards and zero-I/O history prefill are required to fail the wiring assertions.
+- Review-fix remains within the frozen #100 allowlist. No Cloud Function, public contract, cache/history schema,
+  dependency or new flow state changed. Status remains `READY_FOR_CONTROLLER_REVIEW` pending additive commit,
+  normal push, latest-head Actions and fresh Sol review.
+- Review-fix local gates are GREEN: focused recovery/trip-flow/result-page/response/trip-context/history, root
+  `npm test`, integration `56/0`, typecheck, WeChat build and `git diff --check`; lint has 0 errors and 9 existing
+  warnings. No DevTools/screenshot evidence was run.
+
+## I23b Sol re-review / Review-fix round 2 — 2026-08-09
+
+- PR #103 exact head `42b4e8d` passed latest-head GitHub `quality` in 39 seconds. Frontend Review returned
+  `APPROVED`; backend/lifecycle Review closed every prior production and identity finding but found one remaining P2:
+  a non-empty history list stays visible during retry yet lacks a simultaneous local loading indication.
+- Round 2 is limited to showing a small history-refreshing hint when `historyLoading` and existing items coexist,
+  plus mutation-sensitive render evidence and truthful status/verification sync. The empty-list loading state and
+  all list lifecycle/token behavior remain unchanged.
+- This is the final permitted fix round for this same frozen finding. If it does not pass exact-head independent
+  re-review, stop and escalate to the human rather than starting round 3. No other implementation or contract change
+  is authorized.
+
+## I23b Review-fix round 2 implementation checkpoint — 2026-08-09
+
+- Added only a local `history-meta` hint, `正在刷新历史…`, when `historyLoading === true` and existing history
+  items are present. The prior items remain rendered in the same branch; the empty-list loading state is unchanged.
+- Extended `assertMutationSensitivePageWiring` so removing that non-empty hint makes `test:recovery` RED while the
+  existing `historyList.map` evidence remains required. No new state, CSS, request, identity, schema or dependency
+  was introduced.
+- Focused recovery is GREEN. The frozen matrix and `git diff --check` are recorded in the verification doc; no
+  DevTools/screenshot evidence was run. This is the final bounded round and is ready for one additive commit,
+  normal push and latest-head Actions; if the same finding repeats, escalate to the human.
+- Final-round local results: `npm test` PASS; integration `56/0`; lint 0 errors/9 existing warnings; typecheck,
+  `build:weapp`, `git diff --check`, and focused trip-flow/result-page/recovery/response/trip-context/history PASS.
