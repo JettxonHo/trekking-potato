@@ -27,6 +27,12 @@ function assertGearProjection(base, label) {
   }
 }
 
+function fakeSourceSummaries(sourceIds) {
+  return sourceIds.map((id) => ({
+    id, tier: 'B', kind: 'fixture', title: `Source ${id}`, publisher: '测试来源', url: null, checkedAt: '2026-08-08',
+  }))
+}
+
 async function main() {
   const catalog = createProductionRouteCatalog()
   const variant = catalog.variants.find((item) => item.capability === 'full')
@@ -39,15 +45,23 @@ async function main() {
     getReferenceSunEvents: async () => { calls.sunset++; return { sunrise: '06:00', sunset: '18:30' } },
     evaluateTripVerdict: (input) => { calls.verdict++; return evaluateTripVerdict(input) },
     getGearRules: (input) => { calls.gear++; return getGearRules(input) },
+    resolveRouteSourceSummaries: fakeSourceSummaries,
     now: () => new Date('2026-08-08T00:00:00.000Z'),
   })
 
-  const full = await builder.build({ target: { ...variant, entityKind: 'route_variant', capability: 'full', routeVariant: variant, route, place, candidateId: variant.id }, request: { date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 99 } })
+  const placeWithIdentityEvidence = { ...place, sourceIds: ['source:place-identity'] }
+  const full = await builder.build({ target: { ...variant, entityKind: 'route_variant', capability: 'full', routeVariant: variant, route, place: placeWithIdentityEvidence, candidateId: variant.id }, request: { date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 99 } })
   assert.equal(full.kind, 'built')
   assert.equal(full.trustedBaseData.requestSummary.days, variant.fixedDays, 'full 必须忽略客户端 days')
   assert.equal(full.trustedBaseData.routeSnapshot.routeVariantId, variant.id)
   assert.equal(full.trustedBaseData.deterministicResult.dataStatus, 'complete')
   assert.equal(full.trustedBaseData.elevation, variant.routeHighestPointElevationM)
+  assert.equal(full.trustedBaseData.routeSnapshot.routeHighestPointElevationM, variant.routeHighestPointElevationM)
+  assert.equal(full.trustedBaseData.routeSnapshot.verificationLevel, variant.verificationLevel)
+  assert.equal(full.trustedBaseData.routeSnapshot.operationalStatus, variant.operationalStatus)
+  assert.equal(full.trustedBaseData.routeSnapshot.sourceCheckedAt, variant.sourceCheckedAt)
+  assert.deepEqual(full.trustedBaseData.sourceMetadata.routeSources.map((source) => source.id), full.trustedBaseData.sourceMetadata.routeSourceIds)
+  assert.equal(full.trustedBaseData.sourceMetadata.routeSourceIds.includes('source:place-identity'), false, 'Place identity evidence must not enter route sources')
   assert.ok(full.trustedBaseData.weather && Array.isArray(full.trustedBaseData.weather.days), '完整路线兼容天气必须提供 weather.days')
   assert.equal(full.trustedBaseData.weather.days.length, variant.fixedDays, '完整路线必须返回全部固定天数天气摘要')
   assert.equal(full.trustedBaseData.weather.source, 'Open-Meteo')
@@ -102,18 +116,25 @@ async function main() {
     fetchRouteWeather: async () => ({ ok: true, source: 'Open-Meteo', fetchedAt: '2026-08-08T00:00:00.000Z', timezone: 'Asia/Shanghai', dataStatus: 'insufficient', insufficientReasons: [{ code: 'out_of_range', retryable: false }], evaluatedWindows: [] }),
     getGearRules: (input) => getGearRules(input),
     evaluateTripVerdict,
+    resolveRouteSourceSummaries: fakeSourceSummaries,
     now: () => new Date('2026-08-08T00:00:00.000Z'),
   })
-  const insufficient = await insufficientBuilder.build({ target: { ...variant, entityKind: 'route_variant', capability: 'full', routeVariant: variant, route, place, candidateId: variant.id }, request: { date: '2026-08-09', startTimeLocal: '08:00', level: '中级' } })
+  const insufficient = await insufficientBuilder.build({ target: { ...variant, entityKind: 'route_variant', capability: 'full', routeVariant: variant, route, place: placeWithIdentityEvidence, candidateId: variant.id }, request: { date: '2026-08-09', startTimeLocal: '08:00', level: '中级' } })
   assert.equal(insufficient.kind, 'built')
   assert.equal(insufficient.trustedBaseData.weatherSnapshot.dataStatus, 'insufficient')
   assert.equal(insufficient.trustedBaseData.deterministicResult.verdict, null)
   assert.equal(insufficient.trustedBaseData.weather, null)
 
   const beforePlaceOnly = calls.referenceWeather
-  const placeOnly = await builder.build({ target: { entityKind: 'place', capability: 'place_only', origin: 'catalog', place, name: place.canonicalName, location: place.region, referenceCoordinate: place.referenceCoordinate, sourceIds: place.sourceIds }, request: { date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 2, routeType: 'trek' } })
+  const placeOnly = await builder.build({ target: { entityKind: 'place', capability: 'place_only', origin: 'catalog', place: placeWithIdentityEvidence, name: place.canonicalName, location: place.region, referenceCoordinate: place.referenceCoordinate, sourceIds: placeWithIdentityEvidence.sourceIds }, request: { date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 2, routeType: 'trek' } })
   assert.equal(placeOnly.kind, 'built')
   assert.equal(placeOnly.trustedBaseData.routeSnapshot.capability, 'place_only')
+  assert.deepEqual(placeOnly.trustedBaseData.routeSnapshot.routeHighestPointElevationM, null)
+  assert.deepEqual(placeOnly.trustedBaseData.routeSnapshot.verificationLevel, null)
+  assert.deepEqual(placeOnly.trustedBaseData.routeSnapshot.operationalStatus, null)
+  assert.deepEqual(placeOnly.trustedBaseData.routeSnapshot.sourceCheckedAt, null)
+  assert.deepEqual(placeOnly.trustedBaseData.sourceMetadata.routeSourceIds, [])
+  assert.deepEqual(placeOnly.trustedBaseData.sourceMetadata.routeSources, [])
   assert.equal(placeOnly.trustedBaseData.deterministicResult.verdict, null)
   assertGearProjection(placeOnly.trustedBaseData, 'place-only')
   assert.equal(calls.referenceWeather, beforePlaceOnly + 1)
@@ -122,10 +143,16 @@ async function main() {
   const blockedRoute = catalog.routes.find((item) => item.id === blockedVariant.routeId)
   const blockedPlace = catalog.places.find((item) => item.id === blockedRoute.placeId)
   const beforeBlocked = { ...calls }
-  const blocked = await builder.build({ target: { ...blockedVariant, entityKind: 'route_variant', capability: 'blocked', routeVariant: blockedVariant, route: blockedRoute, place: blockedPlace, candidateId: blockedVariant.id }, request: { date: '2026-08-09', startTimeLocal: '08:00', level: '小白', days: 99, climbSupport: 'invalid' } })
+  const blocked = await builder.build({ target: { ...blockedVariant, entityKind: 'route_variant', capability: 'blocked', routeVariant: blockedVariant, route: blockedRoute, place: { ...blockedPlace, sourceIds: ['source:place-identity'] }, candidateId: blockedVariant.id }, request: { date: '2026-08-09', startTimeLocal: '08:00', level: '小白', days: 99, climbSupport: 'invalid' } })
   assert.equal(blocked.kind, 'built')
   assert.equal(blocked.trustedBaseData.deterministicResult.verdict, 'no_go')
   assert.equal(blocked.trustedBaseData.weatherSnapshot, null)
+  assert.equal(blocked.trustedBaseData.routeSnapshot.routeHighestPointElevationM, null)
+  assert.equal(blocked.trustedBaseData.routeSnapshot.verificationLevel, blockedVariant.verificationLevel)
+  assert.equal(blocked.trustedBaseData.routeSnapshot.operationalStatus, blockedVariant.operationalStatus)
+  assert.equal(blocked.trustedBaseData.routeSnapshot.sourceCheckedAt, blockedVariant.sourceCheckedAt)
+  assert.deepEqual(blocked.trustedBaseData.sourceMetadata.routeSources.map((source) => source.id), blocked.trustedBaseData.sourceMetadata.routeSourceIds)
+  assert.equal(blocked.trustedBaseData.sourceMetadata.routeSourceIds.includes('source:place-identity'), false)
   assert.deepEqual(blocked.trustedBaseData.minimumGear, { essential: [], recommended: [], optional: [] })
   assert.equal(blocked.trustedBaseData.weather, null, '禁行路线兼容天气必须为空')
   assert.deepEqual(blocked.trustedBaseData.gearRules.fatalRisks, ['官方禁行'])

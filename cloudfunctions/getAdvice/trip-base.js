@@ -36,7 +36,6 @@ function sourceIdsFor(target) {
     ...(target.routeVariant && Array.isArray(target.routeVariant.sourceIds) ? target.routeVariant.sourceIds : []),
     ...(target.routeVariant && target.routeVariant.restriction && Array.isArray(target.routeVariant.restriction.sourceIds)
       ? target.routeVariant.restriction.sourceIds : []),
-    ...(target.place && Array.isArray(target.place.sourceIds) ? target.place.sourceIds : []),
   ]
   return [...new Set(values.filter((value) => typeof value === 'string'))].sort()
 }
@@ -59,6 +58,10 @@ function routeSnapshotForFull(target, routeType) {
     referenceCoordinate: null,
     referenceElevationM: null,
     restriction: null,
+    routeHighestPointElevationM: finite(variant.routeHighestPointElevationM) ? variant.routeHighestPointElevationM : null,
+    verificationLevel: variant.verificationLevel || null,
+    operationalStatus: variant.operationalStatus || null,
+    sourceCheckedAt: variant.sourceCheckedAt || null,
   }
 }
 
@@ -78,6 +81,10 @@ function routeSnapshotForPlace(target, routeType, elevation) {
     referenceCoordinate: target.referenceCoordinate ? copy(target.referenceCoordinate) : null,
     referenceElevationM: finite(elevation) ? elevation : null,
     restriction: null,
+    routeHighestPointElevationM: null,
+    verificationLevel: null,
+    operationalStatus: null,
+    sourceCheckedAt: null,
   }
 }
 
@@ -99,7 +106,26 @@ function routeSnapshotForBlocked(target, routeType) {
     referenceCoordinate: null,
     referenceElevationM: null,
     restriction: copy(variant.restriction),
+    routeHighestPointElevationM: null,
+    verificationLevel: variant.verificationLevel || null,
+    operationalStatus: variant.operationalStatus || null,
+    sourceCheckedAt: variant.sourceCheckedAt || null,
   }
+}
+
+function sourceMetadataFor(target, resolveRouteSourceSummaries, { routeTypeSource, weatherSource, checkedAt }) {
+  const routeSourceIds = sourceIdsFor(target)
+  if (routeSourceIds.length === 0) {
+    return { routeSourceIds: [], routeSources: [], routeTypeSource, weatherSource, checkedAt }
+  }
+  if (typeof resolveRouteSourceSummaries !== 'function') throw new TypeError('route source summary resolver required')
+  const routeSources = resolveRouteSourceSummaries(routeSourceIds)
+  if (!Array.isArray(routeSources)
+    || routeSources.length !== routeSourceIds.length
+    || routeSources.some((source, index) => !source || source.id !== routeSourceIds[index])) {
+    throw new Error('Route source summaries do not match route source IDs')
+  }
+  return { routeSourceIds, routeSources: copy(routeSources), routeTypeSource, weatherSource, checkedAt }
 }
 
 function emptyGear(fatalRisks = [], ruleNotes = []) {
@@ -214,7 +240,8 @@ function normalizeTarget(target) {
 
 /** @typedef {{ fetchRouteWeather?: Function, fetchReferenceWeather?: Function,
  *   getReferenceSunEvents?: Function, evaluateTripVerdict?: Function,
- *   getGearRules?: Function, now?: Function }} TripBaseDependencies */
+ *   getGearRules?: Function, resolveRouteSourceSummaries?: Function,
+ *   now?: Function }} TripBaseDependencies */
 
 /** @param {TripBaseDependencies} [dependencies={}] */
 function createTripBaseBuilder(dependencies = {}) {
@@ -223,6 +250,7 @@ function createTripBaseBuilder(dependencies = {}) {
   const getReferenceSunEvents = dependencies.getReferenceSunEvents
   const evaluateTripVerdict = dependencies.evaluateTripVerdict || defaultEvaluateTripVerdict
   const getGearRules = dependencies.getGearRules || defaultGetGearRules
+  const resolveRouteSourceSummaries = dependencies.resolveRouteSourceSummaries
   const now = typeof dependencies.now === 'function' ? dependencies.now : () => new Date()
 
   /** @param {{ target?: any, request?: any }} [options={}] */
@@ -259,9 +287,9 @@ function createTripBaseBuilder(dependencies = {}) {
         weatherSnapshot: null,
         deterministicResult,
         gearRules,
-        sourceMetadata: {
-          routeSourceIds: sourceIdsFor(target), routeTypeSource: 'builtin', weatherSource: null, checkedAt,
-        },
+        sourceMetadata: sourceMetadataFor(target, resolveRouteSourceSummaries, {
+          routeTypeSource: 'builtin', weatherSource: null, checkedAt,
+        }),
         compatibility: compatibilityProjection({
           route: routeSnapshot.canonicalName,
           date: input.date,
@@ -347,10 +375,9 @@ function createTripBaseBuilder(dependencies = {}) {
         weatherSnapshot: weather,
         deterministicResult,
         gearRules,
-        sourceMetadata: {
-          routeSourceIds: sourceIdsFor(target), routeTypeSource: 'builtin',
-          weatherSource: weather ? 'Open-Meteo' : null, checkedAt,
-        },
+        sourceMetadata: sourceMetadataFor(target, resolveRouteSourceSummaries, {
+          routeTypeSource: 'builtin', weatherSource: weather ? 'Open-Meteo' : null, checkedAt,
+        }),
         compatibility: compatibilityProjection({
           route: routeSnapshot.canonicalName,
           date: input.date,
@@ -432,12 +459,11 @@ function createTripBaseBuilder(dependencies = {}) {
       weatherSnapshot: referenceResult.snapshot,
       deterministicResult,
       gearRules,
-      sourceMetadata: {
-        routeSourceIds: sourceIdsFor(target),
+      sourceMetadata: sourceMetadataFor(target, resolveRouteSourceSummaries, {
         routeTypeSource: origin === 'amap' ? 'amap' : 'user',
         weatherSource: referenceResult.source,
         checkedAt,
-      },
+      }),
       compatibility: compatibilityProjection({
         route: routeSnapshot.canonicalName,
         date: input.date,

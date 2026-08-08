@@ -16,7 +16,11 @@ const { buildMessages } = require('./prompt')
 const { projectSafetyAdvice } = require('./safety-advice')
 const { isKnownRouteType } = require('./route-type')
 const { createTripContextStore } = require('./trip-context')
-const { resolveRouteQuery, resolveRouteCandidateId } = require('./domain/catalog-resolver')
+const {
+  resolveRouteQuery,
+  resolveRouteCandidateId,
+  resolveRouteSourceSummaries,
+} = require('./domain/catalog-resolver')
 const { createTripBaseBuilder } = require('./trip-base')
 const {
   errorResponse,
@@ -222,6 +226,7 @@ const tripBaseBuilder = createTripBaseBuilder({
     return calcSunEvents(wgs84.lat, wgs84.lng, date)
   },
   getGearRules,
+  resolveRouteSourceSummaries,
   now: () => currentNow(),
 })
 

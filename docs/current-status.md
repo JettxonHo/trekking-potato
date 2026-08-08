@@ -2,16 +2,20 @@
 
 - Updated: `2026-08-08`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I22 CONTRACT_APPROVED; PLANNING_PR_PENDING`
+- Goal status: `ACTIVE — M6 I22a REVIEW_FIX_ACTIVE`
 - Active milestone: `M6 Core UX`
-- Active task: `I22 / #31 / CONTRACT_APPROVED — PLANNING_PR_PENDING`
-- Branch: `codex/i22-result-page-contract`
-- Base: `main` at `be24b07`
+- Active task: `I22a / #94 / REVIEW_FIX_ACTIVE`
+- Branch: `codex/94-source-summaries`
+- Base: `main` at `ac4ba9e`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page; contract Review approved
-- I22 planning PR: `#96` — open; its GitHub PR check is the latest-head CI fact source
-- Assignment: Sol XHigh owns the planning PR; no implementation Agent is active
+- I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
+- Assignment: exact custom Agent `luna-worker` completed #94 implementation at `c46de83`; PR `#97` latest-head
+  `quality` passed, status is `READY_FOR_CONTROLLER_REVIEW`, and Sol review-fix is active; #95 remains
+  dependency-blocked
+- I22a implementation PR: `#97` — head `c46de83`; latest-head GitHub `quality` passed; `READY_FOR_CONTROLLER_REVIEW`
+  with Sol review-fix active
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -143,9 +147,10 @@
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1–M5, I20 and I21 are complete. I07, I10a, all five reviewed community-track Variants and I13's production
-catalog resolver are merged; M3 is complete. M6 is active at I22 contract planning. I22 runs serially as
-#94 trusted provenance followed by #95 structured result page; implementation starts only after the I22 planning
-PR merges from a green latest head.
+catalog resolver are merged; M3 is complete. M6 is active at I22a #94 review-fix: implementation commit
+`c46de83` is on PR `#97`, whose latest-head `quality` passed, and the executor is `READY_FOR_CONTROLLER_REVIEW`.
+I22 runs serially as #94 trusted provenance followed by #95 structured result page; #95 remains blocked until
+#94 completes independent Sol Review and merge.
 
 ## Completed
 
@@ -633,15 +638,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Agent assignments
 
 - Sol XHigh: controller, contract owner, independent reviewer and merge authority.
-- `luna-worker`: I21 executor completed and stopped; runtime verified as `gpt-5.6-luna` with `max` reasoning.
+- `luna-worker`: selected I22a executor; configuration verified as `gpt-5.6-luna` with `max` reasoning.
 - First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 - Independent Sol XHigh: reserved for the implementation PR Review; no implementation authority.
 
 ## Open work
 
-1. Complete independent Sol actual-diff Review of planning PR #96.
-2. If the reviewed head remains unchanged and quality stays green, squash merge before implementation dispatch.
+1. Complete the bounded Sol review-fix for #94; implementation `c46de83` is pushed to PR `#97` and its
+   latest-head `quality` passed. The executor remains `READY_FOR_CONTROLLER_REVIEW`.
+2. Obtain independent Sol re-review and merge #94 before activating #95.
 
 ## Blockers and risks
 
@@ -667,17 +673,17 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   adds display-safe provenance before #95 consumes it.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I22 planning
+## Forbidden actions during I22a implementation
 
 - Changing deterministic verdicts, route/weather facts, minimum gear, source policy or the ten-state reducer.
-- Starting I22 implementation before the contract passes independent Review and the planning PR merges.
+- Frontend/result-page work, route record/schema changes, second catalog construction or source inference.
 - Starting I23 retry/recovery controls, broad visual redesign, deployment or production configuration.
 
 ## Next action
 
-Planning PR #96 is open. Require its latest-head quality and independent actual-diff Review, then squash merge only
-if that reviewed head is unchanged. Do not dispatch `luna-worker` before that merge and do not automatically
-route implementation to Terra.
+Finish the active Sol review-fix on PR `#97` for implementation `c46de83`; after independent Sol approval, Sol may
+merge #94 and then activate #95. The executor must not approve or merge, and #95 must not start early or route to
+Terra.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
@@ -790,3 +796,32 @@ route implementation to Terra.
   host Taro 4.0.9 `build:weapp` and `git diff --check` pass. No implementation Agent is active.
 - Planning PR #96 is open. Its GitHub PR check remains the CI fact source rather than a commit/run ID persisted in
   this self-updating status file. Current gate is independent actual-diff Review and unchanged-head squash merge.
+
+## I22 planning merge / I22a activation checkpoint — 2026-08-08
+
+- Planning PR #96 latest head passed GitHub quality and independent actual-diff Review with no P0–P3 findings;
+  Sol squash merged it as `ac4ba9e`.
+- Active Issue is only #94. Branch `codex/94-source-summaries` starts from exact `main@ac4ba9e`; #95 remains
+  dependency-blocked and may not be implemented in parallel.
+- Routing verification: logical role `IMPLEMENTER`; requested custom Agent `luna-worker`; config
+  `~/.codex/agents/luna-worker.toml`; configured model `gpt-5.6-luna`; reasoning `max`; configuration status
+  `CONFIG_VERIFIED`. Runtime status is recorded after spawn; Terra remains unauthorized as an automatic fallback.
+- Active allowlist is the server resolver/source-summary/BaseData seam, focused tests, package command and two
+  status documents defined in #94/ACTIVE_TASK. No frontend, route data, rules, Prompt/safety/history or dependency work.
+
+## I22a implementation checkpoint — 2026-08-08
+
+- Agent: exact custom `luna-worker`; runtime model/reasoning remains `UNVERIFIED_RUNTIME_MODEL` in this session
+  because runtime metadata was not exposed. Configuration remains `CONFIG_VERIFIED` for `gpt-5.6-luna` / `max`.
+- TDD: `test:source-summary` was registered before the implementation module and produced the real
+  `MODULE_NOT_FOUND` RED. GREEN now covers the pure seven-field projection, resolver-owned Source snapshot,
+  custom catalog lookup, copy isolation and unknown-ID integrity error.
+- Implementation: `createCatalogResolver` owns one catalog Source snapshot and exposes `summarizeSources`; the
+  production resolver exports `resolveRouteSourceSummaries`. `trip-base` receives that function through injection,
+  adds Variant provenance/status fields, emits display-safe `routeSources`, and excludes Place identity evidence from
+  `routeSourceIds`. `index.js` injects the production function; compatibility fields and queryId-only advice remain unchanged.
+- Focused GREEN: source-summary, core-input-flow, trip-context and response contracts pass. Route resolver/domain/data,
+  root test, integration `56/0`, lint `0 errors / 10 existing warnings`, typecheck, host WeChat build and diff check pass.
+- Scope check: only the #94 allowlist changed; no frontend, route data/schema, I13 query semantics, weather/verdict,
+  Prompt/safety/history, dependency, network, deployment or production configuration change. Status is
+  `READY_FOR_CONTROLLER_REVIEW`; PR/CI and independent Sol Review remain required.
