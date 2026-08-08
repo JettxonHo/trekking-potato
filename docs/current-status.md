@@ -7,6 +7,15 @@
 - Active task: `I24a / #105 / IMPLEMENTATION_ACTIVE`
 - Branch: `codex/105-structured-advice-adapter`
 - Base: `main` at `6869a7b`
+- I24a implementation checkpoint (2026-08-09): TDD RED for missing `advice-context.js` was recorded before the
+  adapter existed. The current implementation composes exact `beta_base_v2` snapshots with
+  `deterministicSafety`, removes all thirteen top-level compatibility aliases, and derives prompt, safety and
+  private history facts from structured fields only. TripContext now persists `trip_context_v2`; a stored v1
+  context is non-retryable `query_context_unavailable` with zero LLM calls and no version detail. Focused
+  advice-context, core-input, response, TripContext, safety, route, unit, trip-flow, result-page and offline
+  integration contracts are green; integration is `55/0` because the retired sun/advice compatibility assertion
+  was replaced by a mutation-sensitive assertion that advice has no weather/sunEvents/photoTiming/microclimate.
+  Full lint/typecheck/build/diff evidence is recorded in `docs/i24a-structured-adapter-verification.md`.
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page — all closed

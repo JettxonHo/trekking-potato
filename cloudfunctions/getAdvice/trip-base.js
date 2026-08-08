@@ -3,8 +3,7 @@
  *
  * This module is deliberately transport-free: the handler resolves targets,
  * this builder composes one trusted snapshot, and TripContext persists that
- * exact snapshot.  Compatibility fields are a one-way display projection of
- * the same structured data; they are never read by the domain rules.
+ * exact beta_base_v2 snapshot.
  */
 const { evaluateTripVerdict: defaultEvaluateTripVerdict } = require('./trip-verdict')
 const { getGearRules: defaultGetGearRules } = require('./gear-rules')
@@ -139,46 +138,6 @@ function highestSample(variant) {
   ), null)
 }
 
-function summaryWeather(weather, deterministicResult) {
-  if (!weather || weather.ok !== true || weather.dataStatus !== 'complete') return null
-  const days = (weather.evaluatedWindows || []).map((window) => {
-    const hours = (window.samples || []).flatMap((sample) => sample.hours || [])
-    if (hours.length === 0) return null
-    const reasonForDay = (deterministicResult.reasons || []).some((reason) => (
-      reason.code === 'forecast_lead_time' && reason.at && reason.at.day === window.day
-    ))
-    return {
-      date: window.date,
-      tempMin: Math.floor(Math.min(...hours.map((hour) => hour.temperatureC))),
-      tempMax: Math.ceil(Math.max(...hours.map((hour) => hour.temperatureC))),
-      precipProb: Math.max(...hours.map((hour) => hour.precipitationProbabilityPct)),
-      windMs: Math.max(...hours.map((hour) => hour.windSpeedMs)),
-      confidence: reasonForDay ? '参考' : '正常',
-    }
-  }).filter(Boolean)
-
-  // Keep the legacy weather contract consumed by prompt/safety/UI while
-  // projecting only the deterministic daily summary from the trusted hourly
-  // snapshot.  I14 does not carry the old caveat fields, so the stable
-  // explanations remain explicit defaults and any supplied source metadata is
-  // preserved without exposing raw transport data.
-  return {
-    days,
-    source: typeof weather.source === 'string' ? weather.source : 'Open-Meteo',
-    windUnit: 'm/s',
-    fetchedAt: typeof weather.fetchedAt === 'string' ? weather.fetchedAt : null,
-    timezone: typeof weather.timezone === 'string' ? weather.timezone : 'Asia/Shanghai',
-    elevationCaveat: typeof weather.elevationCaveat === 'string'
-      ? weather.elevationCaveat
-      : 'Open-Meteo 用标准递减率线性修正，逆温层/辐射冷却场景温度可能反向偏差，山区微气候仅供参考',
-    precipNote: typeof weather.precipNote === 'string'
-      ? weather.precipNote
-      : 'precipProb 来自 GFS 集合，中国区域验证度低于欧美',
-    dateOutOfRange: weather.dateOutOfRange === true,
-    dateRangeNote: typeof weather.dateRangeNote === 'string' ? weather.dateRangeNote : '',
-  }
-}
-
 function normalizeReferenceResult(result) {
   if (!result) return { snapshot: null, data: null, source: null, elevationM: null }
   if (result.ok === true) {
@@ -239,7 +198,7 @@ function normalizeTarget(target) {
 }
 
 /** @typedef {{ fetchRouteWeather?: Function, fetchReferenceWeather?: Function,
- *   getReferenceSunEvents?: Function, evaluateTripVerdict?: Function,
+ *   evaluateTripVerdict?: Function,
  *   getGearRules?: Function, resolveRouteSourceSummaries?: Function,
  *   now?: Function }} TripBaseDependencies */
 
@@ -247,7 +206,6 @@ function normalizeTarget(target) {
 function createTripBaseBuilder(dependencies = {}) {
   const fetchRouteWeather = dependencies.fetchRouteWeather
   const fetchReferenceWeather = dependencies.fetchReferenceWeather
-  const getReferenceSunEvents = dependencies.getReferenceSunEvents
   const evaluateTripVerdict = dependencies.evaluateTripVerdict || defaultEvaluateTripVerdict
   const getGearRules = dependencies.getGearRules || defaultGetGearRules
   const resolveRouteSourceSummaries = dependencies.resolveRouteSourceSummaries
@@ -289,22 +247,6 @@ function createTripBaseBuilder(dependencies = {}) {
         gearRules,
         sourceMetadata: sourceMetadataFor(target, resolveRouteSourceSummaries, {
           routeTypeSource: 'builtin', weatherSource: null, checkedAt,
-        }),
-        compatibility: compatibilityProjection({
-          route: routeSnapshot.canonicalName,
-          date: input.date,
-          level: input.level,
-          days: null,
-          elevation: null,
-          location: routeSnapshot.region,
-          coords: null,
-          routeType,
-          routeTypeSource: 'builtin',
-          weather: null,
-          sunEvents: null,
-          gearRules,
-          capability: 'blocked',
-          dataStatus: deterministicResult.dataStatus,
         }),
       })
       return { kind: 'built', trustedBaseData: data }
@@ -364,11 +306,6 @@ function createTripBaseBuilder(dependencies = {}) {
         routeType,
       })
       const routeSnapshot = routeSnapshotForFull(target, routeType)
-      const elevation = finite(variant.routeHighestPointElevationM) ? variant.routeHighestPointElevationM : null
-      const coords = sample && sample.coordinate
-        ? { lat: sample.coordinate.lat, lon: sample.coordinate.lon }
-        : null
-      const compatibilityWeather = summaryWeather(weather, deterministicResult)
       const data = makeBaseData({
         requestSummary: { date: input.date, startTimeLocal: input.startTimeLocal, level: input.level, days: variant.fixedDays, climbSupport: routeType === 'climb' ? input.climbSupport : null },
         routeSnapshot,
@@ -377,22 +314,6 @@ function createTripBaseBuilder(dependencies = {}) {
         gearRules,
         sourceMetadata: sourceMetadataFor(target, resolveRouteSourceSummaries, {
           routeTypeSource: 'builtin', weatherSource: weather ? 'Open-Meteo' : null, checkedAt,
-        }),
-        compatibility: compatibilityProjection({
-          route: routeSnapshot.canonicalName,
-          date: input.date,
-          level: input.level,
-          days: variant.fixedDays,
-          elevation,
-          location: routeSnapshot.region,
-          coords,
-          routeType,
-          routeTypeSource: 'builtin',
-          weather: compatibilityWeather,
-          sunEvents: null,
-          gearRules,
-          capability: 'full',
-          dataStatus: deterministicResult.dataStatus,
         }),
       })
       return { kind: 'built', trustedBaseData: data }
@@ -438,14 +359,6 @@ function createTripBaseBuilder(dependencies = {}) {
         ruleNotes: [...(gearRules.ruleNotes || []), '地点级参考，未按完整路线海拔评估'],
       }
     }
-    let sunEvents = null
-    if (typeof getReferenceSunEvents === 'function') {
-      try {
-        sunEvents = copy(await getReferenceSunEvents({ date: input.date, coordinate: copy(coordinate) }))
-      } catch (_error) {
-        sunEvents = null
-      }
-    }
     const deterministicResult = evaluateTripVerdict({ routeContext: { kind: 'place_only' } })
     const routeSnapshot = routeSnapshotForPlace({
       ...target,
@@ -464,22 +377,6 @@ function createTripBaseBuilder(dependencies = {}) {
         weatherSource: referenceResult.source,
         checkedAt,
       }),
-      compatibility: compatibilityProjection({
-        route: routeSnapshot.canonicalName,
-        date: input.date,
-        level: input.level,
-        days: input.days,
-        elevation,
-        location: routeSnapshot.region,
-        coords: { lat: coordinate.lat, lon: coordinate.lon },
-        routeType: input.routeType,
-        routeTypeSource: origin === 'amap' ? 'amap' : 'user',
-        weather: referenceResult.data,
-        sunEvents,
-        gearRules,
-        capability: 'place_only',
-        dataStatus: deterministicResult.dataStatus,
-      }),
     })
     return { kind: 'built', trustedBaseData: data }
   }
@@ -487,9 +384,9 @@ function createTripBaseBuilder(dependencies = {}) {
   return { build }
 }
 
-function makeBaseData({ requestSummary, routeSnapshot, weatherSnapshot, deterministicResult, gearRules, sourceMetadata, compatibility }) {
+function makeBaseData({ requestSummary, routeSnapshot, weatherSnapshot, deterministicResult, gearRules, sourceMetadata }) {
   return {
-    schemaVersion: 'beta_base_v1',
+    schemaVersion: 'beta_base_v2',
     requestSummary: copy(requestSummary),
     routeSnapshot: copy(routeSnapshot),
     weatherSnapshot: copy(weatherSnapshot),
@@ -499,26 +396,11 @@ function makeBaseData({ requestSummary, routeSnapshot, weatherSnapshot, determin
       recommended: copy(gearRules.recommended || []),
       optional: copy(gearRules.optional || []),
     },
+    deterministicSafety: {
+      fatalRisks: copy(gearRules.fatalRisks || []),
+      ruleNotes: copy(gearRules.ruleNotes || []),
+    },
     sourceMetadata: copy(sourceMetadata),
-    ...compatibility,
-  }
-}
-
-function compatibilityProjection({ route, date, level, days, elevation, location, coords, routeType, routeTypeSource, weather, sunEvents, gearRules, capability, dataStatus }) {
-  return {
-    route,
-    date,
-    level,
-    days,
-    elevation: finite(elevation) ? elevation : null,
-    location: location || null,
-    coords: coords ? copy(coords) : null,
-    routeType,
-    routeTypeSource,
-    weather: weather ? copy(weather) : null,
-    sunEvents: sunEvents ? copy(sunEvents) : null,
-    gearRules: copy(gearRules),
-    meta: { source: 'base', capability, dataStatus },
   }
 }
 

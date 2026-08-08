@@ -512,10 +512,9 @@ export default class Index extends Component {
     this._historyParams = { ...params }
     this._invalidateHistorySaveIntent()
     this._baseHistoryIdentity = base
-    const baseSafetyResult = buildBaseSafetyResult(base.gearRules)
-    // Capture the five compatibility values exactly once when trusted BaseData
-    // arrives.  The private context is used only by the existing I19 adapter;
-    // it is never rendered, cached or merged with advice.
+    const baseSafetyResult = buildBaseSafetyResult(base.deterministicSafety)
+    // Derive the private history context only from the structured route/source
+    // snapshot; it is never rendered, cached or merged with advice.
     this._historyContext = captureHistoryContext(base)
     this._baseHistoryRisks = baseSafetyResult.risks
     this._applyChecklistLifecycle({ type: 'base_received', queryId, baseRef: base }, true)
@@ -525,6 +524,7 @@ export default class Index extends Component {
         weatherSnapshot: base.weatherSnapshot,
         deterministicResult: base.deterministicResult,
         minimumGear: base.minimumGear,
+        deterministicSafety: base.deterministicSafety,
         sourceMetadata: base.sourceMetadata,
         ai: { status: 'loading' },
     }
@@ -788,8 +788,8 @@ export default class Index extends Component {
   // ===== 历史记录 =====
   _saveHistory(params, resultData) {
     const meta = this._historyContext || {}
-    // Compatibility adapter only: this object is the private five-field
-    // historyContext, never result.meta or advice meta.
+    // Private history context is derived from structured BaseData; it is never
+    // read from advice metadata.
     const historyContext = {
       elevation: meta.elevation,
       location: meta.location,

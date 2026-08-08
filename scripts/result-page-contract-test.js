@@ -73,6 +73,7 @@ function fullResult(overrides = {}) {
       recommended: [{ item: '头灯', reason: '最低要求' }],
       optional: [{ item: '手套', reason: '最低要求' }],
     },
+    deterministicSafety: { fatalRisks: ['雷暴'], ruleNotes: ['规则提示'] },
     sourceMetadata: {
       routeSourceIds: ['route-a', 'route-b'], routeSources: [source('route-a', 'A', 'https://example.com/a'), source('route-b', 'B', null)],
       routeTypeSource: 'builtin', weatherSource: 'Open-Meteo', checkedAt: '2026-08-08T00:00:00.000Z',
@@ -89,6 +90,7 @@ function placeResult(weatherSnapshot) {
     weatherSnapshot,
     deterministicResult: { verdict: null, dataStatus: 'place_only', reasons: [], dataIssues: [{ code: 'place_only_route', retryable: false }] },
     minimumGear: { essential: [], recommended: [], optional: [] },
+    deterministicSafety: { fatalRisks: [], ruleNotes: [] },
     sourceMetadata: { routeSourceIds: [], routeSources: [], routeTypeSource: 'amap', weatherSource: 'Open-Meteo', checkedAt: '2026-08-08T00:00:00.000Z' },
   }
 }
@@ -100,6 +102,7 @@ function blockedResult() {
     weatherSnapshot: null,
     deterministicResult: { verdict: 'no_go', dataStatus: 'complete', reasons: [{ code: 'official_route_blocked', severity: 'no_go', message: '该路线存在官方禁行记录' }], dataIssues: [] },
     minimumGear: { essential: [], recommended: [], optional: [] },
+    deterministicSafety: { fatalRisks: ['官方禁行'], ruleNotes: ['该路线存在官方禁行记录'] },
     sourceMetadata: { routeSourceIds: ['restriction-a'], routeSources: [source('restriction-a', 'A', null)], routeTypeSource: 'builtin', weatherSource: null, checkedAt: '2026-08-06T00:00:00.000Z' },
   }
 }
@@ -198,11 +201,16 @@ function assertCacheChecklistAndHistory() {
   assert.equal(checked[checklistKey('essential', 0)], false)
   assert.deepEqual(toggleChecklist(checked, 'recommended', 1), { 'essential:0': false, 'recommended:1': true })
 
-  const context = captureHistoryContext({ elevation: 0, location: '测试地区', coords: { lat: 1, lon: 2 }, routeType: 'trek', routeTypeSource: 'builtin', meta: { elevation: 9999 } })
+  const context = captureHistoryContext({ routeSnapshot: { capability: 'place_only', region: '测试地区', referenceElevationM: 0, referenceCoordinate: { lat: 1, lon: 2 }, routeType: 'trek' }, sourceMetadata: { routeTypeSource: 'builtin' }, meta: { elevation: 9999 } })
   assert.deepEqual(context, { elevation: 0, location: '测试地区', coords: { lat: 1, lon: 2 }, routeType: 'trek', routeTypeSource: 'builtin' })
   assert.equal(Object.prototype.hasOwnProperty.call(context, 'meta'), false)
   context.coords.lat = 99
   assert.equal(context.coords.lat, 99)
+
+  const fullContext = captureHistoryContext(fullResult())
+  assert.deepEqual(fullContext, { elevation: 0, location: '测试地区', coords: null, routeType: 'trek', routeTypeSource: 'builtin' }, 'full history uses highest-point elevation and null coords')
+  const blockedContext = captureHistoryContext(blockedResult())
+  assert.deepEqual(blockedContext, { elevation: null, location: '测试地区', coords: null, routeType: 'trek', routeTypeSource: 'builtin' }, 'blocked history has null elevation/coords')
 }
 
 function assertLifecycleAndHistoryOrchestration() {

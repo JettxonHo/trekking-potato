@@ -153,22 +153,18 @@ async function testPipeline(route, expectElev, tripDays, expectedRouteType) {
   console.log('\n=== Advice 降级投影测试 ===')
   const { projectSafetyAdvice } = require(CF + '/safety-advice')
   const mockDegraded = projectSafetyAdvice({
-    gearRules: {
+    minimumGear: {
       essential: [{ item: '冲锋衣', reason: '防风雨' }],
       recommended: [],
       optional: [],
-      fatalRisks: ['雷暴'],
-      ruleNotes: [],
     },
-    weather: { days: [{ windMs: 3.1 }] },
-    sunEvents: { sunrise: '06:00' },
+    deterministicSafety: { fatalRisks: ['雷暴'], ruleNotes: [] },
     aiOutcome: { status: 'unavailable' },
   })
   check('降级投影标记 ai_unavailable', mockDegraded.degraded === true && mockDegraded.degradedReason === 'ai_unavailable')
   check('降级投影保留确定性风险', mockDegraded.data.risks.length === 1 && mockDegraded.data.risks[0].level === '致命')
   check('降级投影保留确定性装备', mockDegraded.data.gear.essential.length === 1)
-  check('降级投影 photoTiming 只取 base sunEvents', mockDegraded.data.photoTiming.sunrise === '06:00')
-  check('降级投影 microclimate 只取 base weather', mockDegraded.data.microclimate.windMs === 3.1)
+  check('降级投影移除 weather/sunEvents 兼容字段', !('weather' in mockDegraded.data) && !('sunEvents' in mockDegraded.data) && !('photoTiming' in mockDegraded.data) && !('microclimate' in mockDegraded.data))
 
   console.log('\n=== 总结 ===')
   console.log('PASS: ' + pass + ', FAIL: ' + fail)

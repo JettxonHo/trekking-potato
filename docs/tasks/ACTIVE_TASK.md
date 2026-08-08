@@ -117,3 +117,12 @@ changes, dependency, long-lived v1 compatibility, production access or lowered a
 
 Deliver code, tests, `docs/i24a-structured-adapter-verification.md`, complete command evidence and a focused PR using
 `Refs #105`. After latest-head quality and Sol `APPROVED`, merge and only then unblock I24b/#106.
+
+## Executor checkpoint — 2026-08-09
+
+The required RED was recorded before `advice-context.js` existed. The implementation now emits exact
+`beta_base_v2` snapshots, uses a pure bounded structured adapter, projects advice from
+`minimumGear + deterministicSafety + aiOutcome`, and derives history from route/source snapshots. TripContext
+persists `trip_context_v2`; stored v1 records map to the existing non-retryable `query_context_unavailable`
+without an LLM call. Focused and root contracts are green; exact command evidence and the one retired
+integration assertion replacement are recorded in `docs/i24a-structured-adapter-verification.md`.

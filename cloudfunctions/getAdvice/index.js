@@ -10,9 +10,9 @@ const cloud = require('wx-server-sdk')
 cloud.init(/** @type {any} */ ({ env: cloud.DYNAMIC_CURRENT_ENV }))
 const { resolveLocation, fetchElevation, gcj02ToWgs84 } = require('./geocode')
 const { fetchWeather, fetchRouteWeather, isValidIsoDate, parseTripDaysInput } = require('./weather')
-const { calcSunEvents } = require('./sun-events')
 const { getGearRules } = require('./gear-rules')
 const { buildMessages } = require('./prompt')
+const { createAdviceContext } = require('./advice-context')
 const { projectSafetyAdvice } = require('./safety-advice')
 const { isKnownRouteType } = require('./route-type')
 const { createTripContextStore } = require('./trip-context')
@@ -221,10 +221,6 @@ function createReferenceWeather(request, options = {}) {
 const tripBaseBuilder = createTripBaseBuilder({
   fetchRouteWeather: (request, options) => fetchRouteWeather(request, options),
   fetchReferenceWeather: createReferenceWeather,
-  getReferenceSunEvents: ({ date, coordinate }) => {
-    const wgs84 = coordinate.coordinateSystem === 'GCJ-02' ? gcj02ToWgs84(coordinate.lon, coordinate.lat) : { lat: coordinate.lat, lng: coordinate.lon }
-    return calcSunEvents(wgs84.lat, wgs84.lng, date)
-  },
   getGearRules,
   resolveRouteSourceSummaries,
   now: () => currentNow(),
@@ -338,20 +334,25 @@ async function handleAdvice({ openid, queryId, startTime }) {
   if (contextResult.kind === 'store_unavailable') return errorResponse('context_unavailable', '暂时无法读取本次查询，请重试')
   if (contextResult.kind !== 'found') return errorResponse('query_context_unavailable', '本次查询已失效，请重新查询')
   const baseData = contextResult.snapshot
-  const { weather, sunEvents, gearRules } = baseData
-  const routeSnapshot = baseData.routeSnapshot || {}
-  const meta = {
-    generatedAt: new Date().toISOString(), weatherSource: baseData.sourceMetadata && baseData.sourceMetadata.weatherSource,
-    llmModel: LLM_MODEL, elevation: baseData.elevation, coords: baseData.coords, location: baseData.location || routeSnapshot.region, elapsed: 0,
+  let adviceContext
+  try {
+    adviceContext = createAdviceContext(baseData)
+  } catch (_error) {
+    return errorResponse('query_context_unavailable', '本次查询已失效，请重新查询')
   }
+  const meta = { generatedAt: new Date().toISOString(), llmModel: LLM_MODEL, elapsed: 0 }
   let aiOutcome
   try {
-    aiOutcome = { status: 'available', value: await callLLM(buildMessages(baseData)) }
+    aiOutcome = { status: 'available', value: await callLLM(buildMessages(adviceContext)) }
   } catch (error) {
     console.error('[getAdvice:advice] DeepSeek 调用失败:', error && error.message)
     aiOutcome = error instanceof LlmParseError ? { status: 'invalid' } : { status: 'unavailable' }
   }
-  const projection = projectSafetyAdvice({ gearRules, weather, sunEvents, aiOutcome })
+  const projection = projectSafetyAdvice({
+    minimumGear: adviceContext.minimumGear,
+    deterministicSafety: adviceContext.deterministicSafety,
+    aiOutcome,
+  })
   meta.elapsed = Date.now() - startTime
   if (projection.degraded) meta.degradedReason = projection.degradedReason
   return adviceResponse({ ...projection.data, meta }, projection.degraded)

@@ -23,8 +23,9 @@ function makeWeather(dataStatus = 'complete') {
 
 function assertGearProjection(base, label) {
   for (const category of ['essential', 'recommended', 'optional']) {
-    assert.deepEqual(base.minimumGear[category], base.gearRules[category], `${label} ${category} 必须与兼容 gearRules 完全一致`)
+    assert.ok(Array.isArray(base.minimumGear[category]), `${label} ${category} must remain structured`)
   }
+  assert.ok(base.deterministicSafety && Array.isArray(base.deterministicSafety.fatalRisks) && Array.isArray(base.deterministicSafety.ruleNotes), `${label} deterministicSafety required`)
 }
 
 function fakeSourceSummaries(sourceIds) {
@@ -55,20 +56,15 @@ async function main() {
   assert.equal(full.trustedBaseData.requestSummary.days, variant.fixedDays, 'full 必须忽略客户端 days')
   assert.equal(full.trustedBaseData.routeSnapshot.routeVariantId, variant.id)
   assert.equal(full.trustedBaseData.deterministicResult.dataStatus, 'complete')
-  assert.equal(full.trustedBaseData.elevation, variant.routeHighestPointElevationM)
   assert.equal(full.trustedBaseData.routeSnapshot.routeHighestPointElevationM, variant.routeHighestPointElevationM)
   assert.equal(full.trustedBaseData.routeSnapshot.verificationLevel, variant.verificationLevel)
   assert.equal(full.trustedBaseData.routeSnapshot.operationalStatus, variant.operationalStatus)
   assert.equal(full.trustedBaseData.routeSnapshot.sourceCheckedAt, variant.sourceCheckedAt)
   assert.deepEqual(full.trustedBaseData.sourceMetadata.routeSources.map((source) => source.id), full.trustedBaseData.sourceMetadata.routeSourceIds)
   assert.equal(full.trustedBaseData.sourceMetadata.routeSourceIds.includes('source:place-identity'), false, 'Place identity evidence must not enter route sources')
-  assert.ok(full.trustedBaseData.weather && Array.isArray(full.trustedBaseData.weather.days), '完整路线兼容天气必须提供 weather.days')
-  assert.equal(full.trustedBaseData.weather.days.length, variant.fixedDays, '完整路线必须返回全部固定天数天气摘要')
-  assert.equal(full.trustedBaseData.weather.source, 'Open-Meteo')
-  assert.equal(full.trustedBaseData.weather.windUnit, 'm/s')
-  assert.equal(full.trustedBaseData.weather.timezone, 'Asia/Shanghai')
-  assert.equal(typeof full.trustedBaseData.weather.elevationCaveat, 'string')
-  assert.equal(typeof full.trustedBaseData.weather.precipNote, 'string')
+  assert.equal(full.trustedBaseData.schemaVersion, 'beta_base_v2')
+  assert.equal(Object.hasOwn(full.trustedBaseData, 'weather'), false)
+  assert.equal(Object.hasOwn(full.trustedBaseData, 'gearRules'), false)
   assertGearProjection(full.trustedBaseData, 'full')
 
   const climb = catalog.variants.find((item) => {
@@ -96,11 +92,11 @@ async function main() {
   // inputs.  No client-side route facts are inferred by this builder.
   const manual = await builder.build({ target: { entityKind: 'place', capability: 'place_only', origin: 'manual', name: '手动零海拔点', location: '测试地区', referenceCoordinate: { lat: 0, lon: 0, coordinateSystem: 'GCJ-02' }, referenceElevationM: 0, sourceIds: [] }, request: { date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1, routeType: 'trek' } })
   assert.equal(manual.kind, 'built')
-  assert.equal(manual.trustedBaseData.elevation, 0, '手动海拔 0 必须保持有效')
+  assert.equal(manual.trustedBaseData.routeSnapshot.referenceElevationM, 0, '手动海拔 0 必须保持有效')
   assert.equal(manual.trustedBaseData.sourceMetadata.routeTypeSource, 'user')
   const external = await builder.build({ target: { entityKind: 'place', capability: 'place_only', origin: 'amap', name: '外部确认点', location: '测试地区', referenceCoordinate: { lat: 1, lon: 2, coordinateSystem: 'GCJ-02' }, referenceElevationM: -20, sourceIds: [] }, request: { date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1, routeType: 'tour' } })
   assert.equal(external.kind, 'built')
-  assert.equal(external.trustedBaseData.elevation, -20, '外部确认点的负海拔必须保持有效')
+  assert.equal(external.trustedBaseData.routeSnapshot.referenceElevationM, -20, '外部确认点的负海拔必须保持有效')
   assert.equal(external.trustedBaseData.sourceMetadata.routeTypeSource, 'amap')
 
   const beforeInvalidPlace = { ...calls }
@@ -123,7 +119,7 @@ async function main() {
   assert.equal(insufficient.kind, 'built')
   assert.equal(insufficient.trustedBaseData.weatherSnapshot.dataStatus, 'insufficient')
   assert.equal(insufficient.trustedBaseData.deterministicResult.verdict, null)
-  assert.equal(insufficient.trustedBaseData.weather, null)
+  assert.equal(insufficient.trustedBaseData.weatherSnapshot.dataStatus, 'insufficient')
 
   const beforePlaceOnly = calls.referenceWeather
   const placeOnly = await builder.build({ target: { entityKind: 'place', capability: 'place_only', origin: 'catalog', place: placeWithIdentityEvidence, name: place.canonicalName, location: place.region, referenceCoordinate: place.referenceCoordinate, sourceIds: placeWithIdentityEvidence.sourceIds }, request: { date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 2, routeType: 'trek' } })
@@ -154,9 +150,9 @@ async function main() {
   assert.deepEqual(blocked.trustedBaseData.sourceMetadata.routeSources.map((source) => source.id), blocked.trustedBaseData.sourceMetadata.routeSourceIds)
   assert.equal(blocked.trustedBaseData.sourceMetadata.routeSourceIds.includes('source:place-identity'), false)
   assert.deepEqual(blocked.trustedBaseData.minimumGear, { essential: [], recommended: [], optional: [] })
-  assert.equal(blocked.trustedBaseData.weather, null, '禁行路线兼容天气必须为空')
-  assert.deepEqual(blocked.trustedBaseData.gearRules.fatalRisks, ['官方禁行'])
-  assert.ok(blocked.trustedBaseData.gearRules.ruleNotes.some((note) => note.includes('官方禁行')))
+  assert.equal(blocked.trustedBaseData.weatherSnapshot, null, '禁行路线天气必须为空')
+  assert.deepEqual(blocked.trustedBaseData.deterministicSafety.fatalRisks, ['官方禁行'])
+  assert.ok(blocked.trustedBaseData.deterministicSafety.ruleNotes.some((note) => note.includes('官方禁行')))
   assertGearProjection(blocked.trustedBaseData, 'blocked')
   assert.equal(calls.routeWeather, beforeBlocked.routeWeather)
   assert.equal(calls.referenceWeather, beforeBlocked.referenceWeather)
