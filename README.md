@@ -13,14 +13,17 @@
 ## 项目状态
 
 项目正在执行 `TP-BETA-001`，目标是交付代码层面的核心闭测就绪版本。M1–M6 已完成：可信路线、
-小时天气、确定性结论、服务端 `queryId`、结构化结果、私人历史和显式恢复流程均已合并。当前进入
-M7 综合验收规划；部署、真实闭测和生产发布仍不属于本 Goal。
+小时天气、确定性结论、服务端 `queryId`、结构化结果、私人历史和显式恢复流程均已合并。当前处于
+M7/I24c 本地证据与最终文档阶段；自动化五试点验收已完成，DevTools 运行时证据按实际工具可用性记录，
+部署、真实闭测和生产发布仍不属于本 Goal。
 
 - 当前产品入口：`taro-app/`
 - 云函数：`cloudfunctions/getAdvice/`、`cloudfunctions/history/`
 - `miniprogram/`：早期原生原型，不是当前生产界面
 - 当前 Goal：[GOAL.md](GOAL.md)
 - 当前状态：[docs/current-status.md](docs/current-status.md)
+- Beta 验收清单：[docs/beta-acceptance-checklist.md](docs/beta-acceptance-checklist.md)
+- Beta 验收报告：[docs/beta-acceptance-report.md](docs/beta-acceptance-report.md)
 
 部署、真实闭测和生产发布不属于当前 Goal。
 
@@ -120,9 +123,10 @@ corepack npm@10.9.2 run build:weapp
 ```
 
 `test` 运行全部根级行为合同，包括路线、天气、判定、TripContext、公共响应、结构化结果和恢复流程。
-`test:integration` 当前保留早期离线 E2E 基线；M7 将另建当前五条 RouteVariant 的
-`prepare/confirm → queryId → advice` 跨层验收，不把旧三路线管线冒充最终 Beta 纵向证据。所有离线测试
-都使用 fixture/mock，不访问真实 Open-Meteo、CloudBase 或 DeepSeek。
+`test:integration` 当前保留早期离线 E2E 基线；I24b 的 `test:beta-acceptance` 已覆盖当前五条
+RouteVariant 的 `prepare/confirm → queryId → advice` 跨层验收，不把旧三路线管线冒充最终 Beta 纵向证据。
+所有离线测试都使用 fixture/mock，不访问真实 Open-Meteo、CloudBase 或 DeepSeek。I24c 的 DevTools
+交互和截图必须按实际运行时状态记录，不能用 CLI build 结果冒充视觉或导入证据。
 `lint` 以 ESLint flat config 检查云函数、Taro 源码和脚本，`typecheck` 用 TypeScript
 的 `allowJs`、`checkJs`、`noEmit` 与 `skipLibCheck` 检查两个云函数和 Taro 源码。
 每个 Pull Request 还会运行同一组 GitHub `quality` 检查；`main` 要求通过 PR 和

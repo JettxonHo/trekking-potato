@@ -1,8 +1,8 @@
 # 徒步薯核心 Beta 测试策略
 
 - Goal: `TP-BETA-001`
-- Status: `APPROVED`
-- Updated: `2026-08-07`
+- Status: `APPROVED — M7 I24c evidence package in progress`
+- Updated: `2026-08-09`
 
 ## 1. 原则
 
@@ -565,3 +565,8 @@ I24 分三个串行门禁，不把旧 `test:integration` 的三路线日天气�
   扩大代码就绪 Goal 的完成门槛。
 - README、产品、架构、测试、状态与验收报告同步；公开已知限制和未来部署时 v1 TripContext 的
   约 30 分钟 drain/cutover 风险。
+
+I24c 的当前执行记录见 `docs/beta-acceptance-checklist.md` 与 `docs/beta-acceptance-report.md`。本次
+自动化门禁全部通过（离线 integration `55/0`、lint 0 errors/9 existing warnings、typecheck、WeChat
+build、diff check）；Computer Use 尝试因 Mac 锁定而无法发现本地 DevTools，相关行必须保持
+`UNVERIFIED_RUNTIME_TOOL`，不得由命令行 build 结果代替。
