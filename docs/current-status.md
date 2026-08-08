@@ -2,9 +2,9 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M7 I24b READY_FOR_CONTROLLER_REVIEW`
+- Goal status: `ACTIVE — M7 I24b REVIEW_FIX_ACTIVE`
 - Active milestone: `M7 Acceptance`
-- Active task: `I24b / #106 / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `I24b / #106 / REVIEW_FIX_ACTIVE`
 - Branch: `codex/106-beta-acceptance`
 - Base: `main` at `1a2f485`
 - I24a completion / I24b activation checkpoint (2026-08-09): PR #108 exact latest head passed GitHub `quality`;
@@ -32,7 +32,12 @@
   insufficient-weather hard no-go, queryId-only AI outcomes, private history idempotency and I23 recovery seams.
   `npm test`, integration `55/0`, lint `0 errors / 9 existing warnings`, typecheck, host WeChat build and
   `git diff --check` pass. No production defect was exposed. Evidence is recorded in
-  `docs/i24b-beta-acceptance-verification.md`; implementation is ready for Sol independent Review and PR creation.
+  `docs/i24b-beta-acceptance-verification.md`; draft PR #109 exists and its live latest-head check is the CI fact source.
+- I24b Sol Review checkpoint (2026-08-09): PR #109 head `91fec62` passed latest-head quality, but two independent
+  actual-test Reviews returned `CHANGES_REQUESTED` for acceptance sensitivity only. Production remains unchanged and
+  no product/human decision is required. Round 1 is limited to per-pilot legal confirm, exact seven-field source DTO,
+  stage-to-window sample/hour/request alignment, insufficient retry semantics, deterministic advice preservation,
+  and mutation-sensitive evidence/status updates inside the existing six-file allowlist.
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page — all closed
@@ -672,8 +677,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol XHigh must independently review the I24b diff, latest-head quality and verification evidence, then create and
-   review the focused PR for #106.
+1. Complete I24b PR #109 Review-fix round 1 within the existing test/fixture/document allowlist, then rerun
+   latest-head quality and two independent focused Reviews.
 2. If review exposes a production behavior defect, keep the acceptance RED evidence and create a separate focused Bug
    Issue/PR; do not expand I24b.
 3. After I24b merges, activate I24c/#107; do not run the two children in parallel.
@@ -712,9 +717,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Create the additive implementation commit and `Refs #106` draft PR from exact `main@1a2f485`, then run latest-head
-quality and independent Sol Review. The executor cannot approve or merge; I24c/#107 remains blocked and Terra remains
-unauthorized.
+Return PR #109 to exact `luna-worker` for bounded Review-fix round 1. After additive commit, latest-head quality and
+two independent `APPROVED` Reviews, Sol may merge and unblock #107. The executor cannot approve or merge;
+I24c/#107 remains blocked and Terra remains unauthorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

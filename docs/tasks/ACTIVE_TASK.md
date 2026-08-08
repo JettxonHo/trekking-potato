@@ -3,7 +3,7 @@
 - Goal: `TP-BETA-001`
 - Parent: `I24 / #33`
 - GitHub Issue: `I24b / #106`
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / IMPLEMENTATION`
+- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
 - Branch: `codex/106-beta-acceptance`
@@ -86,7 +86,9 @@ Issue/PR; I24b may resume only after that dependency merges.
 
 ### 6.1 Five full pilots
 
-For every exact row, public `mode=prepare` with the permanent ID and fixed offline clock/adapters must prove:
+For every exact row, public `mode=prepare` uses the row's canonical user-facing name or reviewed alias, then public
+`mode=confirm` uses that row's permanent server candidate ID. Direct permanent-ID `prepare` is not a public contract
+and must not be added for the test. Both paths use fixed offline clock/adapters and must prove:
 
 - response phase is `base`, schema is exact `beta_base_v2`, and `queryId`/expiry are server-produced;
 - permanent ID, canonical name, capability=`full`, trusted route type and fixed days match the row;
@@ -157,3 +159,25 @@ checkpoint, exact RED/GREEN evidence and a focused PR using `Refs #106` rather t
 The executor returns `READY_FOR_CONTROLLER_REVIEW` with changed files, commands/results, deviations, autonomous
 implementation decisions, limitations and Review focus. It cannot approve or merge. Sol must inspect actual tests,
 latest-head GitHub quality and independent Review before squash merge. Only the approved merge may unblock #107.
+
+## 11. Sol Review-fix round 1 — 2026-08-09
+
+PR #109 exact head `91fec62` passed latest-head `quality`, but two independent actual-test Reviews returned
+`CHANGES_REQUESTED`. No production defect or human/product decision is involved. This round remains within the same
+six-file allowlist and may change only the new acceptance test/fixture plus verification/current-task/status docs.
+
+The executor must close these evidence gaps without changing production or existing tests:
+
+1. Every pilot must use its name/alias for public `prepare` and its own permanent ID for a legal public `confirm`;
+   both results reassert ID/type/fixedDays/capability/source/status. Invalid-ID confirm remains covered.
+2. Route-source summaries must prove the exact seven-field DTO and expected values. Each route day must align its
+   `stage.weatherSamplePointIds` with the matching evaluated-window sample IDs; every sample has non-empty hours
+   within `[startLocal,endLocalExclusive)`, and request count equals the distinct stage sample IDs.
+3. Insufficient weather proves its reason, `retryable=true` and zero partial evaluated windows.
+4. Available, invalid and unavailable AI each preserve deterministic essential/recommended/optional gear, fatal
+   risks and rule notes in public advice; forged deterministic content has no authority.
+5. Focused mutations for missing/replaced sample, empty/out-of-window hours, request-count mismatch, and lost
+   deterministic advice facts must produce RED before final GREEN.
+
+Use additive commits only. This is Review-fix round 1; a second failed round may be bounded by Sol, but a repeated
+finding after two rounds requires human escalation under the Goal stop condition.
