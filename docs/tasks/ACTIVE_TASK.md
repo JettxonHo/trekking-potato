@@ -8,7 +8,7 @@
 - Owner: Sol XHigh
 - Planned implementation Agent: `luna-worker`
 - Planning branch: `codex/i21-core-flow-contract`
-- Planning PR: `#90` (open; quality passed before routing-sync update)
+- Planning PR: `#90` (open; routing Review approved; latest-head quality pending after #91 base sync)
 - Planned implementation branch: `codex/30-core-input-flow`
 - Planning base: `main` at `c5d7d7c`
 - Goal: `TP-BETA-001`
@@ -298,5 +298,7 @@ git diff --check
 ## 11. 当前下一步
 
 合同已通过第三次聚焦独立 Review，P0–P3 无剩余 finding。人工已解除暂停并纠正实现模型路由。
-Sol 先同步并复核规划 PR #90；合并后从最新 `main` 创建 `codex/30-core-input-flow`，再向准确自定义
+路由迁移文档也通过独立 Sol Review；日期夹具阻塞 #91 已由首次 runtime-verified `luna-worker`
+修复，并经 PR #92 通过 CI 与独立 Review 后合并。Sol 等待规划 PR #90 的最新质量门禁；合并后从
+最新 `main` 创建 `codex/30-core-input-flow`，再向准确自定义
 Agent `luna-worker` 下发本合同。不得自动回退 Terra。

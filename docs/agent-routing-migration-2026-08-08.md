@@ -50,8 +50,8 @@ I21/#30 的边界明确垂直实现、测试和修复。原合同、allowlist、
 - 配置文件：`~/.codex/agents/luna-worker.toml`
 - 配置模型：`gpt-5.6-luna`
 - 配置推理强度：`max`
-- 当前验证：`CONFIG_VERIFIED`
-- 实际运行时模型：实例创建时记录；不可见时标记 `UNVERIFIED_RUNTIME_MODEL`
+- 当前验证：`RUNTIME_VERIFIED`
+- 实际运行时模型：首次实例创建成功，运行时角色元数据确认为 `gpt-5.6-luna` / `max`
 
 ## 8. 新的 Agent 分配方案
 
@@ -64,13 +64,15 @@ Sol 主控与独立 Review；`luna-worker` 执行 I21。Terra 不再自动回退
 
 ## 10. 下一步执行顺序
 
-同步并复核规划 PR #90，等待 latest-head quality，通过后 squash merge；从最新 `main` 创建
-`codex/30-core-input-flow`；激活 #30；创建准确自定义 Agent `luna-worker`；执行 TDD、验证和 Sol Review。
+首次 `luna-worker` 已通过独立 Bug #91 验证路由：测试修复 PR #92 通过 latest-head quality 与独立
+Sol Review，并 squash merged as `8387554`。下一步要求规划 PR #90 在该最新 base 上通过 quality，
+随后 squash merge；从最新 `main` 创建 `codex/30-core-input-flow`，激活 #30，再创建准确自定义 Agent
+`luna-worker` 执行 TDD、验证和 Sol Review。
 
 ## 11. 当前阻塞项
 
-无模型路由阻塞。若实例无法创建，立即记录 `STATUS: BLOCKED_LUNA_WORKER_UNAVAILABLE`，不得自动
-回退 Terra。
+无模型路由阻塞；首次实例已成功完成 #91。未来若实例无法创建，仍须记录
+`STATUS: BLOCKED_LUNA_WORKER_UNAVAILABLE`，不得自动回退 Terra。
 
 ## 12. 是否需要用户操作
 

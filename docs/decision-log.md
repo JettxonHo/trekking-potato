@@ -610,9 +610,9 @@
 - Migration: 路由检查时当前 Agent 树不存在 Active Terra，工作区也没有 Terra 未提交修改，因此
   无需中断或生成运行中交接。历史 Terra 提交、PR、测试和审计证据全部保留且不重做。I21 合同、
   范围、验收和测试不因模型切换而改变。
-- Verification: `~/.codex/agents/luna-worker.toml` 已核对名称、模型和推理强度；实际实例创建时仍须
-  记录运行时可见模型与 `CONFIG_VERIFIED`、`RUNTIME_VERIFIED` 或
-  `UNVERIFIED_RUNTIME_MODEL`。若 Agent 不可发现或无法启动，状态为
-  `BLOCKED_LUNA_WORKER_UNAVAILABLE`，不得自动回退 Terra。
+- Verification: `~/.codex/agents/luna-worker.toml` 已核对名称、模型和推理强度。首次实例成功执行
+  #91，运行时角色元数据确认为 `gpt-5.6-luna` / `max`，记录为 `RUNTIME_VERIFIED`；该 Agent
+  返回 `READY_FOR_CONTROLLER_REVIEW`，PR #92 由独立 Sol Review 后合并。未来若 Agent 不可发现或
+  无法启动，状态为 `BLOCKED_LUNA_WORKER_UNAVAILABLE`，不得自动回退 Terra。
 - Why: 自定义 Agent 已由人工安装验证；用准确 Agent 名称可加载固定配置，也避免把逻辑角色名或
   单独模型字符串误当成可执行 Agent。保留历史成果并只迁移未完成工作，可以避免重复实现和分支覆盖。

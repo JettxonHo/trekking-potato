@@ -6,8 +6,8 @@
 - Active milestone: `M6 Core UX`
 - Active task: `I21 / #30 / CONTRACT_APPROVED — ROUTING_MIGRATED / IMPLEMENTATION_PENDING`
 - Branch: `codex/i21-core-flow-contract`
-- Base: `main` at `c5d7d7c`
-- I21 planning PR: `#90` — open; routing-sync update pending independent Review and latest-head quality
+- Base: latest `main` at `8387554` after CI-fixture sync
+- I21 planning PR: `#90` — open; routing review approved; latest-head quality pending after base sync
 - Assignment: Sol XHigh owns contract and independent Review; `luna-worker` is reserved for implementation after merge
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
@@ -40,6 +40,7 @@
 - I21 dependency checkpoint PR: `#72` — merged as `bfd9394`; at that checkpoint #22/#30 were blocked
 - I13 planning PR: `#88` — merged as `5496956`
 - I13 implementation PR: `#89` — merged as `c5d7d7c`; GitHub #22 closed; M3 complete
+- CI date-fixture PR: `#92` — merged as `8387554`; GitHub #91 closed; latest-head quality passed
 - I21 contract branch: `codex/i21-core-flow-contract` from `c5d7d7c`; routing sync and planning merge pending
 - M3 source refresh PR: `#73` — merged as `31eab6d`; latest-head quality passed
 - User GPX audit PR: `#74` — merged as `97c6728`; latest-head quality passed
@@ -130,6 +131,11 @@
   typecheck, host `CI=1` WeChat build and `git diff --check`. The sandbox build's macOS
   system-configuration worker panicked/hung; it was terminated and the same command succeeded outside the
   sandbox. No I21 business code or TDD RED has been started.
+- On `2026-08-08`, the fixed handler date fixture crossed the real date boundary and caused #90 quality to
+  fail at `test:response`; `test:confirmation` had the same masked failure. Sol created focused Bug #91.
+  Runtime-verified `luna-worker` changed only the two contract tests to use the existing fixed-`now` seam.
+  PR #92 passed all local gates, latest-head quality and independent Sol Review with no P0–P3 finding, then
+  squash merged as `8387554`; production date validation was not changed.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1–M5 and I20 are complete. I07, I10a, all five reviewed community-track Variants and I13's production
@@ -623,12 +629,13 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 - Sol XHigh: controller, contract owner, independent reviewer and merge authority.
 - `luna-worker`: planned I21 executor; configuration verified as `gpt-5.6-luna` with `max` reasoning.
+- First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 - Independent Sol XHigh: reviewing the routing-migration documentation only; no business-code authority.
 
 ## Open work
 
-1. Synchronize the model-routing correction into planning PR #90, rerun independent Review and quality, then merge it.
+1. Require latest-head quality on the base-synchronized planning PR #90, then merge it.
 2. Create `codex/30-core-input-flow` from latest `main` and assign I21 to the exact custom Agent `luna-worker`.
 
 ## Blockers and risks
@@ -663,7 +670,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Update planning PR #90 with the routing correction, independently re-review it and require latest-head quality.
-Then merge #90, create `codex/30-core-input-flow` from latest `main`, assign the exact custom Agent
+Require latest-head quality on planning PR #90 after the merged #91 base sync. Then merge #90, create
+`codex/30-core-input-flow` from latest `main`, assign the exact custom Agent
 `luna-worker`, and begin the contract's TDD loop. Do not start I22/I23 before I21 is accepted; do not
 automatically route implementation to Terra.
