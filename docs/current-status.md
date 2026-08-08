@@ -2,15 +2,20 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M7 I24b READY_FOR_CONTROLLER_REVIEW`
+- Goal status: `ACTIVE — M7 I24c IMPLEMENTATION_ACTIVE`
 - Active milestone: `M7 Acceptance`
-- Active task: `I24b / #106 / READY_FOR_CONTROLLER_REVIEW`
-- Branch: `codex/106-beta-acceptance`
-- Base: `main` at `1a2f485`
-- I24a completion / I24b activation checkpoint (2026-08-09): PR #108 exact latest head passed GitHub `quality`;
+- Active task: `I24c / #107 / IMPLEMENTATION_ACTIVE`
+- Branch: `codex/107-beta-acceptance-evidence`
+- Base: `main` at `f311d1b`
+- I24b completion / I24c activation checkpoint (2026-08-09): PR #109 review-fix head `59f7a18` and controller
+  status head `28db822` passed latest-head GitHub `quality`; two independent actual-diff Reviews returned
+  `APPROVED` with P0–P3 none. Sol squash merged the PR as `f311d1b` and closed #106. I24c/#107 is now the only
+  active child. Its permanent deliverable is documentation and representative evidence only; authorized fixture
+  hooks are local, reversible and must be absent from the final diff and fixture-free rebuild.
+- Historical I24a completion / I24b activation checkpoint (2026-08-09): PR #108 exact latest head passed GitHub `quality`;
   backend/contract and frontend/history independent Reviews both returned `APPROVED` with P0–P3 none. Sol squash
   merged it as `1a2f485` and closed #105. I24b/#106 is now the only active child; I24c/#107 remains blocked.
-- Review-fix checkpoint (2026-08-09): controller baseline is `4808e53`; the bounded round-1 fix is limited to the
+- Historical I24b Review-fix checkpoint (2026-08-09): controller baseline is `4808e53`; the bounded round-1 fix is limited to the
   six-file I24b allowlist. It adds public name/alias prepare plus legal permanent-ID confirmation for every pilot,
   exact seven-field route-source DTO values, stage/window/sample/hour/request alignment, insufficient retryable and
   zero-partial-window semantics, deterministic advice preservation across all AI outcomes, and mutation RED evidence
@@ -53,7 +58,7 @@
 - I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
 - I22a implementation PR: `#97` — squash merged as `6e12f25`; GitHub #94 closed
 - I22b implementation PR: `#98` — squash merged as `852e86d`; GitHub #95 and parent #31 closed
-- Assignment: exact custom Agent `luna-worker` owns bounded I24b/#106 after this controller activation; Terra fallback remains unauthorized
+- Assignment: exact custom Agent `luna-worker` owns bounded I24c/#107 after controller activation; Terra fallback remains unauthorized
 - I23 planning PR: `#101` — latest-head quality and independent actual-diff Review passed; squash merged as `a12ab46`
 - I23a PR: `#102` — latest-head quality and independent Sol re-review passed; squash merged as `107fab4`; #99 closed
 - I23b PR: `#103` — latest-head quality and two independent Sol Reviews passed; squash merged as `097c921`; #100 and parent #32 closed
@@ -678,18 +683,20 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Agent assignments
 
 - Sol XHigh: controller, contract owner, independent reviewer and merge authority.
-- `luna-worker`: assigned only to bounded I24b/#106 after this activation. Configuration remains
+- `luna-worker`: assigned only to bounded I24c/#107 after this activation. Configuration remains
   `gpt-5.6-luna` with `max` reasoning; runtime visibility must be reported in its handshake.
 - First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
-- Independent Sol XHigh: reserved for I24b actual-code/contract Review; no implementation authority.
+- Independent Sol XHigh: reserved for I24c evidence/status/residue Review; no implementation authority.
 
 ## Open work
 
-1. Complete final independent focused Review of PR #109 exact head `59f7a18`; merge only if no P0–P3 finding remains.
-2. If review exposes a production behavior defect, keep the acceptance RED evidence and create a separate focused Bug
-   Issue/PR; do not expand I24b.
-3. After I24b merges, activate I24c/#107; do not run the two children in parallel.
+1. Execute the I24c checklist through authorized temporary local fixtures where WeChat DevTools is available, and
+   record every row truthfully as `VERIFIED` or `UNVERIFIED_RUNTIME_TOOL` with its exact evidence or blocker.
+2. Remove every fixture/debug hook, rebuild fixture-free output, run residue checks and the complete automated gate
+   matrix, then synchronize the final Beta checklist/report and project documents.
+3. Create one docs/evidence-only PR using `Refs #107`; after latest-head CI, Sol performs independent evidence and
+   residue Review. I25 remains blocked until the approved I24c merge closes #107 and parent #33.
 
 ## Blockers and risks
 
@@ -715,19 +722,20 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   adds display-safe provenance before #95 consumes it.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I24b
+## Forbidden actions during I24c
 
 - Changing deterministic verdicts, route/weather facts, minimum gear, source policy, getAdvice phases or the ten states.
-- Modifying production, existing tests, route data, dependencies, CI or visual files inside the I24b acceptance PR.
-- Starting I24c before I24b passes CI, independent Review and merge.
+- Committing temporary fixture/debug source, generated `taro-app/dist`, package/config changes or normal business code.
+- Claiming `VERIFIED` for an unexecuted GUI row or fabricating screenshots when a local tool is unavailable.
 - Adding history fields, migrations/indexes, dependencies, public UGC, broad visual redesign, deployment, production
-  configuration or permanent fixture/debug paths.
+  configuration, real CloudBase/API activity or permanent fixture/debug paths.
 
 ## Next action
 
-PR #109 review-fix head `59f7a18` and latest-head quality are complete. Finish independent re-review, record Sol's
-verdict and merge only on `APPROVED`; then close #106 and activate #107. The executor cannot approve or merge;
-I24c/#107 remains blocked until that merge and Terra remains unauthorized.
+Commit and push the controller-owned I24c activation contract, synchronize live #107 and parent #33, then dispatch
+the exact custom Agent `luna-worker`. The executor must read the Computer Use skill before GUI actions, may use the
+human-authorized temporary local fixture only in the bounded workspace, and must restore fixture-free source before
+committing. The final PR is docs/evidence only; the executor cannot approve or merge and Terra remains unauthorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

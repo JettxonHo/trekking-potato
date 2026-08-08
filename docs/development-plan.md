@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M7 I24b IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — M7 I24c IMPLEMENTATION_ACTIVE`
 - Updated: `2026-08-09`
 
 ## 1. 依赖图
@@ -422,4 +422,5 @@ Review, squash merged as `852e86d`, and closed #95 plus parent #31.
   parallel. Exact allowlists, RED/GREEN evidence, commands and stop conditions are in
   `docs/tasks/ACTIVE_TASK.md` and the live child Issues.
 - I24a/#105 passed latest-head quality and two independent final Reviews, then PR #108 squash merged as `1a2f485`.
-  I24b/#106 is active from that exact main; I24c/#107 remains dependency-blocked.
+  I24b/#106 passed latest-head quality and two independent final Reviews, then PR #109 squash merged as `f311d1b`.
+  I24c/#107 is active from that exact main.

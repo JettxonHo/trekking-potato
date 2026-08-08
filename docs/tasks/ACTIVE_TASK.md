@@ -1,205 +1,188 @@
-# ACTIVE TASK — I24b 五试点核心 Beta 自动化验收
+# ACTIVE TASK — I24c DevTools 验证包与最终文档
 
 - Goal: `TP-BETA-001`
 - Parent: `I24 / #33`
-- GitHub Issue: `I24b / #106`
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW_FIX`
+- GitHub Issue: `I24c / #107`
+- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
-- Branch: `codex/106-beta-acceptance`
-- Base: `main@1a2f485`
-- Dependencies: I24a/#105 merged through PR #108 as `1a2f485`; I24c/#107 remains blocked
-
-## Implementation checkpoint (2026-08-09)
-
-- The required TDD RED was recorded before the fixture existed: `npm run test:beta-acceptance` exited 1 with
-  `MODULE_NOT_FOUND: ./fixtures/beta-acceptance`.
-- The focused contract is now GREEN. It calls the real public `getAdvice.main` path with deterministic offline
-  CloudBase/Open-Meteo/AMap/LLM adapters and verifies the five exact pilots, row-isolated ID/fixedDays/type/capability
-  mutations, confirmation/place-only/blocked/insufficient boundaries, queryId-only AI outcomes, private history
-  idempotency and I23 recovery seams.
-- Required local commands pass: `npm run test:beta-acceptance`, `npm test`, `npm run test:integration` (`55/0`),
-  `npm run lint` (0 errors / 9 existing warnings), `npm run typecheck`, `npm run build:weapp` and `git diff --check`.
-- No production defect or contract ambiguity was exposed. Evidence: `docs/i24b-beta-acceptance-verification.md`.
-- The executor is `READY_FOR_CONTROLLER_REVIEW`; draft PR #109 exists at exact review-fix head `59f7a18` and passed
-  latest-head quality. Sol XHigh must inspect that actual diff, complete independent Review and decide mergeability.
-  I24c/#107 remains blocked until the approved merge.
+- Branch: `codex/107-beta-acceptance-evidence`
+- Base: `main@f311d1b`
+- Dependencies: I24a/#105 merged as `1a2f485`; I24b/#106 merged as `f311d1b`; I25 remains blocked until this Issue merges
 
 ## 1. Goal and user value
 
-Add an honest, deterministic offline acceptance contract for the current five full pilot RouteVariants and the
-representative non-full/degraded boundaries of the public Beta pipeline. This suite must prove code readiness without
-claiming deployment, live APIs, real CloudBase, device execution or user testing.
+Deliver a reproducible local Beta acceptance checklist, evidence package and final synchronized documentation for
+the current code. The package must distinguish automated proof, locally observed WeChat DevTools behavior and
+unavailable runtime checks. It proves code-level closed-beta readiness only; it does not claim deployment, real
+CloudBase execution, device testing or real-user beta completion.
 
-The existing `test:integration` remains a legacy three-route daily-weather baseline. I24b adds a separate root
-`test:beta-acceptance` for the current `prepare/confirm -> queryId -> advice` architecture; it does not rename or
-inflate the legacy suite.
+The user explicitly authorized temporary fixture injection, page refresh and screenshot capture in the local WeChat
+DevTools, and confirmed that the Mac is unlocked. This authorization is limited to reversible local validation. It
+does not authorize production configuration, secrets, paid/live APIs, real data mutation, deployment or publication.
 
-## 2. Exact pilot rows
+## 2. Final committed allowlist
 
-Each row is independently asserted against its own permanent ID and expected facts:
+The final committed diff may contain only:
 
-| Permanent RouteVariant ID | Route type | Fixed days | Required row-specific evidence |
-| --- | --- | ---: | --- |
-| `variant:wugongshan-longshan-to-main-gate-2d` | `trek` | 2 | full structured result and multi-sample hourly window |
-| `variant:siguniang-erfeng-haizigou-out-and-back-2d` | `climb` | 2 | climb support propagated; deterministic verdict at least caution |
-| `variant:yulong-blue-moon-yunshanping-out-and-back-1d` | `trek` | 1 | full structured result and exact source/status facts |
-| `variant:gongga-laoyulin-yulongxi-point-to-point-3d` | `trek` | 3 | point-to-point full result and three route-day windows |
-| `variant:dangling-huluhai-zhuoyongcuo-out-and-back-1d` | `trek` | 1 | reviewed-track full result and exact source/status facts |
-
-五台山大朝台 is a separate official blocked record, not a sixth plannable pilot. 五台山小朝台 was superseded by
-TP-D039 and must not re-enter the matrix.
-
-## 3. Exact allowed files
-
-- new `scripts/beta-acceptance-contract-test.js`
-- new `scripts/fixtures/beta-acceptance.js`
-- `package.json`
-- new `docs/i24b-beta-acceptance-verification.md`
+- new `docs/beta-acceptance-checklist.md`
+- new `docs/beta-acceptance-report.md`
+- new files under `docs/evidence/i24/`
+- `README.md`
+- `GOAL.md`
+- `docs/product-requirements.md`
+- `docs/architecture.md`
+- `docs/development-plan.md`
+- `docs/testing-strategy.md`
+- `docs/decision-log.md`
 - `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
 
-No other file may change without Sol expanding the contract before the edit.
+No other committed file may change without Sol expanding this contract before the edit.
 
-## 4. Work scope
+## 3. Temporary local validation scope
 
-- Register `test:beta-acceptance` and include it in root `npm test`.
-- Use fixed clocks and offline adapters only. Exercise the real public `getAdvice.main` handler, production resolver,
-  production catalog, structured `beta_base_v2` composition, server TripContext and queryId-only advice boundary.
-- Use table-driven pilot data while retaining row-specific failure messages and assertions.
-- Reuse production pure history/recovery modules and the history handler through offline mocks where required; do not
-  duplicate a second product implementation inside fixtures.
-- Record real RED, GREEN, command results, coverage boundaries and known limitations in the verification document.
+Temporary, uncommitted work is allowed only in:
 
-## 5. Non-work scope
+- `taro-app/src/pages/index/index.jsx`
+- temporary `taro-app/src/pages/index/local-beta-fixtures.js`
+- generated `taro-app/dist`
 
-- No production code, existing test, route-data, dependency, CI, visual/CSS or DevTools change.
-- No public mode/phase/error/DTO/schema change.
-- No route identity, geometry, source tier/status, weather threshold, verdict, minimum-gear or AI-authority change.
-- No deployment, paid/live API, real CloudBase mutation, device testing, production configuration, secret, migration,
-  public UGC, hashing/SHA or broad refactor.
-- No mechanical Cartesian product, coverage score or duplicated end-to-end framework.
+The fixture may expose a local-only scenario selector or inject deterministic page state needed to exercise the
+existing rendering and recovery paths. It must not add a package, port, network service, secret, production switch,
+public contract or alternate business-rule implementation. The fixture is a validation adapter, not a second product.
 
-If the suite exposes a production defect, preserve the RED evidence and stop. Sol must create a separate focused Bug
-Issue/PR; I24b may resume only after that dependency merges.
+Before any GUI action, the executor must read the `computer-use:computer-use` skill completely. It must operate only
+the local WeChat DevTools project and must not sign in to, upload, preview, deploy or mutate a real cloud environment.
 
-## 6. Frozen acceptance matrix
+All temporary source/debug hooks must be restored to the accepted base before the implementation commit. Generated
+`taro-app/dist` is never committed.
 
-### 6.1 Five full pilots
+## 4. Required checklist
 
-For every exact row, public `mode=prepare` uses the row's canonical user-facing name or reviewed alias, then public
-`mode=confirm` uses that row's permanent server candidate ID. Direct permanent-ID `prepare` is not a public contract
-and must not be added for the test. Both paths use fixed offline clock/adapters and must prove:
+The checklist must cover, without inventing evidence:
 
-- response phase is `base`, schema is exact `beta_base_v2`, and `queryId`/expiry are server-produced;
-- permanent ID, canonical name, capability=`full`, trusted route type and fixed days match the row;
-- route verification/operational status and display-safe route sources are present and match the production catalog;
-- route days drive multi-sample hourly requests/windows; no client route/weather fact becomes authoritative;
-- deterministic result, minimum gear and deterministic safety are present;
-- advice accepts only that `queryId`, preserves deterministic facts and never changes the route/weather/verdict/source.
+1. Each of the five exact pilot RouteVariants from input through structured result:
+   - `variant:wugongshan-longshan-to-main-gate-2d`
+   - `variant:siguniang-erfeng-haizigou-out-and-back-2d`
+   - `variant:yulong-blue-moon-yunshanping-out-and-back-1d`
+   - `variant:gongga-laoyulin-yulongxi-point-to-point-3d`
+   - `variant:dangling-huluhai-zhuoyongcuo-out-and-back-1d`
+2. Fuzzy confirmation, cancellation and editing; manual/AMap place-only; official Wutai blocked behavior.
+3. The four result labels (`go`, `caution`, `no_go`, `verdict=null`) while showing that data completeness is an
+   independent axis.
+4. AI ready, unavailable and explicit retry while route/weather/verdict/minimum-gear facts and checklist state stay
+   deterministic.
+5. Weather re-prepare with the old deterministic result still visible until replacement BaseData arrives, followed
+   by a new `queryId`.
+6. Private-history save retry, list retry/stale-response protection and history selection as zero-network form prefill.
+7. Checklist lifecycle across same-query advice events and reset on a different base, back action or cache restore.
+8. Visible route source, operational status, local time/window and data-status semantics.
+9. A normal fixture-free build/import smoke in WeChat DevTools when that runtime action is available.
 
-The 四姑娘 row additionally passes a valid climb-support choice and proves the deterministic verdict is never `go`.
-Each row must fail independently if its stable ID, route type, fixed days or capability is mutated.
+五台山大朝台 remains a separate blocked record, not a sixth plannable pilot.
 
-### 6.2 Representative boundaries
+## 5. Evidence status and screenshot policy
 
-Use one representative per behavior rather than a Cartesian product:
+Every required row must record exactly one truthful status:
 
-- fuzzy prepare returns confirmation and causes zero weather, TripContext-write and AI side effects;
-- confirm uses the server candidate ID and reaches the same trusted base pipeline;
-- manual and AMap place-only results keep `verdict=null`, reference weather semantics and `user`/`amap` provenance;
-- official Wutai blocked returns `no_go`, `weatherSnapshot=null`, and performs zero weather calls;
-- insufficient weather keeps data completeness independent from any valid hard `no_go` verdict;
-- valid, invalid and transport-unavailable AI outcomes cannot alter deterministic route/weather/verdict/gear facts;
-- advice request is queryId-only and a missing/legacy context causes zero LLM calls;
-- private-history save/list boundary remains openid-scoped and retry idempotency returns the first record;
-- I23 pure recovery seams prove explicit weather re-prepare, same-query AI retry, frozen history-save retry identity,
-  stale history-list rejection and history prefill with zero network intent.
+- `VERIFIED`: the stated command or GUI behavior was actually executed and the linked evidence supports the claim.
+- `UNVERIFIED_RUNTIME_TOOL`: execution was attempted but a named local tool/runtime blocker prevented observation;
+  record the exact blocker and do not describe the row as passed.
 
-## 7. TDD and tests
+I24c may be code-ready with honestly recorded `UNVERIFIED_RUNTIME_TOOL` rows because GUI execution is best-effort,
+but no unexecuted row may be relabeled `VERIFIED`. Since the Mac is now unlocked and fixture use is authorized, the
+executor must make a real DevTools attempt before using that status.
 
-1. Add the root script and a deliberately incomplete acceptance entry first.
-2. Record a genuine focused RED before the fixture/adapter is complete; a missing fixture/module or missing required
-   pilot row is acceptable, but a fabricated assertion failure is not.
-3. Implement the minimum offline fixture and behavior assertions.
-4. Demonstrate representative mutation sensitivity for row ID/fixedDays/type/capability and at least one trusted
-   queryId/deterministic-authority boundary.
-5. Run:
-   - `npm run test:beta-acceptance`
-   - `npm test`
-   - `npm run test:integration`
-   - `npm run lint`
-   - `npm run typecheck`
-   - `npm run build:weapp`
-   - `git diff --check`
+Keep a small representative screenshot set rather than one image per click. A screenshot may support several rows
+only when its visible content actually proves them. Use complete-page frames where the relevant verdict, reasons,
+weather, equipment, sources or degraded state would otherwise be split across the viewport. Do not fabricate, crop
+away required assertions or claim hidden content.
 
-All failures must remain visible. The legacy integration baseline is currently `55/0`; I24b does not mechanically
-change its count.
+## 6. Cleanup and fixture-free proof
 
-## 8. Dependencies, risks and stop conditions
+After collecting the needed local evidence, perform this sequence:
 
-- I24a is satisfied by PR #108 / `1a2f485`; I24c/#107 remains blocked until I24b merges.
-- The acceptance script may become large because it spans five public rows and representative boundaries. Prefer
-  small fixture helpers and descriptive row assertions; do not introduce a framework or abstract every case.
-- Stop for any required file outside the allowlist, production behavior defect, live-network need, public contract
-  mismatch, dependency, route/source ambiguity, lowered acceptance or a second failed Review-fix round.
-- Deployment, real CloudBase/device/beta activity and product trade-offs require human authorization and remain
-  outside this Issue.
+1. Restore both allowed temporary source paths exactly to the accepted base; remove the temporary module if created.
+2. Rebuild the normal fixture-free `taro-app/dist`.
+3. Search source, scripts, package/config files and normal dist for bounded residue markers, including
+   `VISUAL_FIXTURE`, `LOCAL_BETA_FIXTURE`, `local-beta-fixtures` and fixture/debug scenario hooks.
+4. If WeChat DevTools remains usable, import or refresh the normal fixture-free dist and record the smoke result.
+5. Run the complete automated gate matrix in section 8.
+6. Confirm the final diff is docs/evidence only and contains no generated build output.
 
-## 9. Allowed autonomous decisions
+Residue checks should target realistic fixture markers and imports; do not add speculative security machinery,
+hashing/SHA or mechanical scans unrelated to this task.
 
-`luna-worker` may choose fixture helper names, table organization, fixed timestamps and focused assertion wording.
-It may not change the pilot set, public behavior, production modules, acceptance rows, dependency policy or Goal
-boundary. Contract ambiguity must return to Sol instead of being guessed.
+## 7. Documentation deliverables
 
-## 10. Deliverables and Review
+- `docs/beta-acceptance-checklist.md`: row-by-row status, exact command/interaction, evidence link and blocker/notes.
+- `docs/beta-acceptance-report.md`: scope, environment, automated results, representative observed flows, limitations,
+  cleanup proof and code-ready conclusion.
+- `docs/evidence/i24/`: only the minimum useful screenshots or text evidence needed by the checklist.
+- Synchronize README, Goal, product, architecture, development, testing, decisions, current status and active-task
+  documents so they agree that I24a/I24b are complete, I24c is the active evidence phase, deployment/real beta remain
+  out of scope, and GUI evidence is not equivalent to production validation.
 
-Deliver the new acceptance script and fixture, package registration, verification document, current-task/status
-checkpoint, exact RED/GREEN evidence and a focused PR using `Refs #106` rather than auto-closing the Issue.
+Do not create a new architectural decision unless a hard-to-reverse trade-off actually arises. Routine execution
+facts belong in the checklist/report/current-status rather than a new ADR.
 
-The executor returns `READY_FOR_CONTROLLER_REVIEW` with changed files, commands/results, deviations, autonomous
-implementation decisions, limitations and Review focus. It cannot approve or merge. Sol must inspect actual tests,
-latest-head GitHub quality and independent Review before squash merge. Only the approved merge may unblock #107.
+## 8. Required validation
 
-## 11. Sol Review-fix round 1 — 2026-08-09
+After temporary fixture cleanup, run and record:
 
-PR #109 exact head `91fec62` passed latest-head `quality`, but two independent actual-test Reviews returned
-`CHANGES_REQUESTED`. No production defect or human/product decision is involved. This round remains within the same
-six-file allowlist and may change only the new acceptance test/fixture plus verification/current-task/status docs.
+- `npm run test:beta-acceptance`
+- `npm test`
+- `npm run test:integration`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build:weapp`
+- `git diff --check`
 
-The executor must close these evidence gaps without changing production or existing tests:
+All failures remain visible. The expected current baselines include offline integration `55/0` and lint with zero
+errors plus the existing warnings; do not lower a gate or rewrite a failing result as success.
 
-1. Every pilot must use its name/alias for public `prepare` and its own permanent ID for a legal public `confirm`;
-   both results reassert ID/type/fixedDays/capability/source/status. Invalid-ID confirm remains covered.
-2. Route-source summaries must prove the exact seven-field DTO and expected values. Each route day must align its
-   `stage.weatherSamplePointIds` with the matching evaluated-window sample IDs; every sample has non-empty hours
-   within `[startLocal,endLocalExclusive)`, and request count equals the distinct stage sample IDs.
-3. Insufficient weather proves its reason, `retryable=true` and zero partial evaluated windows.
-4. Available, invalid and unavailable AI each preserve deterministic essential/recommended/optional gear, fatal
-   risks and rule notes in public advice; forged deterministic content has no authority.
-5. Focused mutations for missing/replaced sample, empty/out-of-window hours, request-count mismatch, and lost
-   deterministic advice facts must produce RED before final GREEN.
+## 9. Non-work scope and stop conditions
 
-Use additive commits only. This is Review-fix round 1; a second failed round may be bounded by Sol, but a repeated
-finding after two rounds requires human escalation under the Goal stop condition.
+Do not:
 
-## 12. Review-fix implementation checkpoint — 2026-08-09
+- change business code, existing tests, route data, dependencies, CI, public contracts, schema or deterministic rules;
+- commit fixtures, debug selectors, generated dist, package/config changes or screenshots that do not prove their claim;
+- use real CloudBase, paid/live APIs, secrets, production configuration, preview/upload/deploy or real user data;
+- perform migration, deletion, publication, device/real-user beta, hashing/SHA or broad visual redesign;
+- start I25, approve or merge the executor's own PR.
 
-- Starting head: controller baseline `4808e53`; worktree remained clean before this round. Runtime model visibility is
-  `UNVERIFIED_RUNTIME_MODEL`; the requested executor remains the exact custom `luna-worker` configuration.
-- Every pilot now runs public name and reviewed-alias `prepare`, followed by legal permanent-ID `confirm`; each path
-  independently asserts permanent ID, trusted route type, fixed days, `full` capability, source IDs/DTOs and status.
-- The source contract compares every route source against the exact seven-field public DTO and fixed catalog values.
-  Every route-day stage is aligned with its evaluated-window sample IDs, non-empty hourly buckets are checked by start
-  time inside the active window, and each call's weather request delta equals the distinct stage sample count.
-- Focused mutation probes assert RED for missing/replaced samples, empty/out-of-window hours, request mismatch and
-  dropped deterministic advice gear/fatal-risk/rule-note facts; the normal focused command is GREEN.
-- Insufficient weather asserts coded retryable reasons, `retryable=true` and zero usable/partial windows while the
-  novice solo technical-climb rule remains a deterministic hard `no_go`.
-- Available, invalid and unavailable AI modes preserve deterministic gear categories, fatal risks and rule notes;
-  forged client facts have no authority. No production behavior, route data, dependency, CI or existing test changed.
-- Current modified allowlist files: `scripts/beta-acceptance-contract-test.js`, `scripts/fixtures/beta-acceptance.js`,
-  `docs/i24b-beta-acceptance-verification.md`, `docs/current-status.md`, `docs/tasks/ACTIVE_TASK.md`.
-- Full required command matrix, allowlist/diff self-check and focused mutation assertions pass. Additive review-fix
-  commit `59f7a18` was normally pushed to draft PR #109 and latest-head quality passed. The clean branch is handed to
-  Sol for final independent Review and merge judgment; the executor did not approve or merge.
+Stop and return the exact blocker for any production defect, required permanent file outside the allowlist, inability
+to remove fixture residue, need for a real external service, evidence whose truth cannot be established, public
+contract conflict or lowered acceptance. A bounded GUI/tool failure becomes `UNVERIFIED_RUNTIME_TOOL`; it does not
+authorize a workaround that expands scope.
+
+## 10. Allowed autonomous decisions
+
+`luna-worker` may choose temporary fixture object names, local scenario order, representative screenshot grouping,
+checklist table layout and evidence filenames. It may not change the five pilots, product facts, acceptance meaning,
+public behavior, final allowlist, proof threshold or Goal boundary.
+
+## 11. Delivery and Review
+
+Use additive commits only; do not amend, rebase or force push. Create one focused draft PR using `Refs #107`, not an
+auto-close keyword. The executor returns `READY_FOR_CONTROLLER_REVIEW` with:
+
+- committed and temporary files touched;
+- fixture injection/removal and residue proof;
+- checklist status summary and screenshot paths;
+- exact commands/results;
+- runtime/model visibility;
+- deviations, blockers, limitations and重点 Review locations;
+- PR URL and exact latest head.
+
+The final committed PR must be docs/evidence only. Sol independently inspects actual screenshots, evidence claims,
+the final diff, cleanup proof and latest-head CI before returning `APPROVED`, `CHANGES_REQUESTED`, `BLOCKED` or
+`ESCALATE_TO_HUMAN`. Only an approved merge may close #107 and parent #33 and unblock I25.
+
+## 12. Controller activation checkpoint — 2026-08-09
+
+I24b/#106 passed latest-head quality and two independent actual-diff Reviews, then PR #109 squash merged as
+`f311d1b`. The I24c branch starts from that exact main. The requested Agent is the exact custom `luna-worker`; its
+configuration is `gpt-5.6-luna` with `max` reasoning. Runtime metadata must be recorded as observed and never inferred
+from configuration. Terra fallback is not authorized.
