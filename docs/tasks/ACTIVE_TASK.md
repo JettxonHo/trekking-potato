@@ -3,18 +3,18 @@
 - Task ID: `I21`
 - GitHub Issue: `#30`
 - Title: 实现搜索、确认与行程输入流程
-- Status: `CONTRACT_APPROVED — ROUTING_MIGRATED / IMPLEMENTATION_PENDING`
-- Mode: `IMPLEMENTATION`（尚未激活）
+- Status: `CONTROLLER_APPROVED — PR_MERGE_PENDING`
+- Mode: `FINAL_REVIEW`
 - Owner: Sol XHigh
-- Planned implementation Agent: `luna-worker`
+- Implementation Agent: `luna-worker`（已完成并停止修改）
 - Planning branch: `codex/i21-core-flow-contract`
-- Planning PR: `#90` (open; routing Review approved; latest-head quality pending after #91 base sync)
-- Planned implementation branch: `codex/30-core-input-flow`
-- Planning base: `main` at `c5d7d7c`
+- Planning PR: `#90` (merged as `c817bbb`; latest-head quality passed)
+- Implementation branch: `codex/30-core-input-flow`
+- Implementation base: `main` at `c817bbb`
 - Goal: `TP-BETA-001`
 
-> 先前人工暂停已由模型路由纠偏指令解除。必须先合并规划 PR #90，再从最新 `main` 创建实现分支；
-> 只可把本合同交给准确自定义 Agent `luna-worker`，不得自动回退 Terra。
+> 先前人工暂停已解除，规划 PR #90 已合并，实现分支已从最新 `main` 创建。本合同只交给准确
+> 自定义 Agent `luna-worker`；不得自动回退 Terra。
 
 ## 1. 目标与背景
 
@@ -59,9 +59,11 @@ I13 PR #89 已合并为 `c5d7d7c`，I14/I16/I17–I20 均已完成，依赖已�
 13. `package.json`
 14. `docs/current-status.md`
 15. `docs/tasks/ACTIVE_TASK.md`
+16. `scripts/route-type-contract-test.js`（仅 REVIEW_FIX round 2 更正 `route_not_found` 手动兜底的过时断言与文案）
 
 本任务跨前后端与可信快照，文件数超过通常拆分信号是原子协议切换的必要结果，不是放宽范围。
-若实际实现需要 `prompt.js`、`safety-advice.js`、history、service、reducer 或其他文件，先停止并由 Sol
+第 16 项是 Sol 在 round 2 前批准的精确测试合同扩展，不授权修改生产路线类型逻辑。若实际实现需要
+`prompt.js`、`safety-advice.js`、history、service、reducer 或其他文件，先停止并由 Sol
 更新合同；不得自行扩大 allowlist。
 
 ## 4. 固定公共请求与响应
@@ -299,6 +301,87 @@ git diff --check
 
 合同已通过第三次聚焦独立 Review，P0–P3 无剩余 finding。人工已解除暂停并纠正实现模型路由。
 路由迁移文档也通过独立 Sol Review；日期夹具阻塞 #91 已由首次 runtime-verified `luna-worker`
-修复，并经 PR #92 通过 CI 与独立 Review 后合并。Sol 等待规划 PR #90 的最新质量门禁；合并后从
-最新 `main` 创建 `codex/30-core-input-flow`，再向准确自定义
-Agent `luna-worker` 下发本合同。不得自动回退 Terra。
+修复，并经 PR #92 通过 CI 与独立 Review 后合并。规划 PR #90 随后在最新 base 上通过质量门禁并
+合并为 `c817bbb`。当前从该 base 创建的 `codex/30-core-input-flow` 已激活，向准确自定义 Agent
+`luna-worker` 下发本合同。不得自动回退 Terra。
+
+## 12. 实施检查点（2026-08-08，初始 head 69475df）
+
+- 当前执行者：`luna-worker`，运行时模型 `gpt-5.6-luna`，推理强度 `max`；分支
+  `codex/30-core-input-flow`，基准 `main@c817bbb`。
+- 已完成：公共 `prepare/confirm/advice` 原子接线、可信 BaseData 编排、TripContext
+  `trustedBaseData` 持久化、I20 输入/候选/类型后续交互，以及 I21 聚焦契约测试。
+- TDD 证据：按合同先记录了缺失 `trip-base.js` 的真实 RED；当前
+  `npm run test:core-input-flow` 为 GREEN，并已纳入根 `npm test`。
+- 本地门禁：I21 聚焦测试、根测试、离线集成 `56/0`、lint（0 errors，10 existing warnings）、
+  typecheck、host `build:weapp` 与 `git diff --check` 均通过。
+- 初始状态：`IMPLEMENTATION_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`。实现 Agent 不得批准或合并；
+  Sol XHigh 后续 Review 发现问题后进入第 13 节修复轮次。
+
+## 13. REVIEW_FIX round 1（2026-08-08）
+
+- 起点：PR #93 / head `69475df`，Sol XHigh 结论为 `CHANGES_REQUESTED`。本轮仅允许在该提交上
+  新增修复提交；禁止 amend、rebase、force push 或 force-with-lease。
+- 已处理发现：
+  1. `trip-base.js` 的完整天气兼容投影恢复为 `weather.days` 对象，并保留来源、单位、时区及
+     温度/降水 caveat；天气不足与官方禁行保持 `null`。新增 core/response 行为证据。
+  2. I13 `not_found` 不再泄漏历史 `builtin-route:*` 候选；`prepare('大朝台')` 返回
+     `route_not_found`，真实 AMap/manual 类型流程仍可用。
+  3. handler 默认仍用生产 wall clock，仅通过 `_setNowForTests` 注入测试时钟；response/confirmation
+     固定 2026-08-08 并验证过去日期 `invalid_date`。
+  4. 前端完整候选显示服务端 `fixedDays` 只读值；手动海拔接受有限 `[-500,9000]`，保留 0/负值，
+     空值仍交给服务端自动查找；trip-flow 合同覆盖 fallback 和解析行为。
+  5. acceptance evidence 补回 trek/climb/tour、manual/AMap、严格输入零副作用、永久 ID/gear、
+     blocked weather/gear/sunset 零调用、queryId-only advice 和 deterministicResult 不可被 AI 改写。
+- 当前修复文件仍在 Issue #30 allowlist 内；`GOAL.md` 与 `docs/development-plan.md` 的 activation
+  变更自 `fac56d0` 起由 Sol 所有，不属于实现 Agent 交付。
+- 当前门禁：focused contracts、`npm test`、integration `56/0`、lint（0 errors，10 existing warnings）、
+  typecheck、host Taro 4.0.9 `build:weapp`、`git diff --check` 均 GREEN；additive commit `4171d35`
+  已推送，PR description 已记录 Sol-owned activation 边界。GitHub PR check 是 latest-head CI 事实源，
+  本文不固化会因后续文档提交而过期的 Actions run ID。剩余仅为 Sol 独立 Review。
+- 状态：`REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`。不得自行批准或合并；收到 Sol
+  verdict 后再按其结果处理。
+
+## 14. REVIEW_FIX round 2（2026-08-08）
+
+- 起点：PR #93 / head `4827c09`。Round 1 复审已关闭全部 P0/P1；剩余为测试辨别力和状态一致性，
+  结论 `CHANGES_REQUESTED`。这是合并前最后一个常规修复轮；若本轮后仍不能满足同一冻结验收，
+  停止继续局部修补并升级人工。
+- 精确任务：
+  1. 为 invalid date/time/level/days/support/manual、`route_not_found` 与 confirmation 建立可复用的
+     公共副作用快照，至少覆盖 HTTP/elevation、TripContext 写入和 LLM 调用；不做输入笛卡尔积。
+  2. 补代表性 manual string、NaN/Infinity 和经纬度边界负例，并证明零副作用。
+  3. 对 full/place-only/blocked 逐一断言 `minimumGear` 与兼容 `gearRules` 三个装备数组一致。
+  4. 证明 `onSubmit` 手动分支和 `onManualSubmit` 都把解析后的 0/负海拔传给 `_submitBase`，并证明
+     service payload 保留 0/负值；不得只测 parser。
+  5. 在新增允许文件 `scripts/route-type-contract-test.js` 中把“仅 location_failed”更正为
+     `location_failed` 与 `route_not_found`，使移除任一路径都会失败。
+  6. 同步顶部状态和检查点。GitHub PR check 是 latest-head CI 的事实源，文档不再写会因后续文档
+     提交而立即过期的 run ID。
+- 过程：只允许在 `4827c09` 上追加提交；禁止 amend、rebase、force push 或 force-with-lease。
+- Round-2 checkpoint：`luna-worker` 已以 additive commit `71ebb95` 完成测试辨别力修复；当前状态
+  `REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`。本轮未修改生产业务文件；文档状态在后续
+  独立 additive commit 中同步。
+- Finding→test：response 公共副作用 snapshot 覆盖 HTTP/weather/elevation/AMap、TripContext 读写、LLM，
+  并覆盖代表性 invalid date/time/level/days/support/manual、`route_not_found` 与 confirmation 零副作用；
+  core 覆盖 full/place-only/blocked 三组装备投影；trip-flow 同时断言 `onSubmit`/`onManualSubmit` 的
+  `elevation.provided ? elevation.value : undefined` 以及 service 的 `0`/`-20` 原样 payload；route-type
+  覆盖 `location_failed` 和 `route_not_found` 两个 fallback 分支。
+- Mutation evidence：内存移除 manual-elevation 表达式或任一 fallback 分支时新增断言均失败，恢复后 focused
+  tests 全部 GREEN。
+- 最终本地验证：`test:core-input-flow`、`test:response`、`test:confirmation`、`test:trip-context`、
+  `test:trip-flow`、`test:route-resolver`、`test:hourly-weather`、`test:trip-verdict`、`npm test`、
+  `test:integration`（56/0）、`lint`（0 errors/10 existing warnings）、`typecheck`、`build:weapp`、
+  `git diff --check` 全部通过。PR #93 latest-head GitHub quality check 为 CI 事实源；不写入 Actions run ID。
+
+## 15. Sol 最终 Review 与合并门
+
+- Two independent Sol XHigh final reviews inspected `c817bbb..3f04498` and returned `APPROVED`; P0–P3
+  无 finding。主控读取实际 diff，并复跑 core/response/confirmation/trip-flow 与 diff check。
+- 已关闭：天气兼容形状、I13 legacy candidate 泄漏、稳定测试时钟、验收矩阵、fixedDays、零/负海拔、
+  route fallback、公共零副作用和三类装备投影证据。
+- 历史过程问题：初始 Review 中的 amend/force-with-lease 已记录；后续所有修复和合同提交均为追加提交，
+  没有再次改写历史。
+- 当前状态：`CONTROLLER_APPROVED — PR_MERGE_PENDING`。本节及 Goal/status 更新为 Sol-owned
+  controller checkpoint，不改变业务实现。必须等待该最新 head 的 GitHub `quality` 通过后才可 squash merge；
+  `luna-worker` 不得再修改、批准或合并。

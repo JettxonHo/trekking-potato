@@ -2,13 +2,13 @@
 
 - Updated: `2026-08-08`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I21 CONTRACT_APPROVED / ROUTING_MIGRATED`
+- Goal status: `ACTIVE — M6 I21 APPROVED_PR_PENDING`
 - Active milestone: `M6 Core UX`
-- Active task: `I21 / #30 / CONTRACT_APPROVED — ROUTING_MIGRATED / IMPLEMENTATION_PENDING`
-- Branch: `codex/i21-core-flow-contract`
-- Base: latest `main` at `8387554` after CI-fixture sync
-- I21 planning PR: `#90` — open; routing review approved; latest-head quality pending after base sync
-- Assignment: Sol XHigh owns contract and independent Review; `luna-worker` is reserved for implementation after merge
+- Active task: `I21 / #30 / CONTROLLER_APPROVED — PR_MERGE_PENDING`
+- Branch: `codex/30-core-input-flow`
+- Base: `main` at `c817bbb`
+- I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
+- Assignment: `luna-worker` completed and stopped; Sol XHigh approved and owns the pending merge
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -41,6 +41,7 @@
 - I13 planning PR: `#88` — merged as `5496956`
 - I13 implementation PR: `#89` — merged as `c5d7d7c`; GitHub #22 closed; M3 complete
 - CI date-fixture PR: `#92` — merged as `8387554`; GitHub #91 closed; latest-head quality passed
+- I21 planning PR: `#90` — merged as `c817bbb`; GitHub #30 activated for implementation
 - I21 contract branch: `codex/i21-core-flow-contract` from `c5d7d7c`; routing sync and planning merge pending
 - M3 source refresh PR: `#73` — merged as `31eab6d`; latest-head quality passed
 - User GPX audit PR: `#74` — merged as `97c6728`; latest-head quality passed
@@ -628,15 +629,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Agent assignments
 
 - Sol XHigh: controller, contract owner, independent reviewer and merge authority.
-- `luna-worker`: planned I21 executor; configuration verified as `gpt-5.6-luna` with `max` reasoning.
+- `luna-worker`: active I21 executor; runtime verified as `gpt-5.6-luna` with `max` reasoning.
 - First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
-- Independent Sol XHigh: reviewing the routing-migration documentation only; no business-code authority.
+- Independent Sol XHigh: reserved for the implementation PR Review; no implementation authority.
 
 ## Open work
 
-1. Require latest-head quality on the base-synchronized planning PR #90, then merge it.
-2. Create `codex/30-core-input-flow` from latest `main` and assign I21 to the exact custom Agent `luna-worker`.
+1. Require latest-head CI on the controller-approved PR #93 checkpoint.
+2. Squash merge only if the check remains green and PR head is unchanged.
 
 ## Blockers and risks
 
@@ -661,16 +662,97 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   protocol-incompatible main. I13 is now merged; I21 owns the atomic public cutover.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I21 handoff
+## Forbidden actions during I21 implementation
 
-- UI, cloud function, reducer, service or TripContext changes for I21
 - Temporary variants, cross-route fields, unreviewed tracks, nearby-peak geometry or treating
   absence of an official notice as `open`
 - I22/I23 work that depends on the absent trusted I21 result
 
 ## Next action
 
-Require latest-head quality on planning PR #90 after the merged #91 base sync. Then merge #90, create
-`codex/30-core-input-flow` from latest `main`, assign the exact custom Agent
-`luna-worker`, and begin the contract's TDD loop. Do not start I22/I23 before I21 is accepted; do not
-automatically route implementation to Terra.
+Two independent Sol final reviews approved I21 with no P0–P3 findings. Push this controller-owned approval
+checkpoint, require latest-head GitHub quality, then squash merge PR #93 if the head is unchanged. Do not start
+I22/I23 before the merge; do not automatically route implementation to Terra.
+
+## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
+
+- Agent: `luna-worker` (`gpt-5.6-luna`, max); branch `codex/30-core-input-flow`; base `main@c817bbb`.
+- Status: initial implementation complete locally; PR #93 then entered Sol XHigh Review-fix round 1. No Terra agent is active.
+- TDD: the required missing `trip-base.js` RED was recorded before implementation; the new
+  `test:core-input-flow` now passes and is included in the root `npm test` command.
+- Connected path: `prepare/confirm/advice` → I13 resolver → injected `trip-base` → openid-bound
+  TripContext → queryId-only advice. Full, place-only, manual, AMap follow-up and blocked paths are
+  covered without changing I13/I14/I15/I16 pure modules.
+- Initial changed allowlist files: `cloudfunctions/getAdvice/{index.js,trip-base.js,trip-context.js,response-contract.js}`;
+  `taro-app/src/pages/index/index.jsx`; `scripts/{core-input-flow-contract-test.js,response-contract-test.js,confirmation-contract-test.js,trip-context-contract-test.js}`;
+  `package.json`. Review-fix round 1 additionally updates `scripts/trip-flow-contract-test.js`; `index.css`
+  and `e2e-local.js` remain unchanged.
+- Validation: focused I21 contracts, root `npm test`, integration `56/0`, `lint` (0 errors, 10 existing
+  warnings), `typecheck`, host Taro 4.0.9 `build:weapp`, and `git diff --check` pass.
+- Remaining at the initial head: inspect final diff against the Issue allowlist, commit/push the focused PR, and return
+  `READY_FOR_CONTROLLER_REVIEW`; Sol must decide `APPROVED`/`CHANGES_REQUESTED`/`BLOCKED`/`ESCALATE_TO_HUMAN`.
+
+## I21 REVIEW_FIX round 1 checkpoint — 2026-08-08
+
+- Review state: PR #93 received `CHANGES_REQUESTED` from Sol XHigh at head `69475df`.
+  This round is additive only; no amend, rebase, force push, or force-with-lease is permitted.
+- Finding-to-change map:
+  - P1 weather compatibility: `trip-base.js` now projects complete route weather as the
+    legacy object `{days, source, windUnit, fetchedAt, timezone, elevationCaveat, precipNote,
+    dateOutOfRange, dateRangeNote}`; insufficient and blocked remain `null`. Core and response
+    contracts assert the shape and the exact queryId-only advice snapshot remains immutable.
+  - P1 resolver boundary: `index.js` rejects legacy `builtin-route:*`/historical builtin fallback
+    candidates after I13 `not_found`, while AMap and manual route-type paths remain available.
+    Response contract covers `prepare('大朝台') -> route_not_found` with no candidate leakage.
+  - P1 clock: `index.js` keeps the production wall clock by default and exposes only a test seam
+    for pinned Shanghai date validation. Response and confirmation contracts pin 2026-08-08 and
+    retain a direct past-date `invalid_date` assertion.
+  - P2 UI/input: `index.jsx` renders full-candidate server `fixedDays` as read-only text and
+    preserves finite manual elevations in `[-500, 9000]`, including zero and negative values;
+    the trip-flow contract exercises the parser and fallback wiring.
+  - Acceptance evidence: core contract now covers trek/climb/tour, manual/AMap, strict invalid
+    input side-effect counters, trusted IDs/gear, blocked weather/gear/sunset zero calls and
+    compatibility risk; response covers full weather, blocked/place base and AI immutability.
+- Validation after fixes: focused I21 contracts, `npm test`, offline integration `56/0`, lint
+  (0 errors; existing warnings only), typecheck, host Taro 4.0.9 `build:weapp`, and diff check pass.
+- Round-1 result: additive commits `4171d35` and `4827c09` are pushed to PR #93. Latest-head quality passed,
+  but independent Sol re-review requested one bounded P2 test-evidence round. GitHub PR check is the current
+  CI fact source; do not persist a run ID that becomes stale after the next documentation commit. Sol XHigh
+  remains the only approver and merge authority. `GOAL.md` and `docs/development-plan.md` activation
+  changes from `fac56d0` remain Sol-owned and are outside the Luna allowlist.
+
+## I21 REVIEW_FIX round 2 checkpoint — 2026-08-08
+
+- Status: `REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`; base head `4827c09`; additive commits only.
+- Test/evidence commit: `71ebb95` (`test: strengthen I21 round-two evidence`). The documentation checkpoint
+  is a separate additive commit; no production business file changed in this round.
+- Completed: public zero-side-effect snapshots, representative manual backend negatives, three-capability
+  gear projection equality, both UI manual-elevation request paths, the stale route-type fallback assertion
+  and final status synchronization.
+- Contract expansion: Sol added `scripts/route-type-contract-test.js` only for the exact stale test correction;
+  no production route-type scope was added.
+- Finding-to-test map: `response-contract-test.js` now shares a public side-effect snapshot for HTTP/weather/
+  elevation/AMap, TripContext reads/writes and LLM calls across representative early exits and confirmation;
+  it also covers manual string/NaN/Infinity/lat-lon/elevation negatives with zero effects. `core-input-flow-
+  contract-test.js` compares all three `minimumGear` arrays to `gearRules` for full/place-only/blocked.
+  `trip-flow-contract-test.js` checks both page manual-submit branches and service payload preservation for
+  elevation `0` and `-20`. `route-type-contract-test.js` rejects removal of either `location_failed` or
+  `route_not_found` fallback.
+- Mutation evidence: an in-memory removal of the manual-elevation expression or either route fallback path
+  is rejected by the new assertions; focused tests then returned GREEN.
+- Validation: `test:core-input-flow`, `test:response`, `test:confirmation`, `test:trip-context`, `test:trip-flow`,
+  `test:route-resolver`, `test:hourly-weather`, `test:trip-verdict`, root `npm test`, offline integration
+  `56/0`, lint `0 errors / 10 existing warnings`, typecheck, host `build:weapp` and `git diff --check` all
+  pass. The GitHub PR #93 latest-head `quality` check remains the CI fact source; no Actions run ID is
+  persisted in this checkpoint.
+- Stop rule: if the same frozen acceptance remains unsatisfied after round 2, escalate to the human instead
+  of beginning a third local repair round.
+
+## I21 final Review checkpoint — 2026-08-08
+
+- Review result: two independent Sol XHigh reviewers returned `APPROVED`; no P0–P3 findings remain.
+- Current status: `CONTROLLER_APPROVED — PR_MERGE_PENDING`.
+- Merge gate: this controller-owned documentation checkpoint changes no business code; its latest-head GitHub
+  quality must pass before squash merge. PR check remains the CI fact source, so no run ID is persisted here.
+- Historical force-push incident remains disclosed; subsequent implementation, tests, Review-fix and controller
+  commits are additive.
