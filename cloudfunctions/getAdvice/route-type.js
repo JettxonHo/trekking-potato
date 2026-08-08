@@ -70,15 +70,12 @@ function isKnownRouteTypeSource(value) {
 }
 
 /**
- * advice 阶段 baseData 路线类型结构一致性校验（纯函数，可离线测试）
+ * beta_base_v2 路线类型结构一致性校验（纯函数，可离线测试）
  *
  * 通过条件：
- * - baseData.routeType 为已知类型；
- * - baseData.routeTypeSource 为允许来源；
- * - baseData.gearRules.routeType === baseData.routeType。
- *
- * 说明：这只能保证结构一致性，不能解决客户端同时篡改 routeType 与
- * gearRules 的问题；完整服务端可信上下文仍属于 P1-1（queryId）。
+ * - baseData.routeSnapshot.routeType 为已知类型；
+ * - baseData.sourceMetadata.routeTypeSource 为允许来源；
+ * - minimumGear 与 deterministicSafety 为结构化安全投影。
  *
  * @param {*} baseData
  * @returns {{ok: boolean, error?: string}}
@@ -87,16 +84,23 @@ function validateRouteTypeContract(baseData) {
   if (!baseData || typeof baseData !== 'object') {
     return { ok: false, error: 'invalid_base_data' }
   }
-  if (!isKnownRouteType(baseData.routeType)) {
+  if (baseData.schemaVersion !== 'beta_base_v2'
+    || !baseData.routeSnapshot || typeof baseData.routeSnapshot !== 'object'
+    || !baseData.sourceMetadata || typeof baseData.sourceMetadata !== 'object') {
     return { ok: false, error: 'invalid_base_data' }
   }
-  if (!isKnownRouteTypeSource(baseData.routeTypeSource)) {
+  if (!isKnownRouteType(baseData.routeSnapshot.routeType)) {
     return { ok: false, error: 'invalid_base_data' }
   }
-  if (!baseData.gearRules || typeof baseData.gearRules !== 'object') {
+  if (!isKnownRouteTypeSource(baseData.sourceMetadata.routeTypeSource)) {
     return { ok: false, error: 'invalid_base_data' }
   }
-  if (baseData.gearRules.routeType !== baseData.routeType) {
+  if (!baseData.minimumGear || typeof baseData.minimumGear !== 'object'
+    || !baseData.deterministicSafety || typeof baseData.deterministicSafety !== 'object') {
+    return { ok: false, error: 'invalid_base_data' }
+  }
+  if (!Array.isArray(baseData.deterministicSafety.fatalRisks)
+    || !Array.isArray(baseData.deterministicSafety.ruleNotes)) {
     return { ok: false, error: 'invalid_base_data' }
   }
   return { ok: true }

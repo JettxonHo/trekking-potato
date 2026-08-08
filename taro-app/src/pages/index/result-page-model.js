@@ -427,6 +427,7 @@ function isStructuredResult(result) {
     && hasOwn(result, 'weatherSnapshot')
     && isRecord(result.deterministicResult)
     && isRecord(result.minimumGear)
+    && isRecord(result.deterministicSafety)
     && isRecord(result.sourceMetadata)
 }
 
@@ -442,12 +443,23 @@ function normalizeCachedResult(result) {
 
 function captureHistoryContext(base) {
   const source = isRecord(base) ? base : {}
+  const route = isRecord(source.routeSnapshot) ? source.routeSnapshot : {}
+  const metadata = isRecord(source.sourceMetadata) ? source.sourceMetadata : {}
+  const capability = route.capability
+  const isPlaceOnly = capability === 'place_only'
+  const isFull = capability === 'full'
+  const elevation = isFull
+    ? finiteOrNull(route.routeHighestPointElevationM)
+    : isPlaceOnly ? finiteOrNull(route.referenceElevationM) : null
+  const coords = isPlaceOnly && isRecord(route.referenceCoordinate)
+    ? clone(route.referenceCoordinate)
+    : null
   return {
-    elevation: hasOwn(source, 'elevation') ? source.elevation : null,
-    location: hasOwn(source, 'location') ? source.location : null,
-    coords: hasOwn(source, 'coords') ? clone(source.coords) : null,
-    routeType: hasOwn(source, 'routeType') ? source.routeType : null,
-    routeTypeSource: hasOwn(source, 'routeTypeSource') ? source.routeTypeSource : null,
+    elevation,
+    location: typeof route.region === 'string' ? route.region : null,
+    coords,
+    routeType: route.routeType || null,
+    routeTypeSource: metadata.routeTypeSource || null,
   }
 }
 
@@ -529,7 +541,16 @@ function historyResultForAdviceOutcome(outcome, { adviceData, baseRisks, degrade
 
 function buildHistorySavePayload({ params, historyContext, resultData, saveAttemptId } = {}) {
   const input = isRecord(params) ? params : {}
-  const context = captureHistoryContext(historyContext)
+  const context = isRecord(historyContext)
+    && ['elevation', 'location', 'coords', 'routeType', 'routeTypeSource'].every((key) => hasOwn(historyContext, key))
+    ? {
+      elevation: historyContext.elevation,
+      location: historyContext.location,
+      coords: clone(historyContext.coords),
+      routeType: historyContext.routeType,
+      routeTypeSource: historyContext.routeTypeSource,
+    }
+    : captureHistoryContext(historyContext)
   const result = isRecord(resultData) ? resultData : {}
   const risks = Array.isArray(result.risks) ? result.risks : []
   const summary = risks.length > 0

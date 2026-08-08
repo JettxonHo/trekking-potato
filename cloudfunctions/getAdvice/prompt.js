@@ -55,10 +55,20 @@ function sanitizeForLLM(str, maxLen) {
   return str.replace(/[\r\n\t]+/g, ' ').trim().substring(0, maxLen || 50)
 }
 
-function buildMessages(baseData) {
-  const { route, date, level, days, weather, gearRules, sunEvents, routeType, routeTypeSource } = baseData
+function buildMessages(adviceContext) {
+  if (!adviceContext || typeof adviceContext !== 'object' || Array.isArray(adviceContext)
+    || !adviceContext.requestSummary || !adviceContext.minimumGear
+    || !adviceContext.deterministicSafety || !Object.prototype.hasOwnProperty.call(adviceContext, 'weatherSummary')) {
+    throw new TypeError('structured advice context required')
+  }
+  const request = adviceContext.requestSummary
+  const routeLabel = adviceContext.routeLabel
+  const weatherSummary = adviceContext.weatherSummary
+  const minimumGear = adviceContext.minimumGear
+  const deterministicSafety = adviceContext.deterministicSafety
+  const { routeType, routeTypeSource } = adviceContext
   // 根据等级取唯一约束段（兜底中级，避免未匹配时无约束）
-  const levelDirective = LEVEL_DIRECTIVES[level] || LEVEL_DIRECTIVES['中级']
+  const levelDirective = LEVEL_DIRECTIVES[request.level] || LEVEL_DIRECTIVES['中级']
   // TP-P0-003：行程信息显式写入路线类型与来源（如「路线类型：climb（攀登）」「类型来源：builtin」）。
   // 生产路径（base/advice）均在服务端校验后传入合法值；非法或缺失值不注入 Prompt。
   const routeTypeLines = []
@@ -70,28 +80,30 @@ function buildMessages(baseData) {
   }
   const userContent = [
    '[行程信息]',
-   '路线：' + sanitizeForLLM(route, 50),
+   '路线：' + sanitizeForLLM(routeLabel, 50),
    ...routeTypeLines,
-   '出发日期：' + sanitizeForLLM(date, 20),
-   '天数：' + days,
+   '出发日期：' + sanitizeForLLM(request.date, 20),
+   '出发时间：' + sanitizeForLLM(request.startTimeLocal, 5),
+   '能力等级：' + sanitizeForLLM(request.level, 10),
+   '天数：' + request.days,
    '',
    levelDirective,
    '',
-   '[天气数据（来自 Open-Meteo，已按海拔修正）]',
-   JSON.stringify(weather, null, 2),
+   '[天气摘要（来自可信结构化快照，仅供参考，不要复述）]',
+   JSON.stringify(weatherSummary, null, 2),
+   weatherSummary && Array.isArray(weatherSummary.days)
+     ? weatherSummary.days.map((day) => day.date + ': ' + day.tempMin + '~' + day.tempMax + '°C 降水' + day.precipProb + '% 风' + day.windMs + 'm/s ' + (day.confidence === '参考' ? '(参考)' : '')).join('\n')
+     : '无数据',
    '',
- '[天气摘要（精简，仅供参考，不要复述）]',
- (weather && weather.days ? weather.days.map((d) => d.date + ': ' + d.tempMin + '~' + d.tempMax + '°C 降水' + d.precipProb + '% 风' + d.windMs + 'm/s ' + (d.confidence === '参考' ? '(参考)' : '')).join('\n') : '无数据'),
- '',
-   '[装备规则（grounding）]',
-   JSON.stringify(gearRules, null, 2),
+   '[最低装备（确定性 grounding）]',
+   JSON.stringify(minimumGear, null, 2),
    '',
-    '[天文时刻（suncalc 离线计算）]',
-    JSON.stringify(sunEvents, null, 2),
-    '',
+   '[确定性安全规则（grounding）]',
+   JSON.stringify(deterministicSafety, null, 2),
+   '',
     '请基于以上数据，生成路书建议 JSON。',
     '只生成 gearAdditions（仅 recommended/optional）、riskExplanations 和 notes。',
-    '不要复述或输出天气、天文、路线、结论、完整装备、完整风险、免责声明或元数据。',
+    '不要复述或输出天气、路线、结论、完整装备、完整风险、免责声明或元数据。',
   ].join('\n')
 
   return [

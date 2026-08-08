@@ -46,11 +46,11 @@ function normalizeAiOutcome(aiOutcome) {
   throw new Error('未知 aiOutcome status')
 }
 
-function copyDeterministicGear(gearRules) {
+function copyDeterministicGear(minimumGear) {
   return {
-    essential: gearRules.essential.map((item) => ({ item: item.item, reason: item.reason })),
-    recommended: gearRules.recommended.map((item) => ({ item: item.item, reason: item.reason })),
-    optional: gearRules.optional.map((item) => ({ item: item.item, reason: item.reason })),
+    essential: minimumGear.essential.map((item) => ({ item: item.item, reason: item.reason })),
+    recommended: minimumGear.recommended.map((item) => ({ item: item.item, reason: item.reason })),
+    optional: minimumGear.optional.map((item) => ({ item: item.item, reason: item.reason })),
   }
 }
 
@@ -94,33 +94,40 @@ function buildRisks(fatalRisks, explanations) {
 }
 
 /**
- * Rebuild advice from deterministic base fields and the exact I06 AI union.
+ * Rebuild advice from deterministic base fields and the exact I24a AI union.
  * The caller is responsible for attaching server metadata and the public response envelope.
  */
-function projectSafetyAdvice({ gearRules, weather, sunEvents, aiOutcome }) {
+function projectSafetyAdvice(input) {
+  if (!isPlainObject(input)
+    || JSON.stringify(Object.keys(input).sort()) !== JSON.stringify(['aiOutcome', 'deterministicSafety', 'minimumGear'].sort())
+    || !isPlainObject(input.minimumGear)
+    || !isPlainObject(input.deterministicSafety)
+    || !Array.isArray(input.minimumGear.essential)
+    || !Array.isArray(input.minimumGear.recommended)
+    || !Array.isArray(input.minimumGear.optional)
+    || !Array.isArray(input.deterministicSafety.fatalRisks)
+    || !Array.isArray(input.deterministicSafety.ruleNotes)) {
+    throw new TypeError('structured safety projection input required')
+  }
+  const { minimumGear, deterministicSafety, aiOutcome } = input
   const outcome = normalizeAiOutcome(aiOutcome)
-  const gear = copyDeterministicGear(gearRules)
+  const gear = copyDeterministicGear(minimumGear)
   const aiExplanation = outcome.status === 'available' ? outcome.value : null
 
   if (aiExplanation) appendGearAdditions(gear, aiExplanation.gearAdditions)
 
-  const notes = gearRules.ruleNotes.map((note) => '规则提示：' + trimText(note))
+  const notes = deterministicSafety.ruleNotes.map((note) => '规则提示：' + trimText(note))
   if (aiExplanation) {
     for (const note of aiExplanation.notes) notes.push('AI 说明：' + trimText(note))
   } else {
     notes.push(DEGRADED_NOTE)
   }
 
-  const firstDay = weather && Array.isArray(weather.days) ? weather.days[0] : null
   const data = {
     gear,
-    risks: buildRisks(gearRules.fatalRisks, aiExplanation ? aiExplanation.riskExplanations : []),
+    risks: buildRisks(deterministicSafety.fatalRisks, aiExplanation ? aiExplanation.riskExplanations : []),
     notes,
-    photoTiming: sunEvents || null,
-    microclimate: weather ? { humidity: null, windMs: firstDay ? firstDay.windMs : null, dewPointSpread: null } : null,
     disclaimer: DISCLAIMER,
-    weather: weather || null,
-    sunEvents: sunEvents || null,
   }
 
   if (outcome.status === 'invalid') return { data, degraded: true, degradedReason: 'ai_output_invalid' }

@@ -83,17 +83,15 @@ console.log('\n=== Prompt 单位契约测试 ===')
 // TP-P0-001：windMs 契约固定为 m/s 后，Prompt 中的单位文字必须与内部契约一致
 const { buildMessages } = require('../cloudfunctions/getAdvice/prompt')
 const promptMessages = buildMessages({
-  route: '武功山',
-  date: '2026-08-04',
-  level: '中级',
-  days: 1,
-  weather: {
+  routeLabel: '武功山',
+  routeType: 'trek',
+  routeTypeSource: 'builtin',
+  requestSummary: { date: '2026-08-04', startTimeLocal: '08:00', level: '中级', days: 1, climbSupport: null },
+  weatherSummary: {
     days: [{ date: '2026-08-04', tempMin: 10, tempMax: 20, precipProb: 0, windMs: 4.5, confidence: '正常' }],
-    windUnit: 'm/s',
   },
-  gearRules: { essential: [], recommended: [], optional: [] },
-  sunEvents: null,
-  microclimate: { humidity: null, windMs: 4.5, dewPointSpread: null },
+  minimumGear: { essential: [], recommended: [], optional: [] },
+  deterministicSafety: { fatalRisks: [], ruleNotes: [] },
 })
 const promptUserContent = promptMessages[1].content
 assert('Prompt 包含 风4.5m/s', promptUserContent.includes('风4.5m/s'), promptUserContent.substring(0, 200))
@@ -102,21 +100,19 @@ console.log('\n=== Prompt 日期窗口契约测试 ===')
 // TP-P0-002：Prompt 只消费传入的正确行程窗口（出发日起连续 tripDays 天），
 // 不得出现窗口外日期（如此前"从今天开始"的错误窗口日期）
 const windowMessages = buildMessages({
-  route: '武功山',
-  date: '2026-08-06',
-  level: '中级',
-  days: 3,
-  weather: {
+  routeLabel: '武功山',
+  routeType: 'trek',
+  routeTypeSource: 'builtin',
+  requestSummary: { date: '2026-08-06', startTimeLocal: '08:00', level: '中级', days: 3, climbSupport: null },
+  weatherSummary: {
     days: [
       { date: '2026-08-06', tempMin: 10, tempMax: 20, precipProb: 0, windMs: 3.1, confidence: '正常' },
       { date: '2026-08-07', tempMin: 11, tempMax: 21, precipProb: 10, windMs: 4.2, confidence: '正常' },
       { date: '2026-08-08', tempMin: 12, tempMax: 22, precipProb: 20, windMs: 5.3, confidence: '正常' },
     ],
-    windUnit: 'm/s',
   },
-  gearRules: { essential: [], recommended: [], optional: [] },
-  sunEvents: null,
-  microclimate: { humidity: null, windMs: 3.1, dewPointSpread: null },
+  minimumGear: { essential: [], recommended: [], optional: [] },
+  deterministicSafety: { fatalRisks: [], ruleNotes: [] },
 })
 const windowUserContent = windowMessages[1].content
 assert('Prompt 包含 2026-08-06（出发日）', windowUserContent.includes('2026-08-06'), windowUserContent.substring(0, 200))
@@ -134,16 +130,13 @@ assert('isKnownRouteType 拒绝大小写与空白变体', !isKnownRouteType('Tre
 
 console.log('\n=== TP-P0-003 Prompt routeType 测试 ===')
 const typeMessages = buildMessages({
-  route: '四姑娘山二峰',
-  date: '2026-08-10',
-  level: '小白',
-  days: 2,
-  weather: { days: [{ date: '2026-08-10', tempMin: 2, tempMax: 12, precipProb: 20, windMs: 6.5, confidence: '正常' }], windUnit: 'm/s' },
-  gearRules: getGearRules({ month: 8, elevation: 5276, days: 2, lat: 31.1, routeType: 'climb' }),
-  sunEvents: null,
-  microclimate: null,
+  routeLabel: '四姑娘山二峰',
   routeType: 'climb',
   routeTypeSource: 'builtin',
+  requestSummary: { date: '2026-08-10', startTimeLocal: '08:00', level: '小白', days: 2, climbSupport: 'solo_or_unsure' },
+  weatherSummary: { days: [{ date: '2026-08-10', tempMin: 2, tempMax: 12, precipProb: 20, windMs: 6.5, confidence: '正常' }] },
+  minimumGear: (() => { const rules = getGearRules({ month: 8, elevation: 5276, days: 2, lat: 31.1, routeType: 'climb' }); return { essential: rules.essential, recommended: rules.recommended, optional: rules.optional } })(),
+  deterministicSafety: (() => { const rules = getGearRules({ month: 8, elevation: 5276, days: 2, lat: 31.1, routeType: 'climb' }); return { fatalRisks: rules.fatalRisks, ruleNotes: rules.ruleNotes } })(),
 })
 const typeUserContent = typeMessages[1].content
 assert('Prompt 行程信息含 路线类型：climb（攀登）', typeUserContent.includes('路线类型：climb（攀登）'), typeUserContent.substring(0, 200))

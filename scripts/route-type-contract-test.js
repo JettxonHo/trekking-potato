@@ -211,16 +211,13 @@ async function main() {
 
     console.log('\n=== 6. Prompt 显式路线类型与硬约束 ===')
     const promptMessages = buildMessages({
-      route: '四姑娘山二峰',
-      date: '2026-08-10',
-      level: '小白',
-      days: 2,
-      weather: { days: [{ date: '2026-08-10', tempMin: 2, tempMax: 12, precipProb: 20, windMs: 6.5, confidence: '正常' }], windUnit: 'm/s' },
-      gearRules: rulesClimb,
-      sunEvents: null,
-      microclimate: { humidity: null, windMs: 6.5, dewPointSpread: null },
+      routeLabel: '四姑娘山二峰',
       routeType: 'climb',
       routeTypeSource: 'builtin',
+      requestSummary: { date: '2026-08-10', startTimeLocal: '08:00', level: '小白', days: 2, climbSupport: 'solo_or_unsure' },
+      weatherSummary: { days: [{ date: '2026-08-10', tempMin: 2, tempMax: 12, precipProb: 20, windMs: 6.5, confidence: '正常' }] },
+      minimumGear: { essential: rulesClimb.essential, recommended: rulesClimb.recommended, optional: rulesClimb.optional },
+      deterministicSafety: { fatalRisks: rulesClimb.fatalRisks, ruleNotes: rulesClimb.ruleNotes },
     })
     const userContent = promptMessages[1].content
     const systemContent = promptMessages[0].content
@@ -234,26 +231,23 @@ async function main() {
     assert('SYSTEM_PROMPT 引用与常量一致', promptMessages[0].content === SYSTEM_PROMPT)
 
     const legacyMessages = buildMessages({
-      route: '武功山',
-      date: '2026-08-10',
-      level: '中级',
-      days: 1,
-      weather: null,
-      gearRules: null,
-      sunEvents: null,
-      microclimate: null,
+      routeLabel: '武功山',
+      requestSummary: { date: '2026-08-10', startTimeLocal: '08:00', level: '中级', days: 1, climbSupport: null },
+      weatherSummary: null,
+      minimumGear: { essential: [], recommended: [], optional: [] },
+      deterministicSafety: { fatalRisks: [], ruleNotes: [] },
     })
     assert('缺失类型时不注入 undefined 文本', !legacyMessages[1].content.includes('路线类型：undefined') && !legacyMessages[1].content.includes('类型来源：undefined'), legacyMessages[1].content.substring(0, 200))
 
     console.log('\n=== 7. advice 阶段 baseData 路线类型结构一致性 ===')
-    const goodBase = { routeType: 'climb', routeTypeSource: 'builtin', gearRules: { routeType: 'climb' }, weather: null }
-    assert('类型与 gearRules 一致时通过', validateRouteTypeContract(goodBase).ok === true, JSON.stringify(validateRouteTypeContract(goodBase)))
-    assert('类型与 gearRules 不一致时拒绝', validateRouteTypeContract({ ...goodBase, gearRules: { routeType: 'trek' } }).ok === false)
-    assert('routeType=unknown 拒绝', validateRouteTypeContract({ ...goodBase, routeType: 'unknown', gearRules: { routeType: 'unknown' } }).ok === false)
-    assert('routeType 非法拒绝', validateRouteTypeContract({ ...goodBase, routeType: 'banana', gearRules: { routeType: 'banana' } }).ok === false)
-    assert('缺失 routeType 拒绝', validateRouteTypeContract({ routeTypeSource: 'builtin', gearRules: { routeType: 'climb' } }).ok === false)
-    assert('routeTypeSource 非法拒绝', validateRouteTypeContract({ ...goodBase, routeTypeSource: 'server' }).ok === false)
-    assert('缺失 gearRules 拒绝', validateRouteTypeContract({ routeType: 'climb', routeTypeSource: 'builtin' }).ok === false)
+    const goodBase = { schemaVersion: 'beta_base_v2', routeSnapshot: { routeType: 'climb' }, sourceMetadata: { routeTypeSource: 'builtin' }, minimumGear: { essential: [], recommended: [], optional: [] }, deterministicSafety: { fatalRisks: [], ruleNotes: [] } }
+    assert('结构化类型与来源一致时通过', validateRouteTypeContract(goodBase).ok === true, JSON.stringify(validateRouteTypeContract(goodBase)))
+    assert('routeType=unknown 拒绝', validateRouteTypeContract({ ...goodBase, routeSnapshot: { routeType: 'unknown' } }).ok === false)
+    assert('routeType 非法拒绝', validateRouteTypeContract({ ...goodBase, routeSnapshot: { routeType: 'banana' } }).ok === false)
+    assert('缺失 routeSnapshot 拒绝', validateRouteTypeContract({ ...goodBase, routeSnapshot: undefined }).ok === false)
+    assert('routeTypeSource 非法拒绝', validateRouteTypeContract({ ...goodBase, sourceMetadata: { routeTypeSource: 'server' } }).ok === false)
+    assert('缺失 deterministicSafety 拒绝', validateRouteTypeContract({ ...goodBase, deterministicSafety: undefined }).ok === false)
+    assert('旧 compatibility base 拒绝', validateRouteTypeContract({ routeType: 'climb', routeTypeSource: 'builtin', gearRules: { routeType: 'climb' } }).ok === false)
     assert('baseData 为 null 拒绝', validateRouteTypeContract(null).ok === false)
 
     console.log('\n=== 8. REVIEW_FIX：后端地理解析失败映射（纯函数）===')

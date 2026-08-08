@@ -2,22 +2,37 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M7 I24 PLANNING`
+- Goal status: `ACTIVE — M7 I24a IMPLEMENTATION_ACTIVE`
 - Active milestone: `M7 Acceptance`
-- Active task: `I24 / #33 / CONTRACT_REVIEW`
-- Branch: `codex/33-beta-acceptance-plan`
-- Base: `main` at `097c921`
+- Active task: `I24a / #105 / IMPLEMENTATION_ACTIVE`
+- Branch: `codex/105-structured-advice-adapter`
+- Base: `main` at `6869a7b`
+- Review-fix checkpoint (2026-08-09): controller baseline is `4de1ff2`; the bounded round-1 fix adds per-call
+  sentinel gear provenance (full/place exactly once, blocked zero), covers full/catalog place/manual/user/AMap/amap/
+  blocked history source propagation, with catalog place authority explicitly `routeTypeSource=user`; removes unused
+  adapter aliases, and records mutation RED evidence. Integration
+  `56 -> 55` is documented as two retired legacy checks replaced by one structured non-exposure check. Controller
+  activation files and executor allowlist are explicitly distinguished in the verification record.
+- I24a implementation checkpoint (2026-08-09): TDD RED for missing `advice-context.js` was recorded before the
+  adapter existed. The current implementation composes exact `beta_base_v2` snapshots with
+  `deterministicSafety`, removes all thirteen top-level compatibility aliases, and derives prompt, safety and
+  private history facts from structured fields only. TripContext now persists `trip_context_v2`; a stored v1
+  context is non-retryable `query_context_unavailable` with zero LLM calls and no version detail. Focused
+  advice-context, core-input, response, TripContext, safety, route, unit, trip-flow, result-page and offline
+  integration contracts are green; integration is `55/0` because the retired sun/advice compatibility assertion
+  was replaced by a mutation-sensitive assertion that advice has no weather/sunEvents/photoTiming/microclimate.
+  Full lint/typecheck/build/diff evidence is recorded in `docs/i24a-structured-adapter-verification.md`.
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page — all closed
 - I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
 - I22a implementation PR: `#97` — squash merged as `6e12f25`; GitHub #94 closed
 - I22b implementation PR: `#98` — squash merged as `852e86d`; GitHub #95 and parent #31 closed
-- Assignment: no implementation Agent is active during I24 planning; future bounded implementation uses exact custom Agent `luna-worker`; Terra fallback remains unauthorized
+- Assignment: exact custom Agent `luna-worker` owns bounded I24a/#105 after this controller activation; Terra fallback remains unauthorized
 - I23 planning PR: `#101` — latest-head quality and independent actual-diff Review passed; squash merged as `a12ab46`
 - I23a PR: `#102` — latest-head quality and independent Sol re-review passed; squash merged as `107fab4`; #99 closed
 - I23b PR: `#103` — latest-head quality and two independent Sol Reviews passed; squash merged as `097c921`; #100 and parent #32 closed
-- I24 planning PR: `#104` — draft open from reviewed pure-document branch; latest-head quality and final Sol approval pending
+- I24 planning PR: `#104` — latest-head quality and two independent Reviews passed; squash merged as `6869a7b`
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -149,8 +164,8 @@
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1–M6 are complete. I23b PR #103 passed latest-head quality and two independent Sol Reviews, squash merged as
-`097c921`, and closed #100 plus parent #32. M7 is active at I24/#33 contract planning; no I24 implementation has
-started and no implementation Agent is active.
+`097c921`, and closed #100 plus parent #32. I24 planning PR #104 merged as `6869a7b`; M7 is active at I24a/#105.
+I24b/#106 and I24c/#107 remain dependency-blocked.
 
 ## Completed
 
@@ -1078,3 +1093,15 @@ future executors cannot approve/merge and Terra remains unauthorized.
   Reviews returned `APPROVED` with no P0–P3 finding, and draft planning PR #104 is open. The next action is to pass
   latest-head quality, perform final Sol metadata/diff verification and merge it. Only then may Sol create the three
   child Issues and activate I24a for exact custom Agent `luna-worker`.
+
+## I24 planning merge / I24a activation checkpoint — 2026-08-09
+
+- Planning PR #104 exact latest head passed GitHub `quality`; two independent actual-diff Reviews returned
+  `APPROVED` with no P0–P3 finding. Sol squash merged it as `6869a7b`.
+- Parent #33 now owns serial child Issues: I24a/#105, I24b/#106 and I24c/#107. #106 and #107 carry
+  `status:blocked`; they cannot start before their predecessors pass CI, Sol Review and merge.
+- Active branch is `codex/105-structured-advice-adapter` from exact `main@6869a7b`. This controller activation edits
+  only Goal/status/task/development documents; no I24a production or test implementation has started.
+- Routing before spawn: logical role `IMPLEMENTER`; requested custom Agent `luna-worker`; config
+  `~/.codex/agents/luna-worker.toml`; configured model `gpt-5.6-luna`; reasoning `max`; configuration status
+  `CONFIG_VERIFIED`; runtime visibility must be reported by the executor. Terra remains unauthorized.

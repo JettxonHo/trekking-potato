@@ -171,10 +171,10 @@ async function main() {
 
   const manualZero = await getAdvice.main({ mode: 'prepare', route: '手动零海拔', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1, manualLat: 0, manualLon: 0, manualElevation: 0, routeType: 'trek' })
   assert.equal(manualZero.phase, 'base', JSON.stringify(manualZero))
-  assert.equal(manualZero.data.elevation, 0, '手动海拔 0 必须保持有效')
+  assert.equal(manualZero.data.routeSnapshot.referenceElevationM, 0, '手动海拔 0 必须保持有效')
   const manualNegative = await getAdvice.main({ mode: 'prepare', route: '手动负海拔', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1, manualLat: 1, manualLon: 2, manualElevation: -20, routeType: 'trek' })
   assert.equal(manualNegative.phase, 'base', JSON.stringify(manualNegative))
-  assert.equal(manualNegative.data.elevation, -20, '手动负海拔必须保持有效')
+  assert.equal(manualNegative.data.routeSnapshot.referenceElevationM, -20, '手动负海拔必须保持有效')
 
   process.env.AMAP_KEY = 'offline'
   const amapRequired = await getAdvice.main({ mode: 'prepare', route: '外部测试点', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 1 })
@@ -195,7 +195,7 @@ async function main() {
 
   const base = await getAdvice.main({ mode: 'prepare', route: '武功山反穿', date: '2026-08-09', startTimeLocal: '08:00', level: '中级', days: 'invalid' })
   assert.equal(base.phase, 'base', JSON.stringify(base))
-  assert.equal(base.data.schemaVersion, 'beta_base_v1')
+  assert.equal(base.data.schemaVersion, 'beta_base_v2')
   assert.equal(base.data.routeSnapshot.capability, 'full')
   assert.equal(typeof base.data.routeSnapshot.routeHighestPointElevationM, 'number')
   assert.equal(base.data.routeSnapshot.verificationLevel, 'B')
@@ -205,11 +205,23 @@ async function main() {
   assert.ok(base.data.sourceMetadata.routeSources.length > 0)
   assert.equal(Object.hasOwn(base.data.sourceMetadata.routeSources[0], 'supports'), false)
   assert.equal(base.data.requestSummary.days, 2)
-  assert.ok(base.data.weather && Array.isArray(base.data.weather.days), '完整路线 base 必须返回兼容 weather.days')
-  assert.equal(base.data.weather.source, 'Open-Meteo')
-  assert.equal(base.data.weather.windUnit, 'm/s')
+  assert.equal(Object.hasOwn(base.data, 'weather'), false)
+  assert.equal(Object.hasOwn(base.data, 'gearRules'), false)
+  assert.equal(Object.hasOwn(base.data, 'meta'), false)
+  assert.ok(base.data.weatherSnapshot && Array.isArray(base.data.weatherSnapshot.evaluatedWindows), '完整路线必须保留结构化小时天气')
+  assert.ok(base.data.deterministicSafety && Array.isArray(base.data.deterministicSafety.fatalRisks), 'BaseData 必须携带 deterministicSafety')
   assert.ok(base.queryId && records.has(base.queryId))
   assert.deepEqual(records.get(base.queryId).snapshot, base.data)
+
+  const legacyQueryId = 'tctx_aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+  records.set(legacyQueryId, {
+    schemaVersion: 'trip_context_v1', _openid: openid, queryId: legacyQueryId,
+    createdAt: '2026-08-08T00:00:00.000Z', expiresAt: '2026-08-08T00:30:00.000Z', snapshot: { schemaVersion: 'beta_base_v1' },
+  })
+  const llmBeforeLegacy = llmRequests
+  const legacyAdvice = await getAdvice.main({ mode: 'advice', queryId: legacyQueryId })
+  assertError(legacyAdvice, 'query_context_unavailable')
+  assert.equal(llmRequests, llmBeforeLegacy, 'stored v1 context must never invoke LLM')
 
   process.env.LLM_KEY = 'offline'
   const deterministicBeforeAdvice = copy(records.get(base.queryId).snapshot.deterministicResult)
@@ -219,6 +231,11 @@ async function main() {
   })
   assert.equal(advice.phase, 'advice')
   assert.equal(advice.degraded, true)
+  assert.deepEqual(Object.keys(advice.data).sort(), ['disclaimer', 'gear', 'meta', 'notes', 'risks'].sort())
+  assert.deepEqual(Object.keys(advice.data.meta).sort(), ['elapsed', 'generatedAt', 'llmModel', 'degradedReason'].sort())
+  assert.equal(advice.data.weather, undefined)
+  assert.equal(advice.data.sunEvents, undefined)
+  assert.equal(advice.data.deterministicResult, undefined)
   assert.equal(llmRequests, 1)
   assert.deepEqual(records.get(base.queryId).snapshot.deterministicResult, deterministicBeforeAdvice, 'queryId-only advice 不得让 AI 或客户端修改确定性结果')
 
@@ -227,6 +244,8 @@ async function main() {
   assert.equal(maliciousAdvice.phase, 'advice')
   assert.equal(maliciousAdvice.degraded, false)
   assert.equal(maliciousAdvice.data.deterministicResult, undefined)
+  assert.equal(maliciousAdvice.data.weather, undefined)
+  assert.equal(maliciousAdvice.data.meta.degradedReason, undefined)
   assert.deepEqual(records.get(base.queryId).snapshot.deterministicResult, deterministicBeforeAdvice, '可用 AI 也不得修改服务端确定性结果')
   assert.equal(llmRequests, 2)
   llmMode = 'offline'
