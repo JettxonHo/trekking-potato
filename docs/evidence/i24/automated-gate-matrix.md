@@ -19,6 +19,7 @@ npm run test:result-page             PASS: I22b structured result-page contract
 npm run test:hourly-weather          PASS: I14 hourly-weather contract
 npm run test:history                 PASS: I19 private history contract
 npm run test:recovery                PASS: I23b recovery contract
+npm run test:trip-flow               PASS: I20 trip-flow reducer 与 getAdvice service 契约
 npm test                            PASS: all registered contracts
 npm run test:integration            PASS: 55, FAIL: 0
 npm run lint                        PASS: 0 errors, 9 existing warnings
