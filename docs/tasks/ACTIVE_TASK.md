@@ -1,14 +1,14 @@
-# ACTIVE TASK — I23 降级与恢复合同规划
+# ACTIVE TASK — I23a 私人历史保存重试幂等
 
 - Goal: `TP-BETA-001`
 - Parent: `I23 / #32`
-- GitHub children: `I23a / #99`, then `I23b / #100`
-- Status/Mode: `PLANNING_PR_OPEN / REVIEW`
+- GitHub Issue: `I23a / #99`; `I23b / #100` remains dependency-blocked
+- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
 - Controller: Sol XHigh
-- Implementation Agent after planning merge: exact custom Agent `luna-worker`
-- Planning branch: `codex/i23-recovery-contract`
-- Base: `main@852e86d`
-- Dependency: I19 merged; I22b/#95 and parent #31 closed through PR #98
+- Implementation Agent: exact custom Agent `luna-worker`
+- Branch: `codex/99-history-save-idempotency`
+- Base: `main@a12ab46`
+- Dependency: I19/I22b merged; I23 planning PR #101 merged as `a12ab46`
 
 ## 1. Objective and serial split
 
@@ -202,12 +202,9 @@ Each child returns code, tests, RED/GREEN evidence, all gates, status docs, a fo
 `luna-worker`; config `~/.codex/agents/luna-worker.toml`; configured `gpt-5.6-luna` / `max`; runtime status recorded
 after spawn; Terra fallback unauthorized.
 
-## 6. Planning gate
+## 6. Activation gate
 
-No I23 implementation starts until this contract is synchronized to live #32 and both child Issues, passes independent
-Sol contract Review and latest-head quality, and the planning PR merges. Then activate I23a only; I23b stays blocked
-until I23a is accepted and merged.
-
-Independent contract Review returned `APPROVED` with no P0–P3 findings after the final Issue/document sync. The
-focused planning PR is #101. Its live latest-head GitHub check is the CI fact source; Sol actual-diff approval and
-merge remain. No implementation Agent is active.
+Planning PR #101 passed latest-head quality and independent actual-diff Review, then squash merged as `a12ab46`.
+I23a/#99 is the only active implementation contract. I23b/#100 stays blocked until I23a passes its own CI, Sol Review
+and merge. The controller activation commit contains only status/routing changes; the executor begins with a clean
+business-code baseline.
