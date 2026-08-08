@@ -295,3 +295,21 @@ The executor must make the smallest bounded corrections inside the existing #100
 Use additive commits and normal push only. Update `docs/i23-recovery-verification.md`, this task and
 `docs/current-status.md`; re-run every command in the frozen matrix and latest-head Actions. Return
 `READY_FOR_CONTROLLER_REVIEW`; do not approve or merge PR #103.
+
+## I23b Review-fix round 1 implementation checkpoint — 2026-08-09
+
+- Weather retry controls now use the bounded `isWeatherRecoveryEligible`/`selectRecoveryActions` seam, requiring
+  retryable weather facts plus accepted terminal flow status and valid last-base authority; base-ready/advice-loading
+  cannot expose a no-op button.
+- `_beginReprepare` no longer invalidates the old history-save intent at start. Replacement BaseData and the existing
+  reset/return/unmount paths remain the only local invalidation boundaries.
+- History list retry/loading keeps existing items rendered; the loading empty state is selected only for an empty list.
+- `recovery-contract-test.js` now uses bounded method/branch assertions and executable action projection, with RED
+  mutation checks for all seven review representatives: weather eligibility, refresh priority, same-query AI,
+  snapshot replay, same-base history intent, stale list guards and zero-I/O prefill.
+- Scope remains the frozen #100 allowlist; no Cloud Function/public contract/cache/history schema/dependency/new
+  state/automatic retry/visual redesign. Pending additive commit, normal push, latest-head Actions and controller
+  review; executor must return `READY_FOR_CONTROLLER_REVIEW` and cannot approve or merge.
+- Review-fix local matrix is GREEN: focused recovery/trip-flow/result-page/response/trip-context/history, root
+  `npm test`, integration `56/0`, lint 0 errors/9 existing warnings, typecheck, `build:weapp`, and `git diff --check`.
+  No DevTools or screenshot evidence was run.

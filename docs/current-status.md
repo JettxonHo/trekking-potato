@@ -1005,3 +1005,24 @@ The executor cannot approve/merge and Terra remains unauthorized.
   schema, eleventh state, automatic retry or visual redesign is authorized. Use additive commits and normal push,
   update the verification/status evidence, run the complete required matrix and latest-head Actions, then return
   `READY_FOR_CONTROLLER_REVIEW` for a fresh Sol Review.
+
+## I23b Review-fix round 1 implementation checkpoint — 2026-08-09
+
+- Fixed weather recovery rendering and click handling by introducing the executable page-local
+  `isWeatherRecoveryEligible`/`selectRecoveryActions` seam. It requires a retryable deterministic weather issue,
+  terminal `complete`/`degraded`/`error` state and a valid `lastBaseRequest`; `base_ready` and `advice_loading`
+  therefore expose no silent no-op action.
+- Removed only the early `_invalidateHistorySaveIntent()` from `_beginReprepare`. Failed/in-flight old BaseData
+  save intent remains available through reprepare failure; replacement BaseData, reset/return and unmount retain
+  their existing invalidation boundaries.
+- History list rendering now shows existing items while a refresh is loading and uses the empty loading copy only
+  when there are no items. Lifecycle token/error preservation is unchanged.
+- Replaced whole-file marker-only page evidence with bounded method/branch extraction plus executable action
+  projection. Focused mutations for eligibility, refreshing priority, same-query advice, snapshot replay, same-base
+  save identity, stale list guards and zero-I/O history prefill are required to fail the wiring assertions.
+- Review-fix remains within the frozen #100 allowlist. No Cloud Function, public contract, cache/history schema,
+  dependency or new flow state changed. Status remains `READY_FOR_CONTROLLER_REVIEW` pending additive commit,
+  normal push, latest-head Actions and fresh Sol review.
+- Review-fix local gates are GREEN: focused recovery/trip-flow/result-page/response/trip-context/history, root
+  `npm test`, integration `56/0`, typecheck, WeChat build and `git diff --check`; lint has 0 errors and 9 existing
+  warnings. No DevTools/screenshot evidence was run.

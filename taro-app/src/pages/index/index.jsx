@@ -34,11 +34,11 @@ const {
   createSaveAttemptId,
   failHistorySave,
   getBaseRequest,
-  isAdviceRetryEligible,
+  isWeatherRecoveryEligible,
   promoteBaseRequest,
   resolveHistoryList,
-  retryableWeatherIssue,
   sameHistorySaveIdentity,
+  selectRecoveryActions,
   startHistorySave,
   succeedHistorySave,
 } = require('./recovery-model')
@@ -628,7 +628,6 @@ export default class Index extends Component {
       result: flow.result,
     }, { loadingStage: loadingStage || '薯仔正在重新准备行程...' }, (nextFlow) => {
       if (nextFlow.status !== 'preparing') return
-      this._invalidateHistorySaveIntent()
       this._replayBaseRequest(snapshot, nextFlow.token)
     })
   }
@@ -640,6 +639,7 @@ export default class Index extends Component {
   }
 
   onWeatherRetry = () => {
+    if (!isWeatherRecoveryEligible(this.state.tripFlow, this._recoverySlots)) return
     this._beginReprepare('last', '薯仔正在重新获取天气并判断...')
   }
 
@@ -969,6 +969,7 @@ export default class Index extends Component {
     const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, climbSupport, climbSupportLabels, showHistory, historyList, historyLoading, historyError, historySaveError, historyPrefillNotice, gearChecked } = this.state
     const { loading, refreshing, showResult, showCandidatePopup, showManualCoords, errorMessage } = selectTripFlowView(tripFlow)
     const { result, candidates, routeTypeRequest } = tripFlow
+    const recoveryActions = selectRecoveryActions(tripFlow, this._recoverySlots)
     const error = errorMessage
     const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
 
@@ -1069,7 +1070,7 @@ export default class Index extends Component {
                 <Text className="day-wind">{day.windMs}m/s</Text>
               </View>
             ))}
-            {retryableWeatherIssue(result) && <Button size="small" className="inline-retry-btn" onClick={this.onWeatherRetry}>{weatherModel.kind === 'reference' ? '刷新地点天气' : '重新获取天气并判断'}</Button>}
+            {recoveryActions.weatherRetry && <Button size="small" className="inline-retry-btn" onClick={this.onWeatherRetry}>{weatherModel.kind === 'reference' ? '刷新地点天气' : '重新获取天气并判断'}</Button>}
           </View>
 
           <View className="card result-gear-card">
@@ -1115,7 +1116,7 @@ export default class Index extends Component {
               <View><Text className="ai-status">{adviceStage}</Text><View className="skeleton-lines"><View className="sk-line sk-60" /><View className="sk-line sk-80" /></View></View>
             )}
             {aiModel.status === 'unavailable' && <Text className="ai-status ai-degraded">AI 补充暂不可用，确定性结果仍然有效。</Text>}
-            {aiModel.status === 'unavailable' && isAdviceRetryEligible(tripFlow) && <Button size="small" className="inline-retry-btn" onClick={this.onAdviceRetry}>重试 AI 补充</Button>}
+            {aiModel.status === 'unavailable' && recoveryActions.adviceRetry && <Button size="small" className="inline-retry-btn" onClick={this.onAdviceRetry}>重试 AI 补充</Button>}
             {aiModel.status === 'context_expired' && <Text className="ai-status ai-degraded">本次 AI 上下文已失效，确定性结果仍然有效。</Text>}
             {aiModel.status === 'context_expired' && <Button size="small" className="inline-retry-btn" onClick={this.onContextRetry}>重新准备行程</Button>}
             {aiModel.status === 'ready' && aiModel.additions.length === 0 && aiModel.risks.length === 0 && aiModel.notes.length === 0 && !aiModel.disclaimer && <Text className="empty-hint">暂无 AI 补充</Text>}
@@ -1262,9 +1263,9 @@ export default class Index extends Component {
               </View>
               {historyError && <View className="history-error-box"><Text>{historyError}</Text><Button size="small" className="inline-retry-btn" onClick={this.onHistoryRetry}>重试加载</Button></View>}
               <ScrollView scrollY={true} className="history-scroll" catchMove={true} enhanced={true} showScrollbar={false}>
-                {historyLoading ? (
+                {historyLoading && historyList.length === 0 ? (
                   <Text className="history-empty">薯仔正在翻账本...</Text>
-                ) : historyList.length === 0 ? (
+                ) : !historyLoading && historyList.length === 0 ? (
                   <Text className="history-empty">还没有记录，去查一次路线吧</Text>
                 ) : (
                   historyList.map((item) => (

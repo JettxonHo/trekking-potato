@@ -124,6 +124,25 @@ function retryableWeatherIssue(result) {
     && issue.code !== 'out_of_range')
 }
 
+function isWeatherRecoveryEligible(flow, slots) {
+  if (!isRecord(flow) || !retryableWeatherIssue(flow.result)) return false
+  const lastBaseRequest = getBaseRequest(slots, 'last', flow.token)
+  return isReprepareEligible(flow, {
+    request: lastBaseRequest,
+    requestToken: flow.token,
+  })
+}
+
+// A bounded, executable seam for page actions.  The page still delegates the
+// actual transition to trip-flow; this projection only prevents controls from
+// appearing when the reducer would reject the corresponding event.
+function selectRecoveryActions(flow, slots) {
+  return {
+    adviceRetry: isAdviceRetryEligible(flow),
+    weatherRetry: isWeatherRecoveryEligible(flow, slots),
+  }
+}
+
 function createSaveAttemptId(now = Date.now, random = Math.random) {
   const timePart = Number(now()).toString(36)
   const randomPart = Number(random()).toString(36).replace(/[^a-z0-9]/gi, '').slice(0, 12)
@@ -208,10 +227,12 @@ module.exports = {
   isAdviceRetryEligible,
   isBoundedBaseRequest,
   isReprepareEligible,
+  isWeatherRecoveryEligible,
   normalizeRequest,
   promoteBaseRequest,
   resolveHistoryList,
   retryableWeatherIssue,
+  selectRecoveryActions,
   sameHistorySaveIdentity,
   startHistorySave,
   succeedHistorySave,

@@ -68,3 +68,52 @@ git diff --check
 3. history save：制造 `history_unavailable`，点击“重试保存历史”，确认 payload 与 `saveAttemptId` 不变；成功只清除局部错误。
 4. history list：打开/重试后关闭 panel，确认旧/迟到回调不替换列表；失败时旧 items 保留。
 5. history selection：选择记录，确认 flow/checklist/cache reset、panel 关闭、无网络请求，表单只预填现有 DTO，当前出发时间和攀登支持保留并显示确认提示。
+
+## I23b Sol Review-fix round 1 — 2026-08-09
+
+本轮只处理四个页面编排 finding，未改变十状态、服务 payload、缓存/历史 DTO 或依赖。
+
+### RED → GREEN / mutation evidence
+
+- 天气入口现在由 `isWeatherRecoveryEligible(flow, slots)` 与 `BEGIN_REPREPARE` 共用的状态、结果和
+  `lastBaseRequest` authority 判定；`base_ready`/`advice_loading` 的 action projection 为 false，
+  `complete`/`degraded`/`error` 且有有效 last snapshot 才显示并可进入局部刷新。`onWeatherRetry` 仍有同一
+  guard，避免 visible no-op。
+- `_beginReprepare` 不再在进入 `preparing` 时清除旧 history-save intent；replacement BaseData 的
+  `_showBaseAndFetchAdvice`、reset/return/unmount 继续承担既有失效边界。失败或进行中的旧保存 intent 因而
+  保持可重试。
+- history list 的 empty-loading 分支只在 `historyList.length === 0` 时出现；有旧 items 时重试期间继续
+  map 渲染旧列表。
+- `assertMutationSensitivePageWiring` 提取 `_beginReprepare`、`onAdviceRetry`、`_saveHistory`、
+  `onHistoryTap`、`onRestoreHistory` 和 `render` 的有限方法/分支，并对以下代表性删除/替换 mutation
+  逐一要求 focused test RED：天气 eligibility、旧结果刷新优先级、same-query AI、base snapshot replay、
+  same-base save identity、两处 stale list token guard、history prefill zero-I/O。纯 `selectRecoveryActions`
+  seam 同时执行验证 action projection，避免只依赖 marker-only whole-file evidence。
+
+### Review-fix finding → test
+
+| finding | focused evidence |
+|---|---|
+| weather retry visible no-op | `assertWeatherActionEligibility` 覆盖 `base_ready`/`advice_loading` no-op、accepted terminal statuses、缺失 last authority；`selectRecoveryActions` 与 page branch assertions |
+| marker-only page wiring | `assertMutationSensitivePageWiring` 的有限 method/branch extractor 与 7 代表性 mutation RED checks |
+| reprepare 过早清除 save intent | `_beginReprepare` method assertion 明确禁止 `_invalidateHistorySaveIntent`；保存 identity/in-flight 行为仍由 `assertWeatherAndSaveRecovery` 覆盖 |
+| history retry 隐藏旧 items | `render` branch assertion 要求 `historyLoading && historyList.length === 0`、`!historyLoading && historyList.length === 0` 与随后 `historyList.map`；生命周期测试继续证明失败保留旧 items |
+
+未运行微信开发者工具或 DevTools；本轮不声称截图/真机交互证据。
+
+### Review-fix 命令结果
+
+```text
+npm run test:recovery        PASS
+npm run test:trip-flow       PASS
+npm run test:result-page     PASS
+npm run test:response        PASS
+npm run test:trip-context    PASS
+npm run test:history         PASS
+npm test                     PASS
+npm run test:integration     PASS: 56, FAIL: 0
+npm run lint                 0 errors; 9 existing warnings
+npm run typecheck            PASS
+npm run build:weapp          Webpack compiled successfully
+git diff --check             PASS
+```

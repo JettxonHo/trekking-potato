@@ -16,11 +16,13 @@ const {
   failHistorySave,
   getBaseRequest,
   isAdviceRetryEligible,
+  isWeatherRecoveryEligible,
   isReprepareEligible,
   promoteBaseRequest,
   resolveHistoryList,
   retryableWeatherIssue,
   sameHistorySaveIdentity,
+  selectRecoveryActions,
   startHistorySave,
   succeedHistorySave,
 } = require('../taro-app/src/pages/index/recovery-model')
@@ -102,6 +104,28 @@ function assertReprepareAndRender() {
   assert.equal(resultModel.refreshing, true, 'result model exposes local refreshing')
 }
 
+function assertWeatherActionEligibility() {
+  const result = deterministicResult('ready')
+  result.weatherSnapshot = {
+    dataStatus: 'insufficient',
+    insufficientReasons: [{ code: 'weather_unavailable', retryable: true }],
+  }
+  const base = flowWithStatus('complete', result, 'q-weather')
+  const request = { operation: 'prepare', request: { route: '测试路线', date: '2026-08-09', level: '中级', days: 1 }, token: base.token }
+  let slots = capturePendingBaseRequest(createRecoverySlots(), 'prepare', request.request, request.request, base.token)
+  slots = promoteBaseRequest(slots, base.token)
+
+  const baseReady = reduceTripFlow({ ...base, status: 'base_ready' }, { type: 'NOOP' })
+  const adviceLoading = { ...base, status: 'advice_loading' }
+  assert.equal(isWeatherRecoveryEligible(baseReady, slots), false, 'base_ready has no visible weather reprepare action')
+  assert.equal(isWeatherRecoveryEligible(adviceLoading, slots), false, 'advice_loading has no visible weather reprepare action')
+  assert.equal(isWeatherRecoveryEligible(base, slots), true, 'complete with valid last-base authority can reprepare weather')
+  assert.equal(isWeatherRecoveryEligible({ ...base, status: 'degraded' }, slots), true, 'degraded with valid last-base authority can reprepare weather')
+  assert.equal(isWeatherRecoveryEligible({ ...base, status: 'error' }, slots), true, 'error with valid last-base authority can reprepare weather')
+  assert.equal(isWeatherRecoveryEligible(base, createRecoverySlots()), false, 'weather recovery requires a valid last-base authority')
+  assert.deepEqual(selectRecoveryActions(base, slots), { adviceRetry: false, weatherRetry: true }, 'page action seam projects only reducer-authorized actions')
+}
+
 function assertRequestSlots() {
   const first = { route: '首条', date: '2026-08-09', level: '中级', days: 1 }
   const second = { route: '第二条', date: '2026-08-10', level: '老手', days: 2 }
@@ -168,24 +192,133 @@ function assertHistoryListRecovery() {
   assert.deepEqual(resolveHistoryList(lifecycle, newerToken, { ok: true, data: [{ id: 'closed' }] }).items, [{ id: 'new' }], 'closed panel ignores callback')
 }
 
-function assertPageWiring() {
-  const source = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
-  assert(source.includes("require('./recovery-model')"), 'page must wire recovery model')
-  for (const marker of ['BEGIN_ADVICE_RETRY', 'BEGIN_REPREPARE', 'capturePendingBaseRequest', 'promoteBaseRequest', 'saveAttemptId', 'beginHistoryListRequest', 'resolveHistoryList']) {
-    assert(source.includes(marker), `page wiring must include ${marker}`)
+function methodRange(source, signature) {
+  const start = source.indexOf(signature)
+  assert(start >= 0, `page must define ${signature}`)
+  const open = source.indexOf('{', start)
+  assert(open >= 0, `${signature} must have a body`)
+  let depth = 0
+  let quote = null
+  let escaped = false
+  for (let index = open; index < source.length; index += 1) {
+    const char = source[index]
+    if (quote) {
+      if (escaped) escaped = false
+      else if (char === '\\') escaped = true
+      else if (char === quote) quote = null
+      continue
+    }
+    if (char === "'" || char === '"' || char === '`') {
+      quote = char
+      continue
+    }
+    if (char === '{') depth += 1
+    if (char === '}') {
+      depth -= 1
+      if (depth === 0) return { start, open, end: index }
+    }
   }
-  assert(source.includes('sameHistorySaveIdentity'), 'save callback must use BaseData/attempt identity, not trip token')
-  assert(source.includes('this._getAdviceService().advice(queryId)'), 'AI retry must use existing same-query service seam')
-  assert(source.includes('this._getAdviceService()[operation](request)'), 'base recovery must replay captured operation')
-  assert(source.includes('this._clearRecoverySlots()'), 'reset/history paths must clear both request slots')
-  assert(source.includes('historyPrefillNotice'), 'history prefill must tell user to confirm current time/support')
+  assert.fail(`${signature} has unbalanced braces`)
+}
+
+function methodBody(source, signature) {
+  const range = methodRange(source, signature)
+  return source.slice(range.open + 1, range.end)
+}
+
+function replaceMethodBody(source, signature, needle, replacement) {
+  const range = methodRange(source, signature)
+  const body = source.slice(range.open + 1, range.end)
+  assert(body.includes(needle), `${signature} mutation needle must exist`)
+  return source.slice(0, range.open + 1)
+    + body.replace(needle, replacement)
+    + source.slice(range.end)
+}
+
+function assertPageWiring(source) {
+  assert(source.includes("require('./recovery-model')"), 'page must wire recovery model')
+
+  const beginReprepare = methodBody(source, '_beginReprepare(kind')
+  assert.match(beginReprepare, /getBaseRequest\(this\._recoverySlots/)
+  assert.match(beginReprepare, /type:\s*'BEGIN_REPREPARE'/)
+  assert.match(beginReprepare, /requestToken:\s*flow\.token/)
+  assert.match(beginReprepare, /request:\s*snapshot/)
+  assert.match(beginReprepare, /result:\s*flow\.result/)
+  assert.match(beginReprepare, /_replayBaseRequest\(snapshot,\s*nextFlow\.token\)/)
+  assert(!beginReprepare.includes('_invalidateHistorySaveIntent'), 'reprepare start must preserve old history save intent')
+
+  const weatherRetry = methodBody(source, 'onWeatherRetry = () =>')
+  assert.match(weatherRetry, /isWeatherRecoveryEligible\(this\.state\.tripFlow,\s*this\._recoverySlots\)/)
+  assert.match(weatherRetry, /_beginReprepare\('last'/)
+
+  const adviceRetry = methodBody(source, 'onAdviceRetry = () =>')
+  assert.match(adviceRetry, /type:\s*'BEGIN_ADVICE_RETRY'/)
+  assert.match(adviceRetry, /_fetchAdvice\(nextFlow\.queryId,\s*this\._historyParams \|\| \{\},\s*nextFlow\.token,\s*\{ saveHistory: false \}\)/)
+
+  const basePresentation = methodBody(source, '_showBaseAndFetchAdvice(base, queryId, params, generation)')
+  assert.match(basePresentation, /_promoteBaseRequest\(generation\)/)
+  assert.match(basePresentation, /_invalidateHistorySaveIntent\(\)/)
+  assert.match(basePresentation, /setState\(\{ historySaveError: null \}\)/)
+
+  const saveHistory = methodBody(source, '_saveHistory(params, resultData)')
+  assert.match(saveHistory, /_baseHistoryIdentity/)
+  assert.match(saveHistory, /_historySaveIntent\.baseRef !== this\._baseHistoryIdentity/)
+  assert.match(saveHistory, /createSaveAttemptId\(\)/)
+  assert.match(saveHistory, /createHistorySaveIntent\(/)
+  assert.match(saveHistory, /_sendHistorySaveIntent\(\)/)
+  const saveCallback = methodBody(source, '_sendHistorySaveIntent()')
+  assert.match(saveCallback, /canStartHistorySave\(intent\)/)
+  assert.match(saveCallback, /sameHistorySaveIdentity\(this\._historySaveIntent,\s*activeIntent\)/)
+
+  const historyTap = methodBody(source, 'onHistoryTap = () =>')
+  assert.match(historyTap, /beginHistoryListRequest\(this\._historyListLifecycle\)/)
+  assert.match(historyTap, /resolveHistoryList\(this\._historyListLifecycle,\s*requestToken/)
+  assert.match(historyTap, /!this\._historyListLifecycle\.open \|\| this\._historyListLifecycle\.token !== requestToken/)
+  assert.equal((historyTap.match(/this\._historyListLifecycle\.token !== requestToken/g) || []).length, 2, 'both list callbacks must guard their request token')
+  const historyClose = methodBody(source, 'onHistoryClose = () =>')
+  assert.match(historyClose, /closeHistoryList\(this\._historyListLifecycle\)/)
+
+  const historyRestore = methodBody(source, 'onRestoreHistory = (record) =>')
+  assert.match(historyRestore, /_clearResultLocalState\(\)/)
+  assert.match(historyRestore, /type:\s*'RESET'/)
+  assert.match(historyRestore, /removeStorageSync\(CACHE_KEY\)/)
+  assert.match(historyRestore, /historyPrefillNotice/)
+  assert(!historyRestore.includes('cloud.callFunction'), 'history prefill must not perform network I/O')
+  assert(!historyRestore.includes('getAdvice'), 'history prefill must not restore or invoke advice')
   assert(!source.includes('queryId: record.queryId'), 'history selection must not restore queryId')
+
+  const render = methodBody(source, 'render()')
+  assert.match(render, /const recoveryActions = selectRecoveryActions\(tripFlow,\s*this\._recoverySlots\)/)
+  assert.match(render, /recoveryActions\.weatherRetry && <Button[\s\S]{0,180}onClick=\{this\.onWeatherRetry\}/)
+  assert.match(render, /recoveryActions\.adviceRetry && <Button[\s\S]{0,160}onClick=\{this\.onAdviceRetry\}/)
+  assert.match(render, /\{historyLoading && historyList\.length === 0 \?/)
+  assert.match(render, /: !historyLoading && historyList\.length === 0 \?/)
+  assert.match(render, /historyList\.map\(\(item\)/)
+}
+
+function assertMutationSensitivePageWiring() {
+  const source = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
+  assertPageWiring(source)
+  const mutations = [
+    ['weather eligibility', (value) => replaceMethodBody(value, 'render()', 'recoveryActions.weatherRetry &&', 'true &&')],
+    ['refreshing list priority', (value) => replaceMethodBody(value, 'render()', 'historyLoading && historyList.length === 0', 'historyLoading')],
+    ['same-query AI retry', (value) => replaceMethodBody(value, 'onAdviceRetry = () =>', '_fetchAdvice(nextFlow.queryId', "_fetchAdvice('wrong-query'")],
+    ['base snapshot replay', (value) => replaceMethodBody(value, '_beginReprepare(kind', '_replayBaseRequest(snapshot, nextFlow.token)', '_replayBaseRequest(null, nextFlow.token)')],
+    ['same-base history intent', (value) => replaceMethodBody(value, '_saveHistory(params, resultData)', '_historySaveIntent.baseRef !== this._baseHistoryIdentity', 'false')],
+    ['stale history-list guard', (value) => replaceMethodBody(value, 'onHistoryTap = () =>', 'this._historyListLifecycle.token !== requestToken', 'false')],
+    ['zero-I/O history prefill', (value) => replaceMethodBody(value, 'onRestoreHistory = (record) =>', 'this._clearResultLocalState()', 'this._clearRecoverySlots()')],
+  ]
+  for (const [label, mutate] of mutations) {
+    const mutated = mutate(source)
+    assert.throws(() => assertPageWiring(mutated), `${label} mutation must make wiring assertions RED`)
+  }
 }
 
 assertAdviceRecovery()
 assertReprepareAndRender()
+assertWeatherActionEligibility()
 assertRequestSlots()
 assertWeatherAndSaveRecovery()
 assertHistoryListRecovery()
-assertPageWiring()
+assertMutationSensitivePageWiring()
 console.log('PASS: I23b recovery contract')
