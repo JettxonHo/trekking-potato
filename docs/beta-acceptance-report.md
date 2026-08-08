@@ -2,7 +2,8 @@
 
 ## Outcome
 
-The current `main@f311d1b` is code-ready for closed-beta review under the offline acceptance contract. The complete
+The I24c implementation baseline `main@f311d1b` was code-ready for closed-beta review under the offline acceptance
+contract; its approved evidence PR #110 then merged as `main@1bba5f9`. The complete
 automated gate matrix passed, and the normal fixture-free Taro build compiled successfully. Local WeChat DevTools
 observation could not be completed: the authorized Computer Use runtime reported that the Mac was locked and could
 not be unlocked. The GUI rows therefore remain explicitly `UNVERIFIED_RUNTIME_TOOL`; this report does not claim
@@ -87,8 +88,7 @@ package/config changes, business-code changes or screenshots in the deliverable.
 
 ## Code-ready conclusion
 
-`READY_FOR_CONTROLLER_REVIEW`: automated acceptance and fixture-free quality gates are green; the evidence package
-truthfully distinguishes code proof from unavailable GUI observation. Sol XHigh must inspect the actual diff, the two
-evidence logs, the absence of temporary residue and latest-head CI before deciding whether the focused PR is
-`APPROVED`, `CHANGES_REQUESTED`, `BLOCKED` or `ESCALATE_TO_HUMAN`. The unverified DevTools rows do not expand the Goal
-into deployment or real beta testing.
+`APPROVED_AND_MERGED`: PR #110 passed latest-head quality and two independent final Reviews before squash merge as
+`1bba5f9`; #107 and parent #33 are closed. Automated acceptance and fixture-free quality gates are green, and the
+package truthfully distinguishes code proof from unavailable GUI observation. The unverified DevTools rows do not
+expand the Goal into deployment or real beta testing; I25 owns the separate Goal-wide completion verdict.

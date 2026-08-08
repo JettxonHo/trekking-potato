@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M7 I25 FINAL_REVIEW_ACTIVE`
+- Status: `ACTIVE — M7 I25 READY_FOR_CONTROLLER_REVIEW`
 - Updated: `2026-08-09`
 
 ## 1. 依赖图

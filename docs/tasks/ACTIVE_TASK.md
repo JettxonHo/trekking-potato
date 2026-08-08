@@ -2,7 +2,7 @@
 
 - Goal: `TP-BETA-001`
 - GitHub Issue: `I25 / #34`
-- Status/Mode: `FINAL_REVIEW_ACTIVE / FINAL_REVIEW`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / FINAL_REVIEW`
 - Controller and reviewer of record: Sol XHigh
 - Branch: `codex/34-goal-final-review`
 - Base: `main@1bba5f9`
@@ -24,6 +24,8 @@ evidence and owns the final verdict.
 - new `docs/goal-completion-report.md`
 - `README.md`
 - `GOAL.md`
+- `docs/product-requirements.md`
+- `docs/architecture.md`
 - `docs/current-status.md`
 - `docs/development-plan.md`
 - `docs/testing-strategy.md`
@@ -124,3 +126,12 @@ to the user. Deployment is a separate future stage and requires human authorizat
 I24c PR #110 merged as `1bba5f9` after latest-head quality and two independent `APPROVED` Reviews. #107 and parent
 #33 are closed. The I25 branch starts from that exact main. The final Review is Sol-owned; no implementation Agent is
 assigned, and Terra fallback is irrelevant to this read-only/report task.
+
+## 10. Controller review checkpoint — 2026-08-09
+
+Three bounded audits covered product/frontend/evidence, architecture/data/privacy and GitHub state. No undisclosed
+Goal P0/P1 was found. Documentation lifecycle drift was synchronized within the expanded docs-only allowlist; stale
+M3/M6 milestones were closed while M7 remains open for #34. Final local gates pass, and
+`docs/goal-completion-report.md` records the code-ready verdict, dependency advisories, unavailable runtime rows,
+Goal-external #83/#84 and deployment-stage follow-ups. The task is ready for its focused PR, latest-head quality and
+independent final report Review; it is not complete or deploy-authorized yet.
