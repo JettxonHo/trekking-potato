@@ -13,6 +13,11 @@ const ERROR_RETRYABLE = Object.freeze({
   invalid_trip_days: false,
   invalid_date: false,
   invalid_route_type: false,
+  invalid_level: false,
+  invalid_start_time: false,
+  invalid_manual_place: false,
+  missing_climb_support: false,
+  route_not_found: false,
   candidate_not_found: false,
   location_failed: false,
   out_of_range: false,
@@ -48,12 +53,14 @@ function confirmationResponse(message, candidates) {
 }
 
 function routeTypeRequiredResponse(data) {
+  const payload = data && data.data ? data.data : data
+  const displayName = (data && data.displayName) || (payload && payload.name) || (payload && payload.route) || '位置'
   return {
     phase: 'route_type_required',
-    displayName: data.name,
+    displayName,
     allowedTypes: [...ROUTE_TYPE_OPTIONS],
     data: {
-      ...data,
+      ...payload,
       routeTypeOptions: [...ROUTE_TYPE_OPTIONS],
     },
     ok: false,

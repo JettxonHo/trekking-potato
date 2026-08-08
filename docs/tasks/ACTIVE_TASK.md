@@ -302,3 +302,16 @@ git diff --check
 修复，并经 PR #92 通过 CI 与独立 Review 后合并。规划 PR #90 随后在最新 base 上通过质量门禁并
 合并为 `c817bbb`。当前从该 base 创建的 `codex/30-core-input-flow` 已激活，向准确自定义 Agent
 `luna-worker` 下发本合同。不得自动回退 Terra。
+
+## 12. 实施检查点（2026-08-08）
+
+- 当前执行者：`luna-worker`，运行时模型 `gpt-5.6-luna`，推理强度 `max`；分支
+  `codex/30-core-input-flow`，基准 `main@c817bbb`。
+- 已完成：公共 `prepare/confirm/advice` 原子接线、可信 BaseData 编排、TripContext
+  `trustedBaseData` 持久化、I20 输入/候选/类型后续交互，以及 I21 聚焦契约测试。
+- TDD 证据：按合同先记录了缺失 `trip-base.js` 的真实 RED；当前
+  `npm run test:core-input-flow` 为 GREEN，并已纳入根 `npm test`。
+- 本地门禁：I21 聚焦测试、根测试、离线集成 `56/0`、lint（0 errors，10 existing warnings）、
+  typecheck、host `build:weapp` 与 `git diff --check` 均通过。
+- 当前状态：`IMPLEMENTATION_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`。实现 Agent 不得批准或合并；
+  Sol XHigh 必须独立检查实际 diff、契约、测试及文档后决定 Review 状态。

@@ -673,3 +673,20 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 Dispatch the frozen #30 contract to the runtime-verified exact custom Agent `luna-worker` on
 `codex/30-core-input-flow` and begin the required TDD loop. Do not start I22/I23 before I21 is accepted;
 do not automatically route implementation to Terra.
+
+## I21 implementation checkpoint — 2026-08-08
+
+- Agent: `luna-worker` (`gpt-5.6-luna`, max); branch `codex/30-core-input-flow`; base `main@c817bbb`.
+- Status: implementation complete locally; awaiting Sol XHigh independent Review. No Terra agent is active.
+- TDD: the required missing `trip-base.js` RED was recorded before implementation; the new
+  `test:core-input-flow` now passes and is included in the root `npm test` command.
+- Connected path: `prepare/confirm/advice` → I13 resolver → injected `trip-base` → openid-bound
+  TripContext → queryId-only advice. Full, place-only, manual, AMap follow-up and blocked paths are
+  covered without changing I13/I14/I15/I16 pure modules.
+- Changed allowlist files: `cloudfunctions/getAdvice/{index.js,trip-base.js,trip-context.js,response-contract.js}`;
+  `taro-app/src/pages/index/index.jsx`; `scripts/{core-input-flow-contract-test.js,response-contract-test.js,confirmation-contract-test.js,trip-context-contract-test.js}`;
+  `package.json`. `index.css`, `trip-flow-contract-test.js` and `e2e-local.js` required no changes.
+- Validation: focused I21 contracts, root `npm test`, integration `56/0`, `lint` (0 errors, 10 existing
+  warnings), `typecheck`, host Taro 4.0.9 `build:weapp`, and `git diff --check` pass.
+- Remaining: inspect final diff against the Issue allowlist, commit/push the focused PR, and return
+  `READY_FOR_CONTROLLER_REVIEW`; Sol must decide `APPROVED`/`CHANGES_REQUESTED`/`BLOCKED`/`ESCALATE_TO_HUMAN`.

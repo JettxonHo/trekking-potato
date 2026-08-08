@@ -58,6 +58,7 @@ export default class Index extends Component {
   state = {
     route: '',
     date: '',
+    startTimeLocal: '08:00',
     level: '中级',
     days: 1,
     levels: ['小白', '中级', '老手'],
@@ -73,6 +74,9 @@ export default class Index extends Component {
     manualRouteType: '',
     routeTypeOptions: ['trek', 'climb', 'tour'],
     routeTypeLabels: ['徒步', '攀登', '游览'],
+    climbSupport: 'solo_or_unsure',
+    climbSupportOptions: ['solo_or_unsure', 'experienced_team', 'professional_guide'],
+    climbSupportLabels: ['独自或支持不确定', '有经验队伍', '专业向导'],
     // TP-P0-003 REVIEW_FIX：手动可信上下文开关。
     // true 表示当前表单的路线身份必须继续使用用户确认的坐标和路线类型，
     // 而不是重新执行路线名解析
@@ -113,9 +117,11 @@ export default class Index extends Component {
         this.setState({
           route: cached.form.route || '',
           date: restoreDate,
+          startTimeLocal: cached.form.startTimeLocal || '08:00',
           days: cached.form.days || 1,
           level: cached.form.level || '中级',
           levelIndex: cached.form.levelIndex != null ? cached.form.levelIndex : 1,
+          climbSupport: this.state.climbSupportOptions.indexOf(cached.form.climbSupport) >= 0 ? cached.form.climbSupport : 'solo_or_unsure',
           // TP-P0-003：恢复手动坐标与路线类型上下文，缓存恢复后继续显示相同类型
           manualContextActive: restoreManualContext,
           manualRouteType: restoreManualContext ? cached.form.manualRouteType : '',
@@ -157,6 +163,12 @@ export default class Index extends Component {
     }))
   }
   onDateChange = (e) => this.setState({ date: e.detail.value })
+  onStartTimeChange = (e) => this.setState({ startTimeLocal: e.detail.value || '08:00' })
+  onClimbSupportChange = (e) => {
+    const index = parseInt(e.detail.value, 10)
+    const next = this.state.climbSupportOptions[index]
+    if (next) this.setState({ climbSupport: next })
+  }
 
   // 安全构造日期（规避 iOS Safari new Date('YYYY-MM-DD') 返回 NaN）
   // 输出格式：MM.DD 周几
@@ -193,7 +205,7 @@ export default class Index extends Component {
   }
 
   onSubmit = () => {
-    const { route, date, level, days, manualContextActive, manualRouteType, manualLat, manualLon, manualElev, routeTypeOptions } = this.state
+    const { route, date, startTimeLocal, level, days, climbSupport, manualContextActive, manualRouteType, manualLat, manualLon, manualElev, routeTypeOptions } = this.state
     if (!route.trim()) { Taro.showToast({ title: '请输入路线名', icon: 'none' }); return }
     if (!date) { Taro.showToast({ title: '请选择出发日期', icon: 'none' }); return }
     const tripDays = Math.max(1, Math.min(7, parseInt(days) || 1))
@@ -213,7 +225,7 @@ export default class Index extends Component {
       }
       this._submitBase({
         route: route.trim(),
-        date, level, days: tripDays,
+        date, startTimeLocal, level, days: tripDays, climbSupport,
         manualLat: lat,
         manualLon: lon,
         manualElevation: elev > 0 ? elev : undefined,
@@ -221,7 +233,7 @@ export default class Index extends Component {
       })
       return
     }
-    this._submitBase({ route: route.trim(), date, level, days: tripDays })
+    this._submitBase({ route: route.trim(), date, startTimeLocal, level, days: tripDays, climbSupport })
   }
 
   _updateTripFlow(event, pageState, callback) {
@@ -257,11 +269,13 @@ export default class Index extends Component {
   }
 
   _isValidCandidate(candidate) {
-    return !!candidate
-      && typeof candidate.candidateId === 'string' && candidate.candidateId.length > 0
-      && typeof candidate.canonicalName === 'string' && candidate.canonicalName.length > 0
-      && typeof candidate.region === 'string' && candidate.region.length > 0
-      && !!ROUTE_TYPE_TEXT[candidate.routeType]
+    if (!candidate || typeof candidate.candidateId !== 'string' || candidate.candidateId.length === 0
+      || typeof candidate.canonicalName !== 'string' || candidate.canonicalName.length === 0
+      || typeof candidate.region !== 'string' || candidate.region.length === 0) return false
+    if (candidate.entityKind === 'route_variant') {
+      return candidate.capability === 'full' && !!ROUTE_TYPE_TEXT[candidate.routeType] && Number.isInteger(candidate.fixedDays) && candidate.fixedDays >= 1
+    }
+    return candidate.entityKind === 'place' && candidate.capability === 'place_only' && candidate.routeType === null && candidate.fixedDays === null
   }
 
   onCandidateClose = () => {
@@ -272,7 +286,7 @@ export default class Index extends Component {
     const { candidates, confirmationInput } = this.state.tripFlow
     const candidate = candidates.find((item) => item.candidateId === candidateId)
     const snapshot = confirmationInput
-    if (!this._isValidCandidate(candidate) || !snapshot || typeof snapshot.date !== 'string' || typeof snapshot.level !== 'string' || !snapshot.days) {
+    if (!this._isValidCandidate(candidate) || !snapshot || typeof snapshot.date !== 'string' || typeof snapshot.startTimeLocal !== 'string' || typeof snapshot.level !== 'string' || !snapshot.days) {
       this._updateTripFlow({ type: 'BEGIN_PREPARE' }, null, (flow) => {
         this._updateTripFlow({
           type: 'FLOW_FAILED',
@@ -283,7 +297,10 @@ export default class Index extends Component {
       return
     }
 
-    const params = { candidateId, date: snapshot.date, level: snapshot.level, days: snapshot.days }
+    const params = {
+      candidateId, date: snapshot.date, startTimeLocal: snapshot.startTimeLocal, level: snapshot.level, days: snapshot.days,
+      climbSupport: snapshot.climbSupport,
+    }
     this._updateTripFlow({ type: 'BEGIN_PREPARE' }, { loadingStage: '薯仔正在确认路线...' }, (flow) => {
       const token = flow.token
       this._getAdviceService().confirm(params).then((outcome) => {
@@ -304,7 +321,7 @@ export default class Index extends Component {
         if (result.phase === 'route_type_required') {
           const pd = result.data
           this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token, routeTypeRequest: pd }, {
-            manualContextActive: true,
+            manualContextActive: pd.resolutionKind === 'manual_place',
             manualLat: pd.lat != null ? String(pd.lat) : '',
             manualLon: pd.lon != null ? String(pd.lon) : '',
             manualElev: pd.elevation != null ? String(pd.elevation) : '',
@@ -327,6 +344,38 @@ export default class Index extends Component {
     })
   }
 
+  _handleFollowupOutcome = (outcome, token, historyParams) => {
+    if (!this._isCurrentTripFlow(token, ['preparing'])) return
+    if (outcome.kind === 'transport_failure') {
+      this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { message: '云函数调用失败，请检查 getAdvice 是否已部署', retryable: true } })
+      return
+    }
+    const result = outcome.result
+    if (!result) {
+      this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { message: '路线确认失败，请重新查询', retryable: true } })
+      return
+    }
+    if (result.phase === 'route_type_required') {
+      this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token, routeTypeRequest: result.data }, {
+        manualContextActive: result.data.resolutionKind === 'manual_place',
+        manualLat: result.data.lat != null ? String(result.data.lat) : '',
+        manualLon: result.data.lon != null ? String(result.data.lon) : '',
+        manualElev: result.data.elevation != null ? String(result.data.elevation) : '',
+        manualRouteType: '',
+      })
+      return
+    }
+    if (result.phase === 'error') {
+      this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { code: result.code, message: result.message || '路线确认失败，请重新查询', retryable: result.retryable === true } })
+      return
+    }
+    if (result.phase !== 'base') {
+      this._updateTripFlow({ type: 'FLOW_FAILED', token, error: { message: '路线确认失败，请重新查询', retryable: true } })
+      return
+    }
+    this._showBaseAndFetchAdvice(result.data, result.queryId, { ...historyParams, route: historyParams.route || result.data.route }, token)
+  }
+
   // TP-P0-003：手动坐标路线类型选择（Picker 索引 → 枚举值）
   onManualRouteTypeChange = (e) => {
     const idx = parseInt(e.detail.value, 10)
@@ -335,7 +384,35 @@ export default class Index extends Component {
   }
 
   onManualSubmit = () => {
-    const { route, date, level, days, manualLat, manualLon, manualElev, manualRouteType, routeTypeOptions } = this.state
+    const { route, date, startTimeLocal, level, days, climbSupport, manualLat, manualLon, manualElev, manualRouteType, routeTypeOptions } = this.state
+    const request = this.state.tripFlow.routeTypeRequest
+    if (request && request.resolutionKind === 'catalog_place') {
+      if (routeTypeOptions.indexOf(manualRouteType) < 0) {
+        Taro.showToast({ title: '请选择路线类型', icon: 'none' }); return
+      }
+      const snapshot = request.input || { date, startTimeLocal, level, days, climbSupport }
+      this._updateTripFlow({ type: 'BEGIN_PREPARE' }, { loadingStage: '薯仔正在确认地点类型...' }, (flow) => {
+        const token = flow.token
+        this._getAdviceService().confirm({
+          candidateId: request.candidateId,
+          date: snapshot.date,
+          startTimeLocal: snapshot.startTimeLocal,
+          level: snapshot.level,
+          days: snapshot.days,
+          climbSupport: snapshot.climbSupport,
+          routeType: manualRouteType,
+        }).then((outcome) => this._handleFollowupOutcome(outcome, token, { route: request.name }))
+      })
+      return
+    }
+    if (request && request.resolutionKind === 'amap_place') {
+      if (routeTypeOptions.indexOf(manualRouteType) < 0) {
+        Taro.showToast({ title: '请选择路线类型', icon: 'none' }); return
+      }
+      const snapshot = request.input || { date, startTimeLocal, level, days, climbSupport }
+      this._submitBase({ route: request.route, date: snapshot.date, startTimeLocal: snapshot.startTimeLocal, level: snapshot.level, days: snapshot.days, climbSupport: snapshot.climbSupport, routeType: manualRouteType })
+      return
+    }
     const lat = parseFloat(manualLat)
     const lon = parseFloat(manualLon)
     if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
@@ -352,7 +429,7 @@ export default class Index extends Component {
     this.setState({ manualContextActive: true })
     this._submitBase({
       route: route.trim() || '手动坐标',
-      date, level, days: tripDays,
+      date, startTimeLocal, level, days: tripDays, climbSupport,
       manualLat: lat, manualLon: lon,
       manualElevation: elev > 0 ? elev : undefined,
       routeType: manualRouteType,
@@ -373,6 +450,10 @@ export default class Index extends Component {
   _showBaseAndFetchAdvice(base, queryId, params, generation) {
     const baseSafetyResult = buildBaseSafetyResult(base.gearRules)
     const baseResult = {
+        routeSnapshot: base.routeSnapshot,
+        deterministicResult: base.deterministicResult,
+        minimumGear: base.minimumGear,
+        sourceMetadata: base.sourceMetadata,
         weatherWindow: base.weather,
         photoTiming: base.sunEvents,
         gear: baseSafetyResult.gear,
@@ -385,6 +466,8 @@ export default class Index extends Component {
           // TP-P0-003：结果保存可信路线类型与来源
           routeType: base.routeType,
           routeTypeSource: base.routeTypeSource,
+          capability: base.meta && base.meta.capability,
+          dataStatus: base.meta && base.meta.dataStatus,
         },
     }
     this._updateTripFlow({ type: 'BASE_RECEIVED', token: generation, result: baseResult, queryId }, null, (flow) => {
@@ -439,7 +522,7 @@ export default class Index extends Component {
             type: 'CONFIRMATION_REQUIRED',
             token: generation,
             candidates,
-            confirmationInput: { date: params.date, level: params.level, days: params.days },
+            confirmationInput: { date: params.date, startTimeLocal: params.startTimeLocal, level: params.level, days: params.days, climbSupport: params.climbSupport },
           })
           return
         }
@@ -449,7 +532,7 @@ export default class Index extends Component {
           const pd = result.data
           this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token: generation, routeTypeRequest: pd }, {
             // TP-P0-003 REVIEW_FIX：外部位置预填后激活手动可信上下文
-            manualContextActive: true,
+            manualContextActive: pd.resolutionKind === 'manual_place',
             manualLat: pd.lat != null ? String(pd.lat) : '',
             manualLon: pd.lon != null ? String(pd.lon) : '',
             manualElev: pd.elevation != null ? String(pd.elevation) : '',
@@ -460,7 +543,7 @@ export default class Index extends Component {
         if (result.phase === 'error') {
           const error = result.code
           const flowError = { code: result.code, message: result.message || '路线查询失败', retryable: result.retryable === true }
-          if (error === 'location_failed') {
+          if (error === 'location_failed' || error === 'route_not_found') {
             this._updateTripFlow({ type: 'ROUTE_TYPE_REQUIRED', token: generation, routeTypeRequest: null, error: flowError })
             return
           }
@@ -554,7 +637,7 @@ export default class Index extends Component {
   _saveCache() {
     const token = arguments[0]
     if (this._unmounted || this.state.tripFlow.token !== token) return
-    const { route, date, days, level, levelIndex, manualContextActive, manualRouteType, manualLat, manualLon, manualElev } = this.state
+    const { route, date, startTimeLocal, days, level, levelIndex, climbSupport, manualContextActive, manualRouteType, manualLat, manualLon, manualElev } = this.state
     const result = this.state.tripFlow.result
     if (!result) return
     try {
@@ -563,7 +646,7 @@ export default class Index extends Component {
         // 只有手动上下文激活时才保存有效的手动字段，
         // 普通内置路线缓存不得携带遗留手动上下文
         form: {
-          route, date, days, level, levelIndex,
+          route, date, startTimeLocal, days, level, levelIndex, climbSupport,
           manualContextActive,
           manualRouteType: manualContextActive ? manualRouteType : '',
           manualLat: manualContextActive ? manualLat : '',
@@ -728,7 +811,7 @@ export default class Index extends Component {
   }
 
   render() {
-    const { route, date, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, showHistory, historyList, historyLoading, historyError, historySaveError } = this.state
+    const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, climbSupport, climbSupportLabels, showHistory, historyList, historyLoading, historyError, historySaveError } = this.state
     const { loading, adviceLoading, showResult, showCandidatePopup, showManualCoords, errorMessage } = selectTripFlowView(tripFlow)
     const { result, candidates, routeTypeRequest } = tripFlow
     const error = errorMessage
@@ -927,6 +1010,13 @@ export default class Index extends Component {
             </Picker>
           </View>
 
+          <View className="field-group">
+            <Text className="field-label">TIME · 每日出发时间</Text>
+            <Picker mode="time" value={startTimeLocal} onChange={this.onStartTimeChange}>
+              <Text className="field-value">{startTimeLocal || '08:00'}</Text>
+            </Picker>
+          </View>
+
           {/* B. 天数步进器 — 紧凑型 - 1天 + */}
           <View className="field-group">
             <Text className="field-label">DURATION · 徒步天数</Text>
@@ -960,6 +1050,13 @@ export default class Index extends Component {
             </View>
             <Text className="field-caption">{levelCaptions[levelIndex]}</Text>
           </View>
+
+          <View className="field-group">
+            <Text className="field-label">CLIMB SUPPORT · 仅技术攀登适用</Text>
+            <Picker mode="selector" range={climbSupportLabels} value={Math.max(0, this.state.climbSupportOptions.indexOf(climbSupport))} onChange={this.onClimbSupportChange}>
+              <Text className="field-value">{climbSupportLabels[Math.max(0, this.state.climbSupportOptions.indexOf(climbSupport))]}</Text>
+            </Picker>
+          </View>
         </View>
 
         <Button block type="primary" className="submit-btn quirky-active" onClick={this.onSubmit}>叽里咕噜地看看带点啥</Button>
@@ -982,7 +1079,7 @@ export default class Index extends Component {
               <View key={candidate.candidateId} className="candidate-row quirky-active" onClick={() => this.onCandidateSelect(candidate.candidateId)}>
                 <Text className="candidate-name">{candidate.canonicalName}</Text>
                 <Text className="candidate-region">{candidate.region}</Text>
-                <Text className="candidate-type">{ROUTE_TYPE_TEXT[candidate.routeType]}</Text>
+                <Text className="candidate-type">{candidate.capability === 'place_only' ? '地点级参考' : ROUTE_TYPE_TEXT[candidate.routeType]}</Text>
               </View>
             ))}
             <Button block className="candidate-cancel-btn" onClick={this.onCandidateClose}>取消</Button>
@@ -991,20 +1088,20 @@ export default class Index extends Component {
 
         <Popup visible={showManualCoords} position="bottom" round onClose={this.onManualClose} className="manual-popup">
           <View className="manual-popup-content">
-            <Text className="manual-popup-title">{routeTypeRequest ? '已定位到外部位置，请确认路线类型' : '搜不到路线？输入起点坐标'}</Text>
-            <Text className="manual-hint">{routeTypeRequest ? '外部数据无法确认路线类型，请选择后继续（不会默认为徒步）' : '在高德地图长按路线起点即可复制坐标'}</Text>
-            <View className="coord-row">
+            <Text className="manual-popup-title">{routeTypeRequest ? (routeTypeRequest.resolutionKind === 'catalog_place' ? '请选择地点类型' : '已定位到外部位置，请确认路线类型') : '搜不到路线？输入起点坐标'}</Text>
+            <Text className="manual-hint">{routeTypeRequest ? '请明确选择后继续；系统不会默认成徒步' : '在高德地图长按路线起点即可复制坐标'}</Text>
+            {(!routeTypeRequest || routeTypeRequest.resolutionKind === 'manual_place') && <View className="coord-row">
               <Input className="coord-input" type="digit" placeholder="纬度 如 27.45" placeholderClass="placeholder" value={manualLat} onInput={(e) => this.setState({ manualLat: e.detail.value })} />
               <Input className="coord-input" type="digit" placeholder="经度 如 114.17" placeholderClass="placeholder" value={manualLon} onInput={(e) => this.setState({ manualLon: e.detail.value })} />
-            </View>
-            <Input className="coord-input-wide" type="number" placeholder="海拔（选填，不填自动查询）" placeholderClass="placeholder" value={manualElev} onInput={(e) => this.setState({ manualElev: e.detail.value })} />
+            </View>}
+            {(!routeTypeRequest || routeTypeRequest.resolutionKind === 'manual_place') && <Input className="coord-input-wide" type="number" placeholder="海拔（选填，不填自动查询）" placeholderClass="placeholder" value={manualElev} onInput={(e) => this.setState({ manualElev: e.detail.value })} />}
             {/* TP-P0-003：手动坐标必选路线类型；未选择时禁止提交 */}
             <Picker mode="selector" range={routeTypeLabels} value={manualRouteType ? routeTypeOptions.indexOf(manualRouteType) : 0} onChange={this.onManualRouteTypeChange}>
               <View className="coord-input-wide">
                 <Text className={manualRouteType ? '' : 'field-placeholder'}>路线类型：{manualRouteType ? ROUTE_TYPE_TEXT[manualRouteType] : '必选（徒步 / 攀登 / 游览）'}</Text>
               </View>
             </Picker>
-          <Button block type="primary" className="manual-submit-btn" onClick={this.onManualSubmit}>用手动坐标查询</Button>
+          <Button block type="primary" className="manual-submit-btn" onClick={this.onManualSubmit}>{routeTypeRequest && routeTypeRequest.resolutionKind !== 'manual_place' ? '确认类型并继续' : '用手动坐标查询'}</Button>
           </View>
         </Popup>
 
