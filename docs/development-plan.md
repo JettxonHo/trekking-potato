@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M7 I24 PLANNING`
+- Status: `ACTIVE — M7 I24a IMPLEMENTATION_ACTIVE`
 - Updated: `2026-08-09`
 
 ## 1. 依赖图
@@ -53,7 +53,7 @@ I19 + I23b → I24a → I24b → I24c → I25
 | I21 | #30 | 搜索确认输入流程 | variant/date/time/support |
 | I22 | #31 parent; #94 I22a; #95 I22b | 结果体验 | trusted provenance → structured result page |
 | I23 | #32 parent; #99 I23a; #100 I23b | 降级与恢复 | history save idempotency → frontend recovery |
-| I24 | #33 parent; children assigned after planning merge | Beta 综合验证 | structured cleanup → automated acceptance → DevTools evidence/docs |
+| I24 | #33 parent; #105/#106/#107 | Beta 综合验证 | structured cleanup → automated acceptance → DevTools evidence/docs |
 | I25 | #34 | Goal 最终 Review | 完成报告和验收结论 |
 
 ## 3. 第一批任务合同
