@@ -334,7 +334,8 @@ git diff --check
 - 当前修复文件仍在 Issue #30 allowlist 内；`GOAL.md` 与 `docs/development-plan.md` 的 activation
   变更自 `fac56d0` 起由 Sol 所有，不属于实现 Agent 交付。
 - 当前门禁：focused contracts、`npm test`、integration `56/0`、lint（0 errors，10 existing warnings）、
-  typecheck、host Taro 4.0.9 `build:weapp`、`git diff --check` 均 GREEN。待 additive commit、PR
-  description ownership note、最新 Actions 和 Sol 独立 Review。
+  typecheck、host Taro 4.0.9 `build:weapp`、`git diff --check` 均 GREEN；additive commit `4171d35`
+  已推送，PR description 已记录 Sol-owned activation 边界，最新-head Actions `quality`
+  run `31258001426` 于 42s GREEN。剩余仅为 Sol 独立 Review。
 - 状态：`REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`。不得自行批准或合并；收到 Sol
   verdict 后再按其结果处理。
