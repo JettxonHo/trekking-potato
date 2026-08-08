@@ -22,6 +22,7 @@ const BASE_KEYS = [
   'sourceMetadata',
 ]
 const ADVICE_KEYS = ['gear', 'risks', 'notes', 'disclaimer', 'meta']
+const SOURCE_FIELDS = ['id', 'tier', 'kind', 'title', 'publisher', 'url', 'checkedAt']
 const QUERY_ID_PATTERN = /^tctx_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 
 function counterDelta(before, after, field) {
@@ -44,6 +45,40 @@ function assertBaseShape(response, label) {
   assert.ok(response.data.sourceMetadata)
 }
 
+function assertRouteSources(metadata, expected, label) {
+  assert.deepEqual(metadata.routeSourceIds, expected.sourceIds.slice().sort(), `${label}: route source IDs`)
+  assert.deepEqual(metadata.routeSources.map((source) => source.id), expected.sourceIds.slice().sort(), `${label}: display-safe source IDs`)
+  for (const [index, source] of metadata.routeSources.entries()) {
+    assert.deepEqual(Object.keys(source).sort(), SOURCE_FIELDS.slice().sort(), `${label}: route source ${index} exact seven fields`)
+    assert.deepEqual(source, expected.sourceDtos[index], `${label}: route source ${index} exact DTO values`)
+    assert.equal(Object.hasOwn(source, 'supports'), false, `${label}: source supports must stay internal`)
+  }
+}
+
+function assertWeatherAlignment(response, expected, label) {
+  const route = response.data.routeSnapshot
+  const weather = response.data.weatherSnapshot
+  assert.equal(weather.evaluatedWindows.length, expected.fixedDays, `${label}: weather windows match fixed days`)
+  for (const [index, stage] of route.stages.entries()) {
+    const window = weather.evaluatedWindows[index]
+    assert.equal(window.day, stage.day, `${label}: stage/window day alignment ${index + 1}`)
+    assert.deepEqual(window.samples.map((sample) => sample.samplePointId), stage.weatherSamplePointIds, `${label}: stage/window sample IDs ${index + 1}`)
+    assert.ok(window.samples.length > 0, `${label}: evaluated window ${index + 1} has samples`)
+    for (const sample of window.samples) {
+      assert.ok(sample.hours.length > 0, `${label}: sample ${sample.samplePointId} has non-empty hours`)
+      for (const hour of sample.hours) {
+        assert.ok(hour.bucketStartLocal >= window.startLocal && hour.bucketStartLocal < window.endLocalExclusive, `${label}: hour starts inside active window`)
+        assert.ok(hour.bucketEndLocal > hour.bucketStartLocal, `${label}: hour bucket is ordered`)
+      }
+    }
+  }
+}
+
+function assertDistinctWeatherRequests(response, actualRequestCount, label) {
+  const distinctSampleIds = new Set(response.data.routeSnapshot.stages.flatMap((stage) => stage.weatherSamplePointIds))
+  assert.equal(actualRequestCount, distinctSampleIds.size, `${label}: one hourly request per distinct stage sample`)
+}
+
 function assertPilotResult(response, expected, label) {
   assertBaseShape(response, label)
   const { routeSnapshot: route, weatherSnapshot: weather, deterministicResult: deterministic, minimumGear: gear, sourceMetadata: metadata } = response.data
@@ -59,13 +94,11 @@ function assertPilotResult(response, expected, label) {
   assert.equal(route.stages.length, expected.fixedDays, `${label}: route stages match fixed days`)
   assert.equal(metadata.routeTypeSource, 'builtin', `${label}: trusted catalog type source`)
   assert.equal(metadata.weatherSource, 'Open-Meteo', `${label}: weather source`)
-  assert.deepEqual(metadata.routeSourceIds, expected.sourceIds.slice().sort(), `${label}: route source IDs`)
-  assert.deepEqual(metadata.routeSources.map((source) => source.id), expected.sourceIds.slice().sort(), `${label}: display-safe source IDs`)
-  assert.ok(metadata.routeSources.every((source) => !Object.hasOwn(source, 'supports')), `${label}: source supports must stay internal`)
+  assertRouteSources(metadata, expected, label)
   assert.ok(weather && weather.dataStatus === 'complete', `${label}: full pilot must have complete hourly weather`)
   assert.equal(weather.timezone, 'Asia/Shanghai', `${label}: weather timezone`)
   assert.equal(weather.evaluatedWindows.length, expected.fixedDays, `${label}: weather windows follow route days`)
-  assert.ok(weather.evaluatedWindows.every((window) => Array.isArray(window.samples) && window.samples.length > 0), `${label}: multi-sample hourly windows`)
+  assertWeatherAlignment(response, expected, label)
   assert.equal(deterministic.dataStatus, 'complete', `${label}: deterministic data status`)
   assert.ok(['go', 'caution', 'no_go'].includes(deterministic.verdict), `${label}: deterministic verdict is explicit`)
   assert.ok(Array.isArray(gear.essential) && Array.isArray(gear.recommended) && Array.isArray(gear.optional), `${label}: minimum gear categories`)
@@ -89,10 +122,45 @@ function assertIndependentMutations(response, expected, label) {
   }
 }
 
-function requestForPilot(pilot) {
+function assertWeatherAndRequestMutations(response, expected, actualRequestCount, label) {
+  const missingStageSample = clone(response)
+  missingStageSample.data.routeSnapshot.stages[0].weatherSamplePointIds[0] = 'sample:missing'
+  assert.throws(
+    () => assertWeatherAlignment(missingStageSample, expected, `${label} mutation:missing-stage-sample`),
+    `${label}: missing stage sample must be detected`,
+  )
+
+  const replacedWindowSample = clone(response)
+  replacedWindowSample.data.weatherSnapshot.evaluatedWindows[0].samples[0].samplePointId = 'sample:replaced'
+  assert.throws(
+    () => assertWeatherAlignment(replacedWindowSample, expected, `${label} mutation:replaced-window-sample`),
+    `${label}: replaced window sample must be detected`,
+  )
+
+  const emptyHours = clone(response)
+  emptyHours.data.weatherSnapshot.evaluatedWindows[0].samples[0].hours = []
+  assert.throws(
+    () => assertWeatherAlignment(emptyHours, expected, `${label} mutation:empty-hours`),
+    `${label}: empty sample hours must be detected`,
+  )
+
+  const outsideHours = clone(response)
+  outsideHours.data.weatherSnapshot.evaluatedWindows[0].samples[0].hours[0].bucketStartLocal = '1999-01-01T00:00'
+  assert.throws(
+    () => assertWeatherAlignment(outsideHours, expected, `${label} mutation:out-of-window-hour`),
+    `${label}: out-of-window hours must be detected`,
+  )
+
+  assert.throws(
+    () => assertDistinctWeatherRequests(response, actualRequestCount + 1, `${label} mutation:request-count`),
+    `${label}: request-count mismatch must be detected`,
+  )
+}
+
+function requestForPilot(pilot, route = pilot.search) {
   return {
     mode: 'prepare',
-    route: pilot.search,
+    route,
     date: TEST_DATE,
     startTimeLocal: TEST_START_TIME,
     level: '中级',
@@ -105,14 +173,41 @@ function requestForPilot(pilot) {
 async function assertFivePilots(harness) {
   const bases = []
   for (const pilot of PILOTS) {
-    const before = harness.counters()
-    const base = await harness.getAdvice.main(requestForPilot(pilot))
-    const after = harness.counters()
-    assertPilotResult(base, pilot, pilot.id)
-    assert.ok(counterDelta(before, after, 'hourlyWeatherRequests') >= 2, `${pilot.id}: at least two sample weather requests`)
-    assert.ok(harness.records.has(base.queryId), `${pilot.id}: TripContext must be persisted server-side`)
-    assert.deepEqual(harness.records.get(base.queryId).snapshot, base.data, `${pilot.id}: persisted snapshot must equal response`)
-    assertIndependentMutations(base, pilot, pilot.id)
+    const prepared = []
+    for (const [label, route] of [['name', pilot.name], ['alias', pilot.alias]]) {
+      const before = harness.counters()
+      const base = await harness.getAdvice.main(requestForPilot(pilot, route))
+      const after = harness.counters()
+      const requestLabel = `${pilot.id} ${label} prepare`
+      assertPilotResult(base, pilot, requestLabel)
+      const requestCount = counterDelta(before, after, 'hourlyWeatherRequests')
+      assertDistinctWeatherRequests(base, requestCount, requestLabel)
+      assert.ok(harness.records.has(base.queryId), `${requestLabel}: TripContext must be persisted server-side`)
+      assert.deepEqual(harness.records.get(base.queryId).snapshot, base.data, `${requestLabel}: persisted snapshot must equal response`)
+      if (label === 'name') {
+        assertIndependentMutations(base, pilot, requestLabel)
+        assertWeatherAndRequestMutations(base, pilot, requestCount, requestLabel)
+      }
+      prepared.push(base)
+    }
+
+    const confirmBefore = harness.counters()
+    const confirmed = await harness.getAdvice.main({
+      mode: 'confirm',
+      candidateId: pilot.id,
+      route: '客户端伪造',
+      date: TEST_DATE,
+      startTimeLocal: TEST_START_TIME,
+      level: '中级',
+      days: 1,
+      routeType: pilot.routeType === 'climb' ? 'trek' : 'climb',
+      ...(pilot.routeType === 'climb' ? { climbSupport: 'experienced_team' } : {}),
+    })
+    const confirmAfter = harness.counters()
+    const confirmLabel = `${pilot.id} permanent-ID confirm`
+    assertPilotResult(confirmed, pilot, confirmLabel)
+    assertDistinctWeatherRequests(confirmed, counterDelta(confirmBefore, confirmAfter, 'hourlyWeatherRequests'), confirmLabel)
+    assert.equal(confirmed.data.routeSnapshot.routeVariantId, pilot.id, `${confirmLabel}: own permanent ID only`)
 
     const stale = await harness.getAdvice.main({
       mode: 'confirm',
@@ -125,7 +220,7 @@ async function assertFivePilots(harness) {
     })
     assert.equal(stale.phase, 'error', `${pilot.id}: mutated candidate must not resolve`)
     assert.equal(stale.code, 'route_not_found', `${pilot.id}: mutated candidate error`)
-    bases.push({ pilot, response: base })
+    bases.push({ pilot, response: prepared[0], aliasResponse: prepared[1], confirmed })
   }
 
   const climb = bases.find(({ pilot }) => pilot.routeType === 'climb')
@@ -219,10 +314,17 @@ async function assertBlockedAndInsufficient(harness) {
   })
   harness.state.weatherMode = 'complete'
   assertBaseShape(insufficient, 'insufficient climb')
-  assert.equal(insufficient.data.weatherSnapshot.dataStatus, 'insufficient')
-  assert.equal(insufficient.data.deterministicResult.dataStatus, 'insufficient')
+  const insufficientWeather = insufficient.data.weatherSnapshot
+  const insufficientDeterministic = insufficient.data.deterministicResult
+  assert.equal(insufficientWeather.dataStatus, 'insufficient')
+  assert.equal(insufficientDeterministic.dataStatus, 'insufficient')
+  assert.equal(insufficientWeather.retryable, true, 'insufficient weather must be retryable')
+  assert.ok(insufficientWeather.insufficientReasons.length > 0, 'insufficient weather must explain its reason')
+  assert.ok(insufficientWeather.insufficientReasons.every((reason) => reason.code && reason.retryable === true), 'insufficient reasons must be retryable and coded')
+  assert.equal(insufficientWeather.evaluatedWindows.filter((window) => Array.isArray(window.samples) && window.samples.length > 0).length, 0, 'insufficient weather must have zero partial windows')
+  assert.equal(insufficientDeterministic.evaluatedWindows.filter((window) => Array.isArray(window.samples) && window.samples.length > 0).length, 0, 'deterministic result must have zero partial windows')
   assert.equal(insufficient.data.deterministicResult.verdict, 'no_go', 'independent hard climb block survives insufficient weather')
-  assert.ok(insufficient.data.deterministicResult.reasons.some((reason) => reason.code === 'novice_climb_solo_or_unsure'))
+  assert.ok(insufficientDeterministic.reasons.some((reason) => reason.code === 'novice_climb_solo_or_unsure'))
 }
 
 function deterministicFacts(snapshot) {
@@ -236,21 +338,76 @@ function deterministicFacts(snapshot) {
   })
 }
 
+function includesGearItem(items, expectedItem) {
+  return items.some((item) => item.item === expectedItem.item && item.reason === expectedItem.reason)
+}
+
+function assertDeterministicAdviceProjection(advice, base, label) {
+  const deterministic = base.response.data
+  for (const category of ['essential', 'recommended', 'optional']) {
+    for (const item of deterministic.minimumGear[category]) {
+      assert.equal(includesGearItem(advice.data.gear[category], item), true, `${label}: deterministic ${category} gear preserved`)
+    }
+  }
+  for (const fatalRisk of deterministic.deterministicSafety.fatalRisks) {
+    assert.equal(
+      advice.data.risks.some((risk) => risk.risk === fatalRisk || risk.risk === `${fatalRisk}风险`),
+      true,
+      `${label}: deterministic fatal risk preserved`,
+    )
+  }
+  for (const ruleNote of deterministic.deterministicSafety.ruleNotes) {
+    assert.equal(advice.data.notes.includes(`规则提示：${ruleNote}`), true, `${label}: deterministic rule note preserved`)
+  }
+}
+
 async function assertAdviceAndContextBoundaries(harness, base) {
   const trustedFacts = deterministicFacts(base.response.data)
+  const adviceByMode = {}
   for (const mode of ['available', 'invalid', 'unavailable']) {
     harness.state.llmMode = mode
     const advice = await harness.getAdvice.main({
       mode: 'advice', queryId: base.response.queryId, route: '客户端伪造',
-      baseData: { deterministicResult: { verdict: 'go' }, weather: { verdict: 'go' } },
+      baseData: {
+        deterministicResult: { verdict: 'go', reasons: [{ code: '伪造风险' }] },
+        weather: { verdict: 'go' },
+        minimumGear: { essential: [{ item: '伪造装备', reason: '伪造' }] },
+        deterministicSafety: { fatalRisks: ['伪造风险'], ruleNotes: ['伪造规则'] },
+      },
     })
     assert.equal(advice.phase, 'advice', `AI ${mode} must return advice phase`)
     assert.deepEqual(Object.keys(advice.data).sort(), ADVICE_KEYS.slice().sort(), `AI ${mode} public DTO keyset`)
     assert.equal(advice.data.weather, undefined)
     assert.equal(advice.data.deterministicResult, undefined)
     assert.deepEqual(deterministicFacts(harness.records.get(base.response.queryId).snapshot), trustedFacts, `AI ${mode} cannot change trusted facts`)
+    assertDeterministicAdviceProjection(advice, base, `AI ${mode}`)
+    assert.equal(advice.data.gear.essential.some((item) => item.item === '伪造装备'), false, `AI ${mode} must ignore forged gear`)
+    assert.equal(advice.data.risks.some((risk) => risk.risk === '伪造风险'), false, `AI ${mode} must ignore forged risks`)
+    assert.equal(advice.data.notes.includes('伪造规则'), false, `AI ${mode} must ignore forged rule notes`)
     if (mode === 'available') assert.equal(advice.degraded, false)
     else assert.equal(advice.degraded, true)
+    adviceByMode[mode] = advice
+  }
+
+  const missingGear = clone(adviceByMode.available)
+  missingGear.data.gear.essential.shift()
+  assert.throws(
+    () => assertDeterministicAdviceProjection(missingGear, base, 'AI available mutation:lost-essential'),
+    'lost deterministic essential gear must be detected',
+  )
+  const missingRisk = clone(adviceByMode.invalid)
+  missingRisk.data.risks.shift()
+  assert.throws(
+    () => assertDeterministicAdviceProjection(missingRisk, base, 'AI invalid mutation:lost-fatal-risk'),
+    'lost deterministic fatal risk must be detected',
+  )
+  if (base.response.data.deterministicSafety.ruleNotes.length > 0) {
+    const missingNote = clone(adviceByMode.unavailable)
+    missingNote.data.notes = missingNote.data.notes.filter((note) => !note.startsWith('规则提示：'))
+    assert.throws(
+      () => assertDeterministicAdviceProjection(missingNote, base, 'AI unavailable mutation:lost-rule-note'),
+      'lost deterministic rule note must be detected',
+    )
   }
 
   const beforeMissing = harness.counters().llmRequests
@@ -366,7 +523,7 @@ async function main() {
     const bases = await assertFivePilots(harness)
     await assertConfirmationAndPlaceBoundaries(harness)
     await assertBlockedAndInsufficient(harness)
-    await assertAdviceAndContextBoundaries(harness, bases[0])
+    await assertAdviceAndContextBoundaries(harness, bases[1])
     await assertHistoryBoundary(harness)
     assertRecoverySeams()
     console.log('PASS: I24b five-pilot Beta acceptance contract')

@@ -3,7 +3,7 @@
 - Goal: `TP-BETA-001`
 - Parent: `I24 / #33`
 - GitHub Issue: `I24b / #106`
-- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW_FIX`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
 - Branch: `codex/106-beta-acceptance`
@@ -181,3 +181,24 @@ The executor must close these evidence gaps without changing production or exist
 
 Use additive commits only. This is Review-fix round 1; a second failed round may be bounded by Sol, but a repeated
 finding after two rounds requires human escalation under the Goal stop condition.
+
+## 12. Review-fix implementation checkpoint — 2026-08-09
+
+- Starting head: controller baseline `4808e53`; worktree remained clean before this round. Runtime model visibility is
+  `UNVERIFIED_RUNTIME_MODEL`; the requested executor remains the exact custom `luna-worker` configuration.
+- Every pilot now runs public name and reviewed-alias `prepare`, followed by legal permanent-ID `confirm`; each path
+  independently asserts permanent ID, trusted route type, fixed days, `full` capability, source IDs/DTOs and status.
+- The source contract compares every route source against the exact seven-field public DTO and fixed catalog values.
+  Every route-day stage is aligned with its evaluated-window sample IDs, non-empty hourly buckets are checked by start
+  time inside the active window, and each call's weather request delta equals the distinct stage sample count.
+- Focused mutation probes assert RED for missing/replaced samples, empty/out-of-window hours, request mismatch and
+  dropped deterministic advice gear/fatal-risk/rule-note facts; the normal focused command is GREEN.
+- Insufficient weather asserts coded retryable reasons, `retryable=true` and zero usable/partial windows while the
+  novice solo technical-climb rule remains a deterministic hard `no_go`.
+- Available, invalid and unavailable AI modes preserve deterministic gear categories, fatal risks and rule notes;
+  forged client facts have no authority. No production behavior, route data, dependency, CI or existing test changed.
+- Current modified allowlist files: `scripts/beta-acceptance-contract-test.js`, `scripts/fixtures/beta-acceptance.js`,
+  `docs/i24b-beta-acceptance-verification.md`, `docs/current-status.md`, `docs/tasks/ACTIVE_TASK.md`.
+- Full required command matrix, allowlist/diff self-check and focused mutation assertions pass. Next: create an
+  additive commit and normal push, then hand the clean branch to Sol for independent Review. Do not approve or merge
+  this PR.

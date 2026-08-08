@@ -2,20 +2,20 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M7 I24b REVIEW_FIX_ACTIVE`
+- Goal status: `ACTIVE — M7 I24b READY_FOR_CONTROLLER_REVIEW`
 - Active milestone: `M7 Acceptance`
-- Active task: `I24b / #106 / REVIEW_FIX_ACTIVE`
+- Active task: `I24b / #106 / READY_FOR_CONTROLLER_REVIEW`
 - Branch: `codex/106-beta-acceptance`
 - Base: `main` at `1a2f485`
 - I24a completion / I24b activation checkpoint (2026-08-09): PR #108 exact latest head passed GitHub `quality`;
   backend/contract and frontend/history independent Reviews both returned `APPROVED` with P0–P3 none. Sol squash
   merged it as `1a2f485` and closed #105. I24b/#106 is now the only active child; I24c/#107 remains blocked.
-- Review-fix checkpoint (2026-08-09): controller baseline is `4de1ff2`; the bounded round-1 fix adds per-call
-  sentinel gear provenance (full/place exactly once, blocked zero), covers full/catalog place/manual/user/AMap/amap/
-  blocked history source propagation, with catalog place authority explicitly `routeTypeSource=user`; removes unused
-  adapter aliases, and records mutation RED evidence. Integration
-  `56 -> 55` is documented as two retired legacy checks replaced by one structured non-exposure check. Controller
-  activation files and executor allowlist are explicitly distinguished in the verification record.
+- Review-fix checkpoint (2026-08-09): controller baseline is `4808e53`; the bounded round-1 fix is limited to the
+  six-file I24b allowlist. It adds public name/alias prepare plus legal permanent-ID confirmation for every pilot,
+  exact seven-field route-source DTO values, stage/window/sample/hour/request alignment, insufficient retryable and
+  zero-partial-window semantics, deterministic advice preservation across all AI outcomes, and mutation RED evidence
+  for each frozen seam. No production behavior changed; the executor remains responsible only for the acceptance
+  contract and evidence.
 - I24a implementation checkpoint (2026-08-09): TDD RED for missing `advice-context.js` was recorded before the
   adapter existed. The current implementation composes exact `beta_base_v2` snapshots with
   `deterministicSafety`, removes all thirteen top-level compatibility aliases, and derives prompt, safety and
@@ -38,6 +38,14 @@
   no product/human decision is required. Round 1 is limited to per-pilot legal confirm, exact seven-field source DTO,
   stage-to-window sample/hour/request alignment, insufficient retry semantics, deterministic advice preservation,
   and mutation-sensitive evidence/status updates inside the existing six-file allowlist.
+- I24b review-fix implementation checkpoint (2026-08-09): from controller baseline `4808e53`, the focused acceptance
+  command is GREEN after adding name/alias/confirm identity coverage, exact route-source DTO checks, per-day weather
+  alignment and request-count assertions, insufficient retryable/no-partial semantics, and deterministic advice
+  preservation/forged-fact rejection. Focused mutation probes intentionally throw for missing/replaced samples,
+  empty/out-of-window hours, request mismatch and lost deterministic gear/risk/note facts. Full command matrix,
+  additive commit and controller handoff are now ready. `npm test`, integration `55/0`, lint (0 errors / 9 existing
+  warnings), typecheck, host WeChat build and `git diff --check` pass. No production defect or contract ambiguity was
+  exposed; Sol XHigh must perform independent Review and decide mergeability.
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page — all closed
