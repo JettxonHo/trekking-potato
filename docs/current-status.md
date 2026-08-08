@@ -860,3 +860,14 @@ dispatch only #95 to exact `luna-worker`. The executor must not approve or merge
 - Mac locked remains the independent visual blocker; four screenshots are still intentionally absent and status is
   `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER`. No backend, schema, dependency, service, reducer-state or
   retry/recovery files changed.
+
+## I22b REVIEW_FIX round 2 checkpoint — 2026-08-08
+
+- Final review-fix evidence now crosses the production page boundary: `trip-flow-contract-test.js` extracts real
+  `index.jsx` method/branch bodies and checks lifecycle calls plus success/degraded save calls and the
+  context-unavailable no-save invariant.
+- Independent mutations deleting each key cache/base/advice/reset/lifecycle/intent/save call, or inserting a
+  context-branch `_saveHistory`, all returned focused RED; the restored head is GREEN. No production logic changed.
+- The result-page fixture wording now uses an advice event with a new result object. Four DevTools screenshots remain
+  intentionally absent because Mac is locked (`UNVERIFIED_RUNTIME_TOOL`). Final handoff status is
+  `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER`; no round 3 will be started autonomously.

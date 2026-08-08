@@ -62,3 +62,15 @@ visual acceptance. Build success below is not visual evidence.
   `null` for context-unavailable. `buildHistorySavePayload` is the page's actual history DTO seam and reads only
   the captured elevation/location/coords/routeType/routeTypeSource; forged advice/meta values are ignored by the
   fixture.
+
+## REVIEW_FIX round 2 evidence
+
+- `scripts/trip-flow-contract-test.js` now extracts the actual `index.jsx` method/branch bodies and asserts the
+  concrete lifecycle/save calls: cache restore, return-to-search, onBack, base receipt, advice start/success/failure,
+  context-unavailable and success/degraded history writes. The context-unavailable branch is explicitly required to
+  contain no `_saveHistory` call.
+- Independent source mutations each produced RED (`exit 1`) before restoration: deleting cache restore, return,
+  onBack, base receipt, advice start/success/failure, success/degraded intent/save calls, or context lifecycle; and
+  inserting `_saveHistory` into context-unavailable. The unmutated focused test is GREEN (`exit 0`).
+- The result-page fixture now describes an advice `advice_succeeded` event carrying a new result object; it does not
+  claim that a second `base_received` with the same object reference represents a new result.

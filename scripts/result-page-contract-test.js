@@ -217,8 +217,8 @@ function assertLifecycleAndHistoryOrchestration() {
   }
   assert.equal(lifecycle.checked['essential:0'], true, '同一 base/query 的 advice 生命周期不得清 checklist')
 
-  lifecycle = applyChecklistLifecycleEvent(lifecycle, { type: 'base_received', queryId: 'query-a', baseRef: baseA })
-  assert.equal(lifecycle.checked['essential:0'], true, '同一 base/query 的新 result 对象不得清 checklist')
+  lifecycle = applyChecklistLifecycleEvent(lifecycle, { type: 'advice_succeeded', resultRef: { id: 'new-result-object' } })
+  assert.equal(lifecycle.checked['essential:0'], true, '同一 base/query 的 advice 新 result 对象不得清 checklist')
 
   lifecycle = applyChecklistLifecycleEvent(lifecycle, { type: 'base_received', queryId: 'query-a', baseRef: baseB })
   assert.deepEqual(lifecycle.checked, {}, 'different base 必须清 checklist')

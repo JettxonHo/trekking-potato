@@ -178,3 +178,14 @@ focused PR. Return `READY_FOR_CONTROLLER_REVIEW`; do not approve or merge.
   intent each; context-unavailable creates none; forged advice/meta cannot change the captured five-field DTO.
 - Visual evidence remains `UNVERIFIED_RUNTIME_TOOL` with the exact Mac locked blocker; no screenshots or production
   mock switch were added. Handoff remains `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER` pending controller review.
+
+## 12. I22b REVIEW_FIX round 2 — 2026-08-08
+
+- The final review-fix adds only precise actual-branch assertions in `scripts/trip-flow-contract-test.js`; no
+  production lifecycle/history logic or second state machine was introduced. Method-boundary checks cover cache,
+  return/onBack, base/advice lifecycle, success/degraded saves and context-unavailable zero-save.
+- Mutation evidence is discriminating: deleting each key lifecycle/intent/save call or inserting `_saveHistory` in
+  the context-unavailable branch makes the focused trip-flow contract exit 1; restoring the branch returns GREEN.
+- The result-page wording now treats a new advice result object as an advice event, not as a repeated base receipt with
+  the same object reference. Visual status remains `UNVERIFIED_RUNTIME_TOOL` with the exact Mac locked blocker.
+- Handoff remains `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER`; this is the final autonomous review-fix round.

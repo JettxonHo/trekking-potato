@@ -277,6 +277,22 @@ async function assertService() {
   assert.deepStrictEqual(await failedService.advice('tctx_failure'), { kind: 'transport_failure' }, 'transport failure 不得泄露 raw error')
 }
 
+function extractMethodBody(source, header) {
+  const match = header.exec(source)
+  if (!match) return ''
+  const braceStart = source.indexOf('{', match.index + match[0].length - 1)
+  if (braceStart < 0) return ''
+  let depth = 0
+  for (let index = braceStart; index < source.length; index += 1) {
+    if (source[index] === '{') depth += 1
+    else if (source[index] === '}') {
+      depth -= 1
+      if (depth === 0) return source.slice(braceStart, index + 1)
+    }
+  }
+  return ''
+}
+
 function assertPageWiring() {
   const pageSource = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
   assert(pageSource.includes("require('./trip-flow')") && pageSource.includes("require('./get-advice-service')"), '页面必须接入 reducer 与 service 模块')
@@ -324,6 +340,32 @@ function assertPageWiring() {
   assert(pageSource.includes('this._unmounted || this.state.tripFlow.token !== token'), '卸载后不得触发 cache/history/UI side effect')
   assert(!/name:\s*['\"]getAdvice['\"]/.test(pageSource), '页面不得直接发送 getAdvice；必须经 service')
   assert(pageSource.includes("name: 'history'"), 'I19 history 调用和局部状态必须留在页面')
+
+  const mountBody = extractMethodBody(pageSource, /componentDidMount\s*\(\)\s*\{/)
+  assert(mountBody.includes("this._applyChecklistLifecycle({ type: 'cache_restore' })"), 'cache restore 必须真实调用 cache_restore lifecycle seam')
+  const clearBody = extractMethodBody(pageSource, /_clearResultLocalState\(\)\s*\{/)
+  assert(clearBody.includes("this._applyChecklistLifecycle({ type: 'return_to_search' }, true)"), '清理结果状态必须真实调用 return_to_search lifecycle seam')
+  const backBody = extractMethodBody(pageSource, /onBack\s*=\s*\(\)\s*=>\s*\{/)
+  assert(backBody.includes('this._clearResultLocalState()'), 'onBack 必须走实际结果状态清理路径')
+
+  const baseBody = extractMethodBody(pageSource, /_showBaseAndFetchAdvice\(base,\s*queryId,\s*params,\s*generation\)\s*\{/)
+  assert(baseBody.includes("this._applyChecklistLifecycle({ type: 'base_received', queryId, baseRef: base }, true)"), '真实 base/query 到达必须调用 base_received lifecycle seam')
+  assert(baseBody.includes("this._applyChecklistLifecycle({ type: 'advice_started' })"), '真实 advice start 必须调用 advice_started lifecycle seam')
+
+  const adviceBody = extractMethodBody(pageSource, /_fetchAdvice\(queryId,\s*historyParams,\s*generation\)\s*\{/)
+  assert(adviceBody.includes("this._applyChecklistLifecycle({ type: 'advice_succeeded' })"), 'advice success 必须调用 advice_succeeded lifecycle seam')
+  assert(adviceBody.includes("historyResultForAdviceOutcome('success', { adviceData: d, degraded })"), 'advice success 必须产生 success history intent')
+  assert(adviceBody.includes('this._saveHistory(historyParams, historyResult, generation)'), 'advice success 必须实际保存一次 history')
+  const contextStart = adviceBody.indexOf("if (result && result.phase === 'error' && result.code === 'query_context_unavailable')")
+  const adviceBranchStart = adviceBody.indexOf("if (result && result.phase === 'advice')", contextStart)
+  const contextBranch = contextStart >= 0 && adviceBranchStart > contextStart ? adviceBody.slice(contextStart, adviceBranchStart) : ''
+  assert(contextBranch.includes("this._applyChecklistLifecycle({ type: 'context_unavailable' })"), 'context-unavailable 必须调用 context lifecycle seam')
+  assert(!contextBranch.includes('_saveHistory('), 'context-unavailable 分支不得保存 history')
+
+  const degradedBody = extractMethodBody(pageSource, /_finishDegradedAdvice\(token,\s*historyParams,\s*error\)\s*\{/)
+  assert(degradedBody.includes("this._applyChecklistLifecycle({ type: 'advice_failed' })"), '普通 degraded 必须调用 advice_failed lifecycle seam')
+  assert(degradedBody.includes("historyResultForAdviceOutcome('degraded', { baseRisks: this._baseHistoryRisks })"), '普通 degraded 必须产生 degraded history intent')
+  assert(degradedBody.includes('this._saveHistory(historyParams, historyResult, token)'), '普通 degraded 必须实际保存一次 history')
 }
 
 async function main() {
