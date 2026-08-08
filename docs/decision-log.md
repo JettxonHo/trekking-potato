@@ -679,3 +679,32 @@
 - Why: the selected split is independently testable and keeps trust ownership intact. A new base-producing
   prepare/confirm is the only honest way to refresh weather or an expired context, while a still-valid queryId is the narrow authority for AI retry.
   Form prefill serves the existing product need without silently expanding private storage.
+
+## 2026-08-09 — TP-D049 I24 分为结构清理、自动化验收与 DevTools 证据
+
+- Status: Accepted by Sol for planning Review; no human product decision required
+- Context: M6 completed through PR #103. Main quality is green, but the old `test:integration` still exercises a
+  three-location daily-weather pipeline rather than the five RouteVariant public flow. TP-D047 also deliberately
+  left thirteen top-level BaseData compatibility aliases for prompt/safety/history until I24.
+- Decision: keep #33 as the M7 parent and split it serially into I24a/I24b/I24c. I24a upgrades BaseData and
+  TripContext atomically to v2, adds `deterministicSafety`, derives prompt/safety/history only from structured fields,
+  and deletes all thirteen aliases. I24b adds a fixture-backed `test:beta-acceptance` for the five pilots and
+  representative public failure/recovery boundaries. I24c executes the local DevTools matrix, imports a normal
+  fixture-free build, packages limited evidence and synchronizes release-facing documentation.
+- Structured boundary: `beta_base_v2` exact fields are request/route/weather/verdict/minimumGear/
+  deterministicSafety/source metadata. A pure advice adapter makes a bounded weather summary rather than sending the
+  complete hourly snapshot to the LLM. The advice DTO retains only gear/risks/notes/disclaimer/meta; deterministic
+  facts remain exclusively in BaseData. History context derives from route/source fields; full coordinates become
+  null because the old highest-weather-sample coordinate was not route identity.
+- Compatibility: no long-lived v1/v2 dual stack is added. This Goal does not deploy, so the future deployment plan
+  records a roughly 30-minute TripContext drain/cutover requirement and requires human production approval.
+- Evidence boundary: I24b is test/fixture-only and must split any discovered production bug. I24c may inject local
+  temporary fixtures because deployment is excluded, but final source/config/dist must be rebuilt fixture-free and
+  pass residue checks. The reproducible checklist and truthful per-row status are required; representative DevTools
+  screenshots are added when the runtime is available. GUI unavailability is disclosed as
+  `UNVERIFIED_RUNTIME_TOOL` and does not by itself expand the code-ready Goal into executed beta testing.
+- Alternatives: leave aliases indefinitely; mix cleanup and final evidence in one PR; call the legacy integration
+  test sufficient; run real CloudBase/real API/true beta as part of this Goal; maintain a permanent dual-version
+  adapter.
+- Why: three independently reviewable PRs keep a public contract cleanup out of the evidence PR, make final cross-layer
+  coverage honest, and preserve the code-ready boundary without inventing production/deployment obligations.

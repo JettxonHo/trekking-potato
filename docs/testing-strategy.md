@@ -375,10 +375,10 @@ I13 未合并前没有新增 I21 生产测试或控件，因为“前端字段�
   先记录一个真实 RED，之后再 GREEN。
 - manual 坐标的成对、number 类型、有限值、纬经度范围与可选 elevation 范围必须各有代表性负例，
   并用调用计数证明非法输入没有进入 elevation/weather/rules/context。
-- full complete compatibility weather 的日聚合、insufficient/blocked null、place reference daily、
-  full/blocked null sunEvents 与 blocked compatibility risk 必须直接断言，确保 prompt/safety 不因迁移崩溃。
-- full/place-only/blocked 的 queryId-only advice 必须成功或按 AI unavailable 降级，不得因 compatibility
-  shape 进入 internal_error；gearRules 三类装备必须逐项等于 minimumGear，AI 不得改写 deterministicResult。
+- I21 阶段曾直接断言 compatibility weather/gearRules；I24a 用 `beta_base_v2` 与纯 advice adapter 合同
+  取代这些过渡断言。历史测试证据保留，但最终门禁不得继续要求顶层 alias 存在。
+- full/place-only/blocked 的 queryId-only advice 必须成功或按 AI unavailable 降级；I24a 后只从
+  `minimumGear/deterministicSafety` 与 structured weather 派生，AI 不得改写 deterministicResult。
 
 ### I22 串行结果体验矩阵
 
@@ -524,11 +524,44 @@ runs the complete M1 command sequence above without changing those commands.
 
 PR 描述列出实际命令、退出码和结果摘要。无法运行的命令必须写明原因及影响，不能写成通过。Sol XHigh 会阅读测试本身，不能只凭通过数量批准。
 
-## 6. M7 人工验证清单
+## 6. M7 验收矩阵
 
-- 五个试点各完成一次输入到结果流程。
-- 模糊候选的确认、取消和修改。
-- 天气、AI、历史分别模拟失败。
-- 装备 checklist 勾选与重新查询。
-- 来源、时间、置信度和地点级限制可见。
-- 微信生产构建可被开发者工具导入。
+I24 分三个串行门禁，不把旧 `test:integration` 的三路线日天气管线冒充最终 Beta 纵向验收。
+
+### I24a — structured adapter and compatibility retirement
+
+- 新增 `test:advice-context` 并纳入根 `npm test`。先记录缺失 v2 adapter/旧 alias 依赖的真实 RED。
+- full/place-only/blocked 的 `beta_base_v2` exact keys 均不含十三个顶层 compatibility aliases；
+  `minimumGear` 与 `deterministicSafety` 来自同一次规则结果。
+- complete、insufficient、reference unavailable、blocked 均能走 queryId-only advice；prompt 只消费纯
+  structured adapter 产生的有界摘要，旧 alias 缺失或携带冲突值都不能影响结果。
+- available/invalid/unavailable AI 均保留确定性装备、fatal risks 与 rule notes；advice 不能携带或覆盖
+  verdict/weather/route/source。
+- advice `gear/risks/notes/disclaimer` 是确定性输入的只读派生加受限 AI 补充；`meta` exact keys 仅为
+  `generatedAt/llmModel/elapsed/degradedReason?`，不得残留天气、坐标、地点或来源事实。
+- TripContext v2 的 public/persisted/read snapshot 深比较相等。history full/place/manual/AMap/blocked 投影
+  精确；full coords 为 null。删除 adapter、structured history 或 deterministicSafety 接线的代表 mutation
+  必须使 focused test RED。
+- stored v1 context 在 v2 runtime 中固定为非重试 `query_context_unavailable`、LLM 零调用且不泄露版本。
+
+### I24b — automated Beta acceptance
+
+- 新增 `test:beta-acceptance` 并纳入根 `npm test`，继续使用 Node 脚本和离线 fixture，不引入测试框架。
+- 五个 full pilot 各自经过 public prepare；逐条验证永久 ID、规范名、route type、fixedDays、来源/状态、
+  多采样点小时窗口、确定性结果、最低装备和 queryId。四姑娘 climb 另验 support 与最低 caution。
+- 代表矩阵覆盖 fuzzy confirmation 的零天气/context/AI 副作用、永久 candidate confirm、place-only/null、
+  五台 blocked/no-weather/no_go、insufficient/retryable weather、available/invalid/transport-degraded advice、
+  私人 history/idempotent save，以及 I23 AI/weather/history recovery。
+- 不做笛卡尔积。若验收暴露生产缺陷，测试 PR 记录 RED 并由 Sol 拆独立 bug Issue，不顺手扩大生产改动。
+
+### I24c — local DevTools evidence and docs
+
+- 清单包含五个试点逐条输入到结果流程，以及模糊确认/取消/编辑、place-only、blocked、天气/AI/历史
+  失败与恢复、checklist 生命周期、来源/状态/时间信息；逐行记录已执行或运行时未验证。
+- 可使用临时、确定性、本地 DevTools fixture；不得提交生产开关、密钥、服务端口或 fixture/debug 残留。
+  删除 fixture 后重新正常构建，导入 `taro-app/dist` 并记录正常编译证据。
+- 保留完整可复现矩阵；DevTools 可用时追加少量代表性截图，不为每个点击机械截图。Mac/DevTools
+  不可用时记录 `UNVERIFIED_RUNTIME_TOOL`，不能用 build 成功冒充交互证据，也不因 GUI 不可用擅自
+  扩大代码就绪 Goal 的完成门槛。
+- README、产品、架构、测试、状态与验收报告同步；公开已知限制和未来部署时 v1 TripContext 的
+  约 30 分钟 drain/cutover 风险。

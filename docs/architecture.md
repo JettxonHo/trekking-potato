@@ -348,6 +348,9 @@ I04 先把当前云函数的所有出口统一到上述 `phase` 判别方式，�
 
 ### BaseData
 
+The following `beta_base_v1` block describes `main@097c921` before I24a. It is a migration baseline, not the M7
+target. The final accepted shape is the later `I24a structured BaseData v2 and compatibility retirement` section.
+
 ```js
 {
   schemaVersion: 'beta_base_v1',
@@ -384,7 +387,11 @@ Place identity source 一并加入。该字段当时只供内部兼容投影，�
 { mode: 'advice', queryId }
 ```
 
-服务端按 `openid + queryId + expiresAt` 读取 `TripContext`。返回 `advice | error`。AI 输出仅包含解释性装备补充、风险解释、注意事项和免责声明，最终响应重新注入可信天气、结论、最低装备和原因。客户端即使附带旧 `baseData`、route、date、level、days 或 weather，服务端也不读取、不校验且不回退使用。
+服务端按 `openid + queryId + expiresAt` 读取 `TripContext`。返回 `advice | error`。BaseData 是路线、天气、
+结论、最低装备和来源的唯一权威来源。I24a 后 advice 仅返回由 BaseData 派生的只读
+`gear/risks/notes/disclaimer` 及受限运行 `meta`；AI 只能追加装备建议、解释既有风险和补充 notes，
+不得返回或覆盖路线、天气、结论或来源。客户端即使附带旧 `baseData`、route、date、level、days 或
+weather，服务端也不读取、不校验且不回退使用。
 
 ## 5. TripContext
 
@@ -393,7 +400,7 @@ service owns ID generation, snapshot construction, persistence, ownership and lo
 
 ```js
 createTripContextStore({ collection, now?, createQueryId? })
-  -> { create({openid, legacyBaseData}), read({openid, queryId}) }
+  -> { create({openid, trustedBaseData}), read({openid, queryId}) }
 ```
 
 Default IDs use `tctx_${crypto.randomUUID()}`. Logical lifetime is exactly 30 minutes; equality with
@@ -406,15 +413,11 @@ Stored documents use:
 schemaVersion, _openid, queryId, createdAt, expiresAt, snapshot
 ```
 
-The current runtime has not integrated I13's verified RouteVariant catalog. The I17a store therefore
-owns one private projection from the current server-created legacy base allowlist
-(`route/date/level/days/elevation/location/coords/routeType/routeTypeSource/weather/sunEvents/gearRules/meta`)
-to an honest transitional `TrustedBaseData`. Arbitrary extra keys are not copied. The projection
-preserves those legacy fields for I18's prompt/safety compatibility and additively provides
-`requestSummary`, place-only `routeSnapshot`, reference-point `weatherSnapshot`, I16's null/place-only
-`deterministicResult`, `minimumGear` and `sourceMetadata`. I17b only passes `legacyBaseData` into this
-service and uses its returned snapshot unchanged; the handler does not own a second projection. This
-does not claim route-hourly weather or a full route verdict.
+I13–I23 are now integrated. The handler constructs one trusted structured BaseData, and TripContext deep-copies that
+exact snapshot without inferring or rebuilding route/weather facts. I21 temporarily added top-level compatibility
+aliases for prompt/safety/history migration; I22 removed them from display/cache authority. I24a atomically upgrades
+the remaining snapshot and consumers to the v2 contract below and removes those aliases instead of preserving a
+second fact path.
 
 The exact snapshot returned in `base.data` is the snapshot persisted by the store. Create/read boundaries
 deep-copy it so later caller or mock/SDK mutation does not change another view. Unknown, foreign and
@@ -624,7 +627,12 @@ reason messages, data-issue shapes and error guards are frozen in GitHub #25 and
 
 规则层的最低装备、基础风险、结论和原因码为不可删除集合。AI 可增加非关键项目和解释，但不能删除、降级、改名或覆盖确定性项。AI schema 无效或调用失败时返回规则结果和明确 degraded 状态。
 
-### I06 过渡投影边界
+### I06 历史过渡投影边界
+
+本节记录 I06 当时的实现合同，便于理解迁移来源，不再定义 M7 的最终公共 shape。I24a 以本文件
+`structured BaseData v2 and compatibility retirement` 小节为当前权威：它用
+`minimumGear/deterministicSafety/structured weather` 替换下述 `gearRules/weather/sunEvents` 输入，并将
+advice DTO 收窄为 `gear/risks/notes/disclaimer/meta`。
 
 I06 在 TP-VERDICT-1、RouteVariant 和可信 `queryId` 落地前，先收紧当前 advice 编排中
 AI 相对于既有 `gearRules/weather/sunEvents` 的权限。这里的“可信”仅表示这些字段对 AI
@@ -871,6 +879,55 @@ cache key/version 以忽略 30 分钟内的旧 compatibility-only result，不�
 若带非终态 AI `loading`，必须归一为 `unavailable`，因为 restore 没有 queryId/请求可恢复；I24 在结构化 AI adapter
 具备独立证据后统一删除或收敛这些别名，I22 不做半套服务端兼容清理。I23 独占重试、恢复按钮、
 历史恢复与新的异步恢复事件；I22 只保留现有“返回重新查询”动作。
+
+### I24a structured BaseData v2 and compatibility retirement
+
+I24a replaces the transitional projection atomically. Public `base.data` and the stored TripContext snapshot are
+the same exact `beta_base_v2` object:
+
+```js
+{
+  schemaVersion: 'beta_base_v2',
+  requestSummary,
+  routeSnapshot,
+  weatherSnapshot,
+  deterministicResult,
+  minimumGear: { essential, recommended, optional },
+  deterministicSafety: { fatalRisks, ruleNotes },
+  sourceMetadata
+}
+```
+
+`deterministicSafety` and `minimumGear` are produced from the same deterministic gear-rule result. Blocked uses the
+existing `official_route_blocked` facts (`fatalRisks=['官方禁行']` plus the current rule note). The v2 exact keyset
+does not contain the thirteen transitional aliases: `route/date/level/days/elevation/location/coords/routeType/
+routeTypeSource/weather/sunEvents/gearRules/meta`.
+
+A pure `advice-context` adapter accepts only v2 fields. It derives route/input labels, a bounded daily weather
+summary from the structured weather snapshot, minimum gear and deterministic safety grounding; it receives neither
+route-source DTOs nor sunEvents, and must not stringify the complete multi-point hourly payload or accept legacy
+aliases. `projectSafetyAdvice` consumes exactly `minimumGear + deterministicSafety + aiOutcome`.
+
+The public advice DTO is a read-only derivative with exact fields `gear/risks/notes/disclaimer/meta`: `gear` contains
+the complete deterministic three categories plus deduplicated AI recommended/optional additions; `risks` preserves
+only deterministic fatal-risk identities and optional AI explanations; `notes` is rule notes followed by AI/degraded
+notes; the disclaimer is fixed. `meta` is limited to `generatedAt`, `llmModel`, `elapsed` and optional fixed
+`degradedReason`. Advice no longer returns weather, sunEvents, photoTiming, microclimate, elevation, coordinates,
+location or weatherSource. Deterministic route/weather/verdict/source facts remain only in BaseData.
+
+Private history context is also derived from v2 rather than stored as another public fact shape: full elevation is
+`routeHighestPointElevationM`; place-only elevation/coordinate are `referenceElevationM/referenceCoordinate`;
+blocked elevation and all full/blocked coordinates are null; location is `routeSnapshot.region`; route type is
+`routeSnapshot.routeType`; type source is `sourceMetadata.routeTypeSource`. Full's old highest-weather-sample
+coordinate was not a route identity fact and is intentionally retired. This does not change the I19 HistoryItem DTO
+or its restoration rule (only `routeTypeSource='user'` plus valid place coordinates restores manual context).
+
+TripContext moves atomically to `trip_context_v2` and accepts only `beta_base_v2`; no long-lived v1 adapter or dual
+stack is added. This Goal does not deploy, so existing live-context compatibility is not a code requirement. The
+future deployment checklist must drain or tolerate the approximately 30-minute context lifetime before cutover and
+requires human production approval. If the v2 runtime encounters a stored `trip_context_v1`, it returns the existing
+non-retryable public `query_context_unavailable`, makes zero LLM calls and exposes no version/storage detail; it is
+not mapped to retryable `context_unavailable`, which remains reserved for a real store failure.
 
 ### I23 串行恢复边界
 

@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M6 I23b IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — M7 I24 PLANNING`
 - Updated: `2026-08-09`
 
 ## 1. 依赖图
@@ -15,7 +15,7 @@ I15 + I16 → I17 → I18 → I19
 I17 → I18 → I19 → I20
 I13 + I16 + I20 → I21 → I22a → I22b
 I19 + I22b → I23a → I23b
-I19 + I23b → I24 → I25
+I19 + I23b → I24a → I24b → I24c → I25
 ```
 
 默认串行。I10a 已建立共享 route-data test seam 和可独立证明的大朝台 blocked
@@ -53,7 +53,7 @@ I19 + I23b → I24 → I25
 | I21 | #30 | 搜索确认输入流程 | variant/date/time/support |
 | I22 | #31 parent; #94 I22a; #95 I22b | 结果体验 | trusted provenance → structured result page |
 | I23 | #32 parent; #99 I23a; #100 I23b | 降级与恢复 | history save idempotency → frontend recovery |
-| I24 | #33 | Beta 综合验证 | 回归、构建、人工清单、文档 |
+| I24 | #33 parent; children assigned after planning merge | Beta 综合验证 | structured cleanup → automated acceptance → DevTools evidence/docs |
 | I25 | #34 | Goal 最终 Review | 完成报告和验收结论 |
 
 ## 3. 第一批任务合同
@@ -396,3 +396,28 @@ Review, squash merged as `852e86d`, and closed #95 plus parent #31.
   current/default start time and climb support remain because I23 does not add them to history or claim exact replay.
 - Precise allowlists, recovery matrix, acceptance, commands and escalation conditions are defined by the live child
   Issues and `docs/tasks/ACTIVE_TASK.md`. Planning PR and independent contract Review precede implementation.
+
+## 20. I24 串行 Beta 验收合同
+
+- Parent #33 is split into three serial children after the planning PR merges. I24a retires the I21 top-level
+  compatibility aliases through a structured BaseData/advice/history adapter. I24b adds the current five-pilot
+  public `prepare/confirm → queryId → advice` offline acceptance suite. I24c executes the local DevTools matrix,
+  verifies a normal fixture-free build import, packages evidence and synchronizes release-facing documentation.
+- I24a freezes `beta_base_v2` with only `requestSummary`, `routeSnapshot`, `weatherSnapshot`,
+  `deterministicResult`, `minimumGear`, `deterministicSafety` and `sourceMetadata`. The thirteen I21 top-level
+  aliases are removed. `deterministicSafety={fatalRisks,ruleNotes}` comes from the same gear-rule result as
+  `minimumGear`; a pure advice adapter derives bounded LLM grounding, and history facts derive from the structured
+  route/source fields. TripContext moves atomically to v2 with no long-lived v1 dual stack because this Goal does
+  not deploy; the deployment checklist records the 30-minute context drain requirement.
+- I24b is test/fixture-only. A new root `test:beta-acceptance` verifies all five full RouteVariants individually,
+  plus representative blocked/place-only/confirmation/insufficient/advice/history/recovery boundaries. It does not
+  create a mechanical Cartesian product. If it exposes a production defect, Sol creates a separate focused bug
+  Issue; the acceptance PR does not silently expand into production repair.
+- I24c may use temporary local DevTools fixtures because deployment is out of scope. Fixtures must be deterministic,
+  local-only and completely removed before delivery. After removal, rebuild the normal `taro-app/dist`, run residue
+  checks, and retain a reproducible checklist with truthful per-row status. When DevTools is available, also import
+  the normal build and retain a small representative screenshot set; unavailable GUI rows remain explicit
+  `UNVERIFIED_RUNTIME_TOOL` limitations rather than blocking or fabricated passes.
+- Default order is strictly `I24a → I24b → I24c → #33 close → I25`. The tasks share contracts/evidence and are not
+  parallel. Exact allowlists, RED/GREEN evidence, commands and stop conditions are in
+  `docs/tasks/ACTIVE_TASK.md` and the live child Issues.
