@@ -1,7 +1,7 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `ACTIVE — M7 I24c IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — M7 I24c REVIEW_FIX_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication

@@ -2,9 +2,9 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M7 I24c IMPLEMENTATION_ACTIVE`
+- Goal status: `ACTIVE — M7 I24c REVIEW_FIX_ACTIVE`
 - Active milestone: `M7 Acceptance`
-- Active task: `I24c / #107 / IMPLEMENTATION_ACTIVE`
+- Active task: `I24c / #107 / REVIEW_FIX_ACTIVE`
 - Branch: `codex/107-beta-acceptance-evidence`
 - Base: `main` at `f311d1b`
 - I24b completion / I24c activation checkpoint (2026-08-09): PR #109 review-fix head `59f7a18` and controller
@@ -19,6 +19,12 @@
   the Mac manually before continuing.` No fixture was injected, no screenshot was captured, and all DevTools rows are
   recorded as `UNVERIFIED_RUNTIME_TOOL` in `docs/beta-acceptance-checklist.md`. Residue scan is clean; final changes
   are docs/evidence only.
+- I24c Sol Review checkpoint (2026-08-09): PR #110 exact head `b3ff65e` passed latest-head quality and its
+  docs/evidence-only scope, residue proof and truthful DevTools blocker were independently confirmed. Two Reviews
+  returned `CHANGES_REQUESTED` for evidence precision only: persist the A11 repeated-prepare/new-queryId probe as a
+  directly runnable artifact or exact command, narrow A6 so real cancel/edit observation remains R2
+  `UNVERIFIED_RUNTIME_TOOL`, and synchronize all authority sources to the review handoff state. No production defect,
+  fixture residue or human product decision was found.
 - Historical I24a completion / I24b activation checkpoint (2026-08-09): PR #108 exact latest head passed GitHub `quality`;
   backend/contract and frontend/history independent Reviews both returned `APPROVED` with P0–P3 none. Sol squash
   merged it as `1a2f485` and closed #105. I24b/#106 is now the only active child; I24c/#107 remains blocked.

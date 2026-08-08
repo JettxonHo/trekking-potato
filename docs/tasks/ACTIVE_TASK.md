@@ -3,7 +3,7 @@
 - Goal: `TP-BETA-001`
 - Parent: `I24 / #33`
 - GitHub Issue: `I24c / #107`
-- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
+- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
 - Branch: `codex/107-beta-acceptance-evidence`
@@ -197,3 +197,28 @@ runtime attempt. One bounded discovery plus one app-state/list-apps retry encoun
 continuing.` No temporary fixture source or screenshot was created. The row-by-row evidence is in
 `docs/beta-acceptance-checklist.md` and the report in `docs/beta-acceptance-report.md`; all DevTools rows remain
 `UNVERIFIED_RUNTIME_TOOL`, and the final diff is docs/evidence only.
+
+## 14. Sol Review-fix round 1 — 2026-08-09
+
+PR #110 exact head `b3ff65e` passed latest-head GitHub `quality`. Two independent actual-evidence Reviews found no
+production, residue, allowlist or GUI-truth defect, but returned `CHANGES_REQUESTED` for three bounded corrections:
+
+1. Replace the placeholder `node -e repeated prepare probe` evidence with a directly runnable, durable artifact under
+   `docs/evidence/i24/` (preferred) or an exact copy-paste command. It must call the existing public offline fixture,
+   assert both responses are `base`, assert distinct server `queryId` values and unchanged trusted route identity,
+   print a clear PASS result, and be executed once. It must not become a second product implementation or alter root
+   tests/package configuration. The checklist must distinguish `test:recovery` evidence for old-result visibility
+   from this probe's evidence for replacement query authority.
+2. Narrow A6's automated `VERIFIED` wording to what the contracts actually prove: candidate/confirmation contract,
+   reducer RESET/token isolation and zero pre-confirm side effects. Actual cancellation followed by form editing is
+   not automatically proven and must remain in R2 as `UNVERIFIED_RUNTIME_TOOL`; do not add production/UI code or
+   claim that observation occurred.
+3. After the correction and complete revalidation, synchronize `GOAL.md`, `docs/current-status.md`, this file, live
+   #107 and parent #33 to `READY_FOR_CONTROLLER_REVIEW`. Record PR #110 and its live latest-head check as the CI fact
+   source. Do not mark I24c, #107, #33, M7 or the Goal complete before Sol approval and merge.
+
+This is Review-fix round 1. The final committed diff remains inside the existing docs/evidence allowlist; temporary
+fixture scope stays unused. Use additive commits only and do not amend, rebase or force push. Rerun the durable probe,
+`npm run test:beta-acceptance`, `npm test`, integration, lint, typecheck, build and diff check; then update PR #110 and
+return `READY_FOR_CONTROLLER_REVIEW`. A repeated evidence-integrity finding after a second bounded round requires
+human escalation under the Goal stop condition.
