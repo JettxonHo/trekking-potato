@@ -241,19 +241,33 @@ async function assertService() {
     data: { mode: 'prepare', route: '武功山', date: '2026-08-07', level: '中级', days: 1, manualLat: 27.4, manualLon: 114.1, routeType: 'trek' },
   }, 'prepare 请求体只能包含冻结字段并跳过 undefined')
 
+  const manualZero = await service.prepare({
+    route: '手动零海拔', date: '2026-08-07', level: '中级', days: 1,
+    manualLat: 1, manualLon: 2, manualElevation: 0, routeType: 'trek',
+  })
+  assert.deepStrictEqual(manualZero, { kind: 'response', result: { phase: 'prepare' } })
+  assert.equal(calls[1].data.manualElevation, 0, 'service 必须原样保留手动海拔 0')
+
+  const manualNegative = await service.prepare({
+    route: '手动负海拔', date: '2026-08-07', level: '中级', days: 1,
+    manualLat: 1, manualLon: 2, manualElevation: -20, routeType: 'trek',
+  })
+  assert.deepStrictEqual(manualNegative, { kind: 'response', result: { phase: 'prepare' } })
+  assert.equal(calls[2].data.manualElevation, -20, 'service 必须原样保留手动负海拔')
+
   const confirm = await service.confirm({
     candidateId: 'builtin-route:武功山', date: '2026-08-07', level: '中级', days: 1,
     routeType: 'trek', startTimeLocal: '07:00', climbSupport: undefined, route: 'must-not-send',
   })
   assert.deepStrictEqual(confirm, { kind: 'response', result: { phase: 'confirm' } }, 'confirm 成功必须返回冻结 response union')
-  assert.deepStrictEqual(calls[1], {
+  assert.deepStrictEqual(calls[3], {
     name: 'getAdvice',
     data: { mode: 'confirm', candidateId: 'builtin-route:武功山', date: '2026-08-07', level: '中级', days: 1, routeType: 'trek', startTimeLocal: '07:00' },
   }, 'confirm 请求体只能包含冻结字段并跳过 undefined')
 
   const advice = await service.advice('tctx_123', { route: 'must-not-send', baseData: { forged: true } })
   assert.deepStrictEqual(advice, { kind: 'response', result: { phase: 'advice' } }, 'advice 成功必须返回冻结 response union')
-  assert.deepStrictEqual(calls[2], { name: 'getAdvice', data: { mode: 'advice', queryId: 'tctx_123' } }, 'advice 请求必须只有 mode/queryId')
+  assert.deepStrictEqual(calls[4], { name: 'getAdvice', data: { mode: 'advice', queryId: 'tctx_123' } }, 'advice 请求必须只有 mode/queryId')
 
   const failedService = createGetAdviceService({
     callFunction() {
@@ -275,10 +289,18 @@ function assertPageWiring() {
   assert(!pageSource.includes('showManualCoords:'), '页面不得保留顶层 showManualCoords 或其写入')
   assert(!pageSource.includes('manualPopupVisible ||'), '手动 Popup 不得叠加页面局部可见性')
   assert(pageSource.includes('_openManualFallback(error)'), '本地无效手动上下文必须经 reducer 打开 fallback')
+  const submitStart = pageSource.indexOf('onSubmit = () =>')
+  const submitEnd = pageSource.indexOf('_updateTripFlow(event', submitStart)
+  const submitSource = pageSource.slice(submitStart, submitEnd)
+  assert(submitStart >= 0 && submitEnd > submitStart, 'onSubmit 手动分支源码边界必须可切出')
+  assert(/if\s*\(\s*manualContextActive\s*\)/.test(submitSource), 'onSubmit 必须包含手动上下文分支')
+  assert(/manualElevation:\s*elevation\.provided\s*\?\s*elevation\.value\s*:\s*undefined/.test(submitSource), 'onSubmit 手动分支必须按 provided 传递海拔')
   const manualSubmitStart = pageSource.indexOf('onManualSubmit = () =>')
   const manualSubmitEnd = pageSource.indexOf('onManualClose =', manualSubmitStart)
   const manualSubmitSource = pageSource.slice(manualSubmitStart, manualSubmitEnd)
+  assert(manualSubmitStart >= 0 && manualSubmitEnd > manualSubmitStart, 'onManualSubmit 源码边界必须可切出')
   assert(!manualSubmitSource.includes('showManualCoords'), 'onManualSubmit 必须通过 BEGIN_PREPARE 关闭 reducer Popup，而非页面局部状态')
+  assert(/manualElevation:\s*elevation\.provided\s*\?\s*elevation\.value\s*:\s*undefined/.test(manualSubmitSource), 'onManualSubmit 必须按 provided 传递海拔')
   assert(pageSource.includes("error === 'location_failed' || error === 'route_not_found'"), 'location_failed 与 route_not_found 都必须打开手动 fallback')
   assert(pageSource.includes("type: 'ROUTE_TYPE_REQUIRED', token: generation, routeTypeRequest: null, error: flowError"), 'route_not_found fallback 必须保留错误并进入统一类型选择状态')
   assert(pageSource.includes('candidate.fixedDays') && pageSource.includes('固定${candidate.fixedDays}天（只读）'), '完整候选必须渲染服务端固定天数，不提供可编辑输入')

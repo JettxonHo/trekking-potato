@@ -314,7 +314,9 @@ async function main() {
     assert('onManualSubmit 激活 manualContextActive: true', /manualContextActive:\s*true/.test(manualSubmitBody), 'onManualSubmit 方法体未激活手动上下文')
 
     const submitBaseBody = extractBody(jsx, /_submitBase\(params\)\s*\{/)
-    assert('手动坐标兜底仅由 location_failed 触发（invalid_route_type 不进入）', /error\s*===\s*'location_failed'/.test(submitBaseBody), submitBaseBody.substring(0, 200))
+    assert('手动坐标兜底同时支持 location_failed 与 route_not_found（invalid_route_type 不进入）',
+      /error\s*===\s*'location_failed'\s*\|\|\s*error\s*===\s*'route_not_found'/.test(submitBaseBody)
+      && !/error\s*===\s*'invalid_route_type'/.test(submitBaseBody), submitBaseBody.substring(0, 200))
 
     const restoreBody = extractBody(jsx, /onRestoreHistory\s*=\s*\(record\)\s*=>/)
     assert("历史恢复检查 routeTypeSource === 'user'", /routeTypeSource\s*===\s*'user'/.test(restoreBody), 'onRestoreHistory 方法体未找到来源检查')

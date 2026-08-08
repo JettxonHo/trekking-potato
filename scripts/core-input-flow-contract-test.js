@@ -21,6 +21,12 @@ function makeWeather(dataStatus = 'complete') {
   }
 }
 
+function assertGearProjection(base, label) {
+  for (const category of ['essential', 'recommended', 'optional']) {
+    assert.deepEqual(base.minimumGear[category], base.gearRules[category], `${label} ${category} 必须与兼容 gearRules 完全一致`)
+  }
+}
+
 async function main() {
   const catalog = createProductionRouteCatalog()
   const variant = catalog.variants.find((item) => item.capability === 'full')
@@ -49,11 +55,7 @@ async function main() {
   assert.equal(full.trustedBaseData.weather.timezone, 'Asia/Shanghai')
   assert.equal(typeof full.trustedBaseData.weather.elevationCaveat, 'string')
   assert.equal(typeof full.trustedBaseData.weather.precipNote, 'string')
-  assert.deepEqual(full.trustedBaseData.minimumGear, {
-    essential: full.trustedBaseData.gearRules.essential,
-    recommended: full.trustedBaseData.gearRules.recommended,
-    optional: full.trustedBaseData.gearRules.optional,
-  })
+  assertGearProjection(full.trustedBaseData, 'full')
 
   const climb = catalog.variants.find((item) => {
     const routeItem = catalog.routes.find((candidate) => candidate.id === item.routeId)
@@ -113,6 +115,7 @@ async function main() {
   assert.equal(placeOnly.kind, 'built')
   assert.equal(placeOnly.trustedBaseData.routeSnapshot.capability, 'place_only')
   assert.equal(placeOnly.trustedBaseData.deterministicResult.verdict, null)
+  assertGearProjection(placeOnly.trustedBaseData, 'place-only')
   assert.equal(calls.referenceWeather, beforePlaceOnly + 1)
 
   const blockedVariant = catalog.variants.find((item) => item.capability === 'blocked')
@@ -127,6 +130,7 @@ async function main() {
   assert.equal(blocked.trustedBaseData.weather, null, '禁行路线兼容天气必须为空')
   assert.deepEqual(blocked.trustedBaseData.gearRules.fatalRisks, ['官方禁行'])
   assert.ok(blocked.trustedBaseData.gearRules.ruleNotes.some((note) => note.includes('官方禁行')))
+  assertGearProjection(blocked.trustedBaseData, 'blocked')
   assert.equal(calls.routeWeather, beforeBlocked.routeWeather)
   assert.equal(calls.referenceWeather, beforeBlocked.referenceWeather)
   assert.equal(calls.gear, beforeBlocked.gear)
