@@ -1,7 +1,7 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `ACTIVE — M6 I21 IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — M6 I21 APPROVED_PR_PENDING`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
@@ -11,8 +11,9 @@ official/operator material governs management and restriction facts while Sol-re
 may provide geometry for the routes they actually record. Five full reviewed-track Variants and one Wutai
 blocked record are merged through PRs #79–#82/#87. I13's permanent-ID catalog resolver merged through
 PRs #88/#89 as `c5d7d7c`, closing #22 and M3. I20's reducer/service seam merged through PRs #70/#71.
-M6 is now at I21 implementation. The human released the earlier pause, replaced the temporary Terra
-fallback with the exact custom Agent `luna-worker`, and planning PR #90 merged as `c817bbb`.
+M6 is now at I21 merge readiness. The human released the earlier pause, replaced the temporary Terra
+fallback with the exact custom Agent `luna-worker`, and planning PR #90 merged as `c817bbb`. I21 implementation
+and two bounded Review-fix rounds are complete; two independent Sol final reviews returned `APPROVED`.
 
 ## 1. Objective
 
@@ -52,7 +53,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M3 Route domain | Complete | I07–I13 | Domain model, five sourced variants, blocked record and permanent resolver are merged |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
-| M6 Core UX | Active — I21 implementation | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
+| M6 Core UX | Active — I21 approved; PR merge pending | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10a's

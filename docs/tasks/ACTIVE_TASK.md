@@ -3,10 +3,10 @@
 - Task ID: `I21`
 - GitHub Issue: `#30`
 - Title: 实现搜索、确认与行程输入流程
-- Status: `REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`
-- Mode: `REVIEW_FIX`
+- Status: `CONTROLLER_APPROVED — PR_MERGE_PENDING`
+- Mode: `FINAL_REVIEW`
 - Owner: Sol XHigh
-- Implementation Agent: `luna-worker`
+- Implementation Agent: `luna-worker`（已完成并停止修改）
 - Planning branch: `codex/i21-core-flow-contract`
 - Planning PR: `#90` (merged as `c817bbb`; latest-head quality passed)
 - Implementation branch: `codex/30-core-input-flow`
@@ -373,3 +373,15 @@ git diff --check
   `test:trip-flow`、`test:route-resolver`、`test:hourly-weather`、`test:trip-verdict`、`npm test`、
   `test:integration`（56/0）、`lint`（0 errors/10 existing warnings）、`typecheck`、`build:weapp`、
   `git diff --check` 全部通过。PR #93 latest-head GitHub quality check 为 CI 事实源；不写入 Actions run ID。
+
+## 15. Sol 最终 Review 与合并门
+
+- Two independent Sol XHigh final reviews inspected `c817bbb..3f04498` and returned `APPROVED`; P0–P3
+  无 finding。主控读取实际 diff，并复跑 core/response/confirmation/trip-flow 与 diff check。
+- 已关闭：天气兼容形状、I13 legacy candidate 泄漏、稳定测试时钟、验收矩阵、fixedDays、零/负海拔、
+  route fallback、公共零副作用和三类装备投影证据。
+- 历史过程问题：初始 Review 中的 amend/force-with-lease 已记录；后续所有修复和合同提交均为追加提交，
+  没有再次改写历史。
+- 当前状态：`CONTROLLER_APPROVED — PR_MERGE_PENDING`。本节及 Goal/status 更新为 Sol-owned
+  controller checkpoint，不改变业务实现。必须等待该最新 head 的 GitHub `quality` 通过后才可 squash merge；
+  `luna-worker` 不得再修改、批准或合并。

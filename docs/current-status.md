@@ -2,13 +2,13 @@
 
 - Updated: `2026-08-08`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I21 REVIEW_FIX_ROUND_2 — READY_FOR_CONTROLLER_REVIEW_PENDING`
+- Goal status: `ACTIVE — M6 I21 APPROVED_PR_PENDING`
 - Active milestone: `M6 Core UX`
-- Active task: `I21 / #30 / REVIEW_FIX_ACTIVE — READY_FOR_CONTROLLER_REVIEW_PENDING`
+- Active task: `I21 / #30 / CONTROLLER_APPROVED — PR_MERGE_PENDING`
 - Branch: `codex/30-core-input-flow`
 - Base: `main` at `c817bbb`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
-- Assignment: `luna-worker` completed the bounded round-2 test repair; Sol XHigh owns independent Review and merge authority
+- Assignment: `luna-worker` completed and stopped; Sol XHigh approved and owns the pending merge
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -636,8 +636,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol XHigh independently reviews the additive round-2 evidence on PR #93.
-2. Require latest-head CI and explicit Sol Review before any merge.
+1. Require latest-head CI on the controller-approved PR #93 checkpoint.
+2. Squash merge only if the check remains green and PR head is unchanged.
 
 ## Blockers and risks
 
@@ -670,10 +670,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-The bounded I21 Review-fix round 2 is complete on `codex/30-core-input-flow`; return to independent Sol
-Review with the full local gate evidence below. If the same frozen acceptance still fails after this round,
-stop local patching and escalate to the human. Do not start I22/I23 before I21 is accepted; do not automatically
-route implementation to Terra.
+Two independent Sol final reviews approved I21 with no P0–P3 findings. Push this controller-owned approval
+checkpoint, require latest-head GitHub quality, then squash merge PR #93 if the head is unchanged. Do not start
+I22/I23 before the merge; do not automatically route implementation to Terra.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
@@ -748,3 +747,12 @@ route implementation to Terra.
   persisted in this checkpoint.
 - Stop rule: if the same frozen acceptance remains unsatisfied after round 2, escalate to the human instead
   of beginning a third local repair round.
+
+## I21 final Review checkpoint — 2026-08-08
+
+- Review result: two independent Sol XHigh reviewers returned `APPROVED`; no P0–P3 findings remain.
+- Current status: `CONTROLLER_APPROVED — PR_MERGE_PENDING`.
+- Merge gate: this controller-owned documentation checkpoint changes no business code; its latest-head GitHub
+  quality must pass before squash merge. PR check remains the CI fact source, so no run ID is persisted here.
+- Historical force-push incident remains disclosed; subsequent implementation, tests, Review-fix and controller
+  commits are additive.
