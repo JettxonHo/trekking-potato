@@ -10,6 +10,7 @@
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page; contract Review approved
+- I22 planning PR: `#96` — open at `9ddf260`; latest-head GitHub `quality` passed in 62 seconds
 - Assignment: Sol XHigh owns the planning PR; no implementation Agent is active
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
@@ -639,8 +640,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Publish the independently approved #31/#94/#95 contracts in one pure planning PR.
-2. Require latest-head quality and Sol Review, then merge before implementation dispatch.
+1. Complete independent Sol actual-diff Review of planning PR #96.
+2. If the reviewed head remains unchanged and quality stays green, squash merge before implementation dispatch.
 
 ## Blockers and risks
 
@@ -674,8 +675,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Publish the independently approved I22 contracts from `main@be24b07` as a pure planning PR, require latest-head
-quality and controller Review, then squash merge. Do not dispatch `luna-worker` before that merge and do not automatically
+Planning PR #96 at `9ddf260` has passed latest-head quality. Complete independent actual-diff Review, then squash
+merge only if the head is unchanged. Do not dispatch `luna-worker` before that merge and do not automatically
 route implementation to Terra.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
@@ -787,4 +788,5 @@ route implementation to Terra.
   decision is required.
 - Pure-planning baseline: root `npm test`, integration `56/0`, lint `0 errors / 10 existing warnings`, typecheck,
   host Taro 4.0.9 `build:weapp` and `git diff --check` pass. No implementation Agent is active.
-- Current gate: create the planning PR, require latest-head GitHub quality and Sol approval, then squash merge.
+- Planning PR #96 was created at `9ddf260`; latest-head GitHub quality passed in 62 seconds. Current gate is the
+  independent actual-diff Review and unchanged-head squash merge.

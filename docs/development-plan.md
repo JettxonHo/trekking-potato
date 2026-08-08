@@ -317,7 +317,7 @@ I20 implementation 已完成 RED→GREEN：新增 reducer/service、最小页面
 I05/I18 的页面静态断言迁移到 reducer token/service seam。Sol 两轮 Review 后批准，
 PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29 关闭。
 
-## 17. I21 依赖门与原子交付
+## 17. I21 依赖门与原子交付（已完成历史）
 
 - I21 不拆分为“前端先加控件”或“后端先强制字段”的可合并子 Issue。前者会让
   `startTimeLocal/climbSupport` 被生产 handler 忽略，后者会让当前页面无法提交。
@@ -326,9 +326,9 @@ PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29
   固定天数、放行自由 1–7 天和是否必须收集 climb support。
 - I13 合并后，I21 以一个原子垂直 PR 同时交付：输入 UI、`prepare/confirm` 请求、服务端
   `date/startTimeLocal/level/days/climbSupport` 校验、确认快照、TripContext requestSummary 和回归测试。
-- I13 implementation PR #89 passed latest-head quality and merged as `c5d7d7c`; #22 closed and M3 is
-  complete. #30 is planned and unblocked. The earlier implementation pause is released; implementation
-  begins only after the routing-synchronized planning PR #90 merges.
+- I13 implementation PR #89 passed latest-head quality and merged as `c5d7d7c`; #22 closed and M3 completed.
+  I21 planning PR #90 then merged as `c817bbb`; implementation PR #93 passed latest-head quality and two
+  independent Sol Reviews, squash merged as `be24b07`, and closed #30.
 - I21 removes the obsolete public `mode='base'` alias and performs one vertical cutover. It preserves
   the ten I20 states and reuses `awaiting_route_type` for place-only/manual type selection.
 - The form shows daily departure time (default `08:00`) and a clearly labelled technical-climb support
@@ -344,9 +344,9 @@ PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29
 - The implementation seam is one new injected `trip-base.js` orchestration module plus the public handler,
   TripContext store and page wiring. It owns target-to-BaseData construction and the one-way compatibility
   projection; `index.js` retains authentication, public mode routing, persistence and advice orchestration.
-- #30's contract is frozen in `docs/tasks/ACTIVE_TASK.md`. Planning may be published for review now; branch
-  creation and TDD implementation begin only after planning PR #90 merges; I21 is assigned to the exact
-  custom Agent `luna-worker`, with no automatic Terra fallback.
+- #30's completed contract/history remains in GitHub #30, PRs #90/#93 and the decision/status records; the active
+  task file now belongs to I22. I21 was executed by the exact custom Agent `luna-worker`; Terra was not used as
+  an automatic fallback.
 
 ## 18. I22 可信来源与结构化结果体验
 
