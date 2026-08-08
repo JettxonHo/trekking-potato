@@ -1,0 +1,48 @@
+# I22b 结构化结果页验证记录
+
+- Issue: `#95 / I22b`
+- Branch: `codex/95-structured-result-page`
+- Base: `main@6e12f25`; activation `8bf0ef6`
+- Model boundary: `taro-app/src/pages/index/result-page-model.js`
+- Visual verification status: `UNVERIFIED_RUNTIME_TOOL`
+
+## Fixture capability matrix
+
+| Fixture | capability | verdict | dataStatus | AI state | Required visible assertions | Screenshot |
+| --- | --- | --- | --- | --- | --- | --- |
+| full/go | `full` | `go / 建议出发` | `complete` | `loading` then `ready` | route name/region/type/fixed days/highest point; every day/sample/hour; WMO condition; average wind and gust; minimum gear; route/weather sources | not captured |
+| full/caution + AI degraded | `full` | `caution / 谨慎出发` | `complete` | `unavailable` | deterministic reasons remain; AI supplement unavailable copy; minimum gear and weather remain visible; no AI verdict/weather override | not captured |
+| blocked/no_go | `blocked` | `no_go / 暂不建议` | `complete` | `unavailable` or no request | official restriction; `官方禁行，本次未请求天气`; no weather readings; route source card | not captured |
+| place-only/null | `place_only` | `null / 暂无法判断` | `place_only` | `ready` or `unavailable` | place reference weather only; explicit non-complete-route boundary; no route-hourly claim; null/zero elevation preserved | not captured |
+
+The pure contract fixture covers all four rows and asserts the visible model facts, including `no_go + insufficient`,
+known/unknown data-issue labels, source URL `null`, WMO normal/freezing/snow/thunderstorm groups, checklist state,
+cache normalization and private history-context isolation.
+
+## Visual-tool attempt
+
+The installed WeChat DevTools app was detected at `/Applications/wechatwebdevtools.app`. On 2026-08-08 the available
+Computer Use session attempted to open that app, but the tool returned this exact blocker:
+
+> The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock the Mac manually before continuing.
+
+The four screenshots are therefore intentionally not fabricated and no production mock switch was added. A controller
+or human with an unlocked Mac must rerun the four local-debug fixtures and add images under `docs/evidence/i22/` before
+visual acceptance. Build success below is not visual evidence.
+
+## Automated evidence
+
+- `npm run test:result-page` — PASS
+- `npm run test:trip-flow` — PASS
+- `npm run test:core-input-flow` — PASS
+- `npm run test:response` — PASS
+- `npm run test:confirmation` — PASS
+- `npm run test:trip-context` — PASS
+- `npm run test:hourly-weather` — PASS
+- `npm run test:trip-verdict` — PASS
+- `npm test` — PASS
+- `npm run test:integration` — PASS (`56/0`)
+- `npm run lint` — PASS (`0` errors; existing warnings only)
+- `npm run typecheck` — PASS
+- `npm run build:weapp` — PASS (host build)
+- `git diff --check` — PASS

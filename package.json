@@ -23,6 +23,7 @@
     "test:trip-verdict": "node scripts/trip-verdict-contract-test.js",
     "test:trip-context": "node scripts/trip-context-contract-test.js",
     "test:trip-flow": "node scripts/trip-flow-contract-test.js",
+    "test:result-page": "node scripts/result-page-contract-test.js",
     "test:verdict": "node scripts/weather-verdict-contract-test.js",
     "test:unit": "node scripts/unit-test.js",
     "typecheck": "tsc --project tsconfig.quality.json"

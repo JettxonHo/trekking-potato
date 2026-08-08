@@ -280,6 +280,14 @@ async function assertService() {
 function assertPageWiring() {
   const pageSource = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
   assert(pageSource.includes("require('./trip-flow')") && pageSource.includes("require('./get-advice-service')"), '页面必须接入 reducer 与 service 模块')
+  assert(pageSource.includes("require('./result-page-model')"), '页面必须接入纯结构化 result-page model')
+  assert(pageSource.includes('buildResultPageModel({ result, flowStatus: tripFlow.status, flowError: tripFlow.error })'), '结果页必须由 flow status/error 投影结构化模型')
+  assert(pageSource.includes('captureHistoryContext(base)'), 'historyContext 必须在 base 到达时捕获')
+  assert(pageSource.includes('mergeAdviceResult(base, d, degraded)'), 'advice 必须进入独立 AI namespace')
+  assert(pageSource.includes('version: CACHE_VERSION'), '结构化结果缓存必须带版本')
+  assert(pageSource.includes('gearChecked: {}'), '缓存恢复与新 base 必须清空页面 checklist')
+  assert(!pageSource.includes('const weather = d.weatherWindow'), '结果页不得从 compatibility weatherWindow 渲染')
+  assert(!pageSource.includes('const meta = d.meta'), '结果页不得从 compatibility meta 渲染')
   assert(!pageSource.includes('_requestGeneration'), '页面不得保留私有 generation 双写')
   for (const field of ['loading:', 'showResult:', 'adviceLoading:', 'showCandidatePopup:', 'candidateSnapshot:', 'pendingResolvedLocation:']) {
     assert(!pageSource.includes(field), '页面顶层 state 不得保留旧流程字段: ' + field)

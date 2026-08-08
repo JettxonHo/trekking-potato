@@ -832,3 +832,18 @@ dispatch only #95 to exact `luna-worker`. The executor must not approve or merge
   recorded by the spawned agent. Terra is not an authorized fallback.
 - No implementation Agent is active until this controller activation commit is pushed. The #95 allowlist is
   frontend result model/page/CSS, focused tests, verification evidence, package command and two status documents.
+
+## I22b implementation handoff checkpoint — 2026-08-08
+
+- #95 implementation is complete within the allowlist on `codex/95-structured-result-page`: pure CommonJS
+  structured result projection, deterministic route/verdict/reasons/dataIssues/weather/source/minimum-gear cards,
+  AI-only additive namespace, private five-field history capture, checklist lifetime and versioned cache behavior.
+- TDD evidence includes the real pre-module `MODULE_NOT_FOUND` RED and focused GREEN. Required focused/full/
+  integration/lint/typecheck/host-build/diff commands pass; offline integration is `56/0`, lint has no errors and
+  only the repository's existing warnings.
+- Visual status is `UNVERIFIED_RUNTIME_TOOL`, not accepted as complete: WeChat DevTools exists, but Computer Use
+  returned `The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock the Mac manually
+  before continuing.` No screenshots or production mock switch were fabricated. An unlocked-Mac rerun must add the
+  four fixture screenshots under `docs/evidence/i22/`.
+- Handoff: `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER`; Sol XHigh owns independent review, CI interpretation,
+  approval and merge. I23/retry/recovery remains blocked and untouched.

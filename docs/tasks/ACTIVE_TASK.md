@@ -3,7 +3,7 @@
 - Goal: `TP-BETA-001`
 - Parent: `I22 / #31`
 - GitHub Issue: `#95`
-- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER / IMPLEMENTATION`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
 - Branch: `codex/95-structured-result-page`
@@ -151,3 +151,16 @@ configured `gpt-5.6-luna` / `max`; `CONFIG_VERIFIED`; runtime status recorded af
 
 Deliver code, tests, real RED/GREEN, all gates, four screenshots, verification/status docs, result package and
 focused PR. Return `READY_FOR_CONTROLLER_REVIEW`; do not approve or merge.
+
+## 10. I22b implementation handoff — 2026-08-08
+
+- Structured result-page model, page projection, checklist lifetime, cache cutover and AI namespace isolation are
+  implemented within the allowlist. The real pre-module `MODULE_NOT_FOUND` RED and focused GREEN are recorded in
+  `docs/i22-result-page-verification.md`.
+- All required automated commands pass, including root tests, offline integration `56/0`, lint with existing
+  warnings only, typecheck, host build and diff check. No production mock switch or unrelated file was added.
+- Visual evidence is `UNVERIFIED_RUNTIME_TOOL`: WeChat DevTools is installed, but Computer Use returned the exact
+  blocker `The Mac is locked and automatic unlock could not unlock it. Ask the user to unlock the Mac manually
+  before continuing.` Four screenshot files are intentionally absent and must be captured on an unlocked Mac.
+- Handoff status: `READY_FOR_CONTROLLER_REVIEW_WITH_VISUAL_BLOCKER`. Sol XHigh retains review, approval and merge
+  authority; I23/retry work remains out of scope.
