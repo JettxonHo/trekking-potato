@@ -24,7 +24,7 @@ Issue：I23b / #100
 | full/place-only 天气可重试，blocked/out_of_range 不盲重试 | `assertWeatherAndSaveRecovery`：retryable issue、place-only 边界、blocked/out_of_range no-op |
 | 历史保存一次 intent、同一 frozen payload/ID 串行重试 | `assertWeatherAndSaveRecovery`：in-flight guard、failure→retry byte-equivalent、new identity |
 | history list 单调 token、失败保留旧项、close/stale callback 失效 | `assertHistoryListRecovery`：newer/closed response rejected |
-| 真实页面接线必须经过纯 seam | `assertPageWiring` 与 `test:trip-flow`/`test:result-page` 静态边界断言 |
+| 真实页面接线必须经过纯 seam | `assertMutationSensitivePageWiring` 的有限方法/分支提取与代表性 mutation RED；`test:trip-flow`/`test:result-page` 保留模块边界断言 |
 
 `trip-flow-contract-test.js` 额外验证 `refreshing` selector，并保留 location/manual fallback、
 service payload 与 I20 token no-op 证据；`result-page-contract-test.js` 保留结构化结果和历史 DTO
@@ -37,7 +37,8 @@ service payload 与 I20 token no-op 证据；`result-page-contract-test.js` 保�
 - 只在 BaseData 失败时清除 pending：`assertRequestSlots` 失败。
 - 移除 `sameHistorySaveIdentity`/in-flight guard：冻结 payload 或单请求断言失败。
 - 移除 history list token/close guard：stale/newer/closed callback 断言失败。
-- 删除页面 recovery require、replay、retry handler 或 prefill reset marker：`assertPageWiring` 失败。
+- 删除页面 recovery require、replay、retry handler、prefill reset 或 loading/render 分支：
+  `assertMutationSensitivePageWiring` 的对应代表 mutation 失败。
 
 ## 命令结果
 
@@ -61,7 +62,7 @@ git diff --check
 根 `npm test` 也包含 `test:recovery`。未运行微信开发者工具或 DevTools，因此本记录不声称截图或
 真实设备交互证据；视觉证据留给 I24/单独授权。
 
-## 短交互清单（待本地 DevTools/真机执行）
+## 短交互清单（待 I24c 本地 DevTools 执行）
 
 1. 触发 retryable full/place-only weather：点击“重新获取天气并判断/刷新地点天气”，确认旧结果、理由、装备、来源在局部刷新期间仍可见，并以新 queryId 完成。
 2. AI degraded：点击“重试 AI 补充”，确认仅发一次同 queryId advice，确定性页面/checklist 不变，历史不产生第二次保存。

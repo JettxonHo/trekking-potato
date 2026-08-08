@@ -2,20 +2,21 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I23b REVIEW_FIX_ACTIVE`
-- Active milestone: `M6 Core UX`
-- Active task: `I23b / #100 / REVIEW_FIX_ACTIVE`
-- Branch: `codex/100-frontend-recovery`
-- Base: `main` at `107fab4`
+- Goal status: `ACTIVE — M7 I24 PLANNING`
+- Active milestone: `M7 Acceptance`
+- Active task: `I24 / #33 / CONTRACT_REVIEW`
+- Branch: `codex/33-beta-acceptance-plan`
+- Base: `main` at `097c921`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page — all closed
 - I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
 - I22a implementation PR: `#97` — squash merged as `6e12f25`; GitHub #94 closed
 - I22b implementation PR: `#98` — squash merged as `852e86d`; GitHub #95 and parent #31 closed
-- Assignment: exact custom Agent `luna-worker` owns the final bounded PR #103 Review-fix round 2; Terra fallback remains unauthorized
+- Assignment: no implementation Agent is active during I24 planning; future bounded implementation uses exact custom Agent `luna-worker`; Terra fallback remains unauthorized
 - I23 planning PR: `#101` — latest-head quality and independent actual-diff Review passed; squash merged as `a12ab46`
 - I23a PR: `#102` — latest-head quality and independent Sol re-review passed; squash merged as `107fab4`; #99 closed
+- I23b PR: `#103` — latest-head quality and two independent Sol Reviews passed; squash merged as `097c921`; #100 and parent #32 closed
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -146,9 +147,9 @@
   squash merged as `8387554`; production date validation was not changed.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
-M1–M5 and I20–I22 are complete. I22b PR #98 passed latest-head quality, full local DevTools evidence and
-independent Sol Review, squash merged as `852e86d`, and closed #95 plus parent #31. I23 planning PR #101 and
-I23a PR #102 are merged. M6 is now at I23b/#100 implementation from `main@107fab4`.
+M1–M6 are complete. I23b PR #103 passed latest-head quality and two independent Sol Reviews, squash merged as
+`097c921`, and closed #100 plus parent #32. M7 is active at I24/#33 contract planning; no I24 implementation has
+started and no implementation Agent is active.
 
 ## Completed
 
@@ -636,15 +637,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Agent assignments
 
 - Sol XHigh: controller, contract owner, independent reviewer and merge authority.
-- `luna-worker`: assigned I23b executor after the controller activation commit; configuration verified as `gpt-5.6-luna` with `max` reasoning.
+- `luna-worker`: not active during I24 planning; reserved for the first bounded child only after its reviewed contract
+  and exact allowlist are activated. Configuration remains `gpt-5.6-luna` with `max` reasoning.
 - First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
-- Independent Sol XHigh: reserved for the implementation PR Review; no implementation authority.
+- Independent Sol XHigh: reviewing the I24 planning diff; no implementation authority.
 
 ## Open work
 
-1. Commit/push the controller I23b activation checkpoint and synchronize live #32/#100.
-2. Dispatch exact `luna-worker` for #100; implement, test and independently Review I23b before closing parent #32.
+1. Finish and independently Review the pure-document I24 planning diff; publish and merge its focused PR.
+2. Create the three serial child Issues with exact contracts/allowlists, then activate only I24a for `luna-worker`.
 
 ## Blockers and risks
 
@@ -670,17 +672,18 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   adds display-safe provenance before #95 consumes it.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I23 planning/implementation
+## Forbidden actions during I24 planning
 
 - Changing deterministic verdicts, route/weather facts, minimum gear, source policy, getAdvice phases or the ten states.
-- Adding history replay fields, queryId to cache/history, data migration/index, dependencies, background retry loops,
-  public UGC, broad visual redesign, deployment or production configuration.
-- Expanding #100 beyond its frozen frontend recovery allowlist or changing the accepted I23a primitive.
+- Starting I24a/I24b/I24c before the planning PR and exact child contract merge/activation gates.
+- Adding history fields, migrations/indexes, dependencies, public UGC, broad visual redesign, deployment, production
+  configuration or permanent fixture/debug paths.
 
 ## Next action
 
-Commit and push the controller activation checkpoint, then dispatch only I23b/#100 to exact `luna-worker`.
-The executor cannot approve/merge and Terra remains unauthorized.
+Obtain independent actual-diff approval, commit/push the planning branch and open its focused PR. After latest-head
+quality and Sol approval, merge it, create the serial child Issues and activate only I24a. No executor is active;
+future executors cannot approve/merge and Terra remains unauthorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
@@ -1051,3 +1054,25 @@ The executor cannot approve/merge and Terra remains unauthorized.
   normal push and latest-head Actions; if the same finding repeats, escalate to the human.
 - Final-round local results: `npm test` PASS; integration `56/0`; lint 0 errors/9 existing warnings; typecheck,
   `build:weapp`, `git diff --check`, and focused trip-flow/result-page/recovery/response/trip-context/history PASS.
+
+## M6 completion / I24 planning checkpoint — 2026-08-09
+
+- PR #103 exact latest head passed GitHub `quality`; two independent Sol Reviews returned `APPROVED` with no
+  P0–P3 finding. Sol squash merged it as `097c921` and closed #100 plus parent #32. M6 is complete.
+- Independent I24 audits confirm that current local gates pass, but the existing offline integration suite still
+  exercises the legacy three-route daily-weather pipeline rather than all five RouteVariant public
+  `prepare -> queryId -> advice` flows. Existing I22 screenshots also predate I23 recovery controls.
+- I24/#33 is split into three serial, independently reviewable children after this planning PR merges:
+  I24a retires BaseData compatibility aliases through structured `beta_base_v2` advice/history adapters; I24b adds
+  a table-driven five-pilot public acceptance contract; I24c performs temporary-fixture DevTools validation,
+  fixture-free rebuild/import, evidence capture and final documentation sync.
+- I24a must merge before I24b, and I24b before I24c. A failure found by I24b in production code becomes a focused
+  Bug Issue/PR instead of expanding the test PR. I24c fixture code is temporary and cannot remain in source,
+  package/config or normal build output.
+- No human product decision is currently required. Real CloudBase, real paid APIs, device testing, deployment and
+  real beta users remain outside TP-BETA-001. A locked or unavailable local DevTools runtime is reported as
+  `UNVERIFIED_RUNTIME_TOOL`; it cannot be disguised as passed evidence and does not by itself expand the code-ready
+  Goal into mandatory executed GUI testing.
+- Current planning branch is `codex/33-beta-acceptance-plan` from exact `main@097c921`. The next action is to finish
+  the durable task contracts, publish a pure-document planning PR, obtain independent actual-diff Review and merge
+  it. Only then may Sol create the three child Issues and activate I24a for exact custom Agent `luna-worker`.

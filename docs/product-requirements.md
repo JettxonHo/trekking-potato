@@ -65,8 +65,9 @@
 完成独立 Review、latest-head quality 与合并；五条 full Variants 和五台 blocked 记录均已在 main。
 I13 永久 ID resolver 已通过 PRs #88/#89 合并并关闭 #22；M3 已完成。I21 公共输入接线通过规划
 PR #90 与实现 PR #93 合并为 `be24b07`，GitHub #30 已关闭。I22 的可信来源与结构化结果页通过
-PRs #96–#98 合并，#94/#95/parent #31 已关闭。当前阶段是 I23 降级恢复合同规划；后续边界明确
-实现只交准确自定义 Agent `luna-worker`，不得自动回退 Terra。
+PRs #96–#98 合并，#94/#95/parent #31 已关闭；I23a/I23b 又通过 PRs #102/#103 合并，#99/#100/parent
+#32 已关闭，M6 完成。当前阶段是 M7/I24 综合验收规划。后续边界明确实现只交准确自定义 Agent
+`luna-worker`，不得自动回退 Terra。
 
 ## 6. 隐私与信任
 

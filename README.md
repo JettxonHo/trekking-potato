@@ -12,7 +12,9 @@
 
 ## 项目状态
 
-项目正在执行 `TP-BETA-001`，目标是交付代码层面的核心闭测就绪版本。M1 工程门禁已经完成，当前进入 M2 正确性阶段；路线确认、路线变体、小时天气、确定性结论、可信上下文和私人历史收敛仍在 Goal 内。
+项目正在执行 `TP-BETA-001`，目标是交付代码层面的核心闭测就绪版本。M1–M6 已完成：可信路线、
+小时天气、确定性结论、服务端 `queryId`、结构化结果、私人历史和显式恢复流程均已合并。当前进入
+M7 综合验收规划；部署、真实闭测和生产发布仍不属于本 Goal。
 
 - 当前产品入口：`taro-app/`
 - 云函数：`cloudfunctions/getAdvice/`、`cloudfunctions/history/`
@@ -117,9 +119,10 @@ corepack npm@10.9.2 run test:integration
 corepack npm@10.9.2 run build:weapp
 ```
 
-`test` 保留三个稳定契约脚本：路线 91/0、天气 86/0、单元 55/0。`test:integration`
-运行离线 E2E：Open-Meteo 使用固定 fixture，CloudBase 使用本地 mock，并覆盖当前
-`tripDays` 与 `routeType` 契约；它不会访问真实 Open-Meteo、CloudBase 或 DeepSeek。
+`test` 运行全部根级行为合同，包括路线、天气、判定、TripContext、公共响应、结构化结果和恢复流程。
+`test:integration` 当前保留早期离线 E2E 基线；M7 将另建当前五条 RouteVariant 的
+`prepare/confirm → queryId → advice` 跨层验收，不把旧三路线管线冒充最终 Beta 纵向证据。所有离线测试
+都使用 fixture/mock，不访问真实 Open-Meteo、CloudBase 或 DeepSeek。
 `lint` 以 ESLint flat config 检查云函数、Taro 源码和脚本，`typecheck` 用 TypeScript
 的 `allowJs`、`checkJs`、`noEmit` 与 `skipLibCheck` 检查两个云函数和 Taro 源码。
 每个 Pull Request 还会运行同一组 GitHub `quality` 检查；`main` 要求通过 PR 和

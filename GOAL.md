@@ -1,7 +1,7 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `ACTIVE — M6 I23b IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — M7 I24 PLANNING`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
@@ -11,12 +11,14 @@ official/operator material governs management and restriction facts while Sol-re
 may provide geometry for the routes they actually record. Five full reviewed-track Variants and one Wutai
 blocked record are merged through PRs #79–#82/#87. I13's permanent-ID catalog resolver merged through
 PRs #88/#89 as `c5d7d7c`, closing #22 and M3. I20's reducer/service seam merged through PRs #70/#71.
-M6 is now at I23b implementation. The human released the earlier pause, replaced the temporary Terra
-fallback with the exact custom Agent `luna-worker`, and planning PR #90 merged as `c817bbb`. I21 implementation
-and two bounded Review-fix rounds passed two independent Sol final reviews, latest-head quality, and squash
-merged through PR #93 as `be24b07`; GitHub #30 is closed.
+M6 is complete. The human released the earlier pause and replaced the temporary Terra fallback with the exact
+custom Agent `luna-worker`. I21 implementation and two bounded Review-fix rounds passed two independent Sol final
+reviews, latest-head quality, and squash merged through PR #93 as `be24b07`; GitHub #30 is closed.
 I22b PR #98 then passed two bounded Review-fix rounds, complete local WeChat DevTools visual evidence,
 latest-head quality and independent Sol Review, and squash merged as `852e86d`; #95 and parent #31 are closed.
+I23a private-history idempotency merged through PR #102 as `107fab4`; I23b bounded recovery passed two independent
+final Reviews and merged through PR #103 as `097c921`. #99, #100 and parent #32 are closed. M7 now begins with
+I24 planning; no new implementation is dispatched until its serial child contracts pass planning Review.
 
 ## 1. Objective
 
@@ -34,8 +36,9 @@ remains. I20's explicit reducer and getAdvice service seam is complete. I13 now 
 and pure resolver;
 I21's dependency was satisfied and its public cutover is merged through PR #93. I22 planning PR #96 merged as
 `ac4ba9e`; I22a PR #97 passed latest-head quality and independent Sol Review, merged as `6e12f25`, and closed #94.
-I22b merged through PR #98 as `852e86d`. I23/#32 is now the only active planning scope over that accepted
-result experience; no implementation Agent is active until its serial child contracts pass Review and merge.
+I22b merged through PR #98 as `852e86d`. I23a/I23b merged through PRs #102/#103, completing the recovery flow.
+I24 is the only active planning scope; no implementation Agent is active until the I24 planning PR freezes and
+publishes its compatibility-cleanup, automated-acceptance and DevTools-evidence child contracts.
 
 Current verified baselines are route type `91/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 
@@ -58,16 +61,17 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M3 Route domain | Complete | I07–I13 | Domain model, five sourced variants, blocked record and permanent resolver are merged |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
-| M6 Core UX | Active — I23b implementation | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
-| M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
+| M6 Core UX | Complete | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
+| M7 Acceptance | Active — I24 planning | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10a's
 official Wutai blocked record remains complete; the former small-pilgrimage full route is superseded,
 and #77 delivered the reviewed KML-backed fifth plannable pilot. I13 PR #89 merged as `c5d7d7c` and
 closed #22, completing M3. I21 planning PR #90 merged as `c817bbb`; implementation PR #93 merged as
 `be24b07` and closed #30. I22 planning PR #96 merged as `ac4ba9e`; #94 merged as `6e12f25`; #95 and parent
-#31 closed after PR #98 merged as `852e86d`. I23/#32 is being split into serial history-idempotency and
-frontend-recovery children before any new implementation Agent is dispatched.
+#31 closed after PR #98 merged as `852e86d`. I23a/#99 and I23b/#100 then merged through PRs #102/#103 and parent
+#32 closed. I24/#33 is now being split into serial compatibility-cleanup, automated-acceptance and DevTools-evidence
+children before any new implementation Agent is dispatched.
 
 ## 6. Agent routing
 
