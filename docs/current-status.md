@@ -2,13 +2,13 @@
 
 - Updated: `2026-08-08`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I21 CONTRACT_APPROVED / ROUTING_MIGRATED`
+- Goal status: `ACTIVE — M6 I21 IMPLEMENTATION_ACTIVE`
 - Active milestone: `M6 Core UX`
-- Active task: `I21 / #30 / CONTRACT_APPROVED — ROUTING_MIGRATED / IMPLEMENTATION_PENDING`
-- Branch: `codex/i21-core-flow-contract`
-- Base: latest `main` at `8387554` after CI-fixture sync
-- I21 planning PR: `#90` — open; routing review approved; latest-head quality pending after base sync
-- Assignment: Sol XHigh owns contract and independent Review; `luna-worker` is reserved for implementation after merge
+- Active task: `I21 / #30 / IMPLEMENTATION_ACTIVE`
+- Branch: `codex/30-core-input-flow`
+- Base: `main` at `c817bbb`
+- I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
+- Assignment: `luna-worker` implements the frozen contract; Sol XHigh owns independent Review and merge authority
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -41,6 +41,7 @@
 - I13 planning PR: `#88` — merged as `5496956`
 - I13 implementation PR: `#89` — merged as `c5d7d7c`; GitHub #22 closed; M3 complete
 - CI date-fixture PR: `#92` — merged as `8387554`; GitHub #91 closed; latest-head quality passed
+- I21 planning PR: `#90` — merged as `c817bbb`; GitHub #30 activated for implementation
 - I21 contract branch: `codex/i21-core-flow-contract` from `c5d7d7c`; routing sync and planning merge pending
 - M3 source refresh PR: `#73` — merged as `31eab6d`; latest-head quality passed
 - User GPX audit PR: `#74` — merged as `97c6728`; latest-head quality passed
@@ -628,15 +629,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Agent assignments
 
 - Sol XHigh: controller, contract owner, independent reviewer and merge authority.
-- `luna-worker`: planned I21 executor; configuration verified as `gpt-5.6-luna` with `max` reasoning.
+- `luna-worker`: active I21 executor; runtime verified as `gpt-5.6-luna` with `max` reasoning.
 - First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
-- Independent Sol XHigh: reviewing the routing-migration documentation only; no business-code authority.
+- Independent Sol XHigh: reserved for the implementation PR Review; no implementation authority.
 
 ## Open work
 
-1. Require latest-head quality on the base-synchronized planning PR #90, then merge it.
-2. Create `codex/30-core-input-flow` from latest `main` and assign I21 to the exact custom Agent `luna-worker`.
+1. Execute the frozen I21 contract on `codex/30-core-input-flow` through the exact custom Agent `luna-worker`.
+2. Require complete local gates, latest-head CI and independent Sol Review before any merge.
 
 ## Blockers and risks
 
@@ -661,16 +662,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   protocol-incompatible main. I13 is now merged; I21 owns the atomic public cutover.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I21 handoff
+## Forbidden actions during I21 implementation
 
-- UI, cloud function, reducer, service or TripContext changes for I21
 - Temporary variants, cross-route fields, unreviewed tracks, nearby-peak geometry or treating
   absence of an official notice as `open`
 - I22/I23 work that depends on the absent trusted I21 result
 
 ## Next action
 
-Require latest-head quality on planning PR #90 after the merged #91 base sync. Then merge #90, create
-`codex/30-core-input-flow` from latest `main`, assign the exact custom Agent
-`luna-worker`, and begin the contract's TDD loop. Do not start I22/I23 before I21 is accepted; do not
-automatically route implementation to Terra.
+Dispatch the frozen #30 contract to the runtime-verified exact custom Agent `luna-worker` on
+`codex/30-core-input-flow` and begin the required TDD loop. Do not start I22/I23 before I21 is accepted;
+do not automatically route implementation to Terra.

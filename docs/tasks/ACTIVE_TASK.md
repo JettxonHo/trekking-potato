@@ -3,18 +3,18 @@
 - Task ID: `I21`
 - GitHub Issue: `#30`
 - Title: 实现搜索、确认与行程输入流程
-- Status: `CONTRACT_APPROVED — ROUTING_MIGRATED / IMPLEMENTATION_PENDING`
-- Mode: `IMPLEMENTATION`（尚未激活）
+- Status: `IMPLEMENTATION_ACTIVE`
+- Mode: `IMPLEMENTATION`
 - Owner: Sol XHigh
-- Planned implementation Agent: `luna-worker`
+- Implementation Agent: `luna-worker`
 - Planning branch: `codex/i21-core-flow-contract`
-- Planning PR: `#90` (open; routing Review approved; latest-head quality pending after #91 base sync)
-- Planned implementation branch: `codex/30-core-input-flow`
-- Planning base: `main` at `c5d7d7c`
+- Planning PR: `#90` (merged as `c817bbb`; latest-head quality passed)
+- Implementation branch: `codex/30-core-input-flow`
+- Implementation base: `main` at `c817bbb`
 - Goal: `TP-BETA-001`
 
-> 先前人工暂停已由模型路由纠偏指令解除。必须先合并规划 PR #90，再从最新 `main` 创建实现分支；
-> 只可把本合同交给准确自定义 Agent `luna-worker`，不得自动回退 Terra。
+> 先前人工暂停已解除，规划 PR #90 已合并，实现分支已从最新 `main` 创建。本合同只交给准确
+> 自定义 Agent `luna-worker`；不得自动回退 Terra。
 
 ## 1. 目标与背景
 
@@ -299,6 +299,6 @@ git diff --check
 
 合同已通过第三次聚焦独立 Review，P0–P3 无剩余 finding。人工已解除暂停并纠正实现模型路由。
 路由迁移文档也通过独立 Sol Review；日期夹具阻塞 #91 已由首次 runtime-verified `luna-worker`
-修复，并经 PR #92 通过 CI 与独立 Review 后合并。Sol 等待规划 PR #90 的最新质量门禁；合并后从
-最新 `main` 创建 `codex/30-core-input-flow`，再向准确自定义
-Agent `luna-worker` 下发本合同。不得自动回退 Terra。
+修复，并经 PR #92 通过 CI 与独立 Review 后合并。规划 PR #90 随后在最新 base 上通过质量门禁并
+合并为 `c817bbb`。当前从该 base 创建的 `codex/30-core-input-flow` 已激活，向准确自定义 Agent
+`luna-worker` 下发本合同。不得自动回退 Terra。
