@@ -1,137 +1,145 @@
-# ACTIVE TASK — I24a 结构化 advice/history 适配与兼容字段退役
+# ACTIVE TASK — I24b 五试点核心 Beta 自动化验收
 
 - Goal: `TP-BETA-001`
 - Parent: `I24 / #33`
-- GitHub Issue: `I24a / #105`
+- GitHub Issue: `I24b / #106`
 - Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
-- Branch: `codex/105-structured-advice-adapter`
-- Base: `main@6869a7b`
-- Dependencies: planning PR #104 merged; I24b/#106 and I24c/#107 blocked
+- Branch: `codex/106-beta-acceptance`
+- Base: `main@1a2f485`
+- Dependencies: I24a/#105 merged through PR #108 as `1a2f485`; I24c/#107 remains blocked
 
-## 1. Goal
+## 1. Goal and user value
 
-Retire the transitional BaseData compatibility projection so one structured server snapshot owns prompt grounding,
-safety projection, private-history facts and TripContext. Preserve product behavior while removing dual authority.
+Add an honest, deterministic offline acceptance contract for the current five full pilot RouteVariants and the
+representative non-full/degraded boundaries of the public Beta pipeline. This suite must prove code readiness without
+claiming deployment, live APIs, real CloudBase, device execution or user testing.
 
-## 2. Fixed contract
+The existing `test:integration` remains a legacy three-route daily-weather baseline. I24b adds a separate root
+`test:beta-acceptance` for the current `prepare/confirm -> queryId -> advice` architecture; it does not rename or
+inflate the legacy suite.
 
-`base.data` and the stored snapshot are the same exact `beta_base_v2` object:
+## 2. Exact pilot rows
 
-```js
-{
-  schemaVersion: 'beta_base_v2',
-  requestSummary,
-  routeSnapshot,
-  weatherSnapshot,
-  deterministicResult,
-  minimumGear: { essential, recommended, optional },
-  deterministicSafety: { fatalRisks, ruleNotes },
-  sourceMetadata
-}
-```
+Each row is independently asserted against its own permanent ID and expected facts:
 
-Remove top-level `route/date/level/days/elevation/location/coords/routeType/routeTypeSource/weather/sunEvents/
-gearRules/meta`. `deterministicSafety` and `minimumGear` come from the same deterministic gear-rule call.
+| Permanent RouteVariant ID | Route type | Fixed days | Required row-specific evidence |
+| --- | --- | ---: | --- |
+| `variant:wugongshan-longshan-to-main-gate-2d` | `trek` | 2 | full structured result and multi-sample hourly window |
+| `variant:siguniang-erfeng-haizigou-out-and-back-2d` | `climb` | 2 | climb support propagated; deterministic verdict at least caution |
+| `variant:yulong-blue-moon-yunshanping-out-and-back-1d` | `trek` | 1 | full structured result and exact source/status facts |
+| `variant:gongga-laoyulin-yulongxi-point-to-point-3d` | `trek` | 3 | point-to-point full result and three route-day windows |
+| `variant:dangling-huluhai-zhuoyongcuo-out-and-back-1d` | `trek` | 1 | reviewed-track full result and exact source/status facts |
 
-Add a pure `advice-context` adapter. It accepts structured v2 only and derives route/request labels, bounded daily
-weather, minimum gear and deterministic safety; it receives neither route-source DTOs nor sunEvents and never
-stringifies the full hourly payload.
-
-`projectSafetyAdvice` accepts exactly `minimumGear + deterministicSafety + aiOutcome`. Advice is a read-only
-derivative:
-
-- `gear`: complete deterministic gear plus deduplicated AI recommended/optional additions;
-- `risks`: deterministic fatal-risk identity set plus optional AI explanations;
-- `notes`: rule notes followed by AI/degraded notes;
-- fixed `disclaimer`;
-- `meta`: exact `generatedAt/llmModel/elapsed/degradedReason?` only.
-
-Delete advice weather/sunEvents/photoTiming/microclimate/elevation/coords/location/weatherSource.
-
-TripContext becomes `trip_context_v2` and accepts only v2 snapshot. No long-lived v1/v2 dual stack. A stored v1
-context returns non-retryable `query_context_unavailable`, invokes the LLM zero times and leaks no version detail.
-
-History projection uses structured fields only: full highest-point elevation and null coords; place-only reference
-elevation/coordinate; blocked null elevation/coords; region/type/type-source from route/source snapshots. History DTO,
-save timing, privacy and restoration semantics do not change.
+五台山大朝台 is a separate official blocked record, not a sixth plannable pilot. 五台山小朝台 was superseded by
+TP-D039 and must not re-enter the matrix.
 
 ## 3. Exact allowed files
 
-- `cloudfunctions/getAdvice/index.js`
-- `cloudfunctions/getAdvice/trip-base.js`
-- `cloudfunctions/getAdvice/trip-context.js`
-- `cloudfunctions/getAdvice/prompt.js`
-- `cloudfunctions/getAdvice/safety-advice.js`
-- `cloudfunctions/getAdvice/route-type.js`
-- new `cloudfunctions/getAdvice/advice-context.js`
-- `taro-app/src/pages/index/result-page-model.js`
-- `taro-app/src/pages/index/index.jsx`
+- new `scripts/beta-acceptance-contract-test.js`
+- new `scripts/fixtures/beta-acceptance.js`
 - `package.json`
-- new `scripts/advice-context-contract-test.js`
-- `scripts/core-input-flow-contract-test.js`
-- `scripts/response-contract-test.js`
-- `scripts/trip-context-contract-test.js`
-- `scripts/advice-safety-contract-test.js`
-- `scripts/result-page-contract-test.js`
-- `scripts/trip-flow-contract-test.js`
-- `scripts/route-type-contract-test.js`
-- `scripts/unit-test.js`
-- `scripts/e2e-local.js`
-- new `docs/i24a-structured-adapter-verification.md`
+- new `docs/i24b-beta-acceptance-verification.md`
 - `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
 
 No other file may change without Sol expanding the contract before the edit.
 
-## 4. Out of scope
+## 4. Work scope
 
-Public mode/phase/error changes; route/weather/verdict thresholds; source catalog; history storage/DTO; cache schema;
-new dependency; CI; visual redesign; fixture/acceptance work; deployment or production configuration.
+- Register `test:beta-acceptance` and include it in root `npm test`.
+- Use fixed clocks and offline adapters only. Exercise the real public `getAdvice.main` handler, production resolver,
+  production catalog, structured `beta_base_v2` composition, server TripContext and queryId-only advice boundary.
+- Use table-driven pilot data while retaining row-specific failure messages and assertions.
+- Reuse production pure history/recovery modules and the history handler through offline mocks where required; do not
+  duplicate a second product implementation inside fixtures.
+- Record real RED, GREEN, command results, coverage boundaries and known limitations in the verification document.
 
-## 5. TDD and acceptance
+## 5. Non-work scope
 
-Register `test:advice-context` in root test and record a genuine RED first. Prove:
+- No production code, existing test, route-data, dependency, CI, visual/CSS or DevTools change.
+- No public mode/phase/error/DTO/schema change.
+- No route identity, geometry, source tier/status, weather threshold, verdict, minimum-gear or AI-authority change.
+- No deployment, paid/live API, real CloudBase mutation, device testing, production configuration, secret, migration,
+  public UGC, hashing/SHA or broad refactor.
+- No mechanical Cartesian product, coverage score or duplicated end-to-end framework.
 
-- full complete/insufficient, place-only and blocked exact v2 keys with all thirteen aliases absent;
-- prompt has bounded structured weather and deterministic grounding only;
-- available/invalid/unavailable AI preserves deterministic gear/risk/note facts and cannot inject route/weather/
-  verdict/source;
-- exact advice fields/meta allowlist and removal of legacy projection fields;
-- public/persisted/read TripContext v2 equality; v1 rejection is non-retryable, zero-LLM and non-leaking;
-- full/place/manual/AMap/blocked history projections, full coords null, no advice/meta contamination;
-- representative deletion mutations for adapter, deterministicSafety and structured history produce focused RED.
+If the suite exposes a production defect, preserve the RED evidence and stop. Sol must create a separate focused Bug
+Issue/PR; I24b may resume only after that dependency merges.
 
-Run focused advice-context/core-input/response/context/safety/result/flow/route/unit/integration contracts, root test,
-lint, typecheck, WeChat build and diff check. Record exact commands and results.
+## 6. Frozen acceptance matrix
 
-## 6. Routing, Review and escalation
+### 6.1 Five full pilots
 
-Executor: exact custom Agent `luna-worker` (`~/.codex/agents/luna-worker.toml`, `gpt-5.6-luna`, `max`). Record
-runtime visibility; no Terra fallback. Stop for contract/file expansion, public API/error changes, rule/history/cache
-changes, dependency, long-lived v1 compatibility, production access or lowered acceptance. Return
-`READY_FOR_CONTROLLER_REVIEW`; implementation Agent cannot approve or merge.
+For every exact row, public `mode=prepare` with the permanent ID and fixed offline clock/adapters must prove:
 
-## 7. Delivery
+- response phase is `base`, schema is exact `beta_base_v2`, and `queryId`/expiry are server-produced;
+- permanent ID, canonical name, capability=`full`, trusted route type and fixed days match the row;
+- route verification/operational status and display-safe route sources are present and match the production catalog;
+- route days drive multi-sample hourly requests/windows; no client route/weather fact becomes authoritative;
+- deterministic result, minimum gear and deterministic safety are present;
+- advice accepts only that `queryId`, preserves deterministic facts and never changes the route/weather/verdict/source.
 
-Deliver code, tests, `docs/i24a-structured-adapter-verification.md`, complete command evidence and a focused PR using
-`Refs #105`. After latest-head quality and Sol `APPROVED`, merge and only then unblock I24b/#106.
+The 四姑娘 row additionally passes a valid climb-support choice and proves the deterministic verdict is never `go`.
+Each row must fail independently if its stable ID, route type, fixed days or capability is mutated.
 
-## Executor checkpoint — 2026-08-09
+### 6.2 Representative boundaries
 
-The required RED was recorded before `advice-context.js` existed. The implementation now emits exact
-`beta_base_v2` snapshots, uses a pure bounded structured adapter, projects advice from
-`minimumGear + deterministicSafety + aiOutcome`, and derives history from route/source snapshots. TripContext
-persists `trip_context_v2`; stored v1 records map to the existing non-retryable `query_context_unavailable`
-without an LLM call. Focused and root contracts are green; exact command evidence and the two-removed/one-added
-integration assertion accounting are recorded in `docs/i24a-structured-adapter-verification.md`.
+Use one representative per behavior rather than a Cartesian product:
 
-## Review-fix round 1 checkpoint — 2026-08-09
+- fuzzy prepare returns confirmation and causes zero weather, TripContext-write and AI side effects;
+- confirm uses the server candidate ID and reaches the same trusted base pipeline;
+- manual and AMap place-only results keep `verdict=null`, reference weather semantics and `user`/`amap` provenance;
+- official Wutai blocked returns `no_go`, `weatherSnapshot=null`, and performs zero weather calls;
+- insufficient weather keeps data completeness independent from any valid hard `no_go` verdict;
+- valid, invalid and transport-unavailable AI outcomes cannot alter deterministic route/weather/verdict/gear facts;
+- advice request is queryId-only and a missing/legacy context causes zero LLM calls;
+- private-history save/list boundary remains openid-scoped and retry idempotency returns the first record;
+- I23 pure recovery seams prove explicit weather re-prepare, same-query AI retry, frozen history-save retry identity,
+  stale history-list rejection and history prefill with zero network intent.
 
-Controller baseline `4de1ff2` is confirmed and remains outside executor scope. The bounded review fix proves
-per-call deterministic gear provenance (full/place exactly once and blocked zero), covers full/catalog place/manual
-`user`/AMap `amap`/blocked history capture and save projection, and treats catalog place identity as `user` route-type
-authority rather than `builtin`. It removes unused adapter aliases and records the two-removed/one-added integration
-assertion accounting plus in-memory mutation RED evidence in the verification record. No production behavior or
-non-allowlisted file is changed.
+## 7. TDD and tests
+
+1. Add the root script and a deliberately incomplete acceptance entry first.
+2. Record a genuine focused RED before the fixture/adapter is complete; a missing fixture/module or missing required
+   pilot row is acceptable, but a fabricated assertion failure is not.
+3. Implement the minimum offline fixture and behavior assertions.
+4. Demonstrate representative mutation sensitivity for row ID/fixedDays/type/capability and at least one trusted
+   queryId/deterministic-authority boundary.
+5. Run:
+   - `npm run test:beta-acceptance`
+   - `npm test`
+   - `npm run test:integration`
+   - `npm run lint`
+   - `npm run typecheck`
+   - `npm run build:weapp`
+   - `git diff --check`
+
+All failures must remain visible. The legacy integration baseline is currently `55/0`; I24b does not mechanically
+change its count.
+
+## 8. Dependencies, risks and stop conditions
+
+- I24a is satisfied by PR #108 / `1a2f485`; I24c/#107 remains blocked until I24b merges.
+- The acceptance script may become large because it spans five public rows and representative boundaries. Prefer
+  small fixture helpers and descriptive row assertions; do not introduce a framework or abstract every case.
+- Stop for any required file outside the allowlist, production behavior defect, live-network need, public contract
+  mismatch, dependency, route/source ambiguity, lowered acceptance or a second failed Review-fix round.
+- Deployment, real CloudBase/device/beta activity and product trade-offs require human authorization and remain
+  outside this Issue.
+
+## 9. Allowed autonomous decisions
+
+`luna-worker` may choose fixture helper names, table organization, fixed timestamps and focused assertion wording.
+It may not change the pilot set, public behavior, production modules, acceptance rows, dependency policy or Goal
+boundary. Contract ambiguity must return to Sol instead of being guessed.
+
+## 10. Deliverables and Review
+
+Deliver the new acceptance script and fixture, package registration, verification document, current-task/status
+checkpoint, exact RED/GREEN evidence and a focused PR using `Refs #106` rather than auto-closing the Issue.
+
+The executor returns `READY_FOR_CONTROLLER_REVIEW` with changed files, commands/results, deviations, autonomous
+implementation decisions, limitations and Review focus. It cannot approve or merge. Sol must inspect actual tests,
+latest-head GitHub quality and independent Review before squash merge. Only the approved merge may unblock #107.

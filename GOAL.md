@@ -1,7 +1,7 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `ACTIVE — M7 I24a IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — M7 I24b IMPLEMENTATION_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
@@ -19,7 +19,9 @@ latest-head quality and independent Sol Review, and squash merged as `852e86d`; 
 I23a private-history idempotency merged through PR #102 as `107fab4`; I23b bounded recovery passed two independent
 final Reviews and merged through PR #103 as `097c921`. #99, #100 and parent #32 are closed. M7 now begins with
 I24 planning PR #104 passed two independent actual-diff Reviews and latest-head quality, then merged as `6869a7b`.
-Serial children are #105/#106/#107; only I24a/#105 is active, while I24b/I24c remain dependency-blocked.
+Serial children are #105/#106/#107. I24a/#105 passed latest-head quality and two independent final Reviews,
+squash merged through PR #108 as `1a2f485`, and closed. I24b/#106 is now the only active child; I24c/#107 remains
+dependency-blocked.
 
 ## 1. Objective
 
@@ -39,7 +41,7 @@ I21's dependency was satisfied and its public cutover is merged through PR #93. 
 `ac4ba9e`; I22a PR #97 passed latest-head quality and independent Sol Review, merged as `6e12f25`, and closed #94.
 I22b merged through PR #98 as `852e86d`. I23a/I23b merged through PRs #102/#103, completing the recovery flow.
 I24 is split into serial #105 compatibility cleanup, #106 automated acceptance and #107 DevTools verification
-package. #105 is the only active implementation scope; #106/#107 remain blocked until their predecessors merge.
+package. #105 is complete; #106 is the only active implementation scope and #107 remains blocked until #106 merges.
 
 Current verified baselines are route type `91/0`, weather `86/0`, unit `55/0`, and offline integration `55/0` after
 I24a retires two legacy advice weather/sun checks and replaces them with one structured non-exposure check. The
@@ -65,7 +67,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
 | M6 Core UX | Complete | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
-| M7 Acceptance | Active — I24a implementation | I24–I25 | Full validation, documentation sync and Goal report are complete |
+| M7 Acceptance | Active — I24b implementation | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10a's
 official Wutai blocked record remains complete; the former small-pilgrimage full route is superseded,
@@ -73,7 +75,8 @@ and #77 delivered the reviewed KML-backed fifth plannable pilot. I13 PR #89 merg
 closed #22, completing M3. I21 planning PR #90 merged as `c817bbb`; implementation PR #93 merged as
 `be24b07` and closed #30. I22 planning PR #96 merged as `ac4ba9e`; #94 merged as `6e12f25`; #95 and parent
 #31 closed after PR #98 merged as `852e86d`. I23a/#99 and I23b/#100 then merged through PRs #102/#103 and parent
-#32 closed. I24 planning PR #104 merged as `6869a7b`; children #105/#106/#107 are serial and only #105 is active.
+#32 closed. I24 planning PR #104 merged as `6869a7b`; I24a PR #108 merged as `1a2f485`; children #105/#106/#107
+remain serial and only I24b/#106 is active.
 
 ## 6. Agent routing
 
