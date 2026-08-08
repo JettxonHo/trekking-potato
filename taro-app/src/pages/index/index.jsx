@@ -8,6 +8,20 @@ import '../../styles/nutui-override.css'
 
 const { createInitialTripFlow, reduceTripFlow, selectTripFlowView } = require('./trip-flow')
 const { createGetAdviceService } = require('./get-advice-service')
+const {
+  RESULT_CACHE_KEY,
+  RESULT_CACHE_VERSION,
+  applyChecklistLifecycleEvent,
+  buildHistorySavePayload,
+  buildResultPageModel,
+  captureHistoryContext,
+  checklistKey,
+  createChecklistLifecycle,
+  historyResultForAdviceOutcome,
+  mergeAdviceResult,
+  normalizeCachedResult,
+  toggleChecklist,
+} = require('./result-page-model')
 
 const FUNNY_MESSAGES = [
   '薯仔正在向老天借晴天...',
@@ -21,18 +35,12 @@ const FUNNY_MESSAGES = [
 ]
 
 // 结果缓存：用户退出后重进直接恢复，避免重复消耗 LLM token
-const CACHE_KEY = 'trekking_last_result'
+const CACHE_KEY = RESULT_CACHE_KEY
+const CACHE_VERSION = RESULT_CACHE_VERSION
 const CACHE_TTL = 30 * 60 * 1000 // 30 分钟：天气预报在此窗口内变化极小
 
 // TP-P0-003：路线类型用户可见标签（与后端 route-type.js 契约一致）
 const ROUTE_TYPE_TEXT = { trek: '徒步', climb: '攀登', tour: '游览' }
-const ROUTE_TYPE_SOURCE_TEXT = {
-  builtin: '内置路线数据',
-  user: '用户选择',
-  ugc: 'UGC 路线',
-  amap: '外部位置，用户已确认',
-  unknown: '类型待确认',
-}
 const DETERMINISTIC_RISK_ADVICE = '本风险由海拔/季节规则判定，请查阅专业路书获取具体应对措施'
 const AI_UNAVAILABLE_NOTE = 'AI 说明暂不可用，当前仅展示确定性规则结果。'
 const HISTORY_SAVE_ERROR = '历史未保存，不影响本次结果'
@@ -99,7 +107,11 @@ export default class Index extends Component {
     historyLoading: false,
     historyError: null,
     historySaveError: null,
+    gearChecked: {},
   }
+
+  // Page-local checklist projection; trip-flow remains the only query state machine.
+  _checklistLifecycle = createChecklistLifecycle()
 
   componentDidMount() {
     const d = new Date()
@@ -112,7 +124,9 @@ export default class Index extends Component {
     // 恢复缓存：30 分钟内的上次查询直接回显，省一次 LLM 调用
     try {
       const cached = Taro.getStorageSync(CACHE_KEY)
-      if (cached && cached.cachedAt && (Date.now() - cached.cachedAt < CACHE_TTL) && cached.result && cached.form) {
+      const restoredResult = cached && cached.version === CACHE_VERSION ? normalizeCachedResult(cached.result) : null
+      if (cached && cached.cachedAt && (Date.now() - cached.cachedAt < CACHE_TTL) && restoredResult && cached.form) {
+        this._applyChecklistLifecycle({ type: 'cache_restore' })
         // 缓存的日期若已过期（跨天场景），回填为今天
         const restoreDate = this._isDateExpired(cached.form.date) ? todayStr : cached.form.date
         // TP-P0-003 REVIEW_FIX：只有缓存明确标记 manualContextActive === true
@@ -141,9 +155,10 @@ export default class Index extends Component {
           manualElev: restoreManualContext ? (cached.form.manualElevation != null ? cached.form.manualElevation : '') : '',
           tripFlow: reduceTripFlow(this.state.tripFlow, {
             type: 'RESTORE_CACHED',
-            result: cached.result,
-            degraded: cached.result.degraded === true,
+            result: restoredResult,
+            degraded: restoredResult.ai && restoredResult.ai.status === 'unavailable',
           }),
+          gearChecked: {},
         })
       }
     } catch (e) {
@@ -151,8 +166,20 @@ export default class Index extends Component {
     }
   }
 
+  _applyChecklistLifecycle(event, syncState = false) {
+    this._checklistLifecycle = applyChecklistLifecycleEvent(this._checklistLifecycle, event)
+    if (syncState) this.setState({ gearChecked: this._checklistLifecycle.checked })
+  }
+
+  _clearResultLocalState() {
+    this._historyContext = null
+    this._baseHistoryRisks = []
+    this._applyChecklistLifecycle({ type: 'return_to_search' }, true)
+  }
+
   onRouteInput = (e) => {
     const nextRoute = e.detail.value
+    this._clearResultLocalState()
     const routeTypeRequest = this.state.tripFlow.routeTypeRequest
     // TP-P0-003 REVIEW_FIX：用户修改路线文本后必须清除全部手动上下文，
     // 包括 manualContextActive，避免旧坐标与路线类型被串用
@@ -293,6 +320,7 @@ export default class Index extends Component {
   }
 
   onCandidateClose = () => {
+    this._clearResultLocalState()
     this._updateTripFlow({ type: 'RESET' })
   }
 
@@ -453,7 +481,10 @@ export default class Index extends Component {
     })
   }
 
-  onManualClose = () => this._updateTripFlow({ type: 'RESET' })
+  onManualClose = () => {
+    this._clearResultLocalState()
+    this._updateTripFlow({ type: 'RESET' })
+  }
 
   _startFunnyRotation() {
     this._funnyTimer = setInterval(() => {
@@ -466,32 +497,28 @@ export default class Index extends Component {
 
   _showBaseAndFetchAdvice(base, queryId, params, generation) {
     const baseSafetyResult = buildBaseSafetyResult(base.gearRules)
+    // Capture the five compatibility values exactly once when trusted BaseData
+    // arrives.  The private context is used only by the existing I19 adapter;
+    // it is never rendered, cached or merged with advice.
+    this._historyContext = captureHistoryContext(base)
+    this._baseHistoryRisks = baseSafetyResult.risks
+    this._applyChecklistLifecycle({ type: 'base_received', queryId, baseRef: base }, true)
     const baseResult = {
+        requestSummary: base.requestSummary,
         routeSnapshot: base.routeSnapshot,
+        weatherSnapshot: base.weatherSnapshot,
         deterministicResult: base.deterministicResult,
         minimumGear: base.minimumGear,
         sourceMetadata: base.sourceMetadata,
-        weatherWindow: base.weather,
-        photoTiming: base.sunEvents,
-        gear: baseSafetyResult.gear,
-        risks: baseSafetyResult.risks,
-        notes: [],
-        meta: {
-          elevation: base.elevation,
-          location: base.location,
-          coords: base.coords,
-          // TP-P0-003：结果保存可信路线类型与来源
-          routeType: base.routeType,
-          routeTypeSource: base.routeTypeSource,
-          capability: base.meta && base.meta.capability,
-          dataStatus: base.meta && base.meta.dataStatus,
-        },
+        ai: { status: 'loading' },
     }
+    this.setState({ historySaveError: null })
     this._updateTripFlow({ type: 'BASE_RECEIVED', token: generation, result: baseResult, queryId }, null, (flow) => {
       if (this._unmounted || flow.token !== generation || flow.status !== 'base_ready') return
       this._saveCache(generation)
       this._updateTripFlow({ type: 'ADVICE_STARTED', token: generation }, null, (adviceFlow) => {
         if (this._unmounted || adviceFlow.token !== generation || adviceFlow.status !== 'advice_loading') return
+        this._applyChecklistLifecycle({ type: 'advice_started' })
         this._adviceSteps = ['薯仔正在分析天气窗口...', '薯仔正在匹配装备清单...', '薯仔正在评估风险等级...', '薯仔正在生成行前建议...']
         this._adviceStepIdx = 0
         this._adviceStepTimer = setInterval(() => {
@@ -508,6 +535,9 @@ export default class Index extends Component {
 
   _submitBase(params) {
     this._unmounted = false
+    this._historyContext = null
+    this._baseHistoryRisks = []
+    this._applyChecklistLifecycle({ type: 'return_to_search' }, true)
     const status = this.state.tripFlow.status
     const type = ['awaiting_confirmation', 'awaiting_route_type', 'error'].indexOf(status) >= 0
       ? 'BEGIN_PREPARE'
@@ -587,6 +617,7 @@ export default class Index extends Component {
         }
         const result = outcome.result
         if (result && result.phase === 'error' && result.code === 'query_context_unavailable') {
+          this._applyChecklistLifecycle({ type: 'context_unavailable' })
           this._updateTripFlow({
             type: 'CONTEXT_UNAVAILABLE',
             token: generation,
@@ -598,24 +629,11 @@ export default class Index extends Component {
           const d = result.data
           const degraded = result.degraded === true
           const base = this.state.tripFlow.result
-          const mergedResult = {
-              ...base,
-              gear: d.gear || base.gear,
-              risks: d.risks || base.risks,
-              notes: d.notes || base.notes,
-              degraded,
-              weatherWindow: d.weather || base.weatherWindow,
-              photoTiming: d.photoTiming || base.photoTiming,
-              disclaimer: d.disclaimer,
-              meta: { ...base.meta, ...d.meta },
-          }
+          this._applyChecklistLifecycle({ type: 'advice_succeeded' })
+          const mergedResult = mergeAdviceResult(base, d, degraded)
           this._updateTripFlow({ type: 'ADVICE_SUCCEEDED', token: generation, result: mergedResult, degraded }, { funnyMsg: '', daysBounce: false }, (flow) => {
             if (this._unmounted || flow.token !== generation || ['complete', 'degraded'].indexOf(flow.status) < 0) return
-            const historyResult = {
-              risks: d.risks || [],
-              degraded,
-              meta: { ...(flow.result.meta || {}), ...d.meta },
-            }
+            const historyResult = historyResultForAdviceOutcome('success', { adviceData: d, degraded })
             this._saveCache(generation)
             this._saveHistory(historyParams, historyResult, generation)
           })
@@ -630,25 +648,38 @@ export default class Index extends Component {
   }
 
   _finishDegradedAdvice(token, historyParams, error) {
+    this._applyChecklistLifecycle({ type: 'advice_failed' })
     const base = this.state.tripFlow.result
     const result = {
       ...base,
-      degraded: true,
-      notes: [...(base.notes || []), AI_UNAVAILABLE_NOTE],
+      ai: {
+        status: 'unavailable',
+        gear: {},
+        risks: [],
+        notes: [AI_UNAVAILABLE_NOTE],
+        disclaimer: null,
+      },
     }
     this._updateTripFlow({ type: 'ADVICE_FAILED', token, result, error }, { funnyMsg: '', daysBounce: false }, (flow) => {
       if (this._unmounted || flow.token !== token || flow.status !== 'degraded') return
-      const historyResult = {
-        risks: flow.result.risks || [],
-        degraded: true,
-        meta: flow.result.meta || {},
-      }
+      const historyResult = historyResultForAdviceOutcome('degraded', { baseRisks: this._baseHistoryRisks })
       this._saveCache(token)
       this._saveHistory(historyParams, historyResult, token)
     })
   }
 
-  onBack = () => this._updateTripFlow({ type: 'RESET' })
+  onBack = () => {
+    this._clearResultLocalState()
+    this._updateTripFlow({ type: 'RESET' })
+  }
+
+  onGearToggle = (category, index) => {
+    this.setState((previous) => {
+      const gearChecked = toggleChecklist(previous.gearChecked, category, index)
+      this._checklistLifecycle = { ...this._checklistLifecycle, checked: gearChecked }
+      return { gearChecked }
+    })
+  }
 
   // ===== 结果缓存 =====
   _saveCache() {
@@ -659,6 +690,7 @@ export default class Index extends Component {
     if (!result) return
     try {
       Taro.setStorageSync(CACHE_KEY, {
+        version: CACHE_VERSION,
         // TP-P0-003 REVIEW_FIX：缓存显式保存 manualContextActive；
         // 只有手动上下文激活时才保存有效的手动字段，
         // 普通内置路线缓存不得携带遗留手动上下文
@@ -681,28 +713,25 @@ export default class Index extends Component {
   // ===== 历史记录 =====
   _saveHistory(params, resultData) {
     const token = arguments[2]
-    const risks = resultData.risks || []
-    const summary = risks.length > 0
-      ? risks[0].risk + (risks.length > 1 ? ' 等' + risks.length + '项风险' : '')
-      : (resultData.degraded ? 'AI 降级·基础参考' : '无重大风险')
+    const meta = this._historyContext || {}
+    // Compatibility adapter only: this object is the private five-field
+    // historyContext, never result.meta or advice meta.
+    const historyContext = {
+      elevation: meta.elevation,
+      location: meta.location,
+      coords: meta.coords,
+      routeType: meta.routeType,
+      routeTypeSource: meta.routeTypeSource,
+    }
+    const historyPayload = buildHistorySavePayload({
+      params,
+      resultData,
+      historyContext,
+    })
 
     Taro.cloud.callFunction({
       name: 'history',
-      data: {
-        mode: 'save',
-        route: params.route,
-        date: params.date,
-        days: params.days,
-        level: params.level,
-        elevation: resultData.meta && resultData.meta.elevation,
-        location: resultData.meta && resultData.meta.location,
-        coords: resultData.meta && resultData.meta.coords,
-        // TP-P0-003：历史记录保存路线类型与来源
-        routeType: resultData.meta && resultData.meta.routeType,
-        routeTypeSource: resultData.meta && resultData.meta.routeTypeSource,
-        summary,
-        degraded: resultData.degraded === true,
-      },
+      data: historyPayload,
       success: (res) => {
         if (this._unmounted || this.state.tripFlow.token !== token) return
         const result = res.result
@@ -828,12 +857,11 @@ export default class Index extends Component {
   }
 
   render() {
-    const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, climbSupport, climbSupportLabels, showHistory, historyList, historyLoading, historyError, historySaveError } = this.state
-    const { loading, adviceLoading, showResult, showCandidatePopup, showManualCoords, errorMessage } = selectTripFlowView(tripFlow)
+    const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, climbSupport, climbSupportLabels, showHistory, historyList, historyLoading, historyError, historySaveError, gearChecked } = this.state
+    const { loading, showResult, showCandidatePopup, showManualCoords, errorMessage } = selectTripFlowView(tripFlow)
     const { result, candidates, routeTypeRequest } = tripFlow
     const error = errorMessage
     const adviceStage = this.state.adviceStage || '薯仔正在生成建议...'
-    const funnyMsg = this.state.funnyMsg
 
     // ===== Loading 视图（Skeleton 骨架屏 + 薯仔） =====
     if (loading) {
@@ -850,152 +878,137 @@ export default class Index extends Component {
       )
     }
 
-    // ===== 结果视图 =====
+    // ===== 结构化结果视图 =====
     if (showResult && result) {
-      const d = result
-      const degraded = d.degraded === true
-      const meta = d.meta || {}
-      const weather = d.weatherWindow || {}
-      const gear = d.gear || {}
-      const risks = d.risks || []
-      const notes = d.notes || []
-      const photo = d.photoTiming || {}
+      const pageModel = buildResultPageModel({ result, flowStatus: tripFlow.status, flowError: tripFlow.error })
+      const routeModel = pageModel.route
+      const verdict = pageModel.verdict
+      const minimumGear = pageModel.minimumGear
+      const weatherModel = pageModel.weather
+      const aiModel = pageModel.ai
+      const gearCategories = [
+        ['essential', '必备', 'gear-tag-essential'],
+        ['recommended', '推荐', 'gear-tag-recommended'],
+        ['optional', '可选', 'gear-tag-optional'],
+      ]
 
       return (
-        <View className="container" style="padding-top:40rpx;padding-bottom:120rpx;">
-          {degraded && (
-            <View className="degraded-banner">
-              <Text>薯仔脑子暂时短路了，以下为基础参考 🥔</Text>
-            </View>
-          )}
-
+        <View className="container result-page" style="padding-top:40rpx;padding-bottom:120rpx;">
           {error && <View className="error-box"><Text>{error}</Text></View>}
           {historySaveError && <View className="history-error-box"><Text>{historySaveError}</Text></View>}
 
-          {adviceLoading && (
-            <View className="status-bar">
-              <Text className="status-text">{adviceStage}</Text>
-              <Text className="quirky-potato-char">( º﹃º )</Text>
+          <View className={`result-verdict-card verdict-${verdict.tone}`}>
+            <Text className="result-verdict-label">{verdict.label}</Text>
+            <Text className="result-route-name">{routeModel.name || '路线待确认'}</Text>
+            <Text className="result-route-scope">{routeModel.region || '地区待确认'} · {routeModel.scope}</Text>
+            <View className="result-route-facts">
+              {routeModel.routeTypeLabel && <Text className="result-fact">路线类型：{routeModel.routeTypeLabel}</Text>}
+              {routeModel.fixedDays !== null && <Text className="result-fact">固定 {routeModel.fixedDays} 天</Text>}
+              {routeModel.highestPointElevationM !== null && <Text className="result-fact">最高点 {routeModel.highestPointElevationM}m</Text>}
+              {routeModel.operationalStatusLabel && <Text className="result-fact">{routeModel.operationalStatusLabel}</Text>}
             </View>
-          )}
+            {routeModel.restriction && <Text className="restriction-copy">{routeModel.restriction.reason || '存在官方限制'}</Text>}
+          </View>
 
-          {meta.elevation && (
-            <View className="elevation-pill">
-              <Text>📍 {meta.elevation}m · {meta.location}</Text>
-            </View>
-          )}
+          <View className="card result-reasons-card">
+            <Text className="card-title">确定性判断</Text>
+            {pageModel.reasons.length > 0 ? pageModel.reasons.map((reason, index) => (
+              <View key={`${reason.code || 'reason'}-${index}`} className="reason-item">
+                <Text className={`reason-severity reason-${reason.severity || 'info'}`}>{reason.severity || '提示'}</Text>
+                <Text className="reason-message">{reason.message || '确定性规则提示'}</Text>
+              </View>
+            )) : <Text className="empty-hint">暂无确定性风险提示</Text>}
+            {pageModel.dataIssues.length > 0 && (
+              <View className="data-issues">
+                <Text className="subcard-title">数据边界</Text>
+                {pageModel.dataIssues.map((issue, index) => <Text key={`${issue.code || 'issue'}-${index}`} className="data-issue">{issue.label}</Text>)}
+              </View>
+            )}
+          </View>
 
-          {/* TP-P0-003：向用户展示可信路线类型（中文标签），不得只显示英文枚举 */}
-          {ROUTE_TYPE_TEXT[meta.routeType] && (
-            <View className="elevation-pill">
-              <Text>🧭 路线类型：{ROUTE_TYPE_TEXT[meta.routeType]}{ROUTE_TYPE_SOURCE_TEXT[meta.routeTypeSource] ? ' · ' + ROUTE_TYPE_SOURCE_TEXT[meta.routeTypeSource] : ''}</Text>
-            </View>
-          )}
+          <View className="card result-weather-card">
+            <Text className="card-quirky-icon">{weatherModel.kind === 'not_applicable' ? '⛔' : weatherModel.kind === 'unavailable' ? '☁️' : '🌦'}</Text>
+            <Text className="card-title">{weatherModel.kind === 'reference' ? '地点参考天气' : weatherModel.kind === 'not_applicable' ? '天气请求边界' : '活动窗口天气'}</Text>
+            {weatherModel.notice && <Text className="caveat">{weatherModel.notice}</Text>}
+            {weatherModel.kind === 'hourly' && weatherModel.days.map((day) => (
+              <View key={`${day.day}-${day.date}`} className="hourly-day">
+                <View className="hourly-day-heading"><Text className="day-date">第{day.day}天 · {this.formatWeatherDate(day.date)}</Text><Text className="day-window">{day.startLocal}—{day.endLocalExclusive}</Text></View>
+                {day.samples.map((sample) => (
+                  <View key={`${day.day}-${sample.samplePointId}`} className="weather-sample">
+                    <Text className="sample-heading">{sample.name || '采样点'} · {sample.elevationM === null ? '海拔待确认' : `${sample.elevationM}m`}</Text>
+                    {sample.hours.map((hour, index) => (
+                      <View key={`${sample.samplePointId}-${hour.localTime || index}`} className="weather-hour">
+                        <Text className="hour-time">{hour.localTime || '时间待确认'}</Text>
+                        <Text className="hour-condition">{hour.condition}</Text>
+                        <Text className="hour-measure">温度 {hour.temperatureC}°C / 体感 {hour.apparentTemperatureC}°C</Text>
+                        <Text className="hour-measure">降水 {hour.precipitationProbabilityPct}% · {hour.precipitationMm}mm · 雪 {hour.snowfallCm}cm</Text>
+                        <Text className="hour-measure">平均风 {hour.averageWindMs}m/s · 阵风 {hour.windGustMs}m/s · 能见度 {hour.visibilityM}m</Text>
+                      </View>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            ))}
+            {weatherModel.kind === 'reference' && weatherModel.days.map((day, index) => (
+              <View key={`${day.date || 'day'}-${index}`} className="weather-day reference-weather-day">
+                <Text className="day-date">{this.formatWeatherDate(day.date)}</Text>
+                <Text className="day-temp">{day.tempMin}~{day.tempMax}°C</Text>
+                <Text className="day-precip">降水{day.precipProb}%</Text>
+                <Text className="day-wind">{day.windMs}m/s</Text>
+              </View>
+            ))}
+          </View>
 
-          {weather.days && weather.days.length > 0 && (
-            <View className="card">
-              <Text className="card-quirky-icon">{weather.days[0] && weather.days[0].precipProb > 80 ? '🌧' : '☀️'}</Text>
-              <Text className="card-title">天气窗口</Text>
-              {weather.elevationCaveat && <Text className="caveat">{weather.elevationCaveat}</Text>}
-              {weather.dateOutOfRange && <Text className="caveat">⚠ {weather.dateRangeNote}</Text>}
-             {weather.days.map((day, i) => (
-                <View key={i} className={`weather-day ${i >= 5 ? 'weather-day-dim' : ''}`}>
-                  <Text className="day-date">{this.formatWeatherDate(day.date)}</Text>
-                  <Text className="day-temp">{day.tempMin}~{day.tempMax}°C</Text>
-                  <Text className="day-precip">降水{day.precipProb}%</Text>
-                  <Text className="day-wind">{day.windMs}m/s</Text>
-                </View>
-              ))}
-            </View>
-          )}
-
-          <View className="card">
+          <View className="card result-gear-card">
             <Text className="card-quirky-icon">🎒</Text>
-            <Text className="card-title">装备清单</Text>
-            {gear.essential && gear.essential.length > 0 && (
-             <View className="gear-section">
-                <Text className="gear-tag gear-tag-essential">必备</Text>
-                {gear.essential.map((g, i) => (
-                  <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
-                ))}
+            <Text className="card-title">最低装备清单</Text>
+            {gearCategories.map(([category, label, tagClass]) => (
+              minimumGear[category].length > 0 && <View key={category} className="gear-section">
+                <Text className={`gear-tag ${tagClass}`}>{label}</Text>
+                {minimumGear[category].map((gear, index) => {
+                  const key = checklistKey(category, index)
+                  const name = typeof gear === 'string' ? gear : gear.item
+                  const reason = typeof gear === 'string' ? '' : gear.reason
+                  return (
+                    <View key={key} className={`gear-item checklist-item ${gearChecked[key] ? 'gear-checked' : ''}`} onClick={() => this.onGearToggle(category, index)}>
+                      <Text className="gear-checkmark">{gearChecked[key] ? '☑' : '□'}</Text>
+                      <View className="gear-copy"><Text className="gear-name">{name}</Text>{reason && <Text className="gear-reason">{reason}</Text>}</View>
+                    </View>
+                  )
+                })}
               </View>
-            )}
-            {gear.recommended && gear.recommended.length > 0 && (
-             <View className="gear-section">
-                <Text className="gear-tag gear-tag-recommended">推荐</Text>
-                {gear.recommended.map((g, i) => (
-                  <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
-                ))}
-              </View>
-            )}
-            {gear.optional && gear.optional.length > 0 && (
-             <View className="gear-section">
-                <Text className="gear-tag gear-tag-optional">可选</Text>
-                {gear.optional.map((g, i) => (
-                  <View key={i} className="gear-item"><Text className="gear-name">{g.item}</Text><Text className="gear-reason">{g.reason}</Text></View>
-                ))}
-              </View>
-            )}
-            {(!gear.essential || gear.essential.length === 0) && (!gear.recommended || gear.recommended.length === 0) && (
-              <Text className="empty-hint">装备清单为空</Text>
-            )}
+            ))}
+            {gearCategories.every(([category]) => minimumGear[category].length === 0) && <Text className="empty-hint">暂无最低装备条目</Text>}
           </View>
 
-          <View className="card">
-            <Text className="card-quirky-icon">⚠️</Text>
-            <Text className="card-quirky-icon" style="right:60rpx;opacity:0.2;">(•̀_•́)</Text>
-            <Text className="card-title">风险提示</Text>
-            {risks.length > 0 ? (
-             risks.map((r, i) => {
-               return (
-                 <View key={i} className={`risk-item ${r.level === '致命' ? 'fatal fatal-enter' : ''}`}>
-                  <Text className={`risk-level-capsule ${r.level === '致命' ? 'capsule-fatal' : 'capsule-high'}`}>{r.level}</Text>
-                   <Text className="risk-name">{r.risk}</Text>
-                   <Text className="risk-advice">{r.advice}</Text>
-                 </View>
-               )
-              })
-            ) : degraded ? (
-              <Text className="risk-advice" style="color:#ff3b30;">AI 不可用，请查专业路书</Text>
-            ) : (
-              <Text className="empty-hint">暂无风险提示</Text>
-            )}
-          </View>
-
-          {(photo.sunrise || photo.sunset || photo.goldenHour) && (
-            <View className="card">
-            <Text className="card-quirky-icon">📷</Text>
-            <Text className="card-title">晨昏光影时刻</Text>
-            {photo.terrainCaveat && <Text className="caveat">{photo.terrainCaveat}</Text>}
-              {weather.dateOutOfRange && <Text className="caveat">⚠ 天文时刻为当下参考值，出发前2-3天请重新查询</Text>}
-              <View className="photo-info">
-                <View className="info-row"><Text>日出</Text><Text className="info-value">{photo.sunrise || '—'}</Text></View>
-                <View className="info-row"><Text>日落</Text><Text className="info-value">{photo.sunset || '—'}</Text></View>
-                <View className="info-row"><Text>黄金时刻</Text><Text className="info-value">{photo.goldenHour || '—'}</Text></View>
-                <View className="info-row"><Text>蓝调时刻</Text><Text className="info-value">{photo.blueHour || '—'}</Text></View>
+          <View className="card result-source-card">
+            <Text className="card-title">路线与天气来源</Text>
+            {pageModel.sources.route.length > 0 ? pageModel.sources.route.map((source, index) => (
+              <View key={`${source.id || 'route-source'}-${index}`} className="source-item">
+                <Text className="source-title">{source.title || '路线来源'}</Text>
+                <Text className="source-meta">{source.publisher || '发布方待确认'} · {source.tier || '等级待确认'} · {source.kind || '类型待确认'} · 核验 {source.checkedAt || '日期待确认'}</Text>
+                <Text className="source-url">{source.url || '暂无公开链接'}</Text>
               </View>
+            )) : <Text className="empty-hint">暂无路线来源摘要</Text>}
+            <View className="weather-source-item">
+              <Text className="source-title">天气：{pageModel.sources.weather.source || '来源待确认'}</Text>
+              <Text className="source-meta">获取时间：{pageModel.sources.weather.fetchedAt || '时间待确认'}</Text>
             </View>
-          )}
-
-          <View className="card">
-            <Text className="card-title">注意事项</Text>
-            {adviceLoading ? (
-              <View className="skeleton-lines">
-                <View className="sk-line sk-60" />
-                <View className="sk-line sk-80" />
-              </View>
-            ) : notes.length > 0 ? (
-              notes.map((n, i) => <Text key={i} className="note-item">{n}</Text>)
-            ) : (
-              <Text className="empty-hint">暂无注意事项</Text>
-            )}
           </View>
 
-          {d.disclaimer && (
-            <View className="disclaimer-box">
-              <Text className="disclaimer-text">{d.disclaimer}</Text>
-            </View>
-          )}
+          <View className="card result-ai-card">
+            <Text className="card-title">AI 补充说明</Text>
+            {aiModel.status === 'loading' && (
+              <View><Text className="ai-status">{adviceStage}</Text><View className="skeleton-lines"><View className="sk-line sk-60" /><View className="sk-line sk-80" /></View></View>
+            )}
+            {aiModel.status === 'unavailable' && <Text className="ai-status ai-degraded">AI 补充暂不可用，确定性结果仍然有效。</Text>}
+            {aiModel.status === 'context_expired' && <Text className="ai-status ai-degraded">本次 AI 上下文已失效，确定性结果仍然有效。</Text>}
+            {aiModel.status === 'ready' && aiModel.additions.length === 0 && aiModel.risks.length === 0 && aiModel.notes.length === 0 && !aiModel.disclaimer && <Text className="empty-hint">暂无 AI 补充</Text>}
+            {aiModel.additions.length > 0 && <View className="ai-additions">{aiModel.additions.map((item, index) => <Text key={`${item.item}-${index}`} className="ai-addition">{item.label}：{item.item}{item.reason ? ` · ${item.reason}` : ''}</Text>)}</View>}
+            {aiModel.risks.map((risk, index) => <Text key={`ai-risk-${index}`} className="note-item">{risk.risk || risk.message || String(risk)}</Text>)}
+            {aiModel.notes.map((note, index) => <Text key={`ai-note-${index}`} className="note-item">{note}</Text>)}
+            {aiModel.disclaimer && <View className="disclaimer-box"><Text className="disclaimer-text">{aiModel.disclaimer}</Text></View>}
+          </View>
 
           <Button block className="retry-btn" onClick={this.onBack}>返回重新查询</Button>
         </View>
