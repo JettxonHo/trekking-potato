@@ -1,6 +1,6 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M6 I23 PLANNING_APPROVED_PR_PENDING`
+- Status: `ACTIVE — M6 I23 PLANNING_PR_OPEN`
 - Updated: `2026-08-09`
 
 ## 1. 依赖图

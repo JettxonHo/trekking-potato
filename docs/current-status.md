@@ -2,9 +2,9 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I23 PLANNING_APPROVED_PR_PENDING`
+- Goal status: `ACTIVE — M6 I23 PLANNING_PR_OPEN`
 - Active milestone: `M6 Core UX`
-- Active task: `I23 / #32 / PLANNING_APPROVED_PR_PENDING`
+- Active task: `I23 / #32 / PLANNING_PR_OPEN`
 - Branch: `codex/i23-recovery-contract`
 - Base: `main` at `852e86d`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
@@ -14,6 +14,7 @@
 - I22a implementation PR: `#97` — squash merged as `6e12f25`; GitHub #94 closed
 - I22b implementation PR: `#98` — squash merged as `852e86d`; GitHub #95 and parent #31 closed
 - Assignment: no implementation Agent active; exact custom Agent `luna-worker` is reserved for serial I23 children after planning merge
+- I23 planning PR: `#101` — open; its live latest-head GitHub check is the CI fact source; actual-diff approval and merge remain
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -146,7 +147,7 @@
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1–M5 and I20–I22 are complete. I22b PR #98 passed latest-head quality, full local DevTools evidence and
 independent Sol Review, squash merged as `852e86d`, and closed #95 plus parent #31. M6 is now at I23/#32
-planning approved / PR pending. No implementation Agent is active; I23a history-save idempotency must merge before I23b
+planning PR open. No implementation Agent is active; I23a history-save idempotency must merge before I23b
 frontend recovery is dispatched.
 
 ## Completed
@@ -642,8 +643,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Open the approved pure planning PR and pass latest-head quality plus actual-diff Review.
-2. Merge the planning PR, then implement and Review I23a before activating I23b.
+1. Complete latest-head quality and actual-diff Review for open planning PR #101.
+2. Merge #101, then implement and Review I23a before activating I23b.
 
 ## Blockers and risks
 
@@ -678,7 +679,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Open and merge the independently approved pure planning PR after latest-head quality and actual-diff Review.
+Complete actual-diff Review and merge open planning PR #101 after its live latest-head GitHub check passes.
 Activate only I23a for exact `luna-worker`; the executor cannot approve/merge and Terra remains unauthorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
@@ -902,5 +903,5 @@ Activate only I23a for exact `luna-worker`; the executor cannot approve/merge an
   fields; current/default time and climb support remain visible for user confirmation.
 - Read-only audit baseline `main@852e86d` passed trip-flow, result-page, history, response and integration `56/0`.
   The audit found no human decision under this bounded design. Live #32/#99/#100 are synchronized; independent
-  contract Review returned APPROVED with no P0–P3 findings. Planning PR, latest-head quality and actual-diff Review
-  remain before I23a dispatch.
+  contract Review returned APPROVED with no P0–P3 findings. Planning PR #101 is open; its live latest-head GitHub
+  check is the CI fact source, and actual-diff approval/merge remain before I23a dispatch.

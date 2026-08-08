@@ -3,7 +3,7 @@
 - Goal: `TP-BETA-001`
 - Parent: `I23 / #32`
 - GitHub children: `I23a / #99`, then `I23b / #100`
-- Status/Mode: `PLANNING_APPROVED_PR_PENDING / REVIEW`
+- Status/Mode: `PLANNING_PR_OPEN / REVIEW`
 - Controller: Sol XHigh
 - Implementation Agent after planning merge: exact custom Agent `luna-worker`
 - Planning branch: `codex/i23-recovery-contract`
@@ -209,5 +209,5 @@ Sol contract Review and latest-head quality, and the planning PR merges. Then ac
 until I23a is accepted and merged.
 
 Independent contract Review returned `APPROVED` with no P0–P3 findings after the final Issue/document sync. The
-remaining planning gates are a focused PR, latest-head quality and Sol actual-diff approval/merge; no implementation
-Agent is active.
+focused planning PR is #101. Its live latest-head GitHub check is the CI fact source; Sol actual-diff approval and
+merge remain. No implementation Agent is active.

@@ -650,7 +650,7 @@
 
 ## 2026-08-09 — TP-D048 I23 先冻结历史幂等，再接前端恢复
 
-- Status: Accepted by Sol; independent contract Review approved with no P0–P3 findings; planning PR pending
+- Status: Accepted by Sol; independent contract Review approved with no P0–P3 findings; planning PR #101 open
 - Context: I22b merged a structured deterministic result page. Existing AI/weather/history failures are isolated,
   but there are no explicit recovery controls. A history save may have committed even when its callback fails, so
   exposing a naïve retry can duplicate a private record. Combining history Cloud Function, reducer, result page and
