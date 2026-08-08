@@ -228,6 +228,12 @@ function assertCacheChecklistAndHistory() {
     elevation: 0, location: '测试地区', coords: { lat: 1, lon: 2, coordinateSystem: 'GCJ-02' }, routeType: 'tour', routeTypeSource: 'amap',
   }, 'place/amap')
 
+  const catalogPlace = placeResult({ status: 'available', scope: 'reference_point', source: 'Open-Meteo', data: { days: [] } })
+  catalogPlace.sourceMetadata = { ...catalogPlace.sourceMetadata, routeTypeSource: 'user' }
+  assertHistoryProjection(catalogPlace, {
+    elevation: 0, location: '测试地区', coords: { lat: 1, lon: 2, coordinateSystem: 'GCJ-02' }, routeType: 'tour', routeTypeSource: 'user',
+  }, 'place/catalog')
+
   const manual = placeResult({ status: 'available', scope: 'reference_point', source: 'Open-Meteo', data: { days: [] } })
   manual.routeSnapshot = {
     ...manual.routeSnapshot,
@@ -240,12 +246,6 @@ function assertCacheChecklistAndHistory() {
   assertHistoryProjection(manual, {
     elevation: -20, location: '测试地区', coords: { lat: 3, lon: 4, coordinateSystem: 'GCJ-02' }, routeType: 'trek', routeTypeSource: 'user',
   }, 'manual/user')
-
-  const catalogPlace = placeResult({ status: 'available', scope: 'reference_point', source: 'Open-Meteo', data: { days: [] } })
-  catalogPlace.sourceMetadata = { ...catalogPlace.sourceMetadata, routeTypeSource: 'builtin' }
-  assertHistoryProjection(catalogPlace, {
-    elevation: 0, location: '测试地区', coords: { lat: 1, lon: 2, coordinateSystem: 'GCJ-02' }, routeType: 'tour', routeTypeSource: 'builtin',
-  }, 'place/builtin')
 
   const blocked = blockedResult()
   assertHistoryProjection(blocked, {

@@ -39,13 +39,19 @@ npm run test:core-input-flow
 FAIL: full deterministicSafety must come from this call's sentinel result
 ```
 
-History coverage now runs `captureHistoryContext` and `buildHistorySavePayload` for full, catalog place/builtin,
-manual/user, AMap/amap and blocked snapshots. An in-memory mutant hardcoding `routeTypeSource: 'builtin'` produced
-the expected focused RED at `place/amap` before the source-sensitive assertions were restored:
+History coverage now runs `captureHistoryContext` and `buildHistorySavePayload` for full, catalog place/user,
+manual/user, AMap/amap and blocked snapshots. Catalog place-only is intentionally `routeTypeSource: 'user'`: the
+built-in place identity does not establish a trusted full-route type, so catalog and manual place contexts share the
+user-confirmed provenance while AMap remains explicitly `amap`. An in-memory mutant hardcoding catalog place
+provenance to `builtin` produced the expected focused RED in both core and result contracts:
 
 ```text
-AssertionError: place/amap captureHistoryContext must preserve structured source facts
-actual routeTypeSource: builtin; expected: amap
+npm run test:core-input-flow
+FAIL: 'builtin' == 'user'
+
+npm run test:result-page
+AssertionError: place/catalog captureHistoryContext must preserve structured source facts
+actual routeTypeSource: builtin; expected: user
 ```
 
 The unused `buildAdviceContext` and `adaptAdviceContext` exports were removed; the adapter exposes only

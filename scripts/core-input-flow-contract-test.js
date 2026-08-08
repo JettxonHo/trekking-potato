@@ -159,6 +159,7 @@ async function main() {
   assert.deepEqual(placeOnly.trustedBaseData.routeSnapshot.sourceCheckedAt, null)
   assert.deepEqual(placeOnly.trustedBaseData.sourceMetadata.routeSourceIds, [])
   assert.deepEqual(placeOnly.trustedBaseData.sourceMetadata.routeSources, [])
+  assert.equal(placeOnly.trustedBaseData.sourceMetadata.routeTypeSource, 'user', 'catalog place-only must use user provenance')
   assert.equal(placeOnly.trustedBaseData.deterministicResult.verdict, null)
   assert.equal(calls.gear, beforePlaceOnlyGear + 1, 'place-only must call deterministic gear rules exactly once')
   assert.equal(gearStub.calls.length, calls.gear, 'place-only sentinel must have one per-call record')

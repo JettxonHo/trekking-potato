@@ -131,6 +131,7 @@ integration assertion accounting are recorded in `docs/i24a-structured-adapter-v
 
 Controller baseline `4de1ff2` is confirmed and remains outside executor scope. The bounded review fix proves
 per-call deterministic gear provenance (full/place exactly once and blocked zero), covers full/catalog place/manual
-`user`/AMap `amap`/blocked history capture and save projection, removes unused adapter aliases, and records the
-two-removed/one-added integration assertion accounting plus in-memory mutation RED evidence in the verification
-record. No production behavior or non-allowlisted file is changed.
+`user`/AMap `amap`/blocked history capture and save projection, and treats catalog place identity as `user` route-type
+authority rather than `builtin`. It removes unused adapter aliases and records the two-removed/one-added integration
+assertion accounting plus in-memory mutation RED evidence in the verification record. No production behavior or
+non-allowlisted file is changed.

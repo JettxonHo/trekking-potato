@@ -9,7 +9,8 @@
 - Base: `main` at `6869a7b`
 - Review-fix checkpoint (2026-08-09): controller baseline is `4de1ff2`; the bounded round-1 fix adds per-call
   sentinel gear provenance (full/place exactly once, blocked zero), covers full/catalog place/manual/user/AMap/amap/
-  blocked history source propagation, removes unused adapter aliases, and records mutation RED evidence. Integration
+  blocked history source propagation, with catalog place authority explicitly `routeTypeSource=user`; removes unused
+  adapter aliases, and records mutation RED evidence. Integration
   `56 -> 55` is documented as two retired legacy checks replaced by one structured non-exposure check. Controller
   activation files and executor allowlist are explicitly distinguished in the verification record.
 - I24a implementation checkpoint (2026-08-09): TDD RED for missing `advice-context.js` was recorded before the
