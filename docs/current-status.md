@@ -1,13 +1,14 @@
 # TP-BETA-001 当前状态
 
-- Updated: `2026-08-07`
+- Updated: `2026-08-08`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — I13 APPROVED / PR_PENDING`
-- Active milestone: `M3 Route domain` (five full reviewed-track Variants and one blocked record merged; I13 remains)
-- Active task: `I13 / #22 / APPROVED — PR_PENDING`
-- Branch: `codex/22-stable-route-resolver`
-- Base: `main` at `5496956`
-- Assignment: Terra XHigh implements the frozen contract; Sol XHigh owns independent Review and merge
+- Goal status: `ACTIVE — M6 I21 CONTRACT_APPROVED / ROUTING_MIGRATED`
+- Active milestone: `M6 Core UX`
+- Active task: `I21 / #30 / CONTRACT_APPROVED — ROUTING_MIGRATED / IMPLEMENTATION_PENDING`
+- Branch: `codex/i21-core-flow-contract`
+- Base: latest `main` at `8387554` after CI-fixture sync
+- I21 planning PR: `#90` — open; routing review approved; latest-head quality pending after base sync
+- Assignment: Sol XHigh owns contract and independent Review; `luna-worker` is reserved for implementation after merge
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -37,6 +38,10 @@
 - I20 planning PR: `#70` — merged as `7fc295f`; GitHub #29 implementation activated
 - I20 implementation PR: `#71` — merged as `9d70f7c`; GitHub #29 closed
 - I21 dependency checkpoint PR: `#72` — merged as `bfd9394`; at that checkpoint #22/#30 were blocked
+- I13 planning PR: `#88` — merged as `5496956`
+- I13 implementation PR: `#89` — merged as `c5d7d7c`; GitHub #22 closed; M3 complete
+- CI date-fixture PR: `#92` — merged as `8387554`; GitHub #91 closed; latest-head quality passed
+- I21 contract branch: `codex/i21-core-flow-contract` from `c5d7d7c`; routing sync and planning merge pending
 - M3 source refresh PR: `#73` — merged as `31eab6d`; latest-head quality passed
 - User GPX audit PR: `#74` — merged as `97c6728`; latest-head quality passed
 - Exact-pilot retention PR: `#75` — merged as `62ba8c5`; latest-head quality passed
@@ -111,15 +116,31 @@
   `APPROVED`, with no P0–P2 finding. Its P3 observation that same-name ID tie-break lacks a dedicated fixture
   is non-blocking: the deterministic comparator is directly inspectable and the suite already covers stable
   sorting; adding another synthetic permutation would be mechanical rather than risk-reducing.
+- Independent I21 backend/frontend audits confirmed that the handler still uses the I05 daily-weather path,
+  while I13/I14/I16/I20 provide the necessary seams. Sol froze one atomic vertical contract rather than a
+  frontend-only or backend-only intermediate state.
+- The first independent I21 contract Review returned `CHANGES_REQUESTED` with no human decision: live #30
+  drift, incomplete compatibility projection, missing manual-coordinate boundary, BaseData/error drift,
+  an unfrozen builder interface and stale I13 open work. Sol fixed all findings, synchronized #30, removed its
+  obsolete `status:blocked` label and kept `CONTRACT_REVIEW — IMPLEMENTATION_PAUSED`.
+- A second focused Review identified AMap/manual source ambiguity, incomplete compatibility aggregation and
+  remaining authority drift. Sol split catalog/AMap/manual follow-ups, froze the multi-point hourly summary,
+  synchronized the exact BaseData/response shapes and current status, then re-synced #30. Third focused Review
+  returned `APPROVED` with no P0–P3 finding and no human decision.
+- Planning validation passes root test, offline integration `56/0`, lint `0 errors / 10 existing warnings`,
+  typecheck, host `CI=1` WeChat build and `git diff --check`. The sandbox build's macOS
+  system-configuration worker panicked/hung; it was terminated and the same command succeeded outside the
+  sandbox. No I21 business code or TDD RED has been started.
+- On `2026-08-08`, the fixed handler date fixture crossed the real date boundary and caused #90 quality to
+  fail at `test:response`; `test:confirmation` had the same masked failure. Sol created focused Bug #91.
+  Runtime-verified `luna-worker` changed only the two contract tests to use the existing fixed-`now` seam.
+  PR #92 passed all local gates, latest-head quality and independent Sol Review with no P0–P3 finding, then
+  squash merged as `8387554`; production date validation was not changed.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
-M1 and M2 are complete. I07, I10a and all five reviewed community-track Variants are complete; I13 is
-the only remaining M3 Issue. TP-D024 permits the
-independent weather/verdict foundation to proceed using only I07's frozen shape and synthetic fixtures;
-M4 is complete through I14–I16 without authorizing I13 or real full-route data. M5 is complete: I17
-creates server-owned short-lived contexts, I18 completed the atomic queryId-only advice cutover, and
-I19 completed private history plus non-destructive public UGC shutdown. I20 completed the pure reducer
-and getAdvice service seam. M6 remains blocked at I21 until I13's production catalog resolver is merged.
+M1–M5 and I20 are complete. I07, I10a, all five reviewed community-track Variants and I13's production
+catalog resolver are merged; M3 is complete. M6 is active at the I21 routing handoff. The earlier pause is
+released; implementation starts only after the updated planning PR merges from a green latest head.
 
 ## Completed
 
@@ -606,17 +627,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Agent assignments
 
-- Sol XHigh: planning documents, Goal, GitHub orchestration and independent review.
-- Luna XHigh: preferred executor, unavailable in this environment.
-- Sol XHigh: owns the community-GPX replan, route contracts, task activation and independent Review.
-- Terra XHigh: completed #77; will receive I13 only after its planning contract is merged.
-- Terra XHigh source agents: completed official-source audits, GPX Review, the external request packet
-  and a read-only replacement-Variant mapping review.
+- Sol XHigh: controller, contract owner, independent reviewer and merge authority.
+- `luna-worker`: planned I21 executor; configuration verified as `gpt-5.6-luna` with `max` reasoning.
+- First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
+- Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
+- Independent Sol XHigh: reviewing the routing-migration documentation only; no business-code authority.
 
 ## Open work
 
-1. Push the approved I13 branch and create the focused implementation PR.
-2. Require latest-head `quality`; merge only if the reviewed and CI heads match.
+1. Require latest-head quality on the base-synchronized planning PR #90, then merge it.
+2. Create `codex/30-core-input-flow` from latest `main` and assign I21 to the exact custom Agent `luna-worker`.
 
 ## Blockers and risks
 
@@ -637,13 +657,11 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - TP-D029 resolves I16's sunset evidence boundary as the earliest value across each route-day's trusted
   I14 samples. If any necessary sunset cannot be calculated, the result is unavailable unless a known
   hard no-go independently applies.
-- I21 cannot be split into a frontend-only or backend-only merge while I13 is missing: either direction
-  creates a dead input or protocol-incompatible main.
-- I13 must not partially wire verified Variants into the legacy handler. The pure resolver can now be
-  implemented from complete A/B data; I21 owns the later atomic public cutover.
+- I21 cannot be split into a frontend-only or backend-only merge: either direction creates a dead input or
+  protocol-incompatible main. I13 is now merged; I21 owns the atomic public cutover.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions while I21 is blocked
+## Forbidden actions during I21 handoff
 
 - UI, cloud function, reducer, service or TripContext changes for I21
 - Temporary variants, cross-route fields, unreviewed tracks, nearby-peak geometry or treating
@@ -652,4 +670,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Push the approved I13 implementation and merge only after latest-head quality. Keep #30 blocked until merge.
+Require latest-head quality on planning PR #90 after the merged #91 base sync. Then merge #90, create
+`codex/30-core-input-flow` from latest `main`, assign the exact custom Agent
+`luna-worker`, and begin the contract's TDD loop. Do not start I22/I23 before I21 is accepted; do not
+automatically route implementation to Terra.

@@ -14,7 +14,7 @@ Authority order:
 6. `docs/decision-log.md`
 7. Existing code behavior
 
-The human user and the Sol XHigh controller are project controllers. The implementation agent is a bounded executor. The preferred executor is Luna XHigh; while it is unavailable, the controller has authorized `gpt-5.6-terra` XHigh as the recorded fallback. An executor cannot approve or merge its own work.
+The human user and the Sol XHigh controller are project controllers. The implementation agent is a bounded executor. New bounded implementation work must be routed through the custom Agent named `luna-worker`, configured by `~/.codex/agents/luna-worker.toml` for `gpt-5.6-luna` at `max` reasoning. Terra remains part of the historical record but is not an automatic fallback; using Terra again requires explicit human authorization. An executor cannot approve or merge its own work.
 
 ## 2. Mandatory reading order
 

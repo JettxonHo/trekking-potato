@@ -1,13 +1,13 @@
 # 徒步薯 — Agent 执行协议
 
-- Protocol version: `2.0.0`
+- Protocol version: `2.1.0`
 - Governance version: `TP-GOV-2.0.0`
 
 ## 1. 角色
 
 - Sol XHigh：策划、架构、任务合同、调度、独立 Review、合并判断和 Goal 验收。
-- Luna XHigh：首选实现 Agent，当前不可用。
-- Terra XHigh：经人工授权的临时实现 Agent，权限与 Luna 相同，不得自行扩大范围或批准自身 PR。
+- `luna-worker`：当前边界明确实现任务的准确自定义 Agent；配置为 `gpt-5.6-luna` / `max`，逻辑角色 `IMPLEMENTER`。
+- Terra XHigh：仅保留为历史执行记录，不再自动回退；再次使用必须获得人工明确授权。
 
 ## 2. 授权模式
 
@@ -23,7 +23,7 @@
 ## 4. 标准循环
 
 1. Sol XHigh 核对 Goal、依赖和工作区，建立 Issue 合同与分支。
-2. 执行 Agent完成握手、阅读指定文档、运行基线并提交简要实现计划。
+2. Sol 在创建实现 Agent 前记录请求的自定义 Agent、配置文件、配置模型/推理强度、可见运行时模型和验证状态；随后由执行 Agent完成握手、阅读指定文档、运行基线并提交简要实现计划。
 3. 执行 Agent只修改 allowlist，添加测试并运行合同要求的验证。
 4. 执行 Agent自检 diff、文档、失败测试和已知风险，提交结果包与 PR。
 5. Sol XHigh 阅读实际 diff 和验证证据，返回 `APPROVED`、`CHANGES_REQUESTED`、`BLOCKED` 或 `ESCALATE_TO_HUMAN`。
@@ -56,3 +56,9 @@
 Sol XHigh 下发包：Issue、合同、必读文档、模块、固定决策、验收、测试、分支/基线、风险和禁止范围。
 
 执行 Agent返回包：完成情况、修改摘要、实际文件、命令与结果、计划偏差、自主实现决策、限制、PR 和重点 Review 位置。
+
+## 8. 模型不可用
+
+若当前会话无法发现或启动 `luna-worker`，不得自动回退 Terra、不得假装 Luna 已启动，也不得开始
+新的实现任务。Sol 必须记录 `STATUS: BLOCKED_LUNA_WORKER_UNAVAILABLE`，并报告已检查配置路径、
+当前可见 Agent、Active Terra、已完成交接和需要的人工操作。

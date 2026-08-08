@@ -346,10 +346,10 @@ I13 最终运行 `test:route-resolver`、confirmation、response、trip-context�
 root test、integration、lint、typecheck、WeChat build 和 diff check。既有 I05 handler 四字段与
 `builtin-route:*` 契约保持原样；它只在 I21 公共切换时更新。
 
-### I21 依赖门与未来矩阵
+### I21 当前原子矩阵
 
-I13 未合并时不新增 I21 生产测试或控件：没有可信 resolver 的“前端字段通过”不能证明
-输入影响了天气、结论或快照。I13 合并后，I21 的代表性垂直矩阵必须同时证明：
+I13 未合并前没有新增 I21 生产测试或控件，因为“前端字段通过”不能证明输入影响天气、结论或
+快照。该依赖现已由 PR #89 满足；I21 当前代表性垂直矩阵必须同时证明：
 
 - `date/startTimeLocal/level/days/climbSupport` 的客户端提示与服务端严格校验，输入失败时
   不执行天气、规则、AI、TripContext 或 history 副作用。
@@ -357,6 +357,28 @@ I13 未合并时不新增 I21 生产测试或控件：没有可信 resolver 的�
 - climb 的三种 support 都可通过，缺失/非法 support 为 `missing_climb_support`；trek/tour 不强制。
 - confirmation 快照保留全部输入，confirm 仍只用 candidate ID 让服务端恢复路线事实；advice 仍只有 queryId。
 - place-only 仍为 limited/null verdict；I20 token 竞态、I19 history 和 I18 信任边界不回归。
+- `mode='base'` 退役；`invalid_level/invalid_start_time/missing_climb_support/route_not_found` 的公开
+  code、retryability 和零副作用行为固定。
+- blocked 在合法 date/time/level 下直接 no-go，request days/support 为 null，且 hourly/I15/sunset
+  调用计数为零；full insufficient weather 仍返回可展示 base 而不是通用 error。
+- TripContext 深比较 handler 构造的 structured snapshot；full 保存 I14 shape 与永久 IDs，place-only
+  无 Variant 字段，blocked 保存 restriction 且 weather null。
+- 页面默认 `08:00` 与 `solo_or_unsure`，confirmation snapshot 精确保留
+  `date/startTimeLocal/level/days/climbSupport`；place-only candidate 可进入同一
+  `awaiting_route_type` 而不新增状态。
+- `route_type_required` 的 catalog/amap/manual 三个判别分支分别回到 confirm、route-only prepare、
+  manual-coordinate prepare；catalog/amap 不暴露坐标，manual 不伪造 candidate ID，迟到 follow-up
+  仍受同一 token 约束。
+- 新增聚焦 `test:core-input-flow`，通过 builder 注入 hourly weather、place weather、sun、verdict、gear
+  与 clock，并在 handler 契约中替换 resolver，覆盖 full/place-only/blocked/manual 编排；保留
+  response、confirmation、TripContext、reducer/service 和离线 integration 回归。测试在实现模块缺失时
+  先记录一个真实 RED，之后再 GREEN。
+- manual 坐标的成对、number 类型、有限值、纬经度范围与可选 elevation 范围必须各有代表性负例，
+  并用调用计数证明非法输入没有进入 elevation/weather/rules/context。
+- full complete compatibility weather 的日聚合、insufficient/blocked null、place reference daily、
+  full/blocked null sunEvents 与 blocked compatibility risk 必须直接断言，确保 prompt/safety 不因迁移崩溃。
+- full/place-only/blocked 的 queryId-only advice 必须成功或按 AI unavailable 降级，不得因 compatibility
+  shape 进入 internal_error；gearRules 三类装备必须逐项等于 minimumGear，AI 不得改写 deterministicResult。
 
 ## 4. 关键矩阵
 
