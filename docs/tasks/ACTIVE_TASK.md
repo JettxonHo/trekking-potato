@@ -3,7 +3,7 @@
 - Goal: `TP-BETA-001`
 - Parent: `I23 / #32`
 - GitHub Issue: `I23b / #100`; I23a/#99 is closed
-- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
+- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
 - Controller: Sol XHigh
 - Implementation Agent: exact custom Agent `luna-worker`
 - Branch: `codex/100-frontend-recovery`
@@ -272,3 +272,26 @@ need, amend/force-push, approve or merge.
   `build:weapp`, and `git diff --check`. No DevTools evidence is claimed.
 - Allowlist remains exact and no public/service/cache/history schema/dependency/Cloud Function changes were made.
   Status: `READY_FOR_CONTROLLER_REVIEW`; controller owns additive commit, focused draft PR, Actions wait, review and merge.
+
+## Sol Review-fix round 1 — 2026-08-09
+
+Verdict: `CHANGES_REQUESTED`; P0 none; no human decision.
+
+The executor must make the smallest bounded corrections inside the existing #100 allowlist:
+
+1. Render weather recovery only when both the deterministic weather issue and the same state/request authority used
+   by `BEGIN_REPREPARE` are eligible. `base_ready` and `advice_loading` must not expose a silent no-op button;
+   `complete/degraded/error` plus a valid last-base request must enter `preparing` and replay it.
+2. Replace marker-only whole-file `source.includes` evidence with a bounded executable page seam or precise
+   method/branch wiring assertions. Representative removal mutations must RED for button eligibility, old-result
+   refresh priority, same-query advice, base snapshot replay, same-base history intent, stale list guards and
+   zero-I/O history prefill. Do not add a second state machine or UI framework.
+3. Do not invalidate `_historySaveIntent` when reprepare merely starts. Preserve a failed/in-flight old-BaseData
+   intent through reprepare and reprepare failure. Invalidate it, and clear its old local error, only when replacement
+   BaseData arrives or on the already-authorized reset/return/unmount boundaries.
+4. While history list retry is loading, keep existing items rendered alongside the loading indication. Use an empty
+   loading state only when no items exist, with focused render evidence.
+
+Use additive commits and normal push only. Update `docs/i23-recovery-verification.md`, this task and
+`docs/current-status.md`; re-run every command in the frozen matrix and latest-head Actions. Return
+`READY_FOR_CONTROLLER_REVIEW`; do not approve or merge PR #103.

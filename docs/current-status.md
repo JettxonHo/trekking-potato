@@ -2,9 +2,9 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I23b IMPLEMENTATION_ACTIVE`
+- Goal status: `ACTIVE — M6 I23b REVIEW_FIX_ACTIVE`
 - Active milestone: `M6 Core UX`
-- Active task: `I23b / #100 / IMPLEMENTATION_ACTIVE`
+- Active task: `I23b / #100 / REVIEW_FIX_ACTIVE`
 - Branch: `codex/100-frontend-recovery`
 - Base: `main` at `107fab4`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
@@ -13,7 +13,7 @@
 - I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
 - I22a implementation PR: `#97` — squash merged as `6e12f25`; GitHub #94 closed
 - I22b implementation PR: `#98` — squash merged as `852e86d`; GitHub #95 and parent #31 closed
-- Assignment: exact custom Agent `luna-worker` is assigned to I23b after this controller activation commit
+- Assignment: exact custom Agent `luna-worker` owns the bounded PR #103 Review-fix round 1; Terra fallback remains unauthorized
 - I23 planning PR: `#101` — latest-head quality and independent actual-diff Review passed; squash merged as `a12ab46`
 - I23a PR: `#102` — latest-head quality and independent Sol re-review passed; squash merged as `107fab4`; #99 closed
 - Planning PR: `#9` — merged
@@ -989,3 +989,19 @@ The executor cannot approve/merge and Terra remains unauthorized.
   package script, verification doc, and these two status documents. No Cloud Function, service payload, cache
   schema, history DTO, dependency, route/weather/verdict rule or production configuration changed.
 - Status: `READY_FOR_CONTROLLER_REVIEW`; additive commit/PR and latest-head Actions remain controller-owned.
+
+## I23b Sol Review / Review-fix round 1 — 2026-08-09
+
+- Draft PR #103 at implementation head `45c454a` passed latest-head GitHub `quality`, but two independent read-only
+  Reviews returned `CHANGES_REQUESTED`. No P0 or human/product/architecture decision is involved.
+- Fix the four bounded page-orchestration findings only: gate weather recovery controls by the same reducer/request
+  eligibility used by the click handler; replace marker-only wiring evidence with mutation-sensitive focused page
+  evidence; keep the old BaseData history-save intent valid until replacement BaseData actually arrives; and keep
+  existing history items visible while a list retry is loading.
+- The old history save error/retry action must remain usable across a failed reprepare, while replacement BaseData,
+  reset/return and unmount still invalidate it. A visible recovery button must never silently no-op because its event
+  is ineligible.
+- Review-fix remains inside #100's existing allowlist. No Cloud Function, public contract, dependency, cache/history
+  schema, eleventh state, automatic retry or visual redesign is authorized. Use additive commits and normal push,
+  update the verification/status evidence, run the complete required matrix and latest-head Actions, then return
+  `READY_FOR_CONTROLLER_REVIEW` for a fresh Sol Review.
