@@ -19,8 +19,8 @@ latest-head quality and independent Sol Review, and squash merged as `852e86d`; 
 I23a private-history idempotency merged through PR #102 as `107fab4`; I23b bounded recovery passed two independent
 final Reviews and merged through PR #103 as `097c921`. #99, #100 and parent #32 are closed. I24 planning PR #104
 merged as `6869a7b`; its serial children then merged through PRs #108–#110. I24c/#107 and parent #33 are closed at
-`main@1bba5f9`, with unavailable DevTools rows truthfully retained as `UNVERIFIED_RUNTIME_TOOL`. M7 is now in the
-Sol-owned I25/#34 Goal-wide final Review and completion-report phase.
+`main@1bba5f9`, with unavailable DevTools rows truthfully retained as `UNVERIFIED_RUNTIME_TOOL`. The Sol-owned
+I25/#34 Goal-wide Review is approved; PR #111 merge makes the completion report and M7 code-ready conclusion effective.
 
 ## 1. Objective
 
@@ -76,7 +76,8 @@ closed #22, completing M3. I21 planning PR #90 merged as `c817bbb`; implementati
 `be24b07` and closed #30. I22 planning PR #96 merged as `ac4ba9e`; #94 merged as `6e12f25`; #95 and parent
 #31 closed after PR #98 merged as `852e86d`. I23a/#99 and I23b/#100 then merged through PRs #102/#103 and parent
 #32 closed. I24 planning PR #104 merged as `6869a7b`; I24a PR #108 merged as `1a2f485`; I24b PR #109 merged as
-`f311d1b`; I24c PR #110 merged as `1bba5f9`, closing #107 and parent #33. I25/#34 is the only active scope.
+`f311d1b`; I24c PR #110 merged as `1bba5f9`, closing #107 and parent #33. I25/#34 Review is complete; the controller
+closes #34 and M7 after approved PR #111 merges.
 
 ## 6. Agent routing
 
