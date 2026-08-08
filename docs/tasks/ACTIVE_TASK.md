@@ -1,14 +1,14 @@
-# ACTIVE TASK — I23 降级与恢复合同规划
+# ACTIVE TASK — I23a 私人历史保存重试幂等
 
 - Goal: `TP-BETA-001`
 - Parent: `I23 / #32`
-- GitHub children: `I23a / #99`, then `I23b / #100`
-- Status/Mode: `PLANNING_PR_OPEN / REVIEW`
+- GitHub Issue: `I23a / #99`; `I23b / #100` remains dependency-blocked
+- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
 - Controller: Sol XHigh
-- Implementation Agent after planning merge: exact custom Agent `luna-worker`
-- Planning branch: `codex/i23-recovery-contract`
-- Base: `main@852e86d`
-- Dependency: I19 merged; I22b/#95 and parent #31 closed through PR #98
+- Implementation Agent: exact custom Agent `luna-worker`
+- Branch: `codex/99-history-save-idempotency`
+- Base: `main@a12ab46`
+- Dependency: I19/I22b merged; I23 planning PR #101 merged as `a12ab46`
 
 ## 1. Objective and serial split
 
@@ -202,12 +202,53 @@ Each child returns code, tests, RED/GREEN evidence, all gates, status docs, a fo
 `luna-worker`; config `~/.codex/agents/luna-worker.toml`; configured `gpt-5.6-luna` / `max`; runtime status recorded
 after spawn; Terra fallback unauthorized.
 
-## 6. Planning gate
+## 6. Activation gate
 
-No I23 implementation starts until this contract is synchronized to live #32 and both child Issues, passes independent
-Sol contract Review and latest-head quality, and the planning PR merges. Then activate I23a only; I23b stays blocked
-until I23a is accepted and merged.
+Planning PR #101 passed latest-head quality and independent actual-diff Review, then squash merged as `a12ab46`.
+I23a/#99 is the only active implementation contract. I23b/#100 stays blocked until I23a passes its own CI, Sol Review
+and merge. The controller activation commit contains only status/routing changes; the executor begins with a clean
+business-code baseline.
 
-Independent contract Review returned `APPROVED` with no P0–P3 findings after the final Issue/document sync. The
-focused planning PR is #101. Its live latest-head GitHub check is the CI fact source; Sol actual-diff approval and
-merge remain. No implementation Agent is active.
+## Implementation checkpoint — 2026-08-09
+
+- TDD RED: before the handler change, `npm run test:history` failed the new same-owner/same-ID sequential retry
+  assertion because the second save added a duplicate record.
+- GREEN: `saveAttemptId` is optional, trimmed, non-empty and limited to 80 characters; malformed supplied IDs
+  return `invalid_history_input` before add. Valid IDs are stored privately and deduplicated by exact server
+  `{_openid, saveAttemptId}` lookup. A sequential repeat returns the first record ID, preserves first-write-wins,
+  keeps same IDs independent across owners and creates distinct IDs normally. Missing IDs keep legacy behavior.
+- Tests now cover the required retry, owner, payload, validation, storage-error and list-DTO boundaries. Required
+  local commands pass: `npm run test:history`, `npm test`, `npm run test:integration` (`56/0`), `npm run lint`
+  (0 errors; 9 existing warnings), `npm run typecheck`, `npm run build:weapp`, and `git diff --check`.
+- Allowlist remains exact: `cloudfunctions/history/index.js`, `scripts/security-test.js`,
+  `docs/current-status.md`, and this file. Status: `READY_FOR_CONTROLLER_REVIEW`; no PR/merge or I23b dispatch
+  has been performed by the executor.
+
+## Sol Review-fix round 1 — 2026-08-09
+
+Verdict: `CHANGES_REQUESTED`; P0/P1 none, no production implementation finding, no human decision.
+
+Only `scripts/security-test.js` plus the two status documents may change unless a new failing test proves a production
+defect. Add behavior evidence for:
+
+1. two same-owner saves without `saveAttemptId` create two records, two distinct IDs and two add calls;
+2. one representative non-string supplied ID returns non-retryable `invalid_history_input` before add;
+3. a sequential duplicate response deep-equals exactly `{ok:true,id:<first id>}` with no dedupe marker;
+4. a valid ID with no existing record followed by add failure returns retryable `history_unavailable` without raw error.
+
+Use additive commits and normal push only. Re-run focused/full gates and latest-head Actions; return
+`READY_FOR_CONTROLLER_REVIEW`. Do not broaden into a format matrix, change the correct handler without a demonstrated
+need, amend/force-push, approve or merge.
+
+## Review-fix round 1 implementation checkpoint — 2026-08-09
+
+- Added only the four requested assertions to `scripts/security-test.js`: legacy no-ID double-add with distinct IDs,
+  representative non-string ID rejection before add, exact dedupe response shape, and empty lookup followed by add
+  failure mapping.
+- Mutation/RED sensitivity ran before final GREEN. Temporary mutations for no-ID dedupe, non-string acceptance,
+  a response `deduped` flag, and rethrown save errors each produced a focused RED. All temporary production edits
+  were reverted; no production handler change is part of this round.
+- Focused history contract is GREEN. The final diff remains within `scripts/security-test.js` and the two status
+  documents. Required local gates pass: `npm run test:history`, `npm test`, integration `56/0`, lint (0 errors;
+  9 existing warnings), typecheck, `build:weapp`, and `git diff --check`; additive commit `877cd6c` latest-head
+  GitHub `quality` passed in 44 seconds (run `31272070159`, job `93139614802`).

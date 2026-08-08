@@ -39,10 +39,19 @@ function toHistoryItem(record) {
   }
 }
 
+function normalizeSaveAttemptId(event) {
+  if (event.saveAttemptId === undefined) return { supplied: false, value: undefined, valid: true }
+  if (typeof event.saveAttemptId !== 'string') return { supplied: true, value: undefined, valid: false }
+  const value = event.saveAttemptId.trim()
+  if (!value || value.length > 80) return { supplied: true, value: undefined, valid: false }
+  return { supplied: true, value, valid: true }
+}
+
 function normalizedSaveRecord(event, openid) {
   const route = typeof event.route === 'string' ? event.route.trim().substring(0, 50) : ''
   const date = typeof event.date === 'string' ? event.date.trim() : ''
-  if (!route || !date) return null
+  const saveAttempt = normalizeSaveAttemptId(event)
+  if (!route || !date || !saveAttempt.valid) return null
 
   const coords = event.coords && typeof event.coords === 'object'
     && typeof event.coords.lat === 'number' && typeof event.coords.lon === 'number'
@@ -50,7 +59,7 @@ function normalizedSaveRecord(event, openid) {
     : null
   const elevation = typeof event.elevation === 'number' && isFinite(event.elevation) ? event.elevation : null
 
-  return {
+  const record = {
     _openid: openid,
     route,
     date,
@@ -65,13 +74,24 @@ function normalizedSaveRecord(event, openid) {
     routeTypeSource: VALID_ROUTE_TYPE_SOURCES.indexOf(event.routeTypeSource) >= 0 ? event.routeTypeSource : null,
     createdAt: db.serverDate(),
   }
+  if (saveAttempt.supplied) record.saveAttemptId = saveAttempt.value
+  return record
 }
 
 async function saveRecord(event, openid) {
   const record = normalizedSaveRecord(event, openid)
   if (!record) return error('invalid_history_input', '请填写路线和日期', false)
   try {
-    const result = /** @type {{ _id?: string }} */ (await db.collection('history').add({ data: record }))
+    const collection = db.collection('history')
+    if (record.saveAttemptId !== undefined) {
+      const existingResult = /** @type {{ data?: Array<{ _id?: string }> }} */ (await collection
+        .where({ _openid: openid, saveAttemptId: record.saveAttemptId })
+        .limit(1)
+        .get())
+      const existing = existingResult.data && existingResult.data[0]
+      if (existing && typeof existing._id === 'string') return { ok: true, id: existing._id }
+    }
+    const result = /** @type {{ _id?: string }} */ (await collection.add({ data: record }))
     return { ok: true, id: result._id }
   } catch (exception) {
     return historyUnavailable()
