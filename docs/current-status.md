@@ -2,17 +2,20 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M7 I24a IMPLEMENTATION_ACTIVE`
+- Goal status: `ACTIVE — M7 I24b READY_FOR_CONTROLLER_REVIEW`
 - Active milestone: `M7 Acceptance`
-- Active task: `I24a / #105 / IMPLEMENTATION_ACTIVE`
-- Branch: `codex/105-structured-advice-adapter`
-- Base: `main` at `6869a7b`
-- Review-fix checkpoint (2026-08-09): controller baseline is `4de1ff2`; the bounded round-1 fix adds per-call
-  sentinel gear provenance (full/place exactly once, blocked zero), covers full/catalog place/manual/user/AMap/amap/
-  blocked history source propagation, with catalog place authority explicitly `routeTypeSource=user`; removes unused
-  adapter aliases, and records mutation RED evidence. Integration
-  `56 -> 55` is documented as two retired legacy checks replaced by one structured non-exposure check. Controller
-  activation files and executor allowlist are explicitly distinguished in the verification record.
+- Active task: `I24b / #106 / READY_FOR_CONTROLLER_REVIEW`
+- Branch: `codex/106-beta-acceptance`
+- Base: `main` at `1a2f485`
+- I24a completion / I24b activation checkpoint (2026-08-09): PR #108 exact latest head passed GitHub `quality`;
+  backend/contract and frontend/history independent Reviews both returned `APPROVED` with P0–P3 none. Sol squash
+  merged it as `1a2f485` and closed #105. I24b/#106 is now the only active child; I24c/#107 remains blocked.
+- Review-fix checkpoint (2026-08-09): controller baseline is `4808e53`; the bounded round-1 fix is limited to the
+  six-file I24b allowlist. It adds public name/alias prepare plus legal permanent-ID confirmation for every pilot,
+  exact seven-field route-source DTO values, stage/window/sample/hour/request alignment, insufficient retryable and
+  zero-partial-window semantics, deterministic advice preservation across all AI outcomes, and mutation RED evidence
+  for each frozen seam. No production behavior changed; the executor remains responsible only for the acceptance
+  contract and evidence.
 - I24a implementation checkpoint (2026-08-09): TDD RED for missing `advice-context.js` was recorded before the
   adapter existed. The current implementation composes exact `beta_base_v2` snapshots with
   `deterministicSafety`, removes all thirteen top-level compatibility aliases, and derives prompt, safety and
@@ -22,13 +25,35 @@
   integration contracts are green; integration is `55/0` because the retired sun/advice compatibility assertion
   was replaced by a mutation-sensitive assertion that advice has no weather/sunEvents/photoTiming/microclimate.
   Full lint/typecheck/build/diff evidence is recorded in `docs/i24a-structured-adapter-verification.md`.
+- I24b implementation checkpoint (2026-08-09): the required focused RED was recorded before the fixture existed
+  (`npm run test:beta-acceptance` → `MODULE_NOT_FOUND`, exit 1). The additive acceptance contract now passes its
+  five exact full pilot rows independently, including source/status, multi-sample hourly windows, mutation-sensitive
+  ID/fixedDays/type/capability checks, server candidate confirmation, place-only/manual/AMap, official blocked,
+  insufficient-weather hard no-go, queryId-only AI outcomes, private history idempotency and I23 recovery seams.
+  `npm test`, integration `55/0`, lint `0 errors / 9 existing warnings`, typecheck, host WeChat build and
+  `git diff --check` pass. No production defect was exposed. Evidence is recorded in
+  `docs/i24b-beta-acceptance-verification.md`; draft PR #109 exists and its live latest-head check is the CI fact source.
+- I24b Sol Review checkpoint (2026-08-09): PR #109 head `91fec62` passed latest-head quality, but two independent
+  actual-test Reviews returned `CHANGES_REQUESTED` for acceptance sensitivity only. Production remains unchanged and
+  no product/human decision is required. Round 1 is limited to per-pilot legal confirm, exact seven-field source DTO,
+  stage-to-window sample/hour/request alignment, insufficient retry semantics, deterministic advice preservation,
+  and mutation-sensitive evidence/status updates inside the existing six-file allowlist.
+- I24b review-fix implementation checkpoint (2026-08-09): from controller baseline `4808e53`, the focused acceptance
+  command is GREEN after adding name/alias/confirm identity coverage, exact route-source DTO checks, per-day weather
+  alignment and request-count assertions, insufficient retryable/no-partial semantics, and deterministic advice
+  preservation/forged-fact rejection. Focused mutation probes intentionally throw for missing/replaced samples,
+  empty/out-of-window hours, request mismatch and lost deterministic gear/risk/note facts. Full command matrix,
+  additive commit and controller handoff are now ready. `npm test`, integration `55/0`, lint (0 errors / 9 existing
+  warnings), typecheck, host WeChat build and `git diff --check` pass. No production defect or contract ambiguity was
+  exposed. Additive commit `59f7a18` is pushed to draft PR #109 and latest-head quality passed; Sol XHigh must finish
+  independent Review and decide mergeability.
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
 - I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page — all closed
 - I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
 - I22a implementation PR: `#97` — squash merged as `6e12f25`; GitHub #94 closed
 - I22b implementation PR: `#98` — squash merged as `852e86d`; GitHub #95 and parent #31 closed
-- Assignment: exact custom Agent `luna-worker` owns bounded I24a/#105 after this controller activation; Terra fallback remains unauthorized
+- Assignment: exact custom Agent `luna-worker` owns bounded I24b/#106 after this controller activation; Terra fallback remains unauthorized
 - I23 planning PR: `#101` — latest-head quality and independent actual-diff Review passed; squash merged as `a12ab46`
 - I23a PR: `#102` — latest-head quality and independent Sol re-review passed; squash merged as `107fab4`; #99 closed
 - I23b PR: `#103` — latest-head quality and two independent Sol Reviews passed; squash merged as `097c921`; #100 and parent #32 closed
@@ -164,8 +189,8 @@
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
 M1–M6 are complete. I23b PR #103 passed latest-head quality and two independent Sol Reviews, squash merged as
-`097c921`, and closed #100 plus parent #32. I24 planning PR #104 merged as `6869a7b`; M7 is active at I24a/#105.
-I24b/#106 and I24c/#107 remain dependency-blocked.
+`097c921`, and closed #100 plus parent #32. I24 planning PR #104 merged as `6869a7b`; I24a PR #108 merged as
+`1a2f485` and closed #105. M7 is active at I24b/#106; I24c/#107 remains dependency-blocked.
 
 ## Completed
 
@@ -653,16 +678,18 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Agent assignments
 
 - Sol XHigh: controller, contract owner, independent reviewer and merge authority.
-- `luna-worker`: not active during I24 planning; reserved for the first bounded child only after its reviewed contract
-  and exact allowlist are activated. Configuration remains `gpt-5.6-luna` with `max` reasoning.
+- `luna-worker`: assigned only to bounded I24b/#106 after this activation. Configuration remains
+  `gpt-5.6-luna` with `max` reasoning; runtime visibility must be reported in its handshake.
 - First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
-- Independent Sol XHigh: reviewing the I24 planning diff; no implementation authority.
+- Independent Sol XHigh: reserved for I24b actual-code/contract Review; no implementation authority.
 
 ## Open work
 
-1. Finish and independently Review the pure-document I24 planning diff; publish and merge its focused PR.
-2. Create the three serial child Issues with exact contracts/allowlists, then activate only I24a for `luna-worker`.
+1. Complete final independent focused Review of PR #109 exact head `59f7a18`; merge only if no P0–P3 finding remains.
+2. If review exposes a production behavior defect, keep the acceptance RED evidence and create a separate focused Bug
+   Issue/PR; do not expand I24b.
+3. After I24b merges, activate I24c/#107; do not run the two children in parallel.
 
 ## Blockers and risks
 
@@ -688,18 +715,19 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   adds display-safe provenance before #95 consumes it.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I24 planning
+## Forbidden actions during I24b
 
 - Changing deterministic verdicts, route/weather facts, minimum gear, source policy, getAdvice phases or the ten states.
-- Starting I24a/I24b/I24c before the planning PR and exact child contract merge/activation gates.
+- Modifying production, existing tests, route data, dependencies, CI or visual files inside the I24b acceptance PR.
+- Starting I24c before I24b passes CI, independent Review and merge.
 - Adding history fields, migrations/indexes, dependencies, public UGC, broad visual redesign, deployment, production
   configuration or permanent fixture/debug paths.
 
 ## Next action
 
-Obtain independent actual-diff approval, commit/push the planning branch and open its focused PR. After latest-head
-quality and Sol approval, merge it, create the serial child Issues and activate only I24a. No executor is active;
-future executors cannot approve/merge and Terra remains unauthorized.
+PR #109 review-fix head `59f7a18` and latest-head quality are complete. Finish independent re-review, record Sol's
+verdict and merge only on `APPROVED`; then close #106 and activate #107. The executor cannot approve or merge;
+I24c/#107 remains blocked until that merge and Terra remains unauthorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
@@ -1105,3 +1133,16 @@ future executors cannot approve/merge and Terra remains unauthorized.
 - Routing before spawn: logical role `IMPLEMENTER`; requested custom Agent `luna-worker`; config
   `~/.codex/agents/luna-worker.toml`; configured model `gpt-5.6-luna`; reasoning `max`; configuration status
   `CONFIG_VERIFIED`; runtime visibility must be reported by the executor. Terra remains unauthorized.
+
+## I24a completion / I24b activation checkpoint — 2026-08-09
+
+- I24a PR #108 passed latest-head GitHub `quality`; two independent final Reviews returned `APPROVED` with no
+  P0–P3 finding. Sol squash merged it as `1a2f485` and closed #105.
+- I24b/#106 is activated serially from exact `main@1a2f485` on `codex/106-beta-acceptance`. Its allowlist is limited
+  to one new acceptance script, one new fixture module, package registration, one verification document and the two
+  current-state documents. Production, existing tests, route data, dependencies, CI and visual files are forbidden.
+- I24c/#107 retains `status:blocked`. Any production defect found by I24b must become a separate focused Bug
+  Issue/PR; it cannot be repaired inside the acceptance PR.
+- Routing before spawn: logical role `IMPLEMENTER`; exact custom Agent `luna-worker`; config
+  `~/.codex/agents/luna-worker.toml`; configured model `gpt-5.6-luna`; reasoning `max`; `CONFIG_VERIFIED`;
+  runtime model visibility must be reported by the executor. Terra remains unauthorized.
