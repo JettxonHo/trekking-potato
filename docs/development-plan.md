@@ -1,7 +1,7 @@
 # TP-BETA-001 开发计划
 
-- Status: `ACTIVE — M3 COMPLETE; I21/I22a COMPLETE; I22b IMPLEMENTATION_ACTIVE`
-- Updated: `2026-08-08`
+- Status: `ACTIVE — M6 I23 PLANNING_PR_OPEN`
+- Updated: `2026-08-09`
 
 ## 1. 依赖图
 
@@ -14,8 +14,8 @@ I07 → I14 → I15 → I16
 I15 + I16 → I17 → I18 → I19
 I17 → I18 → I19 → I20
 I13 + I16 + I20 → I21 → I22a → I22b
-I19 + I22b → I23
-I19 + I23 → I24 → I25
+I19 + I22b → I23a → I23b
+I19 + I23b → I24 → I25
 ```
 
 默认串行。I10a 已建立共享 route-data test seam 和可独立证明的大朝台 blocked
@@ -52,7 +52,7 @@ I19 + I23 → I24 → I25
 | I20 | #29 | 前端 reducer 与服务层 | 显式状态和竞态保护 |
 | I21 | #30 | 搜索确认输入流程 | variant/date/time/support |
 | I22 | #31 parent; #94 I22a; #95 I22b | 结果体验 | trusted provenance → structured result page |
-| I23 | #32 | 降级与恢复 | weather/AI/history 独立恢复 |
+| I23 | #32 parent; #99 I23a; #100 I23b | 降级与恢复 | history save idempotency → frontend recovery |
 | I24 | #33 | Beta 综合验证 | 回归、构建、人工清单、文档 |
 | I25 | #34 | Goal 最终 Review | 完成报告和验收结论 |
 
@@ -368,3 +368,31 @@ PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29
 - Both child tasks are implemented serially by the exact custom Agent `luna-worker` only after this pure planning
   contract passes independent Review and merges. Each child uses its own branch/PR and returns
   `READY_FOR_CONTROLLER_REVIEW`; implementation never self-approves or self-merges.
+
+I22b PR #98 completed the four real DevTools evidence states, passed latest-head quality and independent Sol
+Review, squash merged as `852e86d`, and closed #95 plus parent #31.
+
+## 19. I23 串行恢复合同
+
+- Parent #32 splits into I23a/#99 then I23b/#100. I23a must merge first; the two tasks may not run in
+  parallel because I23b's save retry depends on I23a's server primitive.
+- I23a changes only private history save. Optional `saveAttemptId` is stored under the server openid and used for
+  sequential deduplication; same owner/id returns the existing record id, another owner is independent, missing id
+  retains legacy add, and list never exposes the field. No queryId, hash, migration, index or exactly-once framework.
+- I23b keeps the ten-state reducer and adds specific recoveries. AI retry advances token and reuses the same valid
+  queryId. The page captures pending prepare/confirm before sending, promotes it to last-base only after BaseData,
+  retries initial failure from pending, and replays last-base for context expiry or retryable full/place-reference
+  weather to obtain a new queryId. Cache/history prefill clears both slots and uses visible form fields for a new
+  prepare. No automatic retry or client restoration of server authority is allowed.
+- Recovery events have exact state/authority/retryability guards. Reprepare with no result uses the existing full
+  loading view; with a result it keeps verdict, reasons, weather/data boundary, gear, sources and checklist visible
+  under a local refreshing indicator, so the current loading selector cannot hide the deterministic page.
+- The first eligible history save for a BaseData gets one client-local non-security attempt ID. Failure retains the
+  exact payload and ID for explicit retry; AI retry does not create a second history intent. History list retry has an
+  independent monotonic token and ignores newer/closed/unmounted callbacks. History save is keyed by current
+  BaseData/attempt ID, remains valid across same-base AI retry, and is invalidated by replacement/reset/unmount.
+- History selection first resets flow/checklist/cache, then only prefills existing DTO fields and performs zero I/O.
+  The user explicitly submits a new query;
+  current/default start time and climb support remain because I23 does not add them to history or claim exact replay.
+- Precise allowlists, recovery matrix, acceptance, commands and escalation conditions are defined by the live child
+  Issues and `docs/tasks/ACTIVE_TASK.md`. Planning PR and independent contract Review precede implementation.

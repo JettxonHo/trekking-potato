@@ -870,14 +870,54 @@ I21 的顶层 `weather/gearRules/meta/...` 兼容别名在 I22 后仍可留在�
 cache key/version 以忽略 30 分钟内的旧 compatibility-only result，不迁移旧缓存。恢复的新版本 cache
 若带非终态 AI `loading`，必须归一为 `unavailable`，因为 restore 没有 queryId/请求可恢复；I24 在结构化 AI adapter
 具备独立证据后统一删除或收敛这些别名，I22 不做半套服务端兼容清理。I23 独占重试、恢复按钮、
-历史恢复与新的异步 RECOVER 事件；I22 只保留现有“返回重新查询”动作。
+历史恢复与新的异步恢复事件；I22 只保留现有“返回重新查询”动作。
+
+### I23 串行恢复边界
+
+I23 分为串行 I23a/I23b。I23a 先给私人 history `save` 增加可选 `saveAttemptId`：缺失时保留
+I19 行为；存在时服务端按 `{_openid, saveAttemptId}` 查找已保存记录，顺序重试返回原 id 而不
+重复 add。该字段仅存在于私人存储记录，不进入 `HistoryItem` DTO；不保存 queryId，不用 hash/SHA，
+不迁移旧记录，也不宣称并发分布式 exactly-once。I23b 在客户端保证同一冻结 payload 的保存与
+显式重试串行执行。
+
+I23b 保持 I20 的十状态和字段，只新增具体恢复动作：
+
+- AI 或 retryable context 读取失败：`BEGIN_ADVICE_RETRY` 只在 status=degraded、result/queryId 非空、
+  AI=unavailable，且为无 flow error 的 advice-degraded 或 retryable=true 的 advice error 时推进 token，
+  使用同一 queryId 进入既有 `advice_loading`；只把 result 的 AI 命名空间标为 loading，确定性字段和
+  checklist 不变。internal_error/retryable=false、cache queryId=null、其他状态或空 authority 均 no-op。
+- `BEGIN_REPREPARE` 只从 complete/degraded/error 且存在当前 token 的 pending/last-base 有界恢复请求时
+  推进 token；result 可空，有值时保留旧 result，
+  清除 queryId/error 并进入既有 `preparing`。result 为 null 时显示全屏 loading；非 null 时 selector 输出
+  refreshing，页面继续渲染旧确定性结果与局部刷新提示，不能被 loading skeleton 遮盖。
+  `query_context_unavailable`、retryable full/place-reference weather 重放上一次成功生成 BaseData 的
+  `prepare` 或永久 candidate `confirm`；普通初始查询失败重放 pending 操作，均取得新 queryId。
+  cache/history 没有该请求快照，
+  只从可见表单发起新 prepare；不得从 cache/result 恢复服务端权威，也不得自动重试。
+- 页面私有 request recovery 使用两个槽：调用 prepare/confirm 前写 `pendingBaseRequest`；失败时保留供
+  同操作重试，成功 BaseData 时提升为 `lastBaseRequest` 并清 pending。天气/context 使用 last-base，
+  当前操作失败使用 pending；新操作替换 pending，reset/history prefill 清除两者。
+- history save 失败：保留首次 eligible advice outcome 构造的完整 payload 与同一 saveAttemptId，
+  用户显式重试；AI retry 不为同一 BaseData 产生第二个 history intent。save callback 以当前
+  BaseData/saveAttemptId 而不是 trip-flow token 判定：同一 base 的 AI retry 不使其失效，新 BaseData、
+  reset/return 或 unmount 才使其失效；同一 payload 同时最多一个请求。
+- history list 重试使用独立单调 token；新请求、关闭 panel 和 unmount 使旧 callback 失效。delete/clear
+  继续使用现有显式动作，不扩成后台重试系统。
+- history item 选择先推进/reset flow、checklist 并清除 result cache，再预填现有私人 DTO 字段并关闭
+  panel，零网络调用；用户确认后才重新查询。
+  现有 history 不新增 `startTimeLocal/climbSupport`，因此这不是精确回放，表单保留当前可见值/默认值。
+
+blocked 和不可重试 `out_of_range` 不显示天气重试；不可重试输入、路线解析和 internal error 不做盲目重试。
+`location_failed/route_not_found` 继续使用现有手动 fallback，不借 I23 修改公共 retryable 语义。
 
 ## 10. 历史与 UGC
 
 history 仅保存当前 openid 的私人查询摘要，支持保存、读取、单项删除和清空。身份只来自
 `cloud.getWXContext().OPENID`，客户端字段不能覆盖；history 不保存 `queryId`。
 
-公共请求为 `save | list | delete | clear`。`list` 固定按 openid 查询最多 20 条，只返回
+公共请求为 `save | list | delete | clear`。I23a 后 `save` 可加不超过 80 字符的非空
+`saveAttemptId`；相同 openid/ID 的顺序重试返回同一记录 id，缺失 ID 保持 legacy add。
+`list` 固定按 openid 查询最多 20 条，只返回
 `id, route, date, days, level, elevation, location, summary, degraded, coords, routeType,
 routeTypeSource`，不得透传 `_id`、`_openid` 或未知数据库字段。`delete` 用
 `where({_id:id, _openid:openid}).remove()` 一次条件删除；只有 `result.stats.removed === 1` 才
