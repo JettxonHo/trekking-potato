@@ -17,6 +17,7 @@
 - I23 planning PR: `#101` — latest-head quality and independent actual-diff Review passed; squash merged as `a12ab46`
 - I23a PR: `#102` — latest-head quality and independent Sol re-review passed; squash merged as `107fab4`; #99 closed
 - I23b PR: `#103` — latest-head quality and two independent Sol Reviews passed; squash merged as `097c921`; #100 and parent #32 closed
+- I24 planning PR: `#104` — draft open from reviewed pure-document branch; latest-head quality and final Sol approval pending
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -1073,6 +1074,7 @@ future executors cannot approve/merge and Terra remains unauthorized.
   real beta users remain outside TP-BETA-001. A locked or unavailable local DevTools runtime is reported as
   `UNVERIFIED_RUNTIME_TOOL`; it cannot be disguised as passed evidence and does not by itself expand the code-ready
   Goal into mandatory executed GUI testing.
-- Current planning branch is `codex/33-beta-acceptance-plan` from exact `main@097c921`. The next action is to finish
-  the durable task contracts, publish a pure-document planning PR, obtain independent actual-diff Review and merge
-  it. Only then may Sol create the three child Issues and activate I24a for exact custom Agent `luna-worker`.
+- Current planning branch is `codex/33-beta-acceptance-plan` from exact `main@097c921`. Two independent actual-diff
+  Reviews returned `APPROVED` with no P0–P3 finding, and draft planning PR #104 is open. The next action is to pass
+  latest-head quality, perform final Sol metadata/diff verification and merge it. Only then may Sol create the three
+  child Issues and activate I24a for exact custom Agent `luna-worker`.

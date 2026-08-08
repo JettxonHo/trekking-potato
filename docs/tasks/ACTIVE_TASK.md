@@ -2,7 +2,7 @@
 
 - Goal: `TP-BETA-001`
 - Parent GitHub Issue: `I24 / #33`
-- Status/Mode: `CONTRACT_REVIEW / PLANNING`
+- Status/Mode: `PLANNING_PR_OPEN / PLANNING`
 - Controller: Sol XHigh
 - Implementation Agent: none during planning
 - Planning branch: `codex/33-beta-acceptance-plan`
@@ -211,6 +211,7 @@ acceptance or two unsuccessful fix rounds for the same contract.
 
 ## 7. Activation gate
 
-No I24 implementation is active. First publish this pure-document planning diff, synchronize #33, obtain independent
-actual-diff Review and merge the planning PR. Then create three child Issues from these contracts, assign their exact
+No I24 implementation is active. Two independent actual-diff Reviews approved the pure-document contract with no
+P0–P3 finding; parent #33 is synchronized and draft planning PR #104 is open. Merge it only after the live latest-head
+quality check and final Sol verification. Then create three child Issues from these contracts, assign their exact
 allowlists and dependency labels, and activate only I24a. Do not dispatch I24b or I24c early.
