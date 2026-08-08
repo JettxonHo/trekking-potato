@@ -1,7 +1,7 @@
 # TP-BETA-001 — 徒步薯核心 Beta
 
 - Goal ID: `TP-BETA-001`
-- Status: `ACTIVE — M6 I22a IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — M6 I22a REVIEW_FIX_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication
@@ -30,9 +30,10 @@ and implementation PR #87 passed main-controller and second independent Sol Revi
 quality, then squash merged as `4c17f45` and closed #77. The RouteVariant-backed input/result experience
 remains. I20's explicit reducer and getAdvice service seam is complete. I13 now owns the production catalog
 and pure resolver;
-I21's dependency was satisfied and its public cutover is merged through PR #93. I22 now owns the result
-experience over I21's trusted structured BaseData; implementation remains blocked until its planning contract
-passes Review and merges from `main@be24b07`.
+I21's dependency was satisfied and its public cutover is merged through PR #93. I22 planning PR #96 merged as
+`ac4ba9e`. I22a implementation commit `c46de83` is on PR #97 with latest-head quality green; its first independent
+Review found no code defect and requested only a bounded status-document synchronization. #95 remains blocked
+until #94 passes re-review and merges.
 
 Current verified baselines are route type `91/0`, weather `86/0`, unit `55/0`, and offline integration `56/0`. The GitHub `quality` check runs install, lint, typecheck, tests, integration, and the WeChat build on every PR.
 
@@ -55,7 +56,7 @@ Out of scope: deployment, publication, live beta research, native apps, multilin
 | M3 Route domain | Complete | I07–I13 | Domain model, five sourced variants, blocked record and permanent resolver are merged |
 | M4 Weather and verdict | Complete | I14–I16 | Hourly windows and `TP-VERDICT-1` are deterministic |
 | M5 Trust and privacy | Complete | I17–I19 | `queryId` is server-owned; history is private; public UGC is disabled |
-| M6 Core UX | Active — I22a implementation | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
+| M6 Core UX | Active — I22a Review-fix | I20–I23 | Explicit states, inputs, results and recovery form a complete flow |
 | M7 Acceptance | Pending | I24–I25 | Full validation, documentation sync and Goal report are complete |
 
 The exact Issue contracts and dependency graph are defined in `docs/development-plan.md`. I10a's
