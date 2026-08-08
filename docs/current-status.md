@@ -2,17 +2,18 @@
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `ACTIVE — M6 I22b FINAL_REVIEW`
+- Goal status: `ACTIVE — M6 I23 PLANNING_APPROVED_PR_PENDING`
 - Active milestone: `M6 Core UX`
-- Active task: `I22b / #95 / READY_FOR_FINAL_REVIEW`
-- Branch: `codex/95-structured-result-page`
-- Base: `main` at `6e12f25`
+- Active task: `I23 / #32 / PLANNING_APPROVED_PR_PENDING`
+- Branch: `codex/i23-recovery-contract`
+- Base: `main` at `852e86d`
 - I21 planning PR: `#90` — merged as `c817bbb`; latest-head quality passed in 48 seconds
 - I21 implementation PR: `#93` — squash merged as `be24b07`; GitHub #30 closed
-- I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page; contract Review approved
+- I22 parent/children: `#31` / `#94` trusted provenance / `#95` structured result page — all closed
 - I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
 - I22a implementation PR: `#97` — squash merged as `6e12f25`; GitHub #94 closed
-- Assignment: exact custom Agent `luna-worker` is authorized for #95 only
+- I22b implementation PR: `#98` — squash merged as `852e86d`; GitHub #95 and parent #31 closed
+- Assignment: no implementation Agent active; exact custom Agent `luna-worker` is reserved for serial I23 children after planning merge
 - Planning PR: `#9` — merged
 - Checkpoint PR: `#39` — merged; latest-head GitHub `quality` passed
 - I04 PR: `#40` — merged; GitHub #13 closed
@@ -143,11 +144,10 @@
   squash merged as `8387554`; production date validation was not changed.
 
 Status semantics: TP-BETA-001 resumed after human decision TP-D039 replaced the exact-pilot policy.
-M1–M5, I20 and I21 are complete. I07, I10a, all five reviewed community-track Variants and I13's production
-catalog resolver are merged; M3 is complete. M6 is active at I22a #94 review-fix: implementation commit
-`c46de83` is on PR `#97`, whose latest-head `quality` passed, and the executor is `READY_FOR_CONTROLLER_REVIEW`.
-I22 runs serially as #94 trusted provenance followed by #95 structured result page; #95 remains blocked until
-#94 completes independent Sol Review and merge.
+M1–M5 and I20–I22 are complete. I22b PR #98 passed latest-head quality, full local DevTools evidence and
+independent Sol Review, squash merged as `852e86d`, and closed #95 plus parent #31. M6 is now at I23/#32
+planning approved / PR pending. No implementation Agent is active; I23a history-save idempotency must merge before I23b
+frontend recovery is dispatched.
 
 ## Completed
 
@@ -635,15 +635,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Agent assignments
 
 - Sol XHigh: controller, contract owner, independent reviewer and merge authority.
-- `luna-worker`: selected I22b executor; configuration verified as `gpt-5.6-luna` with `max` reasoning.
+- `luna-worker`: reserved I23 executor after planning approval; configuration verified as `gpt-5.6-luna` with `max` reasoning.
 - First `luna-worker` run: runtime-verified on #91; returned `READY_FOR_CONTROLLER_REVIEW` and did not self-merge.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 - Independent Sol XHigh: reserved for the implementation PR Review; no implementation authority.
 
 ## Open work
 
-1. Implement #95's pure result model, structured page wiring, checklist/cache/history boundaries and visual evidence.
-2. Pass latest-head CI and independent Sol Review, then close parent #31 before activating I23.
+1. Open the approved pure planning PR and pass latest-head quality plus actual-diff Review.
+2. Merge the planning PR, then implement and Review I23a before activating I23b.
 
 ## Blockers and risks
 
@@ -669,16 +669,17 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
   adds display-safe provenance before #95 consumes it.
 - Deployment and real-device validation remain outside the Goal.
 
-## Forbidden actions during I22b implementation
+## Forbidden actions during I23 planning/implementation
 
-- Changing deterministic verdicts, route/weather facts, minimum gear, source policy or the ten-state reducer.
-- Backend/domain/route/source changes, reducer state expansion, retry/recovery, dependency or broad visual redesign.
-- Starting I23 retry/recovery controls, broad visual redesign, deployment or production configuration.
+- Changing deterministic verdicts, route/weather facts, minimum gear, source policy, getAdvice phases or the ten states.
+- Adding history replay fields, queryId to cache/history, data migration/index, dependencies, background retry loops,
+  public UGC, broad visual redesign, deployment or production configuration.
+- Starting I23b before I23a merge, or dispatching either child before planning Review/merge.
 
 ## Next action
 
-Commit this controller-owned #95 activation checkpoint, synchronize live #95 to implementation-active, then
-dispatch only #95 to exact `luna-worker`. The executor must not approve or merge and Terra remains unauthorized.
+Open and merge the independently approved pure planning PR after latest-head quality and actual-diff Review.
+Activate only I23a for exact `luna-worker`; the executor cannot approve/merge and Terra remains unauthorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
@@ -883,5 +884,23 @@ dispatch only #95 to exact `luna-worker`. The executor must not approve or merge
   `full/caution + AI degraded` as complete-page simulator frames; each now shows the verdict, reasons, weather,
   minimum gear, sources and AI section together.
 - Temporary local fixture code was removed and the normal WeChat build passed afterward. No production mock,
-  service-port change or debug adapter remains. Status is `READY_FOR_FINAL_REVIEW`; I23 remains blocked until #98 is
-  approved and merged.
+  service-port change or debug adapter remains. At that checkpoint the status was `READY_FOR_FINAL_REVIEW`, and I23
+  remained blocked until #98 approval and merge; the following checkpoint records that completion.
+
+## I22 merge closeout / I23 contract checkpoint — 2026-08-09
+
+- Independent final visual re-review returned `APPROVED` with no P0–P3 findings. PR #98 latest-head quality passed,
+  Sol squash merged it as `852e86d`, and closed #95 plus parent #31. I22 is complete on main.
+- I23/#32 is split into serial #99 I23a history-save idempotency and #100 I23b frontend recovery. This is pure planning;
+  no implementation Agent is active and no business file has changed on `codex/i23-recovery-contract`.
+- I23a freezes optional private `saveAttemptId` dedupe by openid without queryId, hash/SHA, migration, index or list
+  DTO change. It addresses sequential retry after an uncertain save response, not distributed exactly-once.
+- I23b keeps ten states. Same-queryId advice retry and new-base prepare/confirm recovery each advance the token;
+  page-private pending and last-base request slots separate initial failure retry from weather/context refresh.
+  Reprepare keeps an existing deterministic page visible with a local refreshing indicator; cache/history never
+  restore queryId or auto-retry. History selection resets flow/checklist/cache and only prefills existing private
+  fields; current/default time and climb support remain visible for user confirmation.
+- Read-only audit baseline `main@852e86d` passed trip-flow, result-page, history, response and integration `56/0`.
+  The audit found no human decision under this bounded design. Live #32/#99/#100 are synchronized; independent
+  contract Review returned APPROVED with no P0–P3 findings. Planning PR, latest-head quality and actual-diff Review
+  remain before I23a dispatch.

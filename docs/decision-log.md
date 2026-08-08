@@ -647,3 +647,35 @@
 - Why: additive backend child 可独立验证和合并，随后 UI child 能只消费稳定事实；这满足可追溯性
   与开放状态披露，同时避免破坏 queryId-only AI、扩大 reducer 或把恢复行为偷渡进 I22。不存在需
   人工重新选择的产品方向；隐藏来源、隐藏 unknown 或改变四态文案才需要升级。
+
+## 2026-08-09 — TP-D048 I23 先冻结历史幂等，再接前端恢复
+
+- Status: Accepted by Sol; independent contract Review approved with no P0–P3 findings; planning PR pending
+- Context: I22b merged a structured deterministic result page. Existing AI/weather/history failures are isolated,
+  but there are no explicit recovery controls. A history save may have committed even when its callback fails, so
+  exposing a naïve retry can duplicate a private record. Combining history Cloud Function, reducer, result page and
+  list orchestration in one PR would also obscure two different correctness boundaries.
+- Decision: split I23/#32 serially into I23a then I23b. I23a adds an optional private `saveAttemptId` and deduplicates
+  sequential saves by `{_openid, saveAttemptId}` while keeping legacy save and the public list DTO unchanged. I23b
+  adds specific token-advancing recoveries without an eleventh state: same-queryId AI retry while valid; replay of
+  the last base-producing prepare/confirm for context expiry, retryable full/place-reference weather and ordinary
+  query retry; form-based prepare for cache/history prefill; frozen-payload history save retry; token-guarded list reload.
+- Request boundary: the page captures a pending request before every prepare/confirm and promotes it to last-base
+  only after BaseData success. Initial operation failure retries pending; weather/context refresh retries last-base.
+  Reprepare with an existing result keeps the complete deterministic page/checklist visible with a local refreshing
+  indicator instead of allowing the existing full-screen loading selector to hide it.
+- History boundary: selecting a private record only prefills existing DTO fields and performs no request. The user
+  explicitly submits a fresh query after flow/checklist/cache reset. `startTimeLocal` and `climbSupport` remain the current/default form values because
+  I23 does not expand stored personal data or claim exact replay. Adding those fields later requires a separate human
+  privacy/product decision.
+- Idempotency boundary: `saveAttemptId` is a non-security retry key, not authentication or authority. It is not a
+  queryId, is not exposed by list, uses no hash/SHA, requires no migration/index/cleanup task and does not promise
+  concurrent distributed exactly-once. I23b serializes one save and its user-triggered retries with the exact frozen
+  payload/ID; save completion is tied to current BaseData/attempt ID rather than the AI request token, so same-base AI
+  retry preserves isolation while replacement/reset/unmount invalidates stale completion. This addresses the real
+  uncertain-response duplicate risk proportionally.
+- Alternatives: expose retry without dedupe; use queryId as history identity; derive a hash from the payload; store
+  new replay fields; auto-retry in the background; add a generic RECOVER state/event; ship one cross-layer PR.
+- Why: the selected split is independently testable and keeps trust ownership intact. A new base-producing
+  prepare/confirm is the only honest way to refresh weather or an expired context, while a still-valid queryId is the narrow authority for AI retry.
+  Form prefill serves the existing product need without silently expanding private storage.

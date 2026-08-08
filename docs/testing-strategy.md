@@ -424,6 +424,39 @@ blocked/no_go、place-only/null 四种结果证据，并记录 capability/verdic
 不得为截图提交生产测试开关或客户端可信 mock。若工具运行环境确实不可用，
 必须记录未验证项并升级给 Sol，不能把 build 成功冒充视觉验证。
 
+### I23 恢复测试矩阵
+
+I23a 在现有 `test:history` 先记录同 owner/attempt ID 重复 add 的真实 RED，再证明顺序重试只保存
+一条并返回同一 id；同 ID 在不同 openid 下互不影响，缺失 ID 仍走 legacy add，畸形 ID 在 add 前
+失败，list DTO 不出现 `saveAttemptId`。测试不尝试模拟分布式并发或建立机械随机性评分。
+
+I23b 新增 `test:recovery` 并纳入根 `npm test`：
+
+- reducer 行为测试证明 `BEGIN_ADVICE_RETRY` 与 `BEGIN_REPREPARE` 均推进 token；前者仅接受
+  degraded + non-null result/queryId + AI unavailable，并分别覆盖无 error 的 advice-degraded 与
+  retryable advice error；wrong status、null authority、AI 非 unavailable、internal/retryable=false 与
+  cache queryId=null 均 no-op。后者仅接受 complete/degraded/error + 当前 token 的有界请求，result
+  可空，并进入既有 `preparing`、清除 queryId/error；wrong state/absent request 与旧 success/failure 均 no-op。
+- 页面/纯 seam 测试证明请求发出前先写 `pendingBaseRequest`，首次 prepare/confirm 失败可重放同操作；
+  只有成功 BaseData 才把 pending 提升为 `lastBaseRequest`。AI retry 只发同一 queryId，context expired
+  和 retryable full/place-reference weather 重放 last-base prepare/confirm；新操作替换 pending，
+  reset/cache/history prefill 清空两槽且只从表单新 prepare。
+  blocked/out_of_range 不出现天气 retry，cache 不恢复 queryId，且所有 retry 都由用户触发。
+- 历史保存失败保留 byte-equivalent payload 与同一 saveAttemptId；显式 retry 成功只清局部错误；同一
+  BaseData 的 AI retry 不产生第二个 history save intent。原 save callback 在同一 base 的 AI retry 中仍
+  可完成，但新 BaseData/reset/unmount 后被拒绝；同一 payload 不允许并发双写。
+- list retry 保留已有条目，并对更新请求、关闭 panel 与 unmount 后的旧 callback 拒绝更新。历史选择
+  reset flow/checklist/cache，只预填现有 DTO 字段，零网络调用，且不声称恢复未存储的出发时间/攀登支持。
+- `trip-flow`/result-page focused tests 必须穿过真实 page wiring；删除 token advance、same-query advice、
+  new-prepare、no-second-save 或 stale-list guard 的代表性 mutation 应使测试 RED。无需 UI 框架或笛卡尔积。
+- selector/render 测试必须区分 `preparing + result=null` 的全屏 loading 与 `preparing + result!=null` 的
+  局部 refreshing；后一种仍可见 verdict、理由、天气/数据边界、装备、来源和 checklist。删除结果页
+  优先级、重新让 skeleton 覆盖旧结果时 focused test 必须 RED。
+- `docs/i23-recovery-verification.md` 记录真实 RED/GREEN、finding-to-test、代表 mutation、精确命令结果，
+  以及 AI retry、天气刷新保留旧结果、history save/list retry 与零 I/O history prefill 的本地交互清单。
+  DevTools 未运行时如实标记，截图可留给 I24 或另获 Sol 授权，不提交生产 mock。
+- 全部 I18–I22 focused contracts、integration `56/0`、lint、typecheck、WeChat build 与 diff check继续通过。
+
 ## 4. 关键矩阵
 
 ### 路线确认
