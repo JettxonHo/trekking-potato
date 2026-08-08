@@ -13,7 +13,7 @@
 - I22 planning PR: `#96` — squash merged as `ac4ba9e`; latest-head quality and Sol Review passed
 - I22a implementation PR: `#97` — squash merged as `6e12f25`; GitHub #94 closed
 - I22b implementation PR: `#98` — squash merged as `852e86d`; GitHub #95 and parent #31 closed
-- Assignment: exact custom Agent `luna-worker` owns the bounded PR #103 Review-fix round 1; Terra fallback remains unauthorized
+- Assignment: exact custom Agent `luna-worker` owns the final bounded PR #103 Review-fix round 2; Terra fallback remains unauthorized
 - I23 planning PR: `#101` — latest-head quality and independent actual-diff Review passed; squash merged as `a12ab46`
 - I23a PR: `#102` — latest-head quality and independent Sol re-review passed; squash merged as `107fab4`; #99 closed
 - Planning PR: `#9` — merged
@@ -1026,3 +1026,15 @@ The executor cannot approve/merge and Terra remains unauthorized.
 - Review-fix local gates are GREEN: focused recovery/trip-flow/result-page/response/trip-context/history, root
   `npm test`, integration `56/0`, typecheck, WeChat build and `git diff --check`; lint has 0 errors and 9 existing
   warnings. No DevTools/screenshot evidence was run.
+
+## I23b Sol re-review / Review-fix round 2 — 2026-08-09
+
+- PR #103 exact head `42b4e8d` passed latest-head GitHub `quality` in 39 seconds. Frontend Review returned
+  `APPROVED`; backend/lifecycle Review closed every prior production and identity finding but found one remaining P2:
+  a non-empty history list stays visible during retry yet lacks a simultaneous local loading indication.
+- Round 2 is limited to showing a small history-refreshing hint when `historyLoading` and existing items coexist,
+  plus mutation-sensitive render evidence and truthful status/verification sync. The empty-list loading state and
+  all list lifecycle/token behavior remain unchanged.
+- This is the final permitted fix round for this same frozen finding. If it does not pass exact-head independent
+  re-review, stop and escalate to the human rather than starting round 3. No other implementation or contract change
+  is authorized.

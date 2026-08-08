@@ -313,3 +313,21 @@ Use additive commits and normal push only. Update `docs/i23-recovery-verificatio
 - Review-fix local matrix is GREEN: focused recovery/trip-flow/result-page/response/trip-context/history, root
   `npm test`, integration `56/0`, lint 0 errors/9 existing warnings, typecheck, `build:weapp`, and `git diff --check`.
   No DevTools or screenshot evidence was run.
+
+## Sol Review-fix round 2 — 2026-08-09
+
+Verdict on exact head `42b4e8d`: `CHANGES_REQUESTED`; no P0/P1 and no human/product/architecture decision yet.
+All prior weather eligibility, page wiring, old-result refresh, history-save identity and stale-list findings are
+closed. Make only this final correction:
+
+- When `historyLoading === true` and `historyList.length > 0`, render a small local “正在刷新历史…” indication
+  together with the existing items. Keep the empty-list loading state for `historyList.length === 0`; do not hide,
+  disable or replace the old list.
+- Extend the focused render/mutation assertion so removing this non-empty loading indication makes
+  `test:recovery` RED while the old items remain required.
+- Synchronize this task, `docs/current-status.md`, `docs/i23-recovery-verification.md`, and the live #100/PR #103
+  status. Re-run the frozen full matrix and latest-head Actions.
+
+Use one additive commit and normal push. Do not modify recovery identities, reducers, network behavior, schemas,
+dependencies or styling beyond the minimal existing-class hint. This is the final round for this finding; a repeat
+failure must return `ESCALATE_TO_HUMAN`, not start round 3. The implementer cannot approve or merge.
