@@ -939,3 +939,19 @@ The executor cannot approve/merge and Terra remains unauthorized; #100 stays dep
   to four test-sensitivity gaps: explicit missing-ID legacy double-add, a representative non-string invalid ID,
   exact duplicate response shape without a dedupe flag, and valid-ID lookup followed by add-failure error mapping.
   Controller owns PR/status description cleanup. No third-party, migration, index or business change is authorized.
+
+## I23a REVIEW_FIX round 1 implementation checkpoint — 2026-08-09
+
+- Added only the four requested behavior assertions in `scripts/security-test.js`: missing-ID legacy saves perform
+  two adds and return two IDs; non-string `saveAttemptId=123` is rejected before add; a deduplicated response is
+  exactly `{ok:true,id:<first>}`; and an empty valid-ID lookup followed by add failure maps to the fixed retryable
+  `history_unavailable` envelope.
+- Mutation/RED sensitivity is recorded before handoff: temporarily forcing no-ID lookups made focused history test
+  fail on the two-record legacy invariant; accepting non-string IDs failed the before-add assertion; adding a
+  `deduped` response field failed the exact-shape assertion; and rethrowing save errors failed the fixed-envelope
+  assertion. Each temporary mutation was reverted immediately; `cloudfunctions/history/index.js` has no final diff.
+- Focused GREEN (`npm run test:history`) passes all six sections. The production handler remains unchanged from
+  reviewed commit `4cada73`; only this test and status documentation are in the Review-fix diff.
+- Required local matrix passes: `npm test`, integration `56/0`, lint (0 errors; 9 existing warnings), typecheck,
+  host WeChat `build:weapp`, and `git diff --check`. The additive Review-fix commit is ready for push and a fresh
+  latest-head Actions run; no production handler change is pending.

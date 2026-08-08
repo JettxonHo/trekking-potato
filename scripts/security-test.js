@@ -33,6 +33,7 @@ function historyCollection() {
     limit(value) { limit = value; return this },
     async get() {
       if (failingOperation === 'get') throw new Error('offline history get')
+      if (failingOperation === 'empty-lookup-add') failingOperation = 'add'
       let records = store.history.filter((record) => Object.keys(filter).every((key) => record[key] === filter[key]))
       if (order) records = records.slice().sort((left, right) => {
         const leftValue = left[order.field] instanceof Date ? left[order.field].getTime() : 0
@@ -133,6 +134,19 @@ async function run() {
 
   reset()
   openid = 'user-A'
+  const legacyFirst = await history.main({
+    mode: 'save', route: '武功山', date: '2026-08-08',
+  }, {})
+  const legacySecond = await history.main({
+    mode: 'save', route: '四姑娘山', date: '2026-08-09',
+  }, {})
+  assert(legacyFirst.ok === true && legacySecond.ok === true, 'legacy saves without saveAttemptId must succeed')
+  assert(legacyFirst.id !== legacySecond.id && store.history.length === 2 && addCalls === 2, 'legacy saves without saveAttemptId must add two distinct records')
+  assert(store.history.every((record) => record.saveAttemptId === undefined), 'legacy saves must not persist saveAttemptId')
+  console.log('PASS: legacy save behavior without retry identity')
+
+  reset()
+  openid = 'user-A'
   const firstAttempt = await history.main({
     mode: 'save', route: '武功山', date: '2026-08-08', saveAttemptId: ' retry-1 ',
   }, {})
@@ -141,6 +155,7 @@ async function run() {
   }, {})
   assert(firstAttempt.ok === true && repeatedAttempt.ok === true, 'same save attempt should remain successful on retry')
   assert(repeatedAttempt.id === firstAttempt.id && store.history.length === 1, 'same owner and saveAttemptId must not add a duplicate')
+  assert(JSON.stringify(repeatedAttempt) === JSON.stringify({ ok: true, id: firstAttempt.id }), 'deduplicated save response must be exactly {ok:true,id} without a flag')
   assert(store.history[0].saveAttemptId === 'retry-1' && store.history[0].route === '武功山', 'same owner and saveAttemptId must be first-write-wins')
 
   openid = 'user-B'
@@ -193,6 +208,9 @@ async function run() {
   failingOperation = 'get'
   unavailable.push(await history.main({ mode: 'save', route: '武功山', date: '2026-08-08', saveAttemptId: 'lookup-failure' }, {}))
   unavailable.push(await history.main({ mode: 'list' }, {}))
+  failingOperation = 'empty-lookup-add'
+  const lookupThenAddFailure = await history.main({ mode: 'save', route: '武功山', date: '2026-08-08', saveAttemptId: 'add-failure-after-empty-lookup' }, {})
+  unavailable.push(lookupThenAddFailure)
   failingOperation = 'remove'
   unavailable.push(await history.main({ mode: 'delete', id: 'history-A' }, {}))
   unavailable.push(await history.main({ mode: 'clear' }, {}))
@@ -201,6 +219,7 @@ async function run() {
     assert(result.error === 'history_unavailable' && result.retryable === true, 'each storage failure must use retryable history_unavailable')
     assert(result.message === '历史服务暂时不可用，请稍后重试', 'storage failure must not leak raw errors')
   })
+  assert(lookupThenAddFailure.error === 'history_unavailable' && lookupThenAddFailure.retryable === true, 'empty lookup followed by add failure must map to history_unavailable')
 
   const disabledSaveRoute = await history.main({ mode: 'saveRoute', route: '旧公共路线' }, {})
   const disabledListRoutes = await history.main({ mode: 'listRoutes', keyword: '旧公共路线' }, {})
@@ -218,6 +237,8 @@ async function run() {
   assert(addCalls === addCallsBeforeInvalidAttempt, 'malformed saveAttemptId must be rejected before database add')
   const tooLongAttempt = await history.main({ mode: 'save', route: '武功山', date: '2026-08-08', saveAttemptId: 'x'.repeat(81) }, {})
   assert(tooLongAttempt.error === 'invalid_history_input' && addCalls === addCallsBeforeInvalidAttempt, 'overlong saveAttemptId must be rejected before database add')
+  const nonStringAttempt = await history.main({ mode: 'save', route: '武功山', date: '2026-08-08', saveAttemptId: 123 }, {})
+  assert(nonStringAttempt.error === 'invalid_history_input' && nonStringAttempt.retryable === false && addCalls === addCallsBeforeInvalidAttempt, 'non-string saveAttemptId must be rejected before database add')
   const missingId = await history.main({ mode: 'delete' }, {})
   const invalidMode = await history.main({ mode: 'client-secret-mode' }, {})
   for (const result of [invalidSave, missingId, invalidMode]) {

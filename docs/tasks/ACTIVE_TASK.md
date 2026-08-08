@@ -239,3 +239,16 @@ defect. Add behavior evidence for:
 Use additive commits and normal push only. Re-run focused/full gates and latest-head Actions; return
 `READY_FOR_CONTROLLER_REVIEW`. Do not broaden into a format matrix, change the correct handler without a demonstrated
 need, amend/force-push, approve or merge.
+
+## Review-fix round 1 implementation checkpoint — 2026-08-09
+
+- Added only the four requested assertions to `scripts/security-test.js`: legacy no-ID double-add with distinct IDs,
+  representative non-string ID rejection before add, exact dedupe response shape, and empty lookup followed by add
+  failure mapping.
+- Mutation/RED sensitivity ran before final GREEN. Temporary mutations for no-ID dedupe, non-string acceptance,
+  a response `deduped` flag, and rethrown save errors each produced a focused RED. All temporary production edits
+  were reverted; no production handler change is part of this round.
+- Focused history contract is GREEN. The final diff remains within `scripts/security-test.js` and the two status
+  documents. Required local gates pass: `npm run test:history`, `npm test`, integration `56/0`, lint (0 errors;
+  9 existing warnings), typecheck, `build:weapp`, and `git diff --check`; latest-head CI remains to be rerun after
+  this additive push.
