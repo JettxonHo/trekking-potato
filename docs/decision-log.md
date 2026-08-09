@@ -774,3 +774,49 @@
 - Why: A four-route, warning-preserving cohort exercises the proven trusted-route path without presenting unknown
   management status as open. A server-only admin allowlist is proportionate for 5–10 users and keeps uploader identity
   and raw geometry private while avoiding a premature public moderation system.
+
+## 2026-08-09 — TP-D053 社区轨迹采用私有 reservation、服务端解析与独立 catalog promotion
+
+- Status: Accepted by Sol under human-approved #115 direction; pending planning PR Review/merge
+- Context: Users can reduce manual geometry intake by submitting their own or authorized GPX/KML. The existing storage
+  is creator/admin private, CloudBase server SDK can issue expiring private URLs, and the human approved a server-only
+  administrator OpenID allowlist. Raw XML and geometry are untrusted, potentially personal and may be large.
+- Decision: Use one new `trackSubmission` function plus direct-client-ADMINONLY `track_submissions` and, after
+  approval, de-identified `track_review_evidence` collections. `begin`
+  creates a random reservation; upload returns an opaque CloudBase `fileID`; `finalize` validates its exact
+  server-configured storage host and reserved path, then uses actual streaming bytes as authority. It copies those
+  same bounded bytes to a service-owned immutable review object before parsing. Parse only bounded UTF-8 GPX track,
+  KML LineString and paired KML 2.2 `gx:Track` with pinned `saxes@6.0.0`; reject DTD/ENTITY and unsupported structures.
+  Owner/admin DTOs are explicit; a 300-second raw URL is admin-only and never persisted. Use unique owner-attempt
+  reservation, integer CAS versions, five-minute processing leases and random review attempt IDs; no SHA/hash.
+- Publication boundary: `approved_evidence` is only a private, de-identified geometry review result. A later
+  controller-owned catalog PR must combine it with official/operator management evidence. No submitted file can
+  decide operational status, weather, safety, route type/fixed days or a verdict.
+- Rights boundary: Do not scrape/import third-party platforms. A platform label/link is private provenance only;
+  uploader must declare own recording, creator authorization or a compatible open licence.
+- Alternatives: direct database upload, client parsing/trusted summaries, public bucket, administrator flag from the
+  client, automatic catalog insertion, bulk platform scraping, DOM parser with entity support, SHA dedupe.
+- Why: Exact upload binding plus immutable snapshot closes creator overwrite/HEAD TOCTOU risks; leases and CAS make
+  crashes and retries recoverable. Supporting the already audited `gx:Track` format avoids rejecting a real project
+  input. Private review and separate promotion preserve user privacy and route governance while materially reducing
+  manual geometry work.
+
+## 2026-08-09 — TP-D054 社区轨迹 raw 30 天与去身份证据 180 天保留
+
+- Status: Accepted by human; pending #115 planning PR Review/merge
+- Context: Raw GPX/KML contains precise location, elevation and timestamps. Keeping the same identity-bearing record
+  for 180 days would not satisfy a de-identification claim, while best-effort deletion without a scheduler would not
+  make the approved periods operationally enforceable.
+- Decision: Set one immutable `rawExpiresAt` at server review-snapshot creation plus 30 days; never extend it on
+  revision, retry or review. Approved geometry is copied into separate ADMINONLY `track_review_evidence` with no
+  OpenID/raw/provenance linkage and expires 180 days after approval. Its random server-side storage key is never
+  copied into the identity-bearing submission, owner/admin DTO, log or later runtime catalog. A daily CloudBase timer performs max-20,
+  cursor/CAS, duplicate-safe cleanup, gated by server-owned `TRIGGER_SRC='timer'` plus empty server OpenID; no public
+  cleanup mode exists. Cancelled/invalid/rejected raw objects are deleted
+  immediately when possible, and deletion failures remain honestly pending. C06 must verify timer timezone, dry-run,
+  duplicate delivery, rollback and expiry indexes before enabling destructive cleanup in staging.
+- Alternatives: keep raw indefinitely; retain identity-bearing submissions for 180 days; rely on manual cleanup;
+  expose an admin/client cleanup mode; reset deadlines on revision; archive expired evidence.
+- Why: Separate stores make the 180-day object genuinely de-identified. An immutable deadline limits privacy exposure,
+  while idempotent scheduled cleanup is compatible with repeated timer delivery and avoids pretending best-effort
+  manual operations enforce a maximum period.

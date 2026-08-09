@@ -576,3 +576,30 @@ build、diff check）；Computer Use 尝试因 Mac 锁定而无法发现本地 D
 I25 已在 `main@1bba5f9` 与完成报告分支重跑 repeated-prepare probe、五试点验收、根测试、integration、
 lint、typecheck、fixture-free WeChat build 与 diff check。测试输出与部署阶段风险汇总在
 `docs/goal-completion-report.md`；latest-head GitHub `quality` 仍是最终报告 PR 的 CI 事实源。
+
+## 7. TP-COMMUNITY-001 测试门禁
+
+新增 focused contracts 串行进入根 `npm test`：
+
+- `test:track-parser`：真实 RED 后覆盖 GPX/KML LineString/KML 2.2 `gx:Track`、paired when/coord、UTF-8/BOM、
+  DTD/entity、malformed XML、depth、segments、50,000-point edge、坐标/高程、unsupported KML、sampling 和
+  reviewed projection；
+- `test:track-owner`：server OpenID、forged identity、unique begin retry/race、revision lock、reservation/expiry、
+  exact environment/bucket/fileID binding、streaming actual-size authority、immutable snapshot、processing lease/
+  takeover、finalize idempotency/CAS、exact owner DTO/cursor、cancel and deletion-pending、invalid zero side effects；
+- `test:track-admin`：missing/malformed allowlist fail closed、non-admin zero side effects、temporary URL maxAge 300、
+  state/version/reviewAttempt retry、cancel/review race、exact admin DTO/cursor and no OpenID/secret/URL persistence；
+- `test:track-retention`：注入时钟下精确 30/180 天边界、截止日期不延长、无提前删除、pending/changes
+  以及 awaiting-upload/processing 到期、截止后所有 owner/admin 读取/审核/修订/取消零投影，approved raw 删除
+  但 evidence 保留、evidence 到期、terminal 立即删除、重复 timer 幂等、21 条 backlog 多轮耗尽、每批
+  最多 20、CAS/游标、`TRIGGER_SRC=timer` + empty OpenID、伪造 event/普通 client 无法调用内部清理以及
+  deletion-pending 恢复；
+- `test:track-ui`：exact rights/privacy copy、local precheck、upload/finalize recovery、八状态 action matrix、
+  error/retry、pagination、revision/cancel/cleanup retry、admin separation；
+- `test:track-acceptance`：owner-to-review vertical flow, privacy projections and exact proof that runtime catalog,
+  operational status, weather, deterministic verdict and public UGC remain unchanged.
+
+No mechanical coverage percentage is introduced. Mutation-sensitive representative assertions must fail when owner
+filters, reserved-path binding, DTD rejection, actual-size authority, admin gate, state/version guard, private DTO or
+no-catalog-mutation wiring is removed. Every PR also runs integration `55/0`, lint, typecheck, WeChat build and
+latest-head GitHub quality.

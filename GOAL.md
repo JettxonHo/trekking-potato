@@ -1,10 +1,84 @@
-# TP-STAGING-001 — 徒步薯预发布验证
+# TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
-- Goal ID: `TP-STAGING-001`
-- Status: `COMPLETE_ON_MERGE — CONDITIONAL_GO`
+- Goal ID: `TP-COMMUNITY-001`
+- Status: `PLANNING_PR_OPEN`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
-- Active Issue: `#114`
+- Parent Issue: `#115`
+- Release boundary: code, tests and separate staging-deployment checklist; no automatic route publication or production release
+
+## 1. Objective
+
+Add a private GPX/KML submission and administrator-review workflow for closed-beta users. The workflow converts a
+real server-validated private file into a bounded reviewed-evidence projection. It reduces manual geometry intake but
+does not decide route opening, route type, fixed days, safety, weather, verdicts or trusted-catalog publication.
+
+## 2. Authority and reading order
+
+Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #115/child Issue and
+`docs/tasks/ACTIVE_TASK.md`. `docs/community-track-workflow.md` is the authoritative public/data/security contract.
+If code, Issue or another document conflicts with it, the executor stops and returns the conflict to Sol XHigh.
+
+## 3. Scope
+
+- GPX and KML local-file selection with explicit uploader rights/consent;
+- server-reserved private storage path, actual object/file validation and safe bounded XML parsing;
+- owner-only submission list/detail/cancel and honest cleanup-pending state;
+- 30-day maximum raw retention and 180-day de-identified evidence retention with internal idempotent cleanup;
+- server-only `TRACK_REVIEW_ADMIN_OPENIDS` authorization and administrator review;
+- reviewed evidence projection with identity/time/raw references removed;
+- tests, documentation and a separate human-controlled staging deployment checklist.
+
+## 4. Non-scope
+
+- scraping/importing 两步路、六只脚 or other third-party platforms;
+- KMZ, remote URL ingestion, public UGC feeds or public raw-track downloads;
+- automatic Place/Route/RouteVariant creation or catalog mutation;
+- treating a track as proof of access, permission, opening, safety or a verdict;
+- production/public release, new paid infrastructure, deletion of pre-existing data, cleanup outside the approved
+  30/180 lifecycle or broad auth/storage permission changes.
+
+## 5. Milestones and serial Issues
+
+| Milestone | Work item | Completion condition |
+|---|---|---|
+| C1 Parse | C01 | bounded GPX/KML parser and reviewed projection pass security/behavior tests |
+| C2 Owner API | C02 | begin/finalize/list/get/cancel use server identity and private reserved storage |
+| C3 Review API | C03 | admin allowlist, raw access and review state machine are fail-closed and idempotent |
+| C4 User UX | C04 | rights, upload, status, revision and cancel are usable without public UGC |
+| C5 Admin UX | C05 | admin-only queue/detail/review works without exposing identity or secrets |
+| C6 Acceptance | C06 | cross-layer gates, docs and human staging checklist are complete |
+
+C01–C06 run serially by default. Each child gets one focused branch/PR and exact allowlist. No implementation starts
+until the planning PR for this Goal passes independent Review and merges.
+
+## 6. Completion criteria
+
+- all child Issues close through compliant PRs and latest-head CI;
+- the exact mode/status/error/DTO contracts in `TRACK-SUBMISSION-1` are implemented and tested;
+- raw data remains creator/service/admin private; owner/admin authorization and forged-identity tests pass;
+- parser/file limits, XML safety, retry/concurrency and cleanup-pending behavior are demonstrably enforced;
+- raw/evidence deadlines, internal timer idempotency and deletion-pending truthfulness are behavior-tested;
+- no route catalog, operational status, deterministic result or public UGC path is mutated;
+- CloudBase collection/index/env/function changes are executed only through the separately approved C06 staging step;
+- final Review reports code-ready versus deployed/closed-beta-tested truthfully.
+
+## 7. Agent routing and stop conditions
+
+Sol XHigh owns design, child contracts, scheduling, independent Review, merge and Goal acceptance. Bounded
+implementation uses the exact custom Agent `luna-worker` configured at `gpt-5.6-luna/max`; runtime identity is
+recorded separately from configuration. Terra is not an automatic fallback. Stop for the human conditions in
+`docs/community-track-workflow.md`, including permission broadening, platform-rights uncertainty and production.
+
+---
+
+# Historical completion record — TP-STAGING-001
+
+- Goal ID: `TP-STAGING-001`
+- Status: `COMPLETE — CONDITIONAL_GO`（approved PR #116 merged as `b1bc994`）
+- Governance: `TP-GOV-2.0.0`
+- Started: `2026-08-09`
+- Completed Issue: `#114`
 - Release boundary: validate the existing closed-beta staging environment; no production or public release
 
 ## 1. Current objective
@@ -18,7 +92,7 @@ validation.
 ## 2. Current scope and order
 
 1. Complete Issue #114 staging validation and publish a durable Go/No-Go report. The reviewed result is
-   `CONDITIONAL_GO` for a bounded four-route cohort; it becomes effective only when the validation PR merges.
+   `CONDITIONAL_GO` for a bounded four-route cohort and became effective when PR #116 merged.
 2. Rotate the `AMAP_KEY` and `LLM_KEY` before any new closed-beta invitations because the CloudBase console exposed
    their plaintext values during the authorized configuration inspection. Secret values must never enter Git,
    Issue bodies, PRs, screenshots or durable project documents. The human confirmed rotation on `2026-08-09`, and

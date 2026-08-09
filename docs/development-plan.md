@@ -372,6 +372,117 @@ PR #71 的 latest-head `quality` 51 秒通过，squash merged as `9d70f7c`，#29
 I22b PR #98 completed the four real DevTools evidence states, passed latest-head quality and independent Sol
 Review, squash merged as `852e86d`, and closed #95 plus parent #31.
 
+## 21. TP-COMMUNITY-001 私有轨迹实施顺序
+
+Parent #115 is planning-active after #114 merged with a bounded staging `CONDITIONAL_GO`. It is split serially:
+
+| Work item | Scope | Depends on | Merge boundary |
+|---|---|---|---|
+| C01 | pure GPX/KML parser, limits, projection, `saxes@6.0.0` lock | planning PR | no CloudBase/UI |
+| C02 | owner begin/finalize/list/get/cancel, storage/stat/download, collection seam | C01 | no admin/UI/deploy |
+| C03 | server-only admin allowlist, admin list/get/review, evidence store, retention planner/version/retry | C02 | no UI/deploy |
+| C04 | user choose/upload/finalize/status/revision/cancel UX | C03 | no admin UI/deploy |
+| C05 | admin queue/detail/raw/review UX | C04 | no deploy/catalog mutation |
+| C06 | cross-layer acceptance, docs and human staging deployment checklist | C05 | no production/public release |
+
+Default is strict serial execution because C02/C03 share one function and C04/C05 share the page/service contracts.
+Each child is one focused Issue/branch/PR with a complete task contract. Any discovered need to broaden storage read,
+scrape a third-party platform, publish routes automatically or collect more identity returns to the human.
+
+### C01 — bounded parser and private reviewed projection
+
+- Goal: parse only the frozen GPX/KML LineString/KML 2.2 `gx:Track` subset into `TrackSummary` and
+  `ReviewedGeometry` without assigning approval/tier and without CloudBase or UI.
+- Allowlist: new `cloudfunctions/trackSubmission/package.json`,
+  `cloudfunctions/trackSubmission/package-lock.json`, `cloudfunctions/trackSubmission/domain/track-parser.js`,
+  `cloudfunctions/trackSubmission/domain/evidence-projection.js`; root `package.json`;
+  new `scripts/track-parser-contract-test.js`;
+  `docs/current-status.md`; `docs/tasks/ACTIVE_TASK.md`.
+- Constraints: exact `saxes@6.0.0`; no handler, storage, database, route catalog, network, deployment or other
+  dependency. Fatal UTF-8 decoding; DTD/ENTITY rejection; namespace-aware supported structures; exact limits,
+  Haversine/rounding/sampling and privacy projection.
+- Acceptance: mutation-sensitive parser fixtures and all repository gates pass. Any need for KMZ, URL fetch,
+  map matching or a different XML library returns to Sol.
+
+### C02 — owner lifecycle and immutable storage snapshot
+
+- Depends on merged C01. Goal: implement `begin/finalize/list_mine/get_mine/cancel` with server OpenID, private
+  reservation, strict fileID binding, bounded read, immutable review copy, CAS/lease/revision locks and exact owner DTO.
+- Allowlist: `cloudfunctions/trackSubmission/index.js`, `cloudfunctions/trackSubmission/package.json`,
+  `cloudfunctions/trackSubmission/package-lock.json`, `cloudfunctions/trackSubmission/response-contract.js`,
+  `cloudfunctions/trackSubmission/owner-service.js`, `cloudfunctions/trackSubmission/storage-adapter.js`,
+  `cloudfunctions/trackSubmission/submission-repository.js`,
+  `cloudfunctions/trackSubmission/submission-lifecycle.js`; root `package.json`;
+  new `scripts/track-owner-contract-test.js`;
+  `docs/current-status.md`; `docs/tasks/ACTIVE_TASK.md`.
+- Constraints: add only the already pinned `wx-server-sdk@4.0.2`; inject database/storage/clock/ID seams; no admin
+  modes, frontend, real CloudBase mutation or new authentication. Exact `TRACK_STORAGE_FILEID_HOST` is server config.
+- Acceptance: owner, concurrency, expiry, TOCTOU, side-effect, cursor, cleanup and retry matrix from
+  `TRACK-SUBMISSION-1` is behavior-tested, including awaiting-upload expiry and post-deadline zero owner projection.
+  Failure to validate exact CloudBase host/path stops the Issue.
+
+### C03 — administrator review
+
+- Depends on merged C02. Goal: implement `admin_list/admin_get/admin_review` and private reviewed evidence.
+- Allowlist: `cloudfunctions/trackSubmission/index.js`, `cloudfunctions/trackSubmission/package.json`,
+  `cloudfunctions/trackSubmission/package-lock.json`, `cloudfunctions/trackSubmission/response-contract.js`,
+  `cloudfunctions/trackSubmission/admin-service.js`, `cloudfunctions/trackSubmission/submission-repository.js`,
+  `cloudfunctions/trackSubmission/submission-lifecycle.js`,
+  `cloudfunctions/trackSubmission/reviewed-evidence.js`, `cloudfunctions/trackSubmission/retention.js`;
+  root `package.json`; new `scripts/track-admin-contract-test.js`, `scripts/track-retention-contract-test.js`;
+  `docs/current-status.md`; `docs/tasks/ACTIVE_TASK.md`.
+- Constraints: exact server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no client admin flag, public raw URL, catalog write,
+  UI, deployment or identity disclosure. Review/cancel races use CAS; raw links expire at most 300 seconds. The
+  internal retention event is timer-only, max 20 records per batch, idempotent under duplicate delivery and cannot be
+  invoked through any client mode; it requires server-owned `TRIGGER_SRC='timer'` plus empty server OpenID.
+- Acceptance: missing/malformed config fails closed, non-admin calls have zero side effects, DTO/cursor/state/replay/
+  cleanup tests pass; injected-clock 30/180-day retention tests pass; approved evidence is stored separately without
+  identity/raw provenance; expired raw/evidence cannot be read, reviewed or revised before physical deletion; and
+  approved evidence cannot change product facts.
+
+### C04 — owner submission UX
+
+- Depends on merged C03. Goal: add local selection, exact rights/privacy copy, upload/finalize, owner list/detail,
+  eight-state actions, revision/cancel/cleanup retry and bounded error recovery.
+- Allowlist: `taro-app/src/pages/index/index.jsx`, `taro-app/src/pages/index/index.css`, new
+  `taro-app/src/pages/index/track-submission-model.js`, `taro-app/src/pages/index/track-submission-service.js`;
+  root `package.json`; new `scripts/track-ui-contract-test.js`; `docs/current-status.md`;
+  `docs/tasks/ACTIVE_TASK.md`.
+- Constraints: client checks are usability only; CloudBase upload uses only server reservation and returns opaque fileID;
+  no public feed, background auto retry, new global state library, route search/result change or admin UI.
+- Acceptance: executable model/service fixtures and precise page wiring mutations cover exact actions, cursor and stale
+  response rejection; existing trip flow/result/recovery contracts remain green.
+
+### C05 — administrator review UX
+
+- Depends on merged C04. Goal: add an allowlist-gated queue/detail/raw/review surface separated from owner UI.
+- Allowlist: `taro-app/src/pages/index/index.jsx`, `taro-app/src/pages/index/index.css`,
+  `taro-app/src/pages/index/track-submission-model.js`, `taro-app/src/pages/index/track-submission-service.js`;
+  root `package.json`; focused additions to `scripts/track-ui-contract-test.js`; `docs/current-status.md`;
+  `docs/tasks/ACTIVE_TASK.md`.
+- Constraints: server response is the only admin authority; raw links are opened only after explicit admin action;
+  no allowlist value, uploader identity, public moderation page, catalog mutation or visual redesign.
+- Acceptance: forbidden/not-configured states, pagination, raw expiry, review notes, CAS conflicts and all review actions
+  have behavior/wiring evidence; no owner/admin cross-data exposure.
+
+### C06 — acceptance and separately authorized staging cutover
+
+- Depends on merged C05. Goal: add owner-to-review acceptance, final documentation, rollback/residue checklist and
+  human-executed staging evidence.
+- Allowlist: new `scripts/track-acceptance-contract-test.js`, `scripts/fixtures/track-acceptance.js`,
+  `docs/community-track-staging-validation.md`; root `package.json`; `README.md`; `GOAL.md`;
+  `docs/architecture.md`; `docs/product-requirements.md`; `docs/testing-strategy.md`;
+  `docs/development-plan.md`; `docs/decision-log.md`; `docs/current-status.md`; `docs/tasks/ACTIVE_TASK.md`.
+- Code PR non-scope: CloudBase collection/index/rule/env/function mutation, production/public release, route catalog
+  promotion and cleanup outside the approved new-record 30/180 lifecycle. The human performs the separately authorized
+  staging rows after code Review; no timer deletion is enabled before dry-run and rollback evidence.
+- Acceptance: full gates and latest-head CI pass; `track_submissions`, `track_review_evidence`, unique
+  `_openid+beginAttemptId`, exact owner/admin list and raw/record/evidence expiry indexes, exact file host, private
+  rules, admin env, owner/admin smoke, daily
+  timer timezone, observed server-owned `TRIGGER_SRC=timer`, normal client non-timer value, forged-event rejection,
+  empty-OpenID behavior, duplicate-delivery/dry-run/backlog drain, lease/cleanup/rollback and residue rows are recorded
+  truthfully as verified or blocked.
+
 ## 19. I23 串行恢复合同
 
 - Parent #32 splits into I23a/#99 then I23b/#100. I23a must merge first; the two tasks may not run in
