@@ -18,15 +18,11 @@
 - C02 implementation commit `6d41219` is published in draft PR #125. The exact implementation allowlist is 12 paths
   plus three controller-owned contract documents. Pre-publication local gates and two independent Reviews passed;
   latest-head GitHub `quality` and exact-head Sol Review remain required before merge.
-- C01 branch `codex/118-track-parser` was created from exact merged `main@988cf8b`. The controller activation commit
-  changed only Goal/status/task documents; the assigned `luna-worker` implementation and review-fix are complete,
-  committed and published in draft PR #124. Its latest-head GitHub `quality` check passed; exact-head Review and
-  Sol's mergeability decision remain.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
   de-identified reviewed-evidence record; GitHub CLI authentication is restored.
-- #115 remains open as the parent Goal. Planning is merged; bounded C01 implementation is now authorized under #118.
+- #115 remains open as the parent Goal. C01/#118 is complete; C02/#119 remains open in exact-head PR Review.
 - `TRACK-SUBMISSION-1` freezes GPX/KML rights, limits, private storage, owner/admin APIs, status machine, DTOs,
   cleanup-pending behavior, errors and no-catalog-publication boundary.
 - Planned serial work is C01 parser → C02 owner API → C03 admin API → C04 user UX → C05 admin UX → C06 acceptance
@@ -866,16 +862,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: assigned the bounded C02/#119 implementation under the exact owner-lifecycle allowlist; it cannot
-  approve or merge its own work.
+- `luna-worker`: completed the bounded C02/#119 implementation and Review-fix under the exact owner-lifecycle
+  allowlist; it cannot approve or merge its own work.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Dispatch C02/#119 to the exact custom Agent `luna-worker` after the activation commit is published.
-2. Implement and behavior-test the owner-only lifecycle without admin modes, UI, deployment or real CloudBase
-   mutation, then return `READY_FOR_CONTROLLER_REVIEW`.
-3. Keep #120–#123 blocked until each preceding approved PR merges.
+1. Rerun latest-head GitHub `quality` after this additive authority-state sync and obtain exact-head Sol Review.
+2. If approved, Sol may mark PR #125 ready and squash merge; close #119 only after the remote merge is verified.
+3. Keep #120–#123 blocked until each preceding approved PR merges; C03/#120 remains next but inactive.
 
 ## Blockers and risks
 
@@ -915,9 +910,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Commit and publish the controller-owned C02 activation checkpoint, then dispatch #119 to the exact custom Agent
-`luna-worker`. The executor must complete the mandatory handshake and baseline before the first RED, stay within the
-exact allowlist, and return only `READY_FOR_CONTROLLER_REVIEW`; #120 remains blocked until an approved C02 PR merges.
+Publish this additive authority-state sync, rerun PR #125 latest-head `quality`, and obtain exact-head Sol Review.
+Only after approval may Sol mark the PR ready and squash merge it; #119 closes only after remote merge verification,
+and #120 remains blocked until then.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
