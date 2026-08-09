@@ -1,7 +1,7 @@
 # ACTIVE TASK — private community track planning
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / PLANNING_PR_READY`
+- Goal: `TP-COMMUNITY-001 / PLANNING_PR_OPEN`
 - GitHub Issue: `#115`
 - Status/Mode: `READY_FOR_CONTROLLER_REVIEW / CONTROLLER_PLANNING`
 - Controller: Sol XHigh
@@ -86,7 +86,7 @@ route is open.
 
 ```text
 Governance version: TP-GOV-2.0.0
-Goal ID and status: TP-COMMUNITY-001 / PLANNING_PR_READY
+Goal ID and status: TP-COMMUNITY-001 / PLANNING_PR_OPEN
 Active milestone: community-track contract planning
 Active Issue and mode: #115 / CONTROLLER_PLANNING
 Current branch and base commit: codex/115-community-track-planning / main@b1bc994
@@ -114,5 +114,6 @@ Blocking inconsistencies: none; #114 closed, admin mechanism approved, no secret
   `0 errors / 9 existing warnings`; typecheck; `CI=1 npm run build:weapp`; and `git diff --check`.
 - Human approved the 30/180-day retention decision and GitHub CLI authentication is restored. The contract now uses a
   separate de-identified evidence collection plus an internal daily timer/CAS cleanup path; no public cleanup mode is
-  introduced. Live #115 is synchronized. Two independent latest-diff Reviews returned `APPROVED`; remaining work is
-  planning PR publication, latest-head quality, exact-head metadata Review and merge.
+  introduced. Live #115 is synchronized. Two independent latest-diff Reviews returned `APPROVED`; draft planning PR
+  #117 is open and its initial exact head passed `quality`. Remaining work is latest-head quality and exact-head
+  metadata Review for this additive status commit, then controller merge.

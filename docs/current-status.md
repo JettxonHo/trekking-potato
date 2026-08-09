@@ -3,7 +3,7 @@
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / PLANNING_PR_READY`
+- Current Goal: `TP-COMMUNITY-001 / PLANNING_PR_OPEN`
 - Active task: `#115 / READY_FOR_CONTROLLER_REVIEW`
 - Branch/base: `codex/115-community-track-planning` from `main@b1bc994`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
@@ -774,15 +774,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Publish the independently approved `TRACK-SUBMISSION-1` docs-only planning PR.
-2. Require latest-head quality plus exact-head metadata Review, then merge only if both remain green.
+1. Draft planning PR #117 is open; its initial exact head passed `quality` and one exact-head Review was approved.
+2. Run latest-head quality and exact-head metadata Review after this additive status synchronization, then merge only
+   if both remain green.
 3. Only after that merge, create serial child Issues C01–C06 with exact contracts and route C01 to `luna-worker`.
 
 ## Blockers and risks
 
 - No product/retention human decision remains. The 30/180 periods and server-only admin authority are approved.
-- GitHub CLI authentication is restored and live #115 matches the contract. The planning PR still must pass
-  latest-head quality and exact-head Review before implementation begins.
+- GitHub CLI authentication is restored and live #115 matches the contract. Draft PR #117 is open; its initial head
+  passed quality, and the additive status head must pass latest-head quality and exact-head Review before merge.
 - Root toolchain, lockfiles, offline integration, CI and branch protection remain merged and verified.
 - Node 24 随附的 npm 11 与 `@nutui/nutui-react-taro@3.0.20` 的不可解析可选依赖
   存在锁文件校验不兼容：npm 11 生成锁时省略该包、`npm ci` 又报缺失。I01 已按
@@ -817,7 +818,7 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Publish the approved docs-only planning PR, wait for latest-head quality and exact-head metadata Review, then merge.
+Wait for draft PR #117's additive status head to pass latest-head quality and exact-head metadata Review, then merge.
 Create C01–C06 only after that merge; route C01 to exact `luna-worker`.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
