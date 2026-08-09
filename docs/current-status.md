@@ -3,21 +3,26 @@
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / PLANNING_PR_OPEN`
-- Active task: `#115 / READY_FOR_CONTROLLER_REVIEW`
-- Branch/base: `codex/115-community-track-planning` from `main@b1bc994`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C01 READY_FOR_CONTROLLER_REVIEW`
+- Active task: `#118 / READY_FOR_CONTROLLER_REVIEW`
+- Branch/base: `codex/118-track-parser` from `main@988cf8b`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: freeze private community GPX/KML submission/admin review before serial child implementation
+- Current work: C01 pure bounded GPX/KML parser and reviewed-geometry projection
 
 ## Current community-track checkpoint
 
+- Planning PR #117 passed latest-head quality and two independent exact-head Reviews, then squash merged as `988cf8b`.
+- Milestone #8 and serial child Issues #118–#123 are live. Only C01/#118 is active; #119–#123 remain dependency-blocked.
+- C01 branch `codex/118-track-parser` was created from exact merged `main@988cf8b`. The controller activation commit
+  changed only Goal/status/task documents; the assigned `luna-worker` implementation and review-fix are complete,
+  committed and published in draft PR #124. Its latest-head GitHub `quality` check passed; exact-head Review and
+  Sol's mergeability decision remain.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
   de-identified reviewed-evidence record; GitHub CLI authentication is restored.
-- #115 planning contract has two independent `APPROVED` Reviews with no P0–P3. Implementation remains blocked until
-  the docs-only planning PR passes latest-head quality, exact-head metadata Review and merges.
+- #115 remains open as the parent Goal. Planning is merged; bounded C01 implementation is now authorized under #118.
 - `TRACK-SUBMISSION-1` freezes GPX/KML rights, limits, private storage, owner/admin APIs, status machine, DTOs,
   cleanup-pending behavior, errors and no-catalog-publication boundary.
 - Planned serial work is C01 parser → C02 owner API → C03 admin API → C04 user UX → C05 admin UX → C06 acceptance
@@ -26,6 +31,43 @@
 - Contract Review-fix now closes upload overwrite/HEAD TOCTOU, exact fileID binding, `gx:Track`, processing lease,
   CAS/revision races, DTO/error/action gaps and the 30/180-day retention lifecycle. Full post-retention planning gates
   pass and live #115 is synchronized; both latest-diff independent Reviews are approved.
+
+## C01 implementation checkpoint — 2026-08-09
+
+- The required pre-implementation RED was recorded on the clean activation head: `corepack npm@10.9.2 run
+  test:track-parser` failed because the script was absent, and the direct script invocation failed with
+  `MODULE_NOT_FOUND`.
+- The bounded GREEN adds only the new `trackSubmission` package with exact `saxes@6.0.0`, a namespace-aware pure
+  GPX/KML parser, a de-identified reviewed-geometry projector and the focused contract runner. It enforces the
+  frozen UTF-8/DTD/ENTITY, depth, point/segment, coordinate/elevation, RFC-3339 pairing, Haversine, rounding and
+  500-point deterministic preview rules; no handler, storage, database, network, catalog or UI path is wired.
+- Focused C01, root test, offline integration `55/0`, lint (`0 errors / 9 existing warnings`), typecheck, host
+  `CI=1 build:weapp` and `git diff --check` pass under the repository-approved Corepack npm `10.9.2`. The lockfile
+  was generated with npm `10.9.2` using an isolated cache; the Corepack wrapper reported its local Node runtime
+  separately and no npm 11 lockfile was generated.
+- Current implementation state is `READY_FOR_CONTROLLER_REVIEW`: draft PR #124 is published and its latest-head
+  GitHub `quality` check passed. Exact-head Review and Sol's mergeability decision remain; no deployment or merge
+  has occurred.
+
+## C01 Review-fix checkpoint — 2026-08-09
+
+- Sol's round-1 `CHANGES_REQUESTED` is addressed within the original allowlist: bootstrap now installs the parser
+  function, the subpackage does not freeze a CloudBase runtime engine, XML namespace/path checks are strict, and
+  LineString/gx:coord point accounting is bounded at 50,001 before the parser retains another point.
+- Independent focused assertions now lock the literal `ReviewedGeometry` schema, known Haversine radius and
+  non-connected segment distance, coordinate/elevation/bounds rounding and coverage, the full floor-index preview
+  formula and the 200-segment endpoint budget. Wrong-namespace `when` and GPX tracks outside the direct path are
+  behavior-tested.
+- The nested parser `node_modules` was moved aside and a clean `corepack npm@10.9.2 run bootstrap` completed
+  successfully. The authoritative sequential clean-install command
+  `test -f cloudfunctions/trackSubmission/node_modules/saxes/saxes.js && corepack npm@10.9.2 ci --prefix
+  cloudfunctions/trackSubmission && corepack npm@10.9.2 run test:track-parser` passed. The parser lock was regenerated
+  by npm `10.9.2` with an isolated cache and official `registry.npmjs.org` tarball URLs.
+- Mutation checks are recorded: changing the Haversine radius, replacing sampling `floor` with `ceil`, or removing
+  the projected `distanceM` field each makes `test:track-parser` fail; all three mutations were restored.
+- Review-fix state is `READY_FOR_CONTROLLER_REVIEW`; the controller committed and published draft PR #124, whose
+  latest-head GitHub `quality` check passed. Exact-head Review and mergeability remain controller-owned; no
+  deployment occurred.
 
 ## Completed staging checkpoint
 
@@ -768,22 +810,21 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: no implementation assignment until the #115 planning PR merges. After merge it receives one serial
-  child at a time beginning with C01 and cannot approve its own PR.
+- `luna-worker`: completed the bounded C01/#118 implementation and review-fix within the exact allowlist; it cannot
+  approve or merge its own work.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Draft planning PR #117 is open; its initial exact head passed `quality` and one exact-head Review was approved.
-2. Run latest-head quality and exact-head metadata Review after this additive status synchronization, then merge only
-   if both remain green.
-3. Only after that merge, create serial child Issues C01–C06 with exact contracts and route C01 to `luna-worker`.
+1. Complete exact-head independent Review of draft PR #124 after its latest-head GitHub `quality` check passed.
+2. If Review remains `APPROVED`, let Sol decide readiness and squash-merge; close #118 only after the merge is
+   confirmed remotely.
+3. Keep #119–#123 blocked until each preceding approved PR merges.
 
 ## Blockers and risks
 
 - No product/retention human decision remains. The 30/180 periods and server-only admin authority are approved.
-- GitHub CLI authentication is restored and live #115 matches the contract. Draft PR #117 is open; its initial head
-  passed quality, and the additive status head must pass latest-head quality and exact-head Review before merge.
+- GitHub CLI authentication is restored. PR #117 is merged and live #115/#118–#123 match the serial plan.
 - Root toolchain, lockfiles, offline integration, CI and branch protection remain merged and verified.
 - Node 24 随附的 npm 11 与 `@nutui/nutui-react-taro@3.0.20` 的不可解析可选依赖
   存在锁文件校验不兼容：npm 11 生成锁时省略该包、`npm ci` 又报缺失。I01 已按
@@ -818,8 +859,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Wait for draft PR #117's additive status head to pass latest-head quality and exact-head metadata Review, then merge.
-Create C01–C06 only after that merge; route C01 to exact `luna-worker`.
+Draft PR #124 is open at the committed C01 implementation head and its latest-head GitHub `quality` check passed.
+Complete the exact-head independent Reviews, then let Sol decide readiness and squash-merge. The executor cannot
+approve or merge its own PR, and #118 remains open until the remote merge is confirmed.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

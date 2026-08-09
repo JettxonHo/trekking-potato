@@ -374,7 +374,8 @@ Review, squash merged as `852e86d`, and closed #95 plus parent #31.
 
 ## 21. TP-COMMUNITY-001 私有轨迹实施顺序
 
-Parent #115 is planning-active after #114 merged with a bounded staging `CONDITIONAL_GO`. It is split serially:
+Planning PR #117 merged as `988cf8b`; parent #115 is active with C01/#118 as the only implementation task. The Goal
+is split serially:
 
 | Work item | Scope | Depends on | Merge boundary |
 |---|---|---|---|

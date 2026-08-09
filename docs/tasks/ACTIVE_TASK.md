@@ -1,119 +1,143 @@
-# ACTIVE TASK — private community track planning
+# ACTIVE TASK — C01 bounded GPX/KML parser
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / PLANNING_PR_OPEN`
-- GitHub Issue: `#115`
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / CONTROLLER_PLANNING`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C01 READY_FOR_CONTROLLER_REVIEW`
+- Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
+- GitHub Issue: `#118`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW_FIX`
 - Controller: Sol XHigh
-- Implementation executor after planning merge: exact custom Agent `luna-worker`
-- Branch: `codex/115-community-track-planning`
-- Base: `main@b1bc994`
+- Implementation executor: exact custom Agent `luna-worker`
+- Branch: `codex/118-track-parser`
+- Base: `main@988cf8b`
+- Pull Request: draft `#124` (`Refs #118`); latest-head GitHub `quality` passed
 
-## 1. Objective
+## 1. Goal and background
 
-Freeze the product, API, data, security, privacy, test and deployment contracts for private community GPX/KML
-submission and administrator review. A reviewed submission may become tier-B geometry evidence, but it cannot make a
-route searchable, mark it open, change a verdict or mutate the trusted route catalog.
+Implement the pure bounded GPX/KML parser and private reviewed-geometry projection frozen by
+`TRACK-SUBMISSION-1`. This is the first serial child of #115 and supplies verified geometry to later private APIs;
+it does not approve, publish or classify a route.
 
-## 2. Human-approved decisions
+## 2. Required reading
 
-- `TRACK_REVIEW_ADMIN_OPENIDS` is the initial server-only comma-separated administrator allowlist.
-- Its values are configured outside Git/GitHub and must never be returned, logged or persisted in submission DTOs.
-- The creator may write only the reserved upload object. The immutable review object is service-written and readable
-  only by the CloudBase service/allowlisted administrators; neither object is public.
-- The initial closed-beta route allowlist excludes Gongga; this feature does not change that staging decision.
-- Community tracks may reduce manual geometry work after review, but official/operator evidence remains required for
-  management/opening facts.
-- Human approved raw-object retention of at most 30 days from immutable snapshot creation and de-identified reviewed
-  evidence retention of at most 180 days from approval. These deadlines are not extended by retries or revisions.
+Read the mandatory governance sequence, live #118, `docs/community-track-workflow.md` §§4, 6, 9 and
+`docs/development-plan.md` C01. The workflow document is authoritative for parser inputs, limits, calculation and
+privacy projection.
 
-## 3. Planning allowlist
+## 3. Exact allowlist
 
-- `GOAL.md`
-- `README.md`
-- `docs/governance/MASTER_PLAN.md`
-- `docs/product-requirements.md`
-- `docs/architecture.md`
-- `docs/development-plan.md`
-- `docs/testing-strategy.md`
-- `docs/decision-log.md`
+- new `cloudfunctions/trackSubmission/package.json`
+- new `cloudfunctions/trackSubmission/package-lock.json`
+- new `cloudfunctions/trackSubmission/domain/track-parser.js`
+- new `cloudfunctions/trackSubmission/domain/evidence-projection.js`
+- root `package.json`
+- new `scripts/track-parser-contract-test.js`
 - `docs/current-status.md`
-- `docs/staging-deployment-validation.md` (lifecycle status only)
 - `docs/tasks/ACTIVE_TASK.md`
-- new `docs/community-track-workflow.md`
 
-No application code, Cloud Function code, package/lock file, route catalog, CI, CloudBase permission, collection,
-index, secret or deployed function changes belong in this planning PR.
+No other file may change without a controller-owned contract update.
 
-## 4. Frozen parent boundary
+## 4. Non-scope
 
-The parent Goal is split serially:
+Handler, CloudBase SDK/storage/database/network, UI, catalog mutation, route approval/tier assignment, KMZ/ZIP,
+remote URL ingestion, map matching, deployment and any dependency except the exact parser below.
 
-1. C01 pure bounded GPX/KML parser and reviewed-evidence projection.
-2. C02 owner-side `trackSubmission` lifecycle, private storage binding and persistence.
-3. C03 administrator authorization and review state transitions.
-4. C04 user submission/status/cancel interface.
-5. C05 administrator review interface.
-6. C06 cross-layer acceptance, deployment checklist and documentation sync.
+## 5. Frozen constraints
 
-C01 may add the exact `saxes@6.0.0` runtime dependency to the new Cloud Function package only. C02–C05 are serial
-because they share the function/page contracts. Deployment, new collection/index creation, storage-rule changes and
-environment-variable configuration remain human-executed C06 gates after their code PRs pass Review.
+- Pin exactly `saxes@6.0.0` in the new function package and lock file.
+- Fatal UTF-8 decoding; reject DTD/ENTITY; namespace-aware GPX track, KML LineString and KML 2.2 `gx:Track` only.
+- Enforce XML depth 64, actual points 2..50,000, segments <=200, finite legal coordinates/elevation and paired
+  `when/gx:coord`.
+- Use the frozen Haversine, rounding and deterministic preview sampling. Remove exact times and identity/provenance
+  fields from `ReviewedGeometry`.
+- No hash/SHA, speculative compatibility layer or second catalog/domain implementation.
 
-## 5. Mandatory contract source
+## 6. Acceptance and tests
 
-`docs/community-track-workflow.md` owns the detailed mode union, record/DTO schemas, status machine, file limits,
-privacy projection, cleanup semantics, errors, test matrix and stop conditions. Product, architecture, development
-and testing documents must reference rather than redefine conflicting alternatives.
+- Record a real failing RED before implementation, then mutation-sensitive GREEN.
+- Positive fixtures cover GPX, KML LineString, audited paired `gx:Track`, namespaces and BOM.
+- Negative/boundary fixtures cover malformed/unsafe XML, unsupported encoding/structure, depth, segments,
+  50,000-point edge, non-finite/out-of-range values, pairing/time failures and deterministic sampling mutations.
+- `TrackSummary` and `ReviewedGeometry` match exact schemas and contain no raw time, owner, filename, path, note or
+  provenance.
+- Run `npm run test:track-parser` (executor may choose this exact script name), root `npm test`,
+  `npm run test:integration`, `npm run lint`, `npm run typecheck`, `CI=1 npm run build:weapp`, `git diff --check`
+  and latest-head GitHub `quality`.
 
-## 6. Planning acceptance
+## 7. Dependency and merge order
 
-- all public inputs/outputs and error codes are discriminated and server-owned identity is explicit;
-- rights declaration, privacy, raw-file access, retention/cancel and no-publication copy are frozen;
-- GPX/KML limits and safe XML behavior are objective and testable;
-- owner/admin state transitions, retries, optimistic concurrency and side effects are explicit;
-- child Issues are independently verifiable and mergeable in a serial order;
-- planning docs pass full repository gates and independent Sol Review before implementation starts.
+Planning PR #117 is merged. C01 blocks #119/C02 and every later child. No community-track task runs in parallel.
 
-## 7. Stop conditions
+## 8. Risks and escalation
 
-Stop and ask the human before public raw-file access, third-party platform scraping/import, new paid infrastructure,
-storage/database permission broadening, authentication changes, production deployment, automatic route publication,
-deletion outside the approved new-record 30/180 timer contract or any use of submitted geometry as evidence that a
-route is open.
+Stop and return to Sol before changing XML library/version, supporting KMZ/URL/map matching, weakening limits,
+adding CloudBase/network, modifying a public/data contract or touching a file outside the allowlist.
 
-## 8. Session handshake — 2026-08-09
+## 9. Allowed autonomous choices
+
+The executor may choose internal pure-function decomposition, test fixture organization and npm script wiring within
+the allowlist, without changing frozen outputs, algorithms or limits.
+
+## 10. Deliverables and result package
+
+Return code, exact lockfile, focused tests, docs checkpoint, command results, actual changed files, deviations,
+implementation-level decisions, known limits/risks and a focused draft PR using `Refs #118` rather than `Closes`.
+The executor must not approve or merge its own PR.
+
+## 11. Controller activation checkpoint — 2026-08-09
 
 ```text
 Governance version: TP-GOV-2.0.0
-Goal ID and status: TP-COMMUNITY-001 / PLANNING_PR_OPEN
-Active milestone: community-track contract planning
-Active Issue and mode: #115 / CONTROLLER_PLANNING
-Current branch and base commit: codex/115-community-track-planning / main@b1bc994
-Working tree status: clean before planning activation
-Required documents read: AGENTS, GOAL, current-status, MASTER_PLAN, AGENT_EXECUTION_PROTOCOL,
-  PLAN_SYNC_PROTOCOL, prior ACTIVE_TASK, live #115, product/architecture/development/testing documents
-Baseline commands run: inherited approved #114 latest-head quality and full local gates; planning branch diff clean
-Blocking inconsistencies: none; #114 closed, admin mechanism approved, no secret value required for planning
+Goal ID and status: TP-COMMUNITY-001 / ACTIVE — C01 IMPLEMENTATION_ACTIVE
+Active milestone: TP-COMMUNITY-001 Community track evidence / C01
+Active Issue and mode: #118 / IMPLEMENTATION
+Current branch and base: codex/118-track-parser / main@988cf8b
+Working tree before activation: clean
+Planning dependency: PR #117 merged as 988cf8b
+Implementation routing: exact custom Agent luna-worker only; Terra fallback prohibited
 ```
 
-## 9. Contract Review-fix checkpoint — 2026-08-09
+The activation commit is controller-owned and contains no implementation code. `luna-worker` must re-read all
+required sources, verify the branch/worktree and run baseline commands before recording the first RED.
 
-- Two independent read-only reviews returned `CHANGES_REQUESTED`, with no P0/product-direction defect. The bounded
-  findings were upload overwrite/HEAD TOCTOU, exact CloudBase fileID authority, stale processing recovery, CAS/revision
-  races, real KML `gx:Track`, incomplete DTO/error/action contracts, missing rights/privacy copy and raw retention.
-- The planning diff now freezes strict `TRACK_STORAGE_FILEID_HOST + reserved path` validation, bounded streaming GET,
-  service-owned immutable review bytes, unique `_openid+beginAttemptId`, parent revision lock, five-minute processing
-  lease, all state-changing CAS, exact record/list/detail/error/action projections, and namespace-aware paired
-  KML 2.2 `gx:Track` support.
-- Exact `track-rights-v1` user copy now separates own recording, creator authorization and compatible open licence;
-  it forbids scraping/bypassing 两步路、六只脚 and states that approval is private geometry evidence only.
-- Child C01–C06 contracts now include exact allowlists, dependencies, acceptance and stop boundaries. No implementation,
-  dependency, CloudBase or deployment change has occurred.
-- Full planning gates pass on the post-retention diff: root `npm test`; integration `55/0`; lint
-  `0 errors / 9 existing warnings`; typecheck; `CI=1 npm run build:weapp`; and `git diff --check`.
-- Human approved the 30/180-day retention decision and GitHub CLI authentication is restored. The contract now uses a
-  separate de-identified evidence collection plus an internal daily timer/CAS cleanup path; no public cleanup mode is
-  introduced. Live #115 is synchronized. Two independent latest-diff Reviews returned `APPROVED`; draft planning PR
-  #117 is open and its initial exact head passed `quality`. Remaining work is latest-head quality and exact-head
-  metadata Review for this additive status commit, then controller merge.
+The activation instructions above are historical. Sol's round-1 Review-fix is the current execution state; no
+scope, dependency, public contract, parser library or runtime engine was changed.
+
+## 12. Implementation checkpoint — 2026-08-09
+
+```text
+RED: corepack npm@10.9.2 run test:track-parser -> exit 1 (missing script); direct runner -> MODULE_NOT_FOUND
+GREEN: focused parser/projection contract PASS
+Toolchain: npm 10.9.2 (isolated cache for lock generation); no npm 11 lockfile generation
+Local gates: root test PASS; integration 55/0; lint 0 errors/9 existing warnings; typecheck PASS;
+  CI=1 build:weapp PASS; git diff --check PASS
+Status: historical checkpoint superseded by the completed REVIEW_FIX checkpoint below (READY_FOR_CONTROLLER_REVIEW)
+```
+
+The implementation remains limited to the allowlist and has no handler, storage, database, network, UI, catalog or
+deployment wiring. The focused contract covers GPX, KML LineString and paired KML 2.2 `gx:Track`, safe UTF-8 XML,
+all frozen parser limits, deterministic preview sampling and privacy-safe `ReviewedGeometry` projection.
+
+## 13. Review-fix completion checkpoint — 2026-08-09
+
+```text
+Review: round 1 CHANGES_REQUESTED addressed within the original allowlist
+Focused/mutation: PASS; radius, floor and projection-schema mutations each RED then restored
+Clean install: corepack npm@10.9.2 run bootstrap PASS after moving ignored trackSubmission/node_modules; explicit
+  `test -f .../saxes.js && corepack npm@10.9.2 ci --prefix cloudfunctions/trackSubmission && focused` PASS
+Toolchain: npm 10.9.2 lock regenerated with official registry.npmjs.org and isolated cache
+Local gates: focused/root/integration 55/0/lint 0 errors+9 existing warnings/typecheck/build/diff PASS
+Status: READY_FOR_CONTROLLER_REVIEW; draft PR #124 is published and latest-head GitHub quality passed;
+  exact-head Review and mergeability remain controller-owned
+```
+
+The round-1 fixes add no handler, storage, database, network, UI, catalog or deployment behavior and preserve the
+exact `saxes@6.0.0` dependency and frozen parser outputs.
+
+## 14. Controller publication checkpoint — 2026-08-09
+
+- Controller committed and pushed the exact eight-file implementation allowlist, then opened draft PR #124 with
+  `Refs #118`; the earlier activation documents remain controller-owned.
+- PR #124 latest-head GitHub `quality` passed. Live PR checks remain the CI fact source rather than a persisted run
+  identifier.
+- Remaining work is exact-head independent Review and Sol's mergeability decision. C01/#118 stays open until a
+  remote squash merge is confirmed; #119 remains blocked until then.
