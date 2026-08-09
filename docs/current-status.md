@@ -3,21 +3,24 @@
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / PLANNING_PR_OPEN`
-- Active task: `#115 / READY_FOR_CONTROLLER_REVIEW`
-- Branch/base: `codex/115-community-track-planning` from `main@b1bc994`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C01 IMPLEMENTATION_ACTIVE`
+- Active task: `#118 / IMPLEMENTATION`
+- Branch/base: `codex/118-track-parser` from `main@988cf8b`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: freeze private community GPX/KML submission/admin review before serial child implementation
+- Current work: C01 pure bounded GPX/KML parser and reviewed-geometry projection
 
 ## Current community-track checkpoint
 
+- Planning PR #117 passed latest-head quality and two independent exact-head Reviews, then squash merged as `988cf8b`.
+- Milestone #8 and serial child Issues #118–#123 are live. Only C01/#118 is active; #119–#123 remain dependency-blocked.
+- C01 branch `codex/118-track-parser` is created from exact merged `main@988cf8b`. The controller activation commit
+  changes only Goal/status/task documents; implementation is assigned only after that commit is pushed.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
   de-identified reviewed-evidence record; GitHub CLI authentication is restored.
-- #115 planning contract has two independent `APPROVED` Reviews with no P0–P3. Implementation remains blocked until
-  the docs-only planning PR passes latest-head quality, exact-head metadata Review and merges.
+- #115 remains open as the parent Goal. Planning is merged; bounded C01 implementation is now authorized under #118.
 - `TRACK-SUBMISSION-1` freezes GPX/KML rights, limits, private storage, owner/admin APIs, status machine, DTOs,
   cleanup-pending behavior, errors and no-catalog-publication boundary.
 - Planned serial work is C01 parser → C02 owner API → C03 admin API → C04 user UX → C05 admin UX → C06 acceptance
@@ -774,16 +777,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Draft planning PR #117 is open; its initial exact head passed `quality` and one exact-head Review was approved.
-2. Run latest-head quality and exact-head metadata Review after this additive status synchronization, then merge only
-   if both remain green.
-3. Only after that merge, create serial child Issues C01–C06 with exact contracts and route C01 to `luna-worker`.
+1. Commit and push the controller-owned C01 activation checkpoint on `codex/118-track-parser`.
+2. Verify exact custom Agent `luna-worker` configuration/runtime visibility, then assign only #118 with its frozen
+   contract and clean branch/base.
+3. Keep #119–#123 blocked until each preceding approved PR merges.
 
 ## Blockers and risks
 
 - No product/retention human decision remains. The 30/180 periods and server-only admin authority are approved.
-- GitHub CLI authentication is restored and live #115 matches the contract. Draft PR #117 is open; its initial head
-  passed quality, and the additive status head must pass latest-head quality and exact-head Review before merge.
+- GitHub CLI authentication is restored. PR #117 is merged and live #115/#118–#123 match the serial plan.
 - Root toolchain, lockfiles, offline integration, CI and branch protection remain merged and verified.
 - Node 24 随附的 npm 11 与 `@nutui/nutui-react-taro@3.0.20` 的不可解析可选依赖
   存在锁文件校验不兼容：npm 11 生成锁时省略该包、`npm ci` 又报缺失。I01 已按
@@ -818,8 +820,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Wait for draft PR #117's additive status head to pass latest-head quality and exact-head metadata Review, then merge.
-Create C01–C06 only after that merge; route C01 to exact `luna-worker`.
+Push the C01 activation checkpoint, verify exact `luna-worker` routing, and dispatch only #118. The executor must
+record RED before implementation and return `READY_FOR_CONTROLLER_REVIEW`; it cannot approve or merge its own PR.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
