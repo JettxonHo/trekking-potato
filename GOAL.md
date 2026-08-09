@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C03 REVIEW_ACTIVE`
+- Status: `ACTIVE — C04 IMPLEMENTATION_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -49,8 +49,9 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C5 Admin UX | C05 | admin-only queue/detail/review works without exposing identity or secrets |
 | C6 Acceptance | C06 | cross-layer gates, docs and human staging checklist are complete |
 
-C01 completed through approved PR #124; C02 completed through approved PR #125 and #119 is closed. C03/#120 is the
-only active child; C04–C06 remain dependency-blocked. Each child gets one focused branch/PR and exact allowlist.
+C01 completed through approved PR #124, C02 through PR #125, and C03 through PR #126 (`a809f54`); Issues #118–#120
+are closed. C04/#121 is the only active child; C05–C06 remain dependency-blocked. Each child gets one focused
+branch/PR and exact allowlist.
 
 ## 6. Completion criteria
 

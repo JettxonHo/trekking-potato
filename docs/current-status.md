@@ -3,12 +3,12 @@
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C03 REVIEW_ACTIVE`
-- Active task: `#120 / REVIEW`
-- Branch/base: `codex/120-track-admin-retention` from `main@75fcd92`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C04 IMPLEMENTATION_ACTIVE`
+- Active task: `#121 / IMPLEMENTATION`
+- Branch/base: `codex/121-track-owner-ui` from `main@a809f54`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: C03 fail-closed administrator review and 30/180-day retention lifecycle
+- Current work: C04 private owner track submission, status, revision and cancellation UX
 
 ## Current community-track checkpoint
 
@@ -16,12 +16,13 @@
 - C01 PR #124 passed latest-head quality and two independent exact-head Reviews, then squash merged as `b3e2cd0`;
   #118 is closed. C02/#119 then became the only active child; #120–#123 were dependency-blocked at that checkpoint.
 - C02 PR #125 passed latest-head GitHub `quality` and two independent exact-head Reviews, then squash merged as
-  `75fcd92`; #119 is closed. C03/#120 is now active; #121–#123 remain dependency-blocked.
+  `75fcd92`; #119 is closed. C03 PR #126 then passed latest-head GitHub `quality`, two exact-head independent Reviews
+  and squash merged as `a809f54`; #120 is closed. C04/#121 is now active; #122–#123 remain dependency-blocked.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
   de-identified reviewed-evidence record; GitHub CLI authentication is restored.
-- #115 remains open as the parent Goal. C01/#118 and C02/#119 are complete; C03/#120 is the only active child.
+- #115 remains open as the parent Goal. C01/#118, C02/#119 and C03/#120 are complete; C04/#121 is the only active child.
 - `TRACK-SUBMISSION-1` freezes GPX/KML rights, limits, private storage, owner/admin APIs, status machine, DTOs,
   cleanup-pending behavior, errors and no-catalog-publication boundary.
 - Planned serial work is C01 parser → C02 owner API → C03 admin API → C04 user UX → C05 admin UX → C06 acceptance
@@ -96,6 +97,8 @@
   30/180 expiry tests used implementation-derived dates, and Cloud cursor/due/privacy-key assertions did not reject
   several bounded mutations. Round 2 is tests plus the existing `RAW_DAYS` constant reuse only; it adds no public or
   persistent behavior and must return both exact-diff Reviews to `APPROVED` before publication.
+- C03 ultimately passed two exact-head independent Reviews and latest-head GitHub `quality`; PR #126 squash merged as
+  `a809f54` and #120 closed. This section is retained as implementation history, not current work.
 
 ## C03 Review-fix round-2 checkpoint — 2026-08-09
 
@@ -950,16 +953,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: assigned the bounded C03/#120 implementation under the exact admin/retention allowlist; it cannot
+- `luna-worker`: assigned the bounded C04/#121 owner UX implementation under the exact page/model/service allowlist; it cannot
   approve or merge its own work.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Require latest-head GitHub `quality` and two fresh exact-head Reviews on draft PR #126 after the additive status
-   checkpoint; GitHub live PR metadata is the CI fact source.
-2. Only if both Reviews return `APPROVED`, Sol may mark PR #126 ready and decide whether to squash merge.
-3. Keep #121–#123 blocked until each preceding approved PR merges.
+1. Publish the controller-owned C04 activation checkpoint and remove #121's dependency-blocked label.
+2. Dispatch exact custom `luna-worker` for test-first owner file/consent/upload/status/revision/cancel UX.
+3. Keep #122–#123 blocked until each preceding approved PR merges.
 
 ## Blockers and risks
 
@@ -999,9 +1001,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Complete latest-head CI and two fresh exact-head Reviews for draft PR #126. No merge, Issue closure or C04 activation
-occurs until both Reviews approve the current head; #121 remains blocked until the approved C03 PR is remotely
-verified merged.
+Commit and publish the controller-owned C04 activation checkpoint, synchronize live #115/#121, then dispatch exact
+custom `luna-worker` for the pre-agreed model/service/page-wiring TDD seams. #122 remains blocked until an approved
+C04 PR is remotely verified merged.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
