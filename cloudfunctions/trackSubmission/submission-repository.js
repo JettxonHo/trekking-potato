@@ -43,6 +43,20 @@ function cursorMatches(record, cursor) {
   return recordTime < cursorTime || (recordTime === cursorTime && String(record._id) < cursor.submissionId)
 }
 
+function adminCursorMatches(record, cursor) {
+  if (!cursor) return true
+  const recordTime = new Date(record.updatedAt).getTime()
+  const cursorTime = new Date(cursor.updatedAt).getTime()
+  return recordTime < cursorTime || (recordTime === cursorTime && String(record._id) < cursor.submissionId)
+}
+
+function retentionCursorMatches(record, cursor) {
+  if (!cursor) return true
+  const recordTime = new Date(record.recordExpiresAt).getTime()
+  const cursorTime = new Date(cursor.recordExpiresAt).getTime()
+  return recordTime > cursorTime || (recordTime === cursorTime && String(record._id) > cursor.submissionId)
+}
+
 function createMemoryRepository({ records = [] } = {}) {
   const table = new Map()
   records.forEach((record) => table.set(record._id, clone(record)))
@@ -71,6 +85,28 @@ function createMemoryRepository({ records = [] } = {}) {
       table.set(id, updated)
       return clone(updated)
     },
+    async approveReview(id, conditions, patch, evidenceRecord, evidenceRepository) {
+      const current = table.get(id)
+      if (!current || !matches(current, conditions)) return null
+      if (!evidenceRepository || typeof evidenceRepository.add !== 'function' || typeof evidenceRepository.remove !== 'function') {
+        throw new RepositoryError('evidence repository unavailable')
+      }
+      await evidenceRepository.add(evidenceRecord)
+      const latest = table.get(id)
+      if (!latest || !matches(latest, conditions)) {
+        try { await evidenceRepository.remove(evidenceRecord._id) } catch (_error) {}
+        return null
+      }
+      const updated = applyPatch(clone(latest), patch)
+      table.set(id, updated)
+      return clone(updated)
+    },
+    async remove(id, conditions = {}) {
+      const current = table.get(id)
+      if (!current || !matches(current, conditions)) return null
+      table.delete(id)
+      return clone(current)
+    },
     async claimProcessing(id, openid, now, leaseId) {
       const current = table.get(id)
       if (!current || current._openid !== openid) return { kind: 'missing' }
@@ -94,9 +130,34 @@ function createMemoryRepository({ records = [] } = {}) {
         && cursorMatches(record, cursor)).map(clone))
       return records.slice(0, limit + 1)
     },
-    async insertRevision(parentId, openid, child) {
+    async listAdmin(now, { status = null, cursor = null, limit = 20 } = {}) {
+      const records = sortRecords([...table.values()].filter((record) =>
+        new Date(record.recordExpiresAt).getTime() > now.getTime()
+        && (status === null || record.status === status)
+        && adminCursorMatches(record, cursor)).map(clone))
+      return records.slice(0, limit + 1)
+    },
+    async listRetentionDue(now, { cursor = null, limit = 20 } = {}) {
+      const records = [...table.values()].filter((record) => {
+        const rawDue = record.rawExpiresAt && new Date(record.rawExpiresAt).getTime() <= now.getTime()
+        const recordDue = record.recordExpiresAt && new Date(record.recordExpiresAt).getTime() <= now.getTime()
+        const pending = record.rawFileState
+          && (record.rawFileState.upload === 'deletion_pending' || record.rawFileState.review === 'deletion_pending')
+        return (rawDue || recordDue || pending) && retentionCursorMatches(record, cursor)
+      }).sort((first, second) => {
+        const firstTime = new Date(first.recordExpiresAt).getTime()
+        const secondTime = new Date(second.recordExpiresAt).getTime()
+        if (firstTime !== secondTime) return firstTime - secondTime
+        return String(first._id).localeCompare(String(second._id))
+      })
+      return records.slice(0, limit + 1).map(clone)
+    },
+    async insertRevision(parentId, openid, child, now = new Date()) {
       const parent = table.get(parentId)
-      if (!parent || parent._openid !== openid || parent.status !== 'changes_requested' || parent.replacementSubmissionId) return null
+      const expiresAt = new Date(parent && parent.recordExpiresAt).getTime()
+      const sampledNow = new Date(now).getTime()
+      if (!parent || parent._openid !== openid || parent.status !== 'changes_requested' || parent.replacementSubmissionId
+        || !Number.isFinite(expiresAt) || !Number.isFinite(sampledNow) || expiresAt <= sampledNow) return null
       if (table.has(child._id)) throw new DuplicateSubmissionError()
       const nextParent = clone(parent)
       nextParent.replacementSubmissionId = child._id
@@ -159,6 +220,7 @@ function createCloudBaseRepository({ db, collectionName = 'track_submissions', c
   const commands = command || db.command || {
     gt: (value) => ({ $gt: value }),
     lt: (value) => ({ $lt: value }),
+    lte: (value) => ({ $lte: value }),
     or: (...expressions) => ({ $or: expressions }),
     and: (...expressions) => ({ $and: expressions }),
   }
@@ -185,6 +247,25 @@ function createCloudBaseRepository({ db, collectionName = 'track_submissions', c
       const result = await collection.where({ _id: id, ...conditions }).update({ data: patch })
       if (!result || !result.stats || result.stats.updated !== 1) return null
       return this.get(id)
+    },
+    async approveReview(id, conditions, patch, evidenceRecord, _evidenceRepository) {
+      if (typeof db.runTransaction !== 'function') throw new RepositoryError('transaction unavailable')
+      const transactionResult = await db.runTransaction(async (transaction) => {
+        const submission = transaction.collection(collectionName).doc(id)
+        const currentResult = await submission.get()
+        const current = currentResult && currentResult.data
+        if (!current || !matches(current, { _id: id, ...conditions })) return null
+        const updateResult = await submission.update({ data: patch })
+        if (!updateResult || !updateResult.stats || updateResult.stats.updated !== 1) return null
+        await transaction.collection('track_review_evidence').add({ data: evidenceRecord })
+        return true
+      })
+      return transactionResult ? this.get(id) : null
+    },
+    async remove(id, conditions = {}) {
+      const result = await collection.where({ _id: id, ...conditions }).remove()
+      if (!result || !result.stats || result.stats.removed !== 1) return null
+      return { _id: id }
     },
     async claimProcessing(id, openid, now, leaseId) {
       const current = await this.get(id)
@@ -220,18 +301,63 @@ function createCloudBaseRepository({ db, collectionName = 'track_submissions', c
       const result = await collection.where(where).orderBy('updatedAt', 'desc').orderBy('_id', 'desc').limit(limit + 1).get()
       return (result && result.data) || []
     },
-    async insertRevision(parentId, openid, child) {
+    async listAdmin(now, { status = null, cursor = null, limit = 20 } = {}) {
+      const base = { recordExpiresAt: commands.gt(now) }
+      if (status !== null) base.status = status
+      let where = base
+      if (cursor) {
+        if (typeof commands.lt !== 'function' || typeof commands.or !== 'function' || typeof commands.and !== 'function') {
+          throw new RepositoryError('cursor query unavailable')
+        }
+        where = commands.and(base, commands.or(
+          { updatedAt: commands.lt(new Date(cursor.updatedAt)) },
+          { updatedAt: new Date(cursor.updatedAt), _id: commands.lt(cursor.submissionId) },
+        ))
+      }
+      const result = await collection.where(where).orderBy('updatedAt', 'desc').orderBy('_id', 'desc').limit(limit + 1).get()
+      return (result && result.data) || []
+    },
+    async listRetentionDue(now, { cursor = null, limit = 20 } = {}) {
+      if (typeof commands.lte !== 'function' || typeof commands.or !== 'function' || typeof commands.and !== 'function') {
+        throw new RepositoryError('retention query unavailable')
+      }
+      const due = commands.or(
+        { recordExpiresAt: commands.lte(now) },
+        { rawExpiresAt: commands.lte(now) },
+        { 'rawFileState.upload': 'deletion_pending' },
+        { 'rawFileState.review': 'deletion_pending' },
+      )
+      let where = due
+      if (cursor) {
+        where = commands.and(due, commands.or(
+          { recordExpiresAt: commands.gt(new Date(cursor.recordExpiresAt)) },
+          { recordExpiresAt: new Date(cursor.recordExpiresAt), _id: commands.gt(cursor.submissionId) },
+        ))
+      }
+      const result = await collection.where(where).orderBy('recordExpiresAt', 'asc').orderBy('_id', 'asc').limit(limit + 1).get()
+      return (result && result.data) || []
+    },
+    async insertRevision(parentId, openid, child, now = new Date()) {
       if (typeof db.runTransaction !== 'function') throw new RepositoryError('transaction unavailable')
       const transactionResult = await db.runTransaction(async (transaction) => {
-        const parentResult = await transaction.collection(collectionName).doc(parentId).get()
+        const submissions = transaction.collection(collectionName)
+        const parentDocument = submissions.doc(parentId)
+        const parentResult = await parentDocument.get()
         const parent = parentResult && parentResult.data
-        if (!parent || parent._openid !== openid || parent.status !== 'changes_requested' || parent.replacementSubmissionId) return null
-        const parentUpdate = await transaction.collection(collectionName).where({
+        const expiresAt = new Date(parent && parent.recordExpiresAt).getTime()
+        const sampledNow = new Date(now).getTime()
+        if (!parent || parent._openid !== openid || parent.status !== 'changes_requested' || parent.replacementSubmissionId
+          || !Number.isFinite(expiresAt) || !Number.isFinite(sampledNow) || expiresAt <= sampledNow) return null
+        const parentConditions = {
           _id: parentId, _openid: openid, status: 'changes_requested', version: parent.version,
           replacementSubmissionId: null,
-        }).update({ data: { replacementSubmissionId: child._id, version: parent.version + 1, updatedAt: child.createdAt } })
+        }
+        // `commands.gt()` produces an SDK query object, not a local predicate. Expiry was
+        // validated above against this sampled clock value; keep the frozen CAS fields local.
+        if (!matches(parent, parentConditions)) return null
+        const parentUpdate = await parentDocument.update({ data: { replacementSubmissionId: child._id, version: parent.version + 1, updatedAt: child.createdAt } })
         if (!parentUpdate || !parentUpdate.stats || parentUpdate.stats.updated !== 1) return null
-        await transaction.collection(collectionName).add({ data: child })
+        await submissions.add({ data: child })
         return child
       })
       return transactionResult ? clone(child) : null
@@ -239,15 +365,18 @@ function createCloudBaseRepository({ db, collectionName = 'track_submissions', c
     async clearReplacement(parentId, childId, openid, now = new Date()) {
       if (typeof db.runTransaction !== 'function') throw new RepositoryError('transaction unavailable')
       const transactionResult = await db.runTransaction(async (transaction) => {
-        const parentResult = await transaction.collection(collectionName).doc(parentId).get()
+        const parentDocument = transaction.collection(collectionName).doc(parentId)
+        const parentResult = await parentDocument.get()
         const parent = parentResult && parentResult.data
         if (!parent || parent._openid !== openid || parent.replacementSubmissionId !== childId) return null
-        const updateResult = await transaction.collection(collectionName).where({
+        const parentConditions = {
           _id: parentId,
           _openid: openid,
           replacementSubmissionId: childId,
           version: parent.version,
-        }).update({ data: {
+        }
+        if (!matches(parent, parentConditions)) return null
+        const updateResult = await parentDocument.update({ data: {
           replacementSubmissionId: null,
           version: parent.version + 1,
           updatedAt: now,
@@ -260,23 +389,25 @@ function createCloudBaseRepository({ db, collectionName = 'track_submissions', c
     async transitionRevisionTerminal(childId, openid, conditions, patch, now = new Date()) {
       if (typeof db.runTransaction !== 'function') throw new RepositoryError('transaction unavailable')
       const transactionResult = await db.runTransaction(async (transaction) => {
-        const childResult = await transaction.collection(collectionName).doc(childId).get()
+        const submissions = transaction.collection(collectionName)
+        const childDocument = submissions.doc(childId)
+        const childResult = await childDocument.get()
         const child = childResult && childResult.data
         if (!child || child._openid !== openid || !matches(child, conditions)) return null
         const parentId = child.revisesSubmissionId
         if (parentId) {
-          const parentResult = await transaction.collection(collectionName).doc(parentId).get()
+          const parentDocument = submissions.doc(parentId)
+          const parentResult = await parentDocument.get()
           const parent = parentResult && parentResult.data
           if (!parent || parent._openid !== openid || parent.replacementSubmissionId !== childId) return null
-          const childUpdate = await transaction.collection(collectionName).where({ _id: childId, ...conditions }).update({ data: patch })
+          if (!matches(parent, { _id: parentId, _openid: openid, replacementSubmissionId: childId, version: parent.version })) return null
+          const childUpdate = await childDocument.update({ data: patch })
           if (!childUpdate || !childUpdate.stats || childUpdate.stats.updated !== 1) throw new RepositoryConflictError()
-          const parentUpdate = await transaction.collection(collectionName).where({
-            _id: parentId, _openid: openid, replacementSubmissionId: childId, version: parent.version,
-          }).update({ data: { replacementSubmissionId: null, version: parent.version + 1, updatedAt: now } })
+          const parentUpdate = await parentDocument.update({ data: { replacementSubmissionId: null, version: parent.version + 1, updatedAt: now } })
           if (!parentUpdate || !parentUpdate.stats || parentUpdate.stats.updated !== 1) throw new RepositoryConflictError()
           return true
         }
-        const childUpdate = await transaction.collection(collectionName).where({ _id: childId, ...conditions }).update({ data: patch })
+        const childUpdate = await childDocument.update({ data: patch })
         if (!childUpdate || !childUpdate.stats || childUpdate.stats.updated !== 1) throw new RepositoryConflictError()
         return true
       })
@@ -285,19 +416,23 @@ function createCloudBaseRepository({ db, collectionName = 'track_submissions', c
     async repairRevisionPointer(childId, openid, now = new Date()) {
       if (typeof db.runTransaction !== 'function') throw new RepositoryError('transaction unavailable')
       const transactionResult = await db.runTransaction(async (transaction) => {
-        const childResult = await transaction.collection(collectionName).doc(childId).get()
+        const submissions = transaction.collection(collectionName)
+        const childResult = await submissions.doc(childId).get()
         const child = childResult && childResult.data
         if (!child || child._openid !== openid || !child.revisesSubmissionId
           || !['cancelled', 'invalid', 'rejected'].includes(child.status)) return null
-        const parentResult = await transaction.collection(collectionName).doc(child.revisesSubmissionId).get()
+        const parentDocument = submissions.doc(child.revisesSubmissionId)
+        const parentResult = await parentDocument.get()
         const parent = parentResult && parentResult.data
         if (!parent || parent._openid !== openid || parent.replacementSubmissionId !== childId) return true
-        const parentUpdate = await transaction.collection(collectionName).where({
+        const parentConditions = {
           _id: child.revisesSubmissionId,
           _openid: openid,
           replacementSubmissionId: childId,
           version: parent.version,
-        }).update({ data: { replacementSubmissionId: null, version: parent.version + 1, updatedAt: now } })
+        }
+        if (!matches(parent, parentConditions)) return true
+        const parentUpdate = await parentDocument.update({ data: { replacementSubmissionId: null, version: parent.version + 1, updatedAt: now } })
         if (!parentUpdate || !parentUpdate.stats || parentUpdate.stats.updated !== 1) throw new RepositoryConflictError()
         return true
       })

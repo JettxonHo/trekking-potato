@@ -39,6 +39,17 @@ const OWNER_ACTIONS = Object.freeze({
   invalid: [],
 })
 
+const ADMIN_ACTIONS = Object.freeze({
+  awaiting_upload: [],
+  processing: [],
+  pending_review: ['view_raw', 'request_changes', 'reject', 'approve_evidence'],
+  changes_requested: ['view_raw'],
+  approved_evidence: ['view_raw'],
+  rejected: [],
+  cancelled: [],
+  invalid: [],
+})
+
 const VALID_STATUSES = new Set(Object.keys(OWNER_ACTIONS))
 
 function clone(value) {
@@ -171,6 +182,70 @@ function toMineList(records, nextCursor = null) {
   return { phase: 'mine_list', items: records.map(toMineListItem), nextCursor }
 }
 
+function rawAccessAvailable(record, now = new Date()) {
+  const rawExpiresAt = record && record.rawExpiresAt ? new Date(record.rawExpiresAt) : null
+  const state = record && record.rawFileState ? record.rawFileState : {}
+  return Boolean(record && record.reviewFileId && state.review === 'present' && rawExpiresAt
+    && Number.isFinite(rawExpiresAt.getTime()) && rawExpiresAt.getTime() > now.getTime())
+}
+
+function adminActions(record, now = new Date()) {
+  const actions = ADMIN_ACTIONS[record && record.status] ? [...ADMIN_ACTIONS[record.status]] : []
+  if (!rawAccessAvailable(record, now)) return []
+  if (record.status === 'changes_requested' || record.status === 'approved_evidence') return ['view_raw']
+  if (record.status === 'pending_review') return actions
+  return []
+}
+
+function approvedEvidenceCopy(evidence) {
+  if (!evidence) return null
+  const value = evidence.approvedEvidence || evidence
+  return clone(value)
+}
+
+function toAdminListItem(record, now = new Date()) {
+  const summary = record && record.summary
+  return {
+    submissionId: record._id,
+    title: record.input.title,
+    region: record.input.region,
+    format: record.format,
+    actualSizeBytes: record.actualSizeBytes === undefined ? null : record.actualSizeBytes,
+    rightsBasis: record.rights.basis,
+    status: record.status,
+    version: record.version,
+    reviewNote: record.review && record.review.note ? record.review.note : null,
+    revisesSubmissionId: record.revisesSubmissionId,
+    pointCount: summary ? summary.pointCount : null,
+    segmentCount: summary ? summary.segmentCount : null,
+    cleanup: cleanupProjection(record),
+    retention: retention(record),
+    allowedAdminActions: adminActions(record, now),
+    createdAt: iso(record.createdAt),
+    updatedAt: iso(record.updatedAt),
+  }
+}
+
+function toAdminList(records, nextCursor = null, now = new Date()) {
+  return { phase: 'admin_list', items: records.map((record) => toAdminListItem(record, now)), nextCursor }
+}
+
+function toAdminDetail(record, { rawAccess = null, approvedEvidence = null, now = new Date() } = {}) {
+  const mine = toMineSubmission(record)
+  return {
+    phase: 'admin_detail',
+    submission: {
+      ...mine,
+      note: record.input.note,
+      provenancePlatform: record.input.provenancePlatform,
+      provenancePageUrl: record.input.provenancePageUrl,
+      rawAccess: rawAccess ? clone(rawAccess) : null,
+      approvedEvidence: approvedEvidenceCopy(approvedEvidence),
+      allowedAdminActions: adminActions(record, now),
+    },
+  }
+}
+
 function toUploadReservation(record) {
   return {
     phase: 'upload_reservation',
@@ -212,6 +287,31 @@ function decodeCursor(value) {
   return { submissionId: payload.submissionId, updatedAt: payload.updatedAt }
 }
 
+function encodeAdminCursor(cursor) {
+  const payload = {
+    updatedAt: cursor.updatedAt,
+    submissionId: cursor.submissionId,
+    status: cursor.status === undefined ? null : cursor.status,
+  }
+  return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url')
+}
+
+function decodeAdminCursor(value, status = null) {
+  if (typeof value !== 'string' || value.length < 1 || value.length > 2048 || !/^[A-Za-z0-9_-]+$/.test(value)) return null
+  let payload
+  try { payload = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) } catch (_error) { return null }
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null
+  if (Object.keys(payload).sort().join(',') !== 'status,submissionId,updatedAt') return null
+  if (payload.status !== null && typeof payload.status !== 'string') return null
+  if (payload.status !== status) return null
+  if (typeof payload.submissionId !== 'string' || payload.submissionId.length < 1 || payload.submissionId.length > 80) return null
+  if (typeof payload.updatedAt !== 'string' || !Number.isFinite(Date.parse(payload.updatedAt))) return null
+  try {
+    if (new Date(payload.updatedAt).toISOString() !== payload.updatedAt) return null
+  } catch (_error) { return null }
+  return { submissionId: payload.submissionId, updatedAt: payload.updatedAt, status: payload.status }
+}
+
 function sortRecords(records) {
   return [...records].sort((first, second) => {
     const firstTime = new Date(first.updatedAt).getTime()
@@ -226,6 +326,7 @@ function sortRecords(records) {
 module.exports = {
   ERROR_TABLE,
   OWNER_ACTIONS,
+  ADMIN_ACTIONS,
   VALID_STATUSES,
   clone,
   iso,
@@ -237,8 +338,15 @@ module.exports = {
   toMine,
   toMineList,
   toMineListItem,
+  rawAccessAvailable,
+  adminActions,
+  toAdminList,
+  toAdminListItem,
+  toAdminDetail,
   toUploadReservation,
   encodeCursor,
   decodeCursor,
+  encodeAdminCursor,
+  decodeAdminCursor,
   sortRecords,
 }

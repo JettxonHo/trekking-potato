@@ -100,6 +100,23 @@ function assertDeleteResult(result, expectedFileID) {
   fail('storage_unavailable', 'delete item failed')
 }
 
+function assertTemporaryUrlResult(result, expectedFileID, requestedMaxAge) {
+  if (typeof expectedFileID !== 'string' || expectedFileID.length < 1
+    || !Number.isInteger(requestedMaxAge) || requestedMaxAge < 1 || requestedMaxAge > 300) {
+    fail('storage_unavailable', 'temporary URL request is invalid')
+  }
+  const items = result && Array.isArray(result.fileList) ? result.fileList : null
+  if (!items || items.length !== 1) fail('storage_unavailable', 'temporary URL result is unavailable')
+  const item = items[0]
+  if (!item || typeof item !== 'object' || item.fileID !== expectedFileID || item.status !== 0
+    || typeof item.errMsg !== 'string' || item.errMsg.trim().length < 1
+    || !Number.isInteger(item.maxAge) || item.maxAge < 1 || item.maxAge > requestedMaxAge
+    || typeof item.tempFileURL !== 'string' || item.tempFileURL.trim().length < 1) {
+    fail('storage_unavailable', 'temporary URL result is invalid')
+  }
+  return item.tempFileURL
+}
+
 async function collectBounded(response, maxBytes = MAX_BYTES) {
   if (response && !Buffer.isBuffer(response) && !(response instanceof Uint8Array)
     && (Buffer.isBuffer(response.body) || Buffer.isBuffer(response.data) || typeof response.body === 'string' || typeof response.data === 'string')) {
@@ -174,17 +191,20 @@ function createStorageAdapter({ cloud, env = process.env, request = requestGet }
   function allowedHost() {
     return normalizeAllowedHost(env && env.TRACK_STORAGE_FILEID_HOST)
   }
-  async function temporaryUrl(fileID) {
+  async function temporaryUrl(fileID, maxAge = 300) {
     if (!sdk || typeof sdk.getTempFileURL !== 'function') fail('storage_unavailable', 'temporary URL is unavailable')
-    const result = await sdk.getTempFileURL({ fileList: [{ fileID, maxAge: 300 }] })
-    const item = result && result.fileList && result.fileList[0]
-    if (!item || typeof item.tempFileURL !== 'string' || !item.tempFileURL) fail('file_missing', 'file is missing')
-    return item.tempFileURL
+    let result
+    try {
+      result = await sdk.getTempFileURL({ fileList: [{ fileID, maxAge }] })
+    } catch (_error) {
+      fail('storage_unavailable', 'temporary URL is unavailable')
+    }
+    return assertTemporaryUrlResult(result, fileID, maxAge)
   }
   const adapter = {
     getAllowedHost: allowedHost,
     validateCreatorFileId,
-    async getTemporaryUrl(fileID) { return temporaryUrl(fileID) },
+    async getTemporaryUrl(fileID, maxAge = 300) { return temporaryUrl(fileID, maxAge) },
     async head(url) { return request(url, 'HEAD') },
     async get(url) { return request(url, 'GET') },
     async readCreator(fileID, cloudPath) {
@@ -232,6 +252,7 @@ module.exports = {
   validateCreatorFileId,
   contentLength,
   assertDeleteResult,
+  assertTemporaryUrlResult,
   collectBounded,
   createStorageAdapter,
 }

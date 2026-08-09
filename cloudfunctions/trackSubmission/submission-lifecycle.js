@@ -1,10 +1,12 @@
 const MAX_BYTES = 10 * 1024 * 1024
 const MAX_ID = 80
 const RAW_DAYS = 30
+const EVIDENCE_DAYS = 180
 const UPLOAD_MINUTES = 30
 const PROCESSING_MINUTES = 5
 const PROCESSING_LEASE_SECONDS = PROCESSING_MINUTES * 60
 const REVIEW_PATH_FUNCTION_TIMEOUT_SECONDS = 240
+const RETENTION_BATCH_SIZE = 20
 
 function fixedReviewPathTimeoutIsSafe(timeoutSeconds, leaseSeconds = PROCESSING_LEASE_SECONDS) {
   return Number.isInteger(timeoutSeconds) && timeoutSeconds > 0
@@ -88,6 +90,22 @@ function isRecordExpired(record, now) {
   return new Date(record.recordExpiresAt).getTime() <= now.getTime()
 }
 
+function isRawExpired(record, now) {
+  if (!record || !record.rawExpiresAt) return false
+  return new Date(record.rawExpiresAt).getTime() <= now.getTime()
+}
+
+function isEvidenceExpired(record, now) {
+  if (!record || !record.evidenceExpiresAt) return false
+  return new Date(record.evidenceExpiresAt).getTime() <= now.getTime()
+}
+
+function isDue(value, now) {
+  if (!value) return false
+  const dueAt = value instanceof Date ? value.getTime() : new Date(value).getTime()
+  return Number.isFinite(dueAt) && dueAt <= now.getTime()
+}
+
 function isLeaseStale(record, now) {
   const started = record && record.processing && new Date(record.processing.startedAt).getTime()
   return !Number.isFinite(started) || now.getTime() - started >= PROCESSING_MINUTES * 60 * 1000
@@ -117,10 +135,12 @@ module.exports = {
   MAX_BYTES,
   MAX_ID,
   RAW_DAYS,
+  EVIDENCE_DAYS,
   UPLOAD_MINUTES,
   PROCESSING_MINUTES,
   PROCESSING_LEASE_SECONDS,
   REVIEW_PATH_FUNCTION_TIMEOUT_SECONDS,
+  RETENTION_BATCH_SIZE,
   fixedReviewPathTimeoutIsSafe,
   addMinutes,
   addDays,
@@ -130,6 +150,9 @@ module.exports = {
   createRecord,
   isUploadExpired,
   isRecordExpired,
+  isRawExpired,
+  isEvidenceExpired,
+  isDue,
   isLeaseStale,
   parserErrorCode,
   terminalStatus,
