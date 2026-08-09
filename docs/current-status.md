@@ -3,8 +3,8 @@
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C03 REVIEW_FIX_ACTIVE`
-- Active task: `#120 / REVIEW_FIX`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C03 REVIEW_ACTIVE`
+- Active task: `#120 / REVIEW`
 - Branch/base: `codex/120-track-admin-retention` from `main@75fcd92`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
@@ -956,9 +956,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Complete the two final exact-worktree Reviews for C03 after the stored-submission evidence-key guard.
-2. Only if both Reviews return `APPROVED`, create one additive implementation commit, publish a focused draft PR using
-   `Refs #120`, and require latest-head GitHub `quality` plus fresh exact-head Reviews before merge.
+1. Require latest-head GitHub `quality` and two fresh exact-head Reviews on draft PR #126 after the additive status
+   checkpoint; GitHub live PR metadata is the CI fact source.
+2. Only if both Reviews return `APPROVED`, Sol may mark PR #126 ready and decide whether to squash merge.
 3. Keep #121–#123 blocked until each preceding approved PR merges.
 
 ## Blockers and risks
@@ -999,9 +999,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Finish the two final actual-diff C03 Reviews. If both approve, Sol may commit and publish the focused draft PR; no
-merge, Issue closure or C04 activation occurs until the PR's latest head passes `quality` and fresh exact-head Reviews.
-#121 remains blocked until the approved C03 PR is remotely verified merged.
+Complete latest-head CI and two fresh exact-head Reviews for draft PR #126. No merge, Issue closure or C04 activation
+occurs until both Reviews approve the current head; #121 remains blocked until the approved C03 PR is remotely
+verified merged.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

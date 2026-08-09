@@ -1,10 +1,10 @@
 # ACTIVE TASK — C03 fail-closed administrator review and retention
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C03 REVIEW_FIX_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C03 REVIEW_ACTIVE`
 - Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
 - GitHub Issue: `#120`
-- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW`
 - Controller: Sol XHigh
 - Implementation executor: exact custom Agent `luna-worker`
 - Branch: `codex/120-track-admin-retention`
@@ -333,3 +333,12 @@ Runtime model visibility: UNVERIFIED_RUNTIME_MODEL
 
 No commit, push, PR, deployment or real CloudBase mutation was performed. Sol XHigh retains independent Review,
 mergeability and final status authority.
+
+## 20. Controller publication checkpoint — 2026-08-09
+
+- Additive implementation commit `d62bf4e` was pushed normally and published as draft PR #126 with `Refs #120`.
+- PR #126 targets `main@75fcd92`; its initial latest-head GitHub `quality` check passed. GitHub live PR metadata is
+  the CI fact source rather than a copied run identifier.
+- Pre-publication actual-worktree Reviews both returned `APPROVED` with P0–P3 none. Fresh Reviews must inspect the
+  current PR latest head after this additive status commit and latest-head CI; prior approvals do not authorize merge.
+- #120 remains open, #121 remains dependency-blocked, and no deployment or real CloudBase mutation is authorized.
