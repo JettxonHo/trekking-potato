@@ -1,14 +1,14 @@
 # 当前状态 — TP-COMMUNITY-001
 
-- Updated: `2026-08-09`
+- Updated: `2026-08-10`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C03 REVIEW_ACTIVE`
-- Active task: `#120 / REVIEW`
-- Branch/base: `codex/120-track-admin-retention` from `main@75fcd92`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C04 REVIEW_ACTIVE`
+- Active task: `#121 / READY_FOR_CONTROLLER_REVIEW`
+- Branch/base: `codex/121-track-owner-ui` from `main@a809f54`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: C03 fail-closed administrator review and 30/180-day retention lifecycle
+- Current work: C04 private owner track submission, status, revision and cancellation UX
 
 ## Current community-track checkpoint
 
@@ -16,12 +16,13 @@
 - C01 PR #124 passed latest-head quality and two independent exact-head Reviews, then squash merged as `b3e2cd0`;
   #118 is closed. C02/#119 then became the only active child; #120–#123 were dependency-blocked at that checkpoint.
 - C02 PR #125 passed latest-head GitHub `quality` and two independent exact-head Reviews, then squash merged as
-  `75fcd92`; #119 is closed. C03/#120 is now active; #121–#123 remain dependency-blocked.
+  `75fcd92`; #119 is closed. C03 PR #126 then passed latest-head GitHub `quality`, two exact-head independent Reviews
+  and squash merged as `a809f54`; #120 is closed. C04/#121 is now active; #122–#123 remain dependency-blocked.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
   de-identified reviewed-evidence record; GitHub CLI authentication is restored.
-- #115 remains open as the parent Goal. C01/#118 and C02/#119 are complete; C03/#120 is the only active child.
+- #115 remains open as the parent Goal. C01/#118, C02/#119 and C03/#120 are complete; C04/#121 is the only active child.
 - `TRACK-SUBMISSION-1` freezes GPX/KML rights, limits, private storage, owner/admin APIs, status machine, DTOs,
   cleanup-pending behavior, errors and no-catalog-publication boundary.
 - Planned serial work is C01 parser → C02 owner API → C03 admin API → C04 user UX → C05 admin UX → C06 acceptance
@@ -30,6 +31,160 @@
 - Contract Review-fix now closes upload overwrite/HEAD TOCTOU, exact fileID binding, `gx:Track`, processing lease,
   CAS/revision races, DTO/error/action gaps and the 30/180-day retention lifecycle. Full post-retention planning gates
   pass and live #115 is synchronized; both latest-diff independent Reviews are approved.
+
+## C04 implementation checkpoint — 2026-08-09
+
+- TDD RED was recorded immediately after registering `test:track-ui`: `corepack npm@10.9.2 run test:track-ui` exited
+  1 with the real `MODULE_NOT_FOUND` for the not-yet-created page-local track submission model.
+- GREEN is limited to the exact C04 allowlist. The pure page-local model freezes the literal `track-rights-v1` copy,
+  three rights bases, unchecked consent/reset and revision semantics, local GPX/KML/10 MiB UX checks, all eight
+  statuses, server-projected action ordering, exact error/nextAction mapping, logical-expiry privacy projection and
+  monotonic list/detail/mutation/reset tokens. It strips coordinate-bearing summary fields from page state and never
+  persists track state in local cache.
+- The injected service keeps the reservation path, local file path and opaque upload receipt in a private closure. It
+  calls `trackSubmission` `begin`, uploads only to the returned `cloudPath`, and finalizes with the returned opaque
+  `fileID`; manual begin retry reuses one frozen attempt/payload, while a deliberate re-pick or revision gets a fresh
+  attempt. There is no polling, hidden retry loop or client path construction.
+- `index.jsx` wires `Taro.chooseMessageFile`, the injected CloudBase/file service, begin/upload/finalize, owner list/
+  detail, refresh, revision, cancel/cleanup retry and reset branches. The bounded card uses existing page tokens and
+  styles; no admin/public feed, route/catalog write, server/schema/config/deployment, new dependency or visual redesign
+  was added. Exact owner actions are rendered only from server `allowedActions`; expired cached rows are unavailable.
+- Focused `test:track-ui`, existing trip-flow/result-page/recovery/owner contracts, root `npm test`, offline integration
+  `55/0`, lint (`0 errors / 9 existing warnings`), typecheck, fixture-free `CI=1 build:weapp` and `git diff --check`
+  pass under Corepack npm `10.9.2`. Mutation-sensitive assertions cover frozen retry identity/payload, exact reserved
+  upload/finalize sequence, local privacy/expiry, stale token rejection, critical page wiring and absence of automatic
+  retry. No real CloudBase mutation or deployment occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; runtime model visibility remains `UNVERIFIED_RUNTIME_MODEL` while
+  controller configuration is the exact `luna-worker` (`gpt-5.6-luna/max`). Sol XHigh owns independent Review, CI
+  interpretation, merge and Issue/status decisions.
+
+## C04 independent Review round 1 — 2026-08-10
+
+- Verdict: `CHANGES_REQUESTED`. No C04 commit, push or PR exists yet; the previous GREEN evidence does not authorize
+  publication or merge.
+- P1: list/detail/mutation tokens do not increment, revision does not invalidate pending upload/finalize, and clearing
+  the private service session while upload awaits can throw or let a stale response affect the new intent.
+- P1: the page loses the originating operation of an exact `retry`/`refresh` error and routes unrelated list/detail/
+  cancel failures to upload begin; fresh-session `awaiting_upload` also needs an honest recovery path.
+- P1/P2: `test:track-ui` must execute or precisely bind the real page branches for rights copy/unchecked consent,
+  response dispatch and stale guards; owner DTOs require strict allowlist projection so poisoned server extras never
+  enter page state.
+- P2: rights selection, buttons and close affordances must meet the frozen 44px target and expose honest selected,
+  disabled and loading state. The same exact eight-file implementation allowlist remains in force; `GOAL.md` is a
+  controller-owned lifecycle synchronization only.
+
+## C04 review-fix checkpoint — 2026-08-10
+
+- TDD RED was recorded after adding the bounded round-1 probes: `corepack npm@10.9.2 run test:track-ui` failed on an
+  awaited `chooseLocalFile` continuation that returned a late `{ ok: true }` after `clearSession`; the contract
+  required `{ stale: true }`.
+- GREEN keeps list/detail/mutation tokens strictly increasing across repeated requests, out-of-order responses,
+  close/reset and back. Revision start, a new local file and reset/back increment the upload session token, so pending
+  begin/upload/finalize responses cannot write into a new intent. The service generation/session snapshot guard makes
+  deferred choose, begin, upload and finalize resolve as stale without throwing or mutating a replacement session.
+- The model now stores only a bounded operation intent (`begin`, `upload`, `list`, `detail`, `cancel`, `cleanup`) beside
+  exact public error/next-action data. Manual retry/refresh/restart/contact-admin behavior follows the originating
+  operation; no automatic loop exists. A fresh page hides server `upload_finalize` for an `awaiting_upload` row and
+  states that a local file is required, while a local reservation keeps the exact continuation available.
+- Owner DTO projection is literal and recursive: unknown OpenID/admin/raw URL/path/fileID/evidence/coordinate/secret
+  fields are discarded, summary elevation is allowlisted and coordinate-bearing bounds/start/end/preview fields never
+  enter model, view or page state. Terminal rejected/cancelled/invalid rows expose `retry_cleanup` only while cleanup
+  is pending; clean terminal rows have no action.
+- `test:track-ui` statically binds real production rights-copy rendering, unchecked consent, picker/begin/upload/finalize,
+  list/detail/mutation/reset dispatch and stale guards. Three temporary production mutations were each RED and restored:
+  removing the rights-copy render, forcing consent checked, and deleting the page stale-response guard. New controls use
+  88rpx (44px) targets, rights bases expose radio/`aria-checked`, detail close is a Button, and list/detail/mutation
+  loading/disabled states are visible and honest.
+- Final frozen matrix passes: focused UI/trip-flow/result-page/recovery/owner contracts, root `npm test`, integration
+  `55/0`, lint `0 errors / 9 existing warnings`, typecheck, `CI=1 build:weapp` and `git diff --check`, all with
+  Corepack npm `10.9.2`. Exact implementation allowlist remains the same eight files; `GOAL.md` lifecycle status is
+  controller-owned and was not edited by this executor. No commit, push, PR, deployment or real CloudBase mutation was
+  performed.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; runtime model visibility remains `UNVERIFIED_RUNTIME_MODEL` while
+  controller configuration is exact `luna-worker` (`gpt-5.6-luna/max`). Sol XHigh owns independent Review, CI
+  interpretation, merge and Issue/status decisions.
+
+## C04 Review-fix round-1 re-review — 2026-08-10
+
+- Verdict remains `CHANGES_REQUESTED`; no commit, push or PR exists. The first review-fix closed token monotonicity,
+  deferred service-session throws, poisoned DTO projection and the initial accessibility findings, but cross-operation
+  concurrency is not yet complete.
+- P1: a local upload session must bind to its exact `reservation.submissionId`; a session for A must never expose or
+  execute B's `upload_finalize`. Begin/upload/finalize also need one honest busy slot so list/detail/mutation traffic
+  cannot unlock the form or allow duplicate upload.
+- P2: retry intent must preserve safe exact arguments for append/cursor, detail and cancel/cleanup version/action; the
+  main submit button cannot replay unrelated errors. Invalid/cancelled file re-selection must atomically invalidate
+  both the service and page selection/session.
+- P2: each visible retry label must name its originating operation, contact-admin must have explicit guidance, and
+  Checkbox/rights/action controls must visibly honor disabled/loading state. New A/B, double-click, interleaving,
+  picker-failure and wiring mutations are required before the next independent Review.
+
+## C04 Review-fix round-2 executor checkpoint — 2026-08-10
+
+- TDD RED was recorded before GREEN: the new round-2 contract first failed because two concurrent `begin` calls
+  reached CloudBase instead of sharing one single-flight operation (`2 !== 1`).
+- GREEN binds every resumable operation to the exact reservation `submissionId`. A local reservation hides B's
+  `upload_finalize` action and rejects a direct B resume; `hasUploadSession`, `upload`, `resumeUploadFinalize` and
+  `finalize` all require the matching opaque ID. Begin/upload/finalize each has an independent single-flight slot and
+  service busy probe, while list/detail/mutation transitions preserve the separate page `uploadBusy` state.
+- GREEN freezes bounded retry intent: list append+cursor, detail submissionId and cancel/cleanup submissionId,
+  expectedVersion and action. Main submit only retries begin/upload errors; unrelated list/detail/mutation errors are
+  never replayed by the submit button. Invalid or cancelled picker results call service invalidation and atomically
+  clear file/reservation/session state through explicit `FILE_SELECTION_FAILED`/`FILE_SELECTION_CANCELLED` events.
+- GREEN uses NutUI `RadioGroup`/`Radio`, disabled Checkbox/rights/actions and operation-specific retry labels with
+  explicit contact-admin guidance. Production wiring remains page-local and uses the existing pure model/service seams.
+- Mutation evidence: focused RED was observed and restored for list retry→begin, cancel/cleanup no-op, upload token
+  guard removal, A/B identity guard removal, uploadBusy double-click guard removal, list-response upload unlock,
+  append cursor loss, picker invalidation removal and service upload single-flight removal. Round-2 focused contract is
+  GREEN after restoration.
+- Full frozen matrix is GREEN under Corepack npm `10.9.2`: focused UI/trip-flow/result-page/recovery/owner contracts,
+  root `npm test`, integration `55/0`, lint `0 errors / 9 existing warnings`, typecheck, `CI=1 build:weapp` and
+  `git diff --check`. Exact eight-file allowlist remains unchanged; `GOAL.md` is controller-owned and untouched by
+  this executor. No commit, push, PR, deployment or real CloudBase mutation occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; runtime model visibility remains `UNVERIFIED_RUNTIME_MODEL` while
+  configuration is exact `luna-worker` (`gpt-5.6-luna/max`).
+
+## C04 Review-fix round-3 executor checkpoint — 2026-08-10
+
+- Human authorization on live #121 permits this final bounded repair round only: the exact eight-file allowlist and
+  controller-owned `GOAL.md` boundary remain unchanged. TDD RED was recorded after adding deferred A→B and invalid-
+  cursor branch tests: `corepack npm@10.9.2 run test:track-ui` failed because a different submission ID inherited A's
+  pending upload result.
+- GREEN binds the upload and finalize in-flight slots to their exact `submissionId`. Repeated calls for the same ID
+  share the pending operation; a different ID while A is pending fails closed with `invalid_state`, without an upload
+  or finalize call. Existing generation/session invalidation remains unchanged.
+- GREEN keeps ordinary list retry intent (`append` + `cursor`) intact, while an `invalid_cursor` error whose
+  `nextAction` is `refresh` deterministically calls the first-page branch (`append=false`, `cursor=null`).
+- Mutation-sensitive evidence: removing the upload ID guard, finalize ID guard or invalid-cursor first-page branch each
+  made `test:track-ui` RED; every exact guard was restored and focused GREEN returned. Same-ID upload/finalize reuse,
+  A→B rejection and ordinary append/cursor retry are directly asserted.
+- Final frozen matrix is GREEN under Corepack npm `10.9.2`: `test:track-ui`, trip-flow/result-page/recovery/owner,
+  root `npm test`, integration `55/0`, lint `0 errors / 9 existing warnings`, typecheck, `CI=1 build:weapp`, and
+  `git diff --check` all pass. Exact eight-file allowlist remains unchanged; no commit, push, PR, deployment, server/
+  schema/config or CloudBase mutation occurred. Runtime model visibility remains `UNVERIFIED_RUNTIME_MODEL` while
+  controller configuration is exact `luna-worker` (`gpt-5.6-luna/max`). Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+
+## C04 Review-fix round-4 executor checkpoint — 2026-08-10
+
+- Human authorization on live #121 limits this compatibility repair to the existing exact eight-file allowlist;
+  controller-owned `GOAL.md` remains untouched. TDD RED was recorded before GREEN: `test:track-ui` failed on the
+  missing WeChat `CheckboxGroup` production binding, then the focused contract was expanded to require the group
+  `onChange`/`detail.value` path, upload-busy controls and separate cancel/cleanup dispatch branches.
+- GREEN uses the installed Taro `CheckboxGroup` around the rights `Checkbox`; the handler reads the group's
+  `detail.value` array and derives the literal `track-rights-v1` selection. No dependency or platform API change was
+  made. During `uploadBusy`, list refresh, row detail, load-more and row action controls are visibly disabled and
+  their handlers fail closed; `cancel` and `retry_cleanup` remain distinct server-projected action branches.
+- Mutation-sensitive focused probes each produced RED and were restored: removing/moving the group callback,
+  reading the wrong consent field, removing refresh/detail guards, removing list/load-more disabled expressions,
+  removing row class/`aria-disabled` or its detail `onClick`, removing the upload-busy action guard, and deleting
+  either cancel or cleanup branch. Final focused `test:track-ui` is GREEN.
+- Full frozen matrix is GREEN under Corepack npm `10.9.2`: focused UI/trip-flow/result-page/recovery/owner contracts,
+  root `npm test`, integration `55/0`, lint `0 errors / 9 existing warnings`, typecheck, `CI=1 build:weapp`, and
+  `git diff --check`. Exact eight-file implementation allowlist remains unchanged; no commit, push, PR, deployment,
+  server/schema/config or real CloudBase mutation occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; runtime model visibility remains `UNVERIFIED_RUNTIME_MODEL` while
+  controller configuration is exact `luna-worker` (`gpt-5.6-luna/max`). Sol XHigh owns independent Review, CI
+  interpretation, merge and Issue/status decisions.
 
 ## C03 implementation checkpoint — 2026-08-09
 
@@ -96,6 +251,8 @@
   30/180 expiry tests used implementation-derived dates, and Cloud cursor/due/privacy-key assertions did not reject
   several bounded mutations. Round 2 is tests plus the existing `RAW_DAYS` constant reuse only; it adds no public or
   persistent behavior and must return both exact-diff Reviews to `APPROVED` before publication.
+- C03 ultimately passed two exact-head independent Reviews and latest-head GitHub `quality`; PR #126 squash merged as
+  `a809f54` and #120 closed. This section is retained as implementation history, not current work.
 
 ## C03 Review-fix round-2 checkpoint — 2026-08-09
 
@@ -950,16 +1107,17 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: assigned the bounded C03/#120 implementation under the exact admin/retention allowlist; it cannot
+- `luna-worker`: assigned the bounded C04/#121 owner UX implementation under the exact page/model/service allowlist; it cannot
   approve or merge its own work.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Require latest-head GitHub `quality` and two fresh exact-head Reviews on draft PR #126 after the additive status
-   checkpoint; GitHub live PR metadata is the CI fact source.
-2. Only if both Reviews return `APPROVED`, Sol may mark PR #126 ready and decide whether to squash merge.
-3. Keep #121–#123 blocked until each preceding approved PR merges.
+1. Draft PR #127 is open over `main@a809f54`. Its live GitHub latest-head `quality` check is the authoritative
+   head/CI fact source; after that check passes, both exact-head Reviews must pass before Sol decides whether to mark
+   ready and squash merge.
+2. Keep #122–#123 dependency-blocked until an approved C04 change is remotely verified merged.
+3. C06 acceptance, deployment and real-device/runtime validation remain human-controlled gates.
 
 ## Blockers and risks
 
@@ -999,9 +1157,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Complete latest-head CI and two fresh exact-head Reviews for draft PR #126. No merge, Issue closure or C04 activation
-occurs until both Reviews approve the current head; #121 remains blocked until the approved C03 PR is remotely
-verified merged.
+Use draft PR #127's live latest-head `quality` check as the current head/CI fact source, then complete both exact-head
+Reviews. Sol may decide ready/squash merge only after those gates pass; #121 remains open and #122 remains blocked
+until the merge is remotely verified. Deployment and real CloudBase mutation remain outside C04 authority.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
