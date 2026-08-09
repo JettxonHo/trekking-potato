@@ -321,5 +321,6 @@ Rerun the complete frozen matrix and return `READY_FOR_CONTROLLER_REVIEW`. No co
 - The first exact-head Review found only this durable-status lag; it found no product, privacy, compatibility, test or
   scope defect. This additive docs-only checkpoint records the live PR/CI facts without claiming approval, merge,
   Issue closure, deployment or real CloudBase execution.
-- Remaining gate: publish this additive head, wait for its latest-head `quality`, repeat both exact-head Reviews, then
-  let Sol decide ready/squash merge. #121 remains open and #122–#123 remain dependency-blocked.
+- PR #127's live GitHub latest-head `quality` check is the authoritative current head/CI fact source. Remaining gate:
+  that live check and both exact-head Reviews must pass before Sol decides ready/squash merge. #121 remains open and
+  #122–#123 remain dependency-blocked.
