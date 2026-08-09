@@ -3,17 +3,18 @@
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C01 READY_FOR_CONTROLLER_REVIEW`
-- Active task: `#118 / READY_FOR_CONTROLLER_REVIEW`
-- Branch/base: `codex/118-track-parser` from `main@988cf8b`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C02 IMPLEMENTATION_ACTIVE`
+- Active task: `#119 / IMPLEMENTATION`
+- Branch/base: `codex/119-track-owner-lifecycle` from `main@b3e2cd0`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: C01 pure bounded GPX/KML parser and reviewed-geometry projection
+- Current work: C02 owner-only submission lifecycle and immutable storage snapshot
 
 ## Current community-track checkpoint
 
 - Planning PR #117 passed latest-head quality and two independent exact-head Reviews, then squash merged as `988cf8b`.
-- Milestone #8 and serial child Issues #118–#123 are live. Only C01/#118 is active; #119–#123 remain dependency-blocked.
+- C01 PR #124 passed latest-head quality and two independent exact-head Reviews, then squash merged as `b3e2cd0`;
+  #118 is closed. Only C02/#119 is active; #120–#123 remain dependency-blocked.
 - C01 branch `codex/118-track-parser` was created from exact merged `main@988cf8b`. The controller activation commit
   changed only Goal/status/task documents; the assigned `luna-worker` implementation and review-fix are complete,
   committed and published in draft PR #124. Its latest-head GitHub `quality` check passed; exact-head Review and
@@ -68,6 +69,18 @@
 - Review-fix state is `READY_FOR_CONTROLLER_REVIEW`; the controller committed and published draft PR #124, whose
   latest-head GitHub `quality` check passed. Exact-head Review and mergeability remain controller-owned; no
   deployment occurred.
+
+## C01 completion and C02 activation checkpoint — 2026-08-09
+
+- Sol recorded exact-head `APPROVED` after two independent Reviews returned no P0–P3 findings. PR #124 squash merged
+  remotely as `b3e2cd0`; only then was #118 closed and #119's dependency-blocked label removed.
+- C02 uses branch `codex/119-track-owner-lifecycle` from exact merged `main@b3e2cd0`. Its controller activation is
+  docs-only and changes no handler, storage, database, collection, permission, environment or deployment state.
+- C02 is limited to owner modes `begin/finalize/list_mine/get_mine/cancel`, server OpenID, exact reservation/fileID
+  binding, bounded server read, immutable review snapshot, CAS/lease/revision locks and exact owner DTOs. Admin modes,
+  evidence retention, frontend and real CloudBase mutation remain later serial Issues.
+- Implementation routing is the exact custom Agent `luna-worker`; configuration is verified as
+  `gpt-5.6-luna/max`, while runtime model evidence must be recorded separately. Terra is not authorized as fallback.
 
 ## Completed staging checkpoint
 
@@ -810,16 +823,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: completed the bounded C01/#118 implementation and review-fix within the exact allowlist; it cannot
+- `luna-worker`: assigned the bounded C02/#119 implementation under the exact owner-lifecycle allowlist; it cannot
   approve or merge its own work.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Complete exact-head independent Review of draft PR #124 after its latest-head GitHub `quality` check passed.
-2. If Review remains `APPROVED`, let Sol decide readiness and squash-merge; close #118 only after the merge is
-   confirmed remotely.
-3. Keep #119–#123 blocked until each preceding approved PR merges.
+1. Dispatch C02/#119 to the exact custom Agent `luna-worker` after the activation commit is published.
+2. Implement and behavior-test the owner-only lifecycle without admin modes, UI, deployment or real CloudBase
+   mutation, then return `READY_FOR_CONTROLLER_REVIEW`.
+3. Keep #120–#123 blocked until each preceding approved PR merges.
 
 ## Blockers and risks
 
@@ -859,9 +872,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Draft PR #124 is open at the committed C01 implementation head and its latest-head GitHub `quality` check passed.
-Complete the exact-head independent Reviews, then let Sol decide readiness and squash-merge. The executor cannot
-approve or merge its own PR, and #118 remains open until the remote merge is confirmed.
+Commit and publish the controller-owned C02 activation checkpoint, then dispatch #119 to the exact custom Agent
+`luna-worker`. The executor must complete the mandatory handshake and baseline before the first RED, stay within the
+exact allowlist, and return only `READY_FOR_CONTROLLER_REVIEW`; #120 remains blocked until an approved C02 PR merges.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
