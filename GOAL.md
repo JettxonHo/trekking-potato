@@ -1,7 +1,67 @@
-# TP-BETA-001 — 徒步薯核心 Beta
+# TP-STAGING-001 — 徒步薯预发布验证
+
+- Goal ID: `TP-STAGING-001`
+- Status: `ACTIVE — STAGING_VALIDATION`
+- Governance: `TP-GOV-2.0.0`
+- Started: `2026-08-09`
+- Active Issue: `#114`
+- Release boundary: validate the existing closed-beta staging environment; no production or public release
+
+## 1. Current objective
+
+Treat the existing `cloud1-d0gtzgqzh9c128aaf` environment as the only pre-production staging candidate and verify
+the real AppID, CloudBase functions, private collections, openid ownership, live weather/AI dependencies, five-route
+management status, TripContext v2 cutover and rollback boundary. This Goal may recommend a separately authorized
+5–10 user closed beta, but it does not create a production environment, publish the mini-program or claim real-user
+validation.
+
+## 2. Current scope and order
+
+1. Complete Issue #114 staging validation and publish a durable Go/No-Go report.
+2. Rotate the `AMAP_KEY` and `LLM_KEY` before any new closed-beta invitations because the CloudBase console exposed
+   their plaintext values during the authorized configuration inspection. Secret values must never enter Git,
+   Issue bodies, PRs, screenshots or durable project documents.
+3. Keep the existing database collections and storage permissions private unless a later reviewed Issue explicitly
+   changes them. Do not delete records or run an irreversible migration.
+4. After #114 reaches an approved staging conclusion, activate the separately scoped community-track Issue #115. That Goal
+   will accept private GPX/KML submissions, require explicit uploader rights/consent, keep geometry and identity
+   private during review, and require administrator approval plus official management evidence before a route can
+   be promoted into the trusted catalog.
+
+## 3. Non-scope
+
+- production deployment, public release or a second paid CloudBase environment;
+- automatic publication of user tracks as route facts;
+- public UGC feeds, social features or public raw-track downloads;
+- destructive cleanup, production data migration or dependency/framework upgrades;
+- treating AI, a GPX/KML file or a third-party platform page as proof that a route is currently open.
+
+## 4. Completion criteria
+
+- AppID/environment/function/collection/storage/log evidence is recorded without secret values;
+- latest local quality, integration and WeChat build gates pass;
+- at least one real full-route `prepare → queryId → advice` flow and private history save/list are verified, while
+  offline five-pilot coverage is clearly distinguished from live runtime evidence;
+- five pilot management states are refreshed against current primary sources and any unresolved exact-route status
+  remains visible as unknown or excluded from the first user cohort;
+- TripContext v1 is drained without deletion, v2 is proven live, and rollback does not reintroduce v1;
+- credential rotation and any remaining human-only runtime rows are either completed or explicit blockers;
+- the final report states `GO`, `CONDITIONAL_GO` or `NO_GO` for a 5–10 user staging beta and does not overclaim
+  production readiness.
+
+## 5. Agent routing and stop conditions
+
+Sol XHigh owns environment inspection, risk decisions, contracts and final acceptance. Bounded implementation after
+planning uses the exact custom Agent `luna-worker`; Terra is not an automatic fallback. Stop for human confirmation
+before rotating secrets, changing permissions, creating a second environment, modifying authentication/admin
+authority, deleting data, deploying production configuration or accepting material new cost.
+
+---
+
+# Historical completion record — TP-BETA-001
 
 - Goal ID: `TP-BETA-001`
-- Status: `COMPLETE — CODE_READY`（approved PR #111 merge 生效）
+- Status: `COMPLETE — CODE_READY`（approved PR #111 merged）
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-06`
 - Release boundary: code-ready for closed beta; no deployment or publication

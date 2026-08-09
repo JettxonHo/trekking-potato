@@ -727,3 +727,27 @@
 - Why: the Goal explicitly ends at code readiness and excludes deployment. Proportional review found no current
   exploit or P0/P1 behavior defect, while honest disclosure and separate deployment gates preserve safety without
   over-defensive scope expansion.
+
+## 2026-08-09 — TP-D051 现有 cloud1 仅作为 staging 候选
+
+- Status: Accepted for `TP-STAGING-001`; production remains nonexistent
+- Context: The owner authorized the remaining deployment validation after creating `trip_contexts` and `history`,
+  deploying `getAdvice` and `history`, configuring the current keys and completing an owner-reported real-device
+  smoke. Console inspection found only one CloudBase environment, `cloud1-d0gtzgqzh9c128aaf`, already referenced by
+  the Taro app. Creating a second environment may add cost and would require a new AppID/environment/configuration
+  decision.
+- Decision: Treat the existing environment as the pre-production staging candidate for the 5–10 user closed-beta
+  preparation. Do not call it production and do not create a second environment inside #114. Keep the environment ID
+  embedded configuration as disclosed staging debt; externalize it in a focused release-config Issue before a real
+  production environment exists.
+- Safety boundary: The console renders external-service environment-variable values in plaintext. Values are never
+  copied into project artifacts, but both keys are treated as exposed and must be rotated before new users are
+  invited. Rotation and any permission/configuration change remain human-confirmed actions.
+- Route boundary: A reviewed GPX/KML proves geometry, not current management status. Exact-route official/operator
+  evidence is required to mark a Variant open. Unknown status stays visible; Gongga is excluded from the recommended
+  first cohort pending exact confirmation; Wutai stays blocked.
+- Alternatives: create a second paid staging/production pair immediately; relabel the existing environment as
+  production; silently keep the observed credentials; infer route openness from geometry or adjacent attractions.
+- Why: Reusing the only existing environment for a tightly bounded staging beta is proportional and reversible.
+  Separating production authority, rotating exposed keys and refusing to infer open status preserve the real trust
+  boundaries without expanding the validation Issue into infrastructure migration.

@@ -1,12 +1,37 @@
-# TP-BETA-001 当前状态
+# 当前状态 — TP-STAGING-001
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `COMPLETE — CODE_READY`（approved PR #111 merge 生效）
-- Active milestone: `M7 Acceptance — COMPLETE_ON_MERGE`
-- Active task: `I25 / #34 / APPROVED — CLOSE_ON_MERGE`
+- Previous Goal: `TP-BETA-001 / COMPLETE — CODE_READY`
+- Current Goal: `TP-STAGING-001 / ACTIVE — STAGING_VALIDATION`
+- Active task: `#114 / CONTROLLER_EXECUTION`
+- Branch/base: `codex/114-staging-validation` from `main@da18b68`
+- Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
+- Current verdict: `CONDITIONAL_NO_GO` for external beta invitations pending credential rotation and route-cohort freeze
+- Next stage: after approved #114, unblock #115 for private community GPX/KML submission plus administrator review;
+  no automatic route publication
+
+## Current staging checkpoint
+
+- AppID/CloudBase binding, both deployed functions, `trip_contexts`, `history`, openid-scoped history and one real
+  full-route weather/verdict/queryId/advice journey are verified.
+- Recent observed `getAdvice` and `history` log rows are successful. Both functions are ordinary Node.js 16.13
+  functions; `getAdvice` uses 256 MB and a 60-second timeout.
+- Storage is creator/admin private. This supports a future private upload boundary but does not yet implement a
+  submission or review workflow.
+- Plaintext environment-variable values were exposed by the console UI during authorized inspection. Values were not
+  copied into repository or GitHub content. Human rotation of both external-service keys is mandatory before inviting
+  beta users.
+- Current official-source refresh does not justify calling any of the five full exact Variants open. Gongga is
+  excluded from the recommended first cohort until exact operator/authority confirmation; Wutai remains blocked.
+- Root `npm test` is green. Current official npm audit remains root `0`, Taro `46`, and each Cloud Function `6`
+  transitive advisories; no exploit is demonstrated, but production readiness is not claimed.
+- Authoritative evidence and remaining gates are in `docs/staging-deployment-validation.md`.
+
+## Historical TP-BETA-001 checkpoints
+
 - Completion source: docs-only PR #111 from `codex/34-goal-final-review`
-- Review baseline: `main@1bba5f9`; completion state enters `main` through PR #111
+- Review baseline: `main@1bba5f9`; completion state entered `main` through PR #111
 - I24c completion / I25 activation checkpoint (2026-08-09): PR #110 exact head `bfb9f43` passed latest-head
   GitHub `quality`; two independent final Reviews returned `APPROVED` with P0–P3 none. Sol squash merged it as
   `1bba5f9`, then closed #107 and parent #33. The durable checklist truthfully retains DevTools rows as
