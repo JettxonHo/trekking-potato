@@ -1,9 +1,9 @@
 # ACTIVE TASK — staging CloudBase deployment validation
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-STAGING-001 / ACTIVE — STAGING_VALIDATION`
+- Goal: `TP-STAGING-001 / COMPLETE_ON_MERGE — CONDITIONAL_GO`
 - GitHub Issue: `#114`
-- Status/Mode: `VALIDATION_ACTIVE / CONTROLLER_EXECUTION`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / CONTROLLER_REVIEW`
 - Controller/executor: Sol XHigh (environment validation is not delegated implementation)
 - Branch: `codex/114-staging-validation`
 - Base: `main@da18b68`
@@ -134,4 +134,22 @@ allowlist remain open.
 - Official npm audit results: root `0`; Taro app `46`; `getAdvice` `6`; `history` `6` transitive advisories.
 
 The controller has also created blocked follow-up Issue #115 for the approved private community-track direction. It
-cannot enter implementation until #114 closes and the human confirms the administrator-openid authority mechanism.
+cannot enter implementation until #114 closes. The human has approved the server-only
+`TRACK_REVIEW_ADMIN_OPENIDS` authority mechanism and instructed the first cohort to exclude Gongga; no identifier or
+secret value may enter GitHub or repository documents.
+
+## 10. Final validation checkpoint — 2026-08-09
+
+- The human confirmed `AMAP_KEY` and `LLM_KEY` were rotated and the current package covers the closed-beta period.
+- A fresh normal DevTools Wugong request after rotation returned full route data, multi-point hourly weather, a
+  deterministic `no_go`, a new v2 query context and successful queryId-only AI advice around 12:22–12:24 CST.
+- Successful v2 requests were observed at approximately 11:48 and 12:24 CST, exceeding the logical 30-minute context
+  window. No records were deleted and rollback remains v2-only.
+- The first cohort is frozen to Wugong, Siguniang, Blue Moon Valley–Yunshanping and Dangling with management status
+  still visible as `unknown`; Gongga is excluded and Wutai Grand Pilgrimage remains blocked.
+- Post-rotation AMap fallback is `UNVERIFIED_RUNTIME_TOOL` because the local runtime tool could not reliably edit the
+  nested route field. It is not required by the four-route cohort and is not claimed as verified.
+- Result: `READY_FOR_CONTROLLER_REVIEW — CONDITIONAL_GO`. This does not authorize production/public release or the
+  deployment of the community submission function.
+- Final branch-local gates pass: `npm test`; integration `55/0`; lint `0 errors / 9 existing warnings`; typecheck;
+  `CI=1 npm run build:weapp`; and `git diff --check`.

@@ -4,7 +4,7 @@
 - Issue: `#114`
 - Environment: `cloud1-d0gtzgqzh9c128aaf`
 - Date: `2026-08-09`
-- Status: `IN_PROGRESS — CONDITIONAL_NO_GO`
+- Status: `READY_FOR_CONTROLLER_REVIEW — CONDITIONAL_GO`
 
 ## 1. Decision boundary
 
@@ -12,8 +12,10 @@
 candidate. It is not production. This validation may authorize a later 5–10 user closed beta, but it does not publish
 the mini-program, create a second environment, migrate data or authorize a public beta.
 
-Current provisional verdict: **CONDITIONAL_NO_GO**. Core live dependencies work, but credentials must be rotated and
-route-management eligibility for the first user cohort must be frozen before invitations are sent.
+Current verdict: **CONDITIONAL_GO** for a controlled 5–10 user staging beta. The human owner confirmed both exposed
+keys were rotated, the personal CloudBase package remains valid for the closed-beta window, and Gongga is excluded
+from the first cohort. This is not production approval: the cohort must use the four-route allowlist below, retain
+the visible `unknown` management status and perform same-day official/operator confirmation.
 
 ## 2. Environment inventory
 
@@ -21,7 +23,7 @@ route-management eligibility for the first user cohort must be frozen before inv
 |---|---|---|
 | Mini-program project | `taro-app`, AppID `wx5a3fb7bfbe985a60` | Verified |
 | CloudBase binding | `taro-app/src/app.js` initializes `cloud1-d0gtzgqzh9c128aaf` | Verified; hard-coded staging debt |
-| Environments | One environment, `cloud1`, personal plan, observed expiry `2026-08-30 23:59:59` | Staging only; renewal/expiry blocker for any longer beta |
+| Environments | One environment, `cloud1`, personal plan, observed expiry `2026-08-30 23:59:59` | Staging only; human confirmed the package covers the planned closed-beta window |
 | Functions | `getAdvice`, `history`; status normal; ordinary functions; Node.js 16.13 | Live but runtime is legacy debt |
 | Function resources | 256 MB; `getAdvice` timeout 60 seconds | Verified for current smoke |
 | Direct database ACL | `trip_contexts` and `history` are administrator-only | Correct: clients use Cloud Functions |
@@ -43,6 +45,10 @@ route-management eligibility for the first user cohort must be frozen before inv
 - Private history save/list succeeded for the current openid. The UI displayed the new record and older private
   records; no delete or clear operation was performed.
 - Recent CloudBase log rows observed for both functions returned successful invocation status codes.
+- After the human-confirmed credential rotation, a fresh normal DevTools Wugong request completed at approximately
+  `2026-08-09 12:22–12:24 Asia/Shanghai`: full trusted route resolution, multi-point hourly weather, deterministic
+  `no_go`, a new v2 query context and queryId-only AI advice all succeeded. No credential value was inspected or
+  persisted during this post-rotation verification.
 
 ### Human evidence
 
@@ -58,9 +64,11 @@ must not be described as five successful live CloudBase/phone journeys.
 ## 4. Credentials and configuration
 
 The CloudBase function configuration page rendered both external-service secret values in plaintext during the
-authorized inspection. No value is reproduced or stored here. Treat both values as exposed and rotate them before
-inviting any new user. After rotation, run one real place-resolution request, one full-route base request and one
-queryId-only advice request, then verify the latest function logs.
+authorized inspection. No value is reproduced or stored here. The human owner subsequently confirmed both values
+were rotated. The post-rotation full-route, real weather/base and queryId-only advice path succeeded. An independent
+post-rotation AMap place-resolution GUI row was not captured because the local runtime tool could not reliably edit
+the nested route input; it is recorded as `UNVERIFIED_RUNTIME_TOOL`, not as a failure or a success. The initial cohort
+does not rely on arbitrary AMap place fallback.
 
 Additional configuration debt:
 
@@ -92,8 +100,10 @@ No destructive migration is required. The v2 deployment rejects a legacy v1 cont
 4. leave expired records to normal retention/cleanup; do not delete them as part of cutover;
 5. rollback only to the last known-good v2 build. Do not roll back to v1 after v2 contexts are in use.
 
-The observed current records were post-deployment v2 requests, so the functional cutover is working. The remaining
-human gate is to record the final 30-minute drain timestamp before invitations.
+The observed current records were post-deployment v2 requests, so the functional cutover is working. Successful v2
+requests were observed at approximately `11:48` and again at `12:24 Asia/Shanghai`, spanning more than the roughly
+30-minute logical validity window. The fresh queryId-only advice succeeded. This closes the non-destructive drain
+check; expired records are left in place and rollback remains restricted to the last known-good v2 build.
 
 ### Storage boundary for the next feature
 
@@ -110,11 +120,11 @@ value.
 
 | Pilot | Current primary-source observation | Staging cohort decision |
 |---|---|---|
-| 武功山·龙山村至景区正门反穿二日线 | The official scenic site is operating, but also publishes a prohibition on non-developed-area crossings. No exact official notice was found that approves this reverse Variant. | Keep `unknown`; require manual pre-trip confirmation. |
-| 四姑娘山二峰·海子沟两日线 | The official site lists current Haizigou entry hours and requires outdoor registration. This does not by itself prove the exact summit route is open on a given day. | Keep `unknown`; require registration/operator confirmation. |
-| 蓝月谷—云杉坪一日线 | Current summer ticket material covers Blue Moon Valley and Yunshanping; an earlier notice temporarily closed a downstream Blue Moon Valley area. Exact walking-connection status remains unproven. | Keep `unknown`; require same-day attraction confirmation. |
+| 武功山·龙山村至景区正门反穿二日线 | The official scenic site is operating, but also publishes a prohibition on non-developed-area crossings. No exact official notice was found that approves this reverse Variant. | Initial cohort allowlist; keep `unknown` and require manual pre-trip confirmation. |
+| 四姑娘山二峰·海子沟两日线 | The official site lists current Haizigou entry hours and requires outdoor registration. This does not by itself prove the exact summit route is open on a given day. | Initial cohort allowlist; keep `unknown` and require registration/operator confirmation. |
+| 蓝月谷—云杉坪一日线 | Current summer ticket material covers Blue Moon Valley and Yunshanping; an earlier notice temporarily closed a downstream Blue Moon Valley area. Exact walking-connection status remains unproven. | Initial cohort allowlist; keep `unknown` and require same-day attraction confirmation. |
 | 贡嘎西南坡·老榆林—玉龙西三日线 | Kangding's official notice closes undeveloped/unopened risky areas from 2025-11-20 until a later reopening notice. The exact Variant is not named, so `blocked` cannot be inferred mechanically, but open status is not established. | Exclude from the first live cohort until exact operator/authority confirmation. |
-| 党岭村—葫芦海—卓雍措一日线 | Current government material confirms the place and management context, not exact-route opening. | Keep `unknown`; require local operator confirmation. |
+| 党岭村—葫芦海—卓雍措一日线 | Current government material confirms the place and management context, not exact-route opening. | Initial cohort allowlist; keep `unknown` and require local operator confirmation. |
 | 五台山大朝台 | Existing official restriction record remains authoritative. | Keep blocked; never offer as plannable. |
 
 ## 7. Dependency and runtime risk
@@ -134,7 +144,7 @@ Observed DevTools warnings are currently non-blocking: gray-release base library
 
 ## 8. Local quality evidence
 
-Executed on `main@da18b68` before the docs-only validation diff:
+Executed first on `main@da18b68` and repeated after the final docs-only validation diff:
 
 - `npm test` — PASS, including route `91/0`, weather `86/0`, unit `55/0` and five-pilot Beta acceptance;
 - `npm run test:integration` — PASS `55/0` (legacy fixture pipeline, not five live cloud routes);
@@ -143,15 +153,20 @@ Executed on `main@da18b68` before the docs-only validation diff:
 - `CI=1 npm run build:weapp` — PASS with Taro `4.0.9`;
 - `git diff --check` — PASS after the staging documentation activation.
 
-## 9. Remaining gates
+## 9. Decision and operating conditions
 
-- [ ] Human rotates both external-service keys and confirms completion without posting their values.
-- [ ] Re-run post-rotation AMap, real weather/base and queryId advice smoke plus function-log check.
-- [ ] Record an exact 30-minute v1 drain timestamp.
-- [ ] Confirm the CloudBase personal package will remain valid for the full planned beta window.
-- [ ] Freeze the initial route allowlist; recommended: exclude Gongga until exact opening evidence exists.
-- [ ] Decide whether the owner's existing real-device smoke is sufficient or capture one fresh post-rotation device run.
+- [x] Human confirmed both external-service keys were rotated without posting their values.
+- [x] Fresh post-rotation full-route, real weather/base and queryId-only advice smoke succeeded.
+- [x] Successful v2 requests were observed more than 30 minutes apart; no v1 rollback or record deletion is allowed.
+- [x] Human confirmed the CloudBase personal package covers the planned closed-beta window.
+- [x] Initial route allowlist is frozen to Wugong, Siguniang, Blue Moon Valley–Yunshanping and Dangling. Gongga is
+  excluded; Wutai Grand Pilgrimage remains blocked.
+- [x] The owner's real-device smoke is accepted as human evidence; the controller's post-rotation row is DevTools.
+- [ ] General AMap place fallback remains `UNVERIFIED_RUNTIME_TOOL` after rotation. Keep it outside the cohort's
+  required path until a later normal DevTools/device smoke captures it.
 
-Until these gates close, do not invite external testers. Community-track Issue #115 may be planned in parallel, but
-its implementation, deployment and permission changes remain blocked behind this staging decision and the human
-administrator-identity decision.
+Decision: **CONDITIONAL_GO** for the bounded staging cohort after this report passes independent Review and merges.
+Do not call the environment production, enable public discovery or remove the per-route management warnings. Stop
+the cohort for any new P0/P1 defect, key/package failure, privacy breach, v1-context regression or official closure.
+Community-track Issue #115 may begin after #114 merges; its upload/review function and permissions require a separate
+review and deployment decision.

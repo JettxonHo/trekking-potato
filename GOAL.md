@@ -1,7 +1,7 @@
 # TP-STAGING-001 — 徒步薯预发布验证
 
 - Goal ID: `TP-STAGING-001`
-- Status: `ACTIVE — STAGING_VALIDATION`
+- Status: `COMPLETE_ON_MERGE — CONDITIONAL_GO`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Active Issue: `#114`
@@ -17,13 +17,15 @@ validation.
 
 ## 2. Current scope and order
 
-1. Complete Issue #114 staging validation and publish a durable Go/No-Go report.
+1. Complete Issue #114 staging validation and publish a durable Go/No-Go report. The reviewed result is
+   `CONDITIONAL_GO` for a bounded four-route cohort; it becomes effective only when the validation PR merges.
 2. Rotate the `AMAP_KEY` and `LLM_KEY` before any new closed-beta invitations because the CloudBase console exposed
    their plaintext values during the authorized configuration inspection. Secret values must never enter Git,
-   Issue bodies, PRs, screenshots or durable project documents.
+   Issue bodies, PRs, screenshots or durable project documents. The human confirmed rotation on `2026-08-09`, and
+   a fresh full-route/weather/queryId-advice smoke succeeded without inspecting the new values.
 3. Keep the existing database collections and storage permissions private unless a later reviewed Issue explicitly
    changes them. Do not delete records or run an irreversible migration.
-4. After #114 reaches an approved staging conclusion, activate the separately scoped community-track Issue #115. That Goal
+4. After #114 reaches an approved staging conclusion and merges, activate the separately scoped community-track Issue #115. That Goal
    will accept private GPX/KML submissions, require explicit uploader rights/consent, keep geometry and identity
    private during review, and require administrator approval plus official management evidence before a route can
    be promoted into the trusted catalog.
@@ -48,6 +50,10 @@ validation.
 - credential rotation and any remaining human-only runtime rows are either completed or explicit blockers;
 - the final report states `GO`, `CONDITIONAL_GO` or `NO_GO` for a 5–10 user staging beta and does not overclaim
   production readiness.
+
+The #114 report satisfies these criteria with `CONDITIONAL_GO`: the CloudBase package is human-confirmed for the
+closed-beta window; Wugong, Siguniang, Blue Moon Valley–Yunshanping and Dangling form the initial allowlist; Gongga is
+excluded; Wutai remains blocked; post-rotation AMap fallback remains a disclosed non-critical unverified row.
 
 ## 5. Agent routing and stop conditions
 

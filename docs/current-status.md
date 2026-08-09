@@ -3,11 +3,11 @@
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goal: `TP-BETA-001 / COMPLETE — CODE_READY`
-- Current Goal: `TP-STAGING-001 / ACTIVE — STAGING_VALIDATION`
-- Active task: `#114 / CONTROLLER_EXECUTION`
+- Current Goal: `TP-STAGING-001 / COMPLETE_ON_MERGE — CONDITIONAL_GO`
+- Active task: `#114 / READY_FOR_CONTROLLER_REVIEW`
 - Branch/base: `codex/114-staging-validation` from `main@da18b68`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
-- Current verdict: `CONDITIONAL_NO_GO` for external beta invitations pending credential rotation and route-cohort freeze
+- Current verdict: `CONDITIONAL_GO` for a bounded four-route staging cohort after #114 Review/merge; not production
 - Next stage: after approved #114, unblock #115 for private community GPX/KML submission plus administrator review;
   no automatic route publication
 
@@ -20,10 +20,15 @@
 - Storage is creator/admin private. This supports a future private upload boundary but does not yet implement a
   submission or review workflow.
 - Plaintext environment-variable values were exposed by the console UI during authorized inspection. Values were not
-  copied into repository or GitHub content. Human rotation of both external-service keys is mandatory before inviting
-  beta users.
-- Current official-source refresh does not justify calling any of the five full exact Variants open. Gongga is
-  excluded from the recommended first cohort until exact operator/authority confirmation; Wutai remains blocked.
+  copied into repository or GitHub content. The human confirmed both keys were rotated; a fresh post-rotation Wugong
+  full-route/weather/v2-queryId/advice flow succeeded at approximately 12:22–12:24 Asia/Shanghai.
+- Current official-source refresh does not justify calling any full exact Variant open. The initial allowlist is
+  Wugong, Siguniang, Blue Moon Valley–Yunshanping and Dangling with visible `unknown` status and same-day manual
+  confirmation. Gongga is excluded; Wutai remains blocked.
+- Human confirmed the current CloudBase package covers the planned closed-beta period and approved server-only
+  `TRACK_REVIEW_ADMIN_OPENIDS` for the next community-track Goal. No OpenID or secret is stored in Git.
+- Successful v2 requests were observed more than 30 minutes apart. Post-rotation AMap fallback remains
+  `UNVERIFIED_RUNTIME_TOOL` and is not required by the initial cohort.
 - Root `npm test` is green. Current official npm audit remains root `0`, Taro `46`, and each Cloud Function `6`
   transitive advisories; no exploit is demonstrated, but production readiness is not claimed.
 - Authoritative evidence and remaining gates are in `docs/staging-deployment-validation.md`.
