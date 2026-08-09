@@ -1,10 +1,10 @@
 # ACTIVE TASK — C02 owner lifecycle and immutable storage snapshot
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C02 IMPLEMENTATION_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C02 REVIEW_ACTIVE`
 - Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
 - GitHub Issue: `#119`
-- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW`
 - Controller: Sol XHigh
 - Implementation executor: exact custom Agent `luna-worker`
 - Branch: `codex/119-track-owner-lifecycle`
@@ -196,3 +196,12 @@ retention period, dependency, admin mode, UI, deployment or catalog boundary cha
 - Focused behavior test and complete local repository gate matrix are GREEN: owner/parser/root/integration, lint
   (nine pre-existing warnings, zero errors), typecheck, `CI=1` host build, diff-check, allowlist and residue scans all
   pass. Executor status is `READY_FOR_CONTROLLER_REVIEW`; latest-head CI and controller approval remain pending.
+
+## 13. Draft PR checkpoint — 2026-08-09
+
+- The reviewed implementation and controller-owned contract corrections were committed as `6d41219` and pushed to
+  `codex/119-track-owner-lifecycle`; draft PR #125 is open with `Refs #119` and no automatic close.
+- Two independent pre-publication Sol Reviews returned `APPROVED` with no P0–P3 findings after the final transaction
+  mutation test. The exact published head must still pass GitHub `quality` and exact-head Sol metadata/diff Review.
+- C02/#119, the Goal and the milestone remain open. No deployment, CloudBase mutation, admin mode or C03 activation is
+  authorized by this checkpoint.

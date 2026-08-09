@@ -3,8 +3,8 @@
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C02 IMPLEMENTATION_ACTIVE`
-- Active task: `#119 / IMPLEMENTATION`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C02 REVIEW_ACTIVE`
+- Active task: `#119 / READY_FOR_CONTROLLER_REVIEW`
 - Branch/base: `codex/119-track-owner-lifecycle` from `main@b3e2cd0`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
@@ -15,6 +15,9 @@
 - Planning PR #117 passed latest-head quality and two independent exact-head Reviews, then squash merged as `988cf8b`.
 - C01 PR #124 passed latest-head quality and two independent exact-head Reviews, then squash merged as `b3e2cd0`;
   #118 is closed. Only C02/#119 is active; #120–#123 remain dependency-blocked.
+- C02 implementation commit `6d41219` is published in draft PR #125. The exact implementation allowlist is 12 paths
+  plus three controller-owned contract documents. Pre-publication local gates and two independent Reviews passed;
+  latest-head GitHub `quality` and exact-head Sol Review remain required before merge.
 - C01 branch `codex/118-track-parser` was created from exact merged `main@988cf8b`. The controller activation commit
   changed only Goal/status/task documents; the assigned `luna-worker` implementation and review-fix are complete,
   committed and published in draft PR #124. Its latest-head GitHub `quality` check passed; exact-head Review and
