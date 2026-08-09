@@ -20,6 +20,7 @@ const {
   normalizeString,
   createRecord,
   addDays,
+  RAW_DAYS,
   isUploadExpired,
   isRecordExpired,
   PROCESSING_LEASE_SECONDS,
@@ -325,6 +326,8 @@ function createOwnerService({ repository, storage, clock = defaultClock, idFacto
       if (input.revisesSubmissionId) {
         const parent = await repository.get(input.revisesSubmissionId)
         if (!parent || parent._openid !== openid || parent.status !== 'changes_requested') return errorResponse('invalid_revision')
+        const parentExpiresAt = new Date(parent.recordExpiresAt).getTime()
+        if (!Number.isFinite(parentExpiresAt) || parentExpiresAt <= now.getTime()) return errorResponse('submission_not_found')
         if (parent.replacementSubmissionId) {
           try {
             const raced = await repository.findByAttempt(openid, input.beginAttemptId)
@@ -333,7 +336,7 @@ function createOwnerService({ repository, storage, clock = defaultClock, idFacto
           return errorResponse('invalid_revision')
         }
         try {
-          inserted = await repository.insertRevision(input.revisesSubmissionId, openid, record)
+          inserted = await repository.insertRevision(input.revisesSubmissionId, openid, record, now)
         } catch (error) {
           try {
             const raced = await repository.findByAttempt(openid, input.beginAttemptId)
@@ -485,8 +488,8 @@ function createOwnerService({ repository, storage, clock = defaultClock, idFacto
       reviewFileId,
       actualSizeBytes: bytes.length,
       reviewSnapshotAt: snapshotAt,
-      rawExpiresAt: addDays(snapshotAt, 30),
-      recordExpiresAt: addDays(snapshotAt, 30),
+      rawExpiresAt: addDays(snapshotAt, RAW_DAYS),
+      recordExpiresAt: addDays(snapshotAt, RAW_DAYS),
       summary: clone(summary),
       processing: { leaseId: null, startedAt: null },
       rawFileState: { upload: 'deletion_pending', review: 'present' },

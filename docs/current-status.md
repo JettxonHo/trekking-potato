@@ -3,26 +3,25 @@
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C02 REVIEW_ACTIVE`
-- Active task: `#119 / READY_FOR_CONTROLLER_REVIEW`
-- Branch/base: `codex/119-track-owner-lifecycle` from `main@b3e2cd0`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C03 REVIEW_ACTIVE`
+- Active task: `#120 / REVIEW`
+- Branch/base: `codex/120-track-admin-retention` from `main@75fcd92`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: C02 owner-only submission lifecycle and immutable storage snapshot
+- Current work: C03 fail-closed administrator review and 30/180-day retention lifecycle
 
 ## Current community-track checkpoint
 
 - Planning PR #117 passed latest-head quality and two independent exact-head Reviews, then squash merged as `988cf8b`.
 - C01 PR #124 passed latest-head quality and two independent exact-head Reviews, then squash merged as `b3e2cd0`;
-  #118 is closed. Only C02/#119 is active; #120–#123 remain dependency-blocked.
-- C02 implementation commit `6d41219` is published in draft PR #125. The exact implementation allowlist is 12 paths
-  plus three controller-owned contract documents. Pre-publication local gates and two independent Reviews passed;
-  latest-head GitHub `quality` and exact-head Sol Review remain required before merge.
+  #118 is closed. C02/#119 then became the only active child; #120–#123 were dependency-blocked at that checkpoint.
+- C02 PR #125 passed latest-head GitHub `quality` and two independent exact-head Reviews, then squash merged as
+  `75fcd92`; #119 is closed. C03/#120 is now active; #121–#123 remain dependency-blocked.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
   de-identified reviewed-evidence record; GitHub CLI authentication is restored.
-- #115 remains open as the parent Goal. C01/#118 is complete; C02/#119 remains open in exact-head PR Review.
+- #115 remains open as the parent Goal. C01/#118 and C02/#119 are complete; C03/#120 is the only active child.
 - `TRACK-SUBMISSION-1` freezes GPX/KML rights, limits, private storage, owner/admin APIs, status machine, DTOs,
   cleanup-pending behavior, errors and no-catalog-publication boundary.
 - Planned serial work is C01 parser → C02 owner API → C03 admin API → C04 user UX → C05 admin UX → C06 acceptance
@@ -31,6 +30,95 @@
 - Contract Review-fix now closes upload overwrite/HEAD TOCTOU, exact fileID binding, `gx:Track`, processing lease,
   CAS/revision races, DTO/error/action gaps and the 30/180-day retention lifecycle. Full post-retention planning gates
   pass and live #115 is synchronized; both latest-diff independent Reviews are approved.
+
+## C03 implementation checkpoint — 2026-08-09
+
+- TDD RED was recorded after registering `test:track-admin` and `test:track-retention`: both focused commands exited
+  1 with the real `MODULE_NOT_FOUND` for their not-yet-created contract runners.
+- GREEN is limited to the exact C03 allowlist. `trackSubmission` now routes server-authenticated
+  `admin_list/admin_get/admin_review`, parses the server-only `TRACK_REVIEW_ADMIN_OPENIDS` allowlist fail-closed,
+  projects exact admin DTOs/actions/cursors, issues raw links only from the immutable review object with max age 300
+  seconds, and uses status/version CAS plus first-write-wins review attempts. Approval writes a separate
+  `track_review_evidence` record with a random internal key and only keyless de-identified display fields on the
+  submission/DTO; it never mutates route/catalog/status/tier facts.
+- The internal retention seam is timer-only (`TRIGGER_SRC='timer'` plus empty server OpenID), processes at most 20
+  due submission/evidence records per invocation across cursor pages, marks raw targets `deletion_pending` before deletion, preserves
+  approved evidence through raw expiry, removes identity records at the logical deadline and retries duplicate or
+  failed delivery without extending either deadline. Logical expiry hides owner/admin projections before physical
+  cleanup.
+- A read-only Sol reproduction found one merged C02 P2 needed by the retention contract: a fresh revision could use an
+  expired `changes_requested` parent and extend retention. The controller expanded #120 only to `owner-service.js`
+  and `track-owner-contract-test.js` for this exact correction; no public contract or period changes. TDD RED was
+  reproduced first (`test:track-owner` returned `upload_reservation` where the new expired/equal-now cases required
+  `submission_not_found`); GREEN now samples one server clock value, rejects missing/expired parents before mutation,
+  and carries `recordExpiresAt > now` through memory and CloudBase revision CAS.
+- Independent C03 Review found a raw-access P1: the DTO clamped a near-deadline expiry but the storage adapter still
+  requested 300 seconds from the SDK. The controller adds only `storage-adapter.js` for exact remaining-whole-seconds
+  pass-through and requires mutation-sensitive admin/retention handler/CloudBase/CAS/action evidence before Review
+  can resume.
+- The same Review found that transactional `where(...).update()` is not a proven atomic primitive in the pinned SDK,
+  and that memory approval can overwrite a cancel that wins during an awaited evidence add. Review-fix therefore
+  requires transaction-bound document reads/condition checks/updates with staged rollback, plus a post-await memory
+  CAS recheck that removes orphan evidence. No collection schema, mode, DTO or deployment authority changes.
+- Focused C03 admin/retention, C02 owner, C01 parser, root test, offline integration `55/0`, lint (`0 errors / 9
+  existing warnings`), typecheck, fixture-free `CI=1 build:weapp` and `git diff --check` all pass under Corepack
+  npm `10.9.2`. No UI, deployment, real CloudBase mutation, new dependency, collection/index/rule/env change or
+  catalog write was made; timer/permission/index/runtime verification remains the human-controlled C06 boundary.
+- Status is `REVIEW_FIX_ACTIVE`; the same exact `luna-worker` owns only the bounded fixes and focused RED/GREEN
+  evidence before returning `READY_FOR_CONTROLLER_REVIEW`. Sol XHigh owns independent Review, CI interpretation,
+  merge and any PR/status updates. Runtime model visibility remains `UNVERIFIED_RUNTIME_MODEL` in this session;
+  configuration is the controller-recorded exact `luna-worker` (`gpt-5.6-luna/max`).
+
+## C03 Review-fix checkpoint — 2026-08-09
+
+- Review-fix GREEN is complete within the controller-approved allowlist. Raw detail now requests
+  `min(300, floor((rawExpiresAt-now)/1000))` from the SDK, rejects sub-second residual lifetime before any URL call,
+  and validates the exact returned file, status, message, integer max age and URL. Every CloudBase multi-record
+  transition uses transaction-bound document reads, frozen-condition checks and document updates; staged rollback
+  and direct/query bypass probes are covered.
+- Memory approval rechecks the winning status/version after the awaited evidence add and removes an orphan when a
+  cancel or competing review wins. The non-transactional approval fallback is fail-closed. Admin action/cursor/order/
+  limit boundaries, first-write replay without deadline extension, timer-only dispatch, and CloudBase retention /
+  evidence due-query seams are contract-tested.
+- RED/GREEN evidence: storage TTL, near-deadline raw access, transaction query-update bypass, approval/cancel barrier,
+  and non-transactional fallback each failed before the corresponding fix and pass after it. Focused owner/parser/
+  admin/retention tests, root `npm test`, offline integration `55/0`, typecheck, `CI=1 build:weapp`, and
+  `git diff --check` pass under Corepack npm `10.9.2`; lint passes with `0 errors / 9 pre-existing warnings`.
+- A production-shape owner probe then reproduced a valid unexpired revision being rejected when the pinned SDK
+  represented `db.command.gt(date)` as `{operator:'gt', operands:[date]}`. The repository now keeps SDK query objects
+  out of local frozen-condition validation and applies the sampled expiry check manually; the new owner RED/GREEN
+  regression passes with the real command shape.
+- No commit, push, merge, deployment, real CloudBase mutation, new dependency, collection/index/rule/env/timer
+  mutation, UI, catalog write or public cleanup mode was made. Runtime model visibility remains
+  `UNVERIFIED_RUNTIME_MODEL`; controller Review, CI interpretation, merge and status decisions remain with Sol XHigh.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+- Round-1 independent Review confirms all C03 P1 findings are closed, then records two remaining P2 evidence gaps:
+  30/180 expiry tests used implementation-derived dates, and Cloud cursor/due/privacy-key assertions did not reject
+  several bounded mutations. Round 2 is tests plus the existing `RAW_DAYS` constant reuse only; it adds no public or
+  persistent behavior and must return both exact-diff Reviews to `APPROVED` before publication.
+
+## C03 Review-fix round-2 checkpoint — 2026-08-09
+
+- Finalize now reuses the existing `RAW_DAYS` constant. Test-owned millisecond assertions lock 30-day review
+  snapshot → raw/record expiry and 180-day approval → submission/evidence expiry; replay keeps both deadlines
+  unchanged. Retention tests cover one millisecond before and exactly at both deletion edges.
+- A table-driven retention matrix covers expired `awaiting_upload`, `processing` and `changes_requested` rows,
+  server-derived upload IDs, empty logical admin projections, pending-before-delete and duplicate-delivery repair.
+  Evidence records, nested `ApprovedEvidence`, admin list/detail and submission projections now assert literal exact
+  keys and reject identity/raw/provenance/file/evidence-key linkage.
+- Cloud admin list tests deep-assert status + expiry base, strict `updatedAt`/`_id` descending cursor, and
+  `limit+1`; Cloud submission retention asserts all four due branches and strict ascending tuple; Cloud evidence
+  retention asserts the exact expiry/id cursor, order and `limit+1`.
+- The final P2 evidence guard now inspects the real post-approval identity-bearing submission record: neither
+  `serverEvidenceKey` nor `evidenceKey` may exist at any depth, and its serialized content may not contain the
+  random evidence record ID. Adding `patch.serverEvidenceKey=evidenceRecord._id` was a focused RED and was restored.
+- Mutation RED evidence was run and restored immediately for 29/31 raw days, 179/181 evidence days, each removed
+  retention due branch, broad fixed limit, reversed admin cursor comparison and added evidence provenance. Focused
+  owner/admin/retention, root `npm test`, integration `55/0`, lint (`0 errors / 9 existing warnings`), typecheck,
+  `CI=1 build:weapp`, syntax, `git diff --check`, allowlist and secret audits pass.
+- No commit, push, merge, deployment, real CloudBase mutation, new dependency, schema/public contract, UI, catalog
+  write or timer/permission/index/env mutation was made. Executor status: `READY_FOR_CONTROLLER_REVIEW`; runtime
+  model visibility remains `UNVERIFIED_RUNTIME_MODEL`; independent Review and merge decisions remain controller-owned.
 
 ## C01 implementation checkpoint — 2026-08-09
 
@@ -862,15 +950,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: completed the bounded C02/#119 implementation and Review-fix under the exact owner-lifecycle
-  allowlist; it cannot approve or merge its own work.
+- `luna-worker`: assigned the bounded C03/#120 implementation under the exact admin/retention allowlist; it cannot
+  approve or merge its own work.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Rerun latest-head GitHub `quality` after this additive authority-state sync and obtain exact-head Sol Review.
-2. If approved, Sol may mark PR #125 ready and squash merge; close #119 only after the remote merge is verified.
-3. Keep #120–#123 blocked until each preceding approved PR merges; C03/#120 remains next but inactive.
+1. Require latest-head GitHub `quality` and two fresh exact-head Reviews on draft PR #126 after the additive status
+   checkpoint; GitHub live PR metadata is the CI fact source.
+2. Only if both Reviews return `APPROVED`, Sol may mark PR #126 ready and decide whether to squash merge.
+3. Keep #121–#123 blocked until each preceding approved PR merges.
 
 ## Blockers and risks
 
@@ -910,9 +999,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Publish this additive authority-state sync, rerun PR #125 latest-head `quality`, and obtain exact-head Sol Review.
-Only after approval may Sol mark the PR ready and squash merge it; #119 closes only after remote merge verification,
-and #120 remains blocked until then.
+Complete latest-head CI and two fresh exact-head Reviews for draft PR #126. No merge, Issue closure or C04 activation
+occurs until both Reviews approve the current head; #121 remains blocked until the approved C03 PR is remotely
+verified merged.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

@@ -1,27 +1,27 @@
-# ACTIVE TASK — C02 owner lifecycle and immutable storage snapshot
+# ACTIVE TASK — C03 fail-closed administrator review and retention
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C02 REVIEW_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C03 REVIEW_ACTIVE`
 - Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
-- GitHub Issue: `#119`
+- GitHub Issue: `#120`
 - Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW`
 - Controller: Sol XHigh
 - Implementation executor: exact custom Agent `luna-worker`
-- Branch: `codex/119-track-owner-lifecycle`
-- Base: `main@b3e2cd0`
-- Dependency: C01/#118 completed through approved PR #124 (`b3e2cd0`)
+- Branch: `codex/120-track-admin-retention`
+- Base: `main@75fcd92`
+- Dependency: C02/#119 completed through approved PR #125 (`75fcd92`)
 
-## 1. Goal and background
+## 1. Objective
 
-Implement the owner-only `trackSubmission` lifecycle: `begin`, `finalize`, `list_mine`, `get_mine` and `cancel`.
-It turns C01's pure parser into a trustworthy private server workflow through server identity, private reservation,
-immutable review bytes and exact owner DTOs. It does not add administrator modes, UI or deployment.
+Implement fail-closed administrator list/detail/review, a key-isolated de-identified reviewed-evidence record and the
+internal 30/180-day retention cleanup branch. Approval creates only `community_track_candidate`; it never publishes a
+route, changes operational status or assigns tier B.
 
 ## 2. Required reading
 
-Read the mandatory governance sequence, live #115/#119, `docs/community-track-workflow.md` §§3–9 and
-`docs/development-plan.md` C02. `TRACK-SUBMISSION-1` is authoritative for inputs, modes, errors, records, DTOs,
-state transitions, storage binding, side-effect order, expiry and tests.
+Read the mandatory governance sequence, live #115/#120, `docs/community-track-workflow.md` §§5–10 and
+`docs/development-plan.md` C03. `TRACK-SUBMISSION-1` remains the authority for modes, errors, exact DTOs, records,
+state/action order, retention, deletion-pending behavior and tests.
 
 ## 3. Exact allowlist
 
@@ -29,102 +29,117 @@ state transitions, storage binding, side-effect order, expiry and tests.
 - `cloudfunctions/trackSubmission/package.json`
 - `cloudfunctions/trackSubmission/package-lock.json`
 - `cloudfunctions/trackSubmission/response-contract.js`
-- `cloudfunctions/trackSubmission/owner-service.js`
-- `cloudfunctions/trackSubmission/storage-adapter.js`
+- `cloudfunctions/trackSubmission/owner-service.js` (controller-approved expiry-contract correction only)
+- `cloudfunctions/trackSubmission/storage-adapter.js` (controller-approved raw-TTL correction only)
+- new `cloudfunctions/trackSubmission/admin-service.js`
 - `cloudfunctions/trackSubmission/submission-repository.js`
 - `cloudfunctions/trackSubmission/submission-lifecycle.js`
+- new `cloudfunctions/trackSubmission/reviewed-evidence.js`
+- new `cloudfunctions/trackSubmission/retention.js`
 - root `package.json`
-- new `scripts/track-owner-contract-test.js`
+- new `scripts/track-admin-contract-test.js`
+- new `scripts/track-retention-contract-test.js`
+- `scripts/track-owner-contract-test.js` (controller-approved expiry regression only)
 - `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
 
 No other file may change without a controller-owned contract update.
 
-Controller-owned Review-fix contract files are additionally allowed only for Sol's concurrency correction:
-`docs/community-track-workflow.md`, `docs/development-plan.md`, `docs/testing-strategy.md` and
-`docs/decision-log.md`. The implementation executor must not broaden or rewrite those decisions.
-
 ## 4. Non-scope
 
-Administrator modes/allowlist/evidence store/retention timer, frontend, real CloudBase collection/index/rule/env
-mutation, function deployment, route catalog/publication, public raw access, new authentication, KMZ/URL import,
-dependency/framework upgrades and changes to the merged C01 parser contract.
+Frontend/user/admin UI, deployment, real CloudBase collection/index/rule/env/timer mutation, production cleanup,
+public raw URL, client admin flags, catalog writes/tier assignment, owner identity disclosure, new auth, new dependency,
+parser changes, URL/KMZ import, third-party scraping and changes to the merged C02 owner contract except the exact
+post-expiry revision correction frozen below.
 
 ## 5. Frozen constraints
 
-- Add only exact `wx-server-sdk@4.0.2`; preserve exact `saxes@6.0.0` and npm 10 lock generation.
-- Inject database, storage, clock and random-ID seams; tests do not contact real CloudBase or public networks.
-- Authenticate from `getWXContext().OPENID`; ignore client `_openid`, owner/admin flags and identity-shaped fields.
-- Expose only `begin/finalize/list_mine/get_mine/cancel` and the exact response/error shapes from
-  `TRACK-SUBMISSION-1`; unknown modes/authority fields grant nothing.
-- `begin` validates exact inputs/rights, server-generates the random submission ID and reserved creator/review paths,
-  sets immutable 30-minute upload and 30-day record deadlines, and deduplicates exact `{_openid,beginAttemptId}`.
-- The same-owner retry returns the first reservation byte-for-byte even if other fields change. Duplicate-key races
-  re-read that reservation. Different owners never deduplicate.
-- `revisesSubmissionId` requires the same owner, parent `changes_requested`, and one active replacement pointer;
-  parent lock + child creation and allowed pointer clearing are transactional.
-- `TRACK_STORAGE_FILEID_HOST` is trimmed server-only config with the exact frozen DNS grammar. Missing/malformed config
-  fails before database/storage side effects. `validateCreatorFileId` is the single strict host/path seam.
-- `finalize` validates the exact reservation and unexpired deadline, obtains a short-lived URL, treats HEAD only as
-  optional early rejection, streams at most 10 MiB, verifies GET length when present, uploads those exact bytes to the
-  service-owned review path, parses that same Buffer and deletes the creator object best-effort.
-- Every transition uses exact authorization/status/version/lease CAS. Processing claims a random five-minute lease;
-  fresh retry returns `processing_in_progress`, stale retry may take over, and pre-snapshot storage failure returns the
-  record to `awaiting_upload`. Parser failures become `invalid` and begin cleanup.
-- The fixed review path is safe only when C06 configures a hard function timeout at most 240 seconds, strictly below
-  the 300-second lease. C02 must encode/test this deployment invariant without deploying; an environment that cannot
-  prove it cannot enable stale takeover.
-- Owner list/detail always require server `_openid` and `recordExpiresAt > now`; expired/foreign/missing all return or
-  project not-found without summary/review facts. List order/cursor/limits are exact and filter-independent.
-- Before any destructive deletion, the first successful terminal/snapshot CAS atomically marks every planned target
-  `deletion_pending`. Success advances it to `deleted`; a failure or interrupted second CAS leaves an honest,
-  recoverable pending state. `finalize` replay on `pending_review/invalid` and terminal `cancel` replay retry only
-  exact pending targets, never reparse, never touch `deleted`, and a fully clean replay has zero side effects.
-- `cancel` transitions only the frozen allowed states, then attempts creator/review deletion. A syntactically valid
-  stale `expectedVersion` is accepted only for terminal `cancelled/invalid/rejected` cleanup replay; the service uses
-  the current stored version and never fabricates deletion success.
-- Cancelling `awaiting_upload` derives the creator file identity from the trusted host plus reserved cloudPath, so an
-  upload completed before finalize is still deleted. The returned per-item CloudBase result must match the requested
-  fileID: status `0` succeeds, exact pinned-SDK status `-503003` (`storage file not exists`) is idempotent success, and
-  every other non-zero/missing/mismatched result fails. A cleanup state CAS/store failure returns `store_unavailable`,
-  never a false `cleanup.pending=false` Mine.
-- Child terminal transition plus parent revision-pointer clearing is one repository transaction. Parser-invalid and
-  cancel paths must not delete shared objects or clear the parent before that transaction wins; replay repairs only
-  through the same transactional invariant.
-- Exact `Mine`, `MineListItem`, `MineList`, `UploadReservation`, owner action order and all public messages/error
-  metadata are frozen. No DTO/log contains OpenID, temporary URL, file path/ID, raw XML or coordinate data outside the
-  exact `TrackSummary` projection, filename in logs, rights/provenance URL, SDK/XML details, secrets or future
-  evidence-store key.
-- Do not add SHA/hash, automatic catalog publication, operational-status/safety/verdict inference or speculative
-  compatibility layers.
+- Parse exact server-only comma-separated `TRACK_REVIEW_ADMIN_OPENIDS`; missing, blank or malformed configuration
+  fails `admin_not_configured`. Authorization uses only server `getWXContext().OPENID`; forged event roles/openids
+  have zero side effects. Values never enter DTO, record, log or error detail.
+- Expose only the C03 additions `admin_list`, `admin_get` and `admin_review` through the existing handler. Internal
+  retention dispatch is not a public mode and requires server-owned `TRIGGER_SRC='timer'` plus empty server OpenID.
+- `admin_list/admin_get` use exact admin DTOs, status/action order, server-side cursor/limit filters and logical expiry.
+  Owner OpenID, rights/provenance, file IDs/paths, temporary URLs, evidence keys and raw coordinates outside the exact
+  reviewed display projection never leak.
+- Raw access is an explicit administrator detail action only, requires an unexpired immutable review object, and uses
+  a temporary URL with maximum age 300 seconds. The requested SDK TTL is
+  `min(300, floor((rawExpiresAt-now)/1000))`; remaining time below one whole second is `raw_unavailable`, and the DTO
+  expiry equals the actual requested TTL. The storage adapter passes that exact integer TTL to the pinned SDK while
+  preserving the C02 default of 300 seconds. No list DTO contains a raw link.
+- `admin_review` requires `pending_review`, unexpired raw, immutable review state `present`, exact version and a random
+  `reviewAttemptId`. Same-attempt replay is first-write-wins and returns the stored result; changed payload cannot
+  rewrite it. Review/cancel races resolve by status+version CAS.
+- Every CloudBase multi-record transition uses only transaction-bound document operations: read the exact document
+  with `doc(id).get()`, validate the frozen status/version/expiry/pointer conditions, then update that same document
+  with `doc(id).update()`. Transaction callbacks must not use `where(...).update()`. Approval keeps the submission and
+  evidence add in one transaction; revision insert/terminal/repair keeps parent and child changes in one transaction.
+- The memory approval seam rechecks the submission after the awaited evidence add. If cancel or another review wins,
+  it removes the just-added evidence and returns a conflict without overwriting the winning state. Admin service has
+  no non-transactional approval fallback.
+- `request_changes` stores only the bounded review decision/note required by the frozen record and never creates
+  evidence. `reject` enters the frozen cleanup path. `approve` creates `community_track_candidate` only.
+- Approved evidence is a separate ADMINONLY record whose random `serverEvidenceKey` exists only as
+  `track_review_evidence._id`. It contains no submission ID, OpenID, raw/file/provenance reference or timestamp samples.
+  Submission/DTO/log/catalog never stores or returns that key; the submission stores only `evidenceExpiresAt` and the
+  keyless display fields explicitly frozen for admin detail.
+- `rawExpiresAt` is fixed at review snapshot plus 30 days and never extended. Approved evidence expires 180 days after
+  approval. Logical expiry removes read/review authority before physical cleanup; no path silently extends either.
+- A fresh owner revision attempt against a `changes_requested` parent with `recordExpiresAt <= now` returns
+  `submission_not_found` before parent/child/storage mutation. The existing same-attempt first-write replay remains
+  byte-for-byte and precedes parent revalidation. Memory and CloudBase `insertRevision` both enforce the same sampled
+  `now`, and the CloudBase parent CAS includes `recordExpiresAt > now`.
+- Internal retention uses injected clock/storage/repositories, max 20 records per batch, exact cursor/CAS, duplicate
+  delivery safety and honest deletion-pending recovery. It never relies on exactly-once timer delivery and never
+  removes non-expired data.
+- The C06-only deployment/index/timer/permission work remains separate. Tests are offline seams and do not mutate the
+  configured staging environment.
+- No SHA/hash, automatic catalog publication, opening/safety/weather/verdict inference, compatibility API or new
+  persistent linkage may be introduced.
 
-## 6. Acceptance and tests
+## 6. TDD acceptance matrix
 
-Use TDD. Register `test:track-owner` in root `npm test`. Behavior tests must prove at least:
+Register `test:track-admin` and `test:track-retention` in root `npm test`. Record real RED before GREEN. Tests must
+prove at least:
 
-- unauthenticated/forged identity and invalid mode/input/rights/format/config have zero forbidden side effects;
-- begin retry isolation, exact first-write response, unique-race reread and different-owner separation;
-- retry lookup occurs after validating only the owner-scoped attempt ID and before revalidating changed request
-  fields/config, so even an otherwise-invalid retry returns the first reservation byte-for-byte;
-- exact fileID URI host/path binding, malformed URI/config cases and no prefix/suffix authority;
-- reservation expiry, actual streamed byte limits, GET length mismatch, HEAD non-authority, overwrite/TOCTOU and
-  immutable uploaded/parsed bytes;
-- finalize idempotency, fresh processing response, five-minute stale lease takeover, storage/store/parser failures,
-  CAS/version conflicts, no partial summary authority, and pending-review/invalid cleanup replay without reparsing;
-- hard runtime timeout/lease ordering, parser-invalid/reset/cleanup CAS loss, no pre-CAS destructive cleanup and
-  actual pinned-SDK per-item delete shapes (`0`, idempotent `-503003`, other failure and fileID mismatch);
-- revision same-owner/state/one-active-child transaction and pointer clearing only for allowed terminal child states;
-- literal exact-key `Mine/MineListItem/MineList` privacy projections and all eight status/action rows; cursor
-  seek/order/filter rules, limit bounds and post-deadline zero projection;
-- actual handler `getWXContext().OPENID` wiring and exact CloudBase repository query/transaction/update shapes,
-  including owner+attempt `limit(1)`, both `updatedAt DESC`/`_id DESC` orderings, the two strict cursor `lt` branches
-  with exact values, child/parent CAS conditions, and server-side `limit+1` rather than an in-memory 1,000-row cap;
-- cancel races, atomic pre-delete pending state, creator/review cleanup, cleanup-CAS loss then replay, fully-clean
-  zero-side-effect terminal replay, deletion-pending truthfulness and idempotent cleanup retry;
-- the merged C01 parser contract and all repository gates remain green.
+- missing/blank/malformed admin config, non-admin, forged identity/role and public timer-shaped input all fail closed
+  with zero repository/storage/evidence side effects;
+- exact admin config trimming/deduplication, server OpenID authorization and no allowlist disclosure;
+- literal exact `AdminList/AdminListItem/AdminDetail/ApprovedEvidenceDisplay` keys, all eight status/action rows,
+  strict status-bound cursor tuple/order/filter/limit and post-deadline zero projection; deleting/changing one action
+  or reversing either CloudBase order must make focused tests RED;
+- raw link only from the immutable review object, explicit action, unexpired deadline and maxAge 300; missing/deleted/
+  expired raw is `raw_unavailable` without exposing SDK URLs/details; standard 300-second, exact whole-second,
+  sub-second rejection and adapter pass-through tests detect hard-coded TTL regressions;
+- review version/status/CAS, cancel race, same-attempt first-write-wins replay and different-attempt terminal rejection;
+  CloudBase approval tests assert transaction-bound `doc.get/doc.update`, full status/version/raw-present/attempt CAS
+  and rollback/no orphan; transaction `where().update()` or direct-db bypass mutations must be RED;
+- insert-revision, terminal child/parent transition and pointer repair tests likewise require transaction-bound
+  document reads/updates and prove staged rollback when evidence/child/second-parent operations fail;
+- a real memory approval/cancel barrier proves cancel can win during the awaited evidence add without later approval
+  overwrite or orphan evidence; removing the post-await recheck/cleanup must be RED;
+- request-changes, reject and approve transition facts; approve produces no product fact beyond
+  `community_track_candidate` and never mutates route/catalog/status/tier;
+- evidence key isolation in both directions with mutation-sensitive literal key tests: submission/DTO/log/catalog has
+  no evidence key, evidence has no submission/OpenID/raw/provenance linkage;
+- exact 30-day raw and 180-day evidence boundaries, approval first-write and replay no deadline extension, day-edge
+  behavior and logical zero access before physical cleanup; changing 180 days must make focused tests RED;
+- fresh revision at `recordExpiresAt === now` or later has zero child/parent/storage side effects and returns
+  `submission_not_found`; unexpired revision still succeeds, existing-attempt replay is unchanged, and removing the
+  CloudBase expiry CAS makes the owner focused test fail;
+- actual default handler timer routing plus timer authority (`TRIGGER_SRC='timer'` + empty server OpenID), forged/client
+  denial, max-20 `limit+1` pagination, cursor/backlog, CAS loss, duplicate delivery, already-missing object idempotency
+  and deletion-pending repair;
+- approved raw cleanup preserves evidence; evidence expiry deletes only the de-identified record; terminal immediate
+  cleanup follows the merged C02 pending-before-delete invariant;
+- exact handler and CloudBase repository/evidence transaction/query seams are behavior-tested; Cloud retention and
+  evidence tests assert the due `$or`, strict ascending cursor tuple, both orderings and `limit+1`, and a fixed broad
+  limit mutation must be RED. The merged C01/C02 focused tests and all repository gates remain green.
 
 Required commands:
 
+- `corepack npm@10.9.2 run test:track-admin`
+- `corepack npm@10.9.2 run test:track-retention`
 - `corepack npm@10.9.2 run test:track-owner`
 - `corepack npm@10.9.2 run test:track-parser`
 - `corepack npm@10.9.2 test`
@@ -136,72 +151,194 @@ Required commands:
 
 ## 7. Dependency and merge order
 
-C01/#118 is merged. C02 is the only active child and blocks C03/#120. No parallel work may modify
-`cloudfunctions/trackSubmission` or its package/lock while C02 is active.
+C02/#119 is merged. C03 is the only active child and blocks C04/#121. No parallel work may modify
+`cloudfunctions/trackSubmission`, its package/lock, response contract or lifecycle while C03 is active.
 
-## 8. Risks and escalation
+## 8. Escalation and stop conditions
 
-Stop and return to Sol if exact CloudBase `fileID` host/path binding cannot be implemented without weakening the
-contract; if trustworthy bounded server bytes or immutable snapshot require broader permissions; if transaction/CAS
-semantics cannot implement revision or owner isolation; if a new dependency/public mode/DTO/error/auth rule is
-needed; or if real CloudBase mutation/deployment becomes necessary. Independent implementation work must not continue
-through one of these affected boundaries.
+Stop and return to Sol if CloudBase cannot implement fail-closed server allowlist, status/version review CAS,
+key-isolated evidence or timer-only cleanup through injected seams; if exact DTO/error/retention/public authority must
+change; if a new dependency, collection schema outside the frozen records, permission broadening, destructive staging
+operation, catalog write or deployment is required. Do not choose a weaker trust boundary silently.
 
 ## 9. Allowed autonomous choices
 
-Internal pure helper layout, injected seam names and focused fixture organization are allowed inside the exact files.
-Public modes, fields, messages, errors, state/action order, limits, side-effect order and dependency choices are not.
+Internal pure helper layout, injected seam names, test fixture organization and implementation sequencing inside the
+exact files are allowed. Public modes/fields/errors/messages, retention periods, evidence linkage, authority, action
+order, side-effect order and dependencies are frozen.
 
 ## 10. Deliverables
 
-Return code, updated exact lockfile, focused tests, docs checkpoint, actual files, RED/GREEN and full gate results,
-deviations, autonomous implementation decisions, limits/risks and a focused draft PR using `Refs #119`. The executor
-must not approve or merge its own PR.
+Return code, exact tests, actual files, RED/GREEN, full command results, deviations, autonomous decisions, known
+limits/risks and a focused draft PR using `Refs #120`. The executor cannot approve or merge its own PR.
 
 ## 11. Controller activation checkpoint — 2026-08-09
 
 ```text
 Governance version: TP-GOV-2.0.0
-Goal ID and status: TP-COMMUNITY-001 / ACTIVE — C02 IMPLEMENTATION_ACTIVE
-Active milestone: TP-COMMUNITY-001 Community track evidence / C02
-Active Issue and mode: #119 / IMPLEMENTATION
-Current branch and base: codex/119-track-owner-lifecycle / main@b3e2cd0
+Goal ID and status: TP-COMMUNITY-001 / ACTIVE — C03 IMPLEMENTATION_ACTIVE
+Active milestone: TP-COMMUNITY-001 Community track evidence / C03
+Active Issue and mode: #120 / IMPLEMENTATION
+Current branch and base: codex/120-track-admin-retention / main@75fcd92
 Working tree before activation: clean
-Dependency: #118 closed after approved PR #124 merged as b3e2cd0
+Dependency: #119 closed after approved PR #125 merged as 75fcd92
 Implementation routing: exact custom Agent luna-worker only; Terra fallback prohibited
 ```
 
-The activation commit is controller-owned and contains no implementation code. `luna-worker` must re-read all
-required sources, verify the branch/worktree, run baselines, record a concise handshake, then create the focused test
-and capture a real RED before implementing GREEN.
-
-## 12. Sol Review-fix round 1 — 2026-08-09
-
-Two independent Reviews returned `CHANGES_REQUESTED`. The bounded fix must close: uploaded-before-finalize cancel
-cleanup; per-item delete status and truthful cleanup CAS failures; parser/reset cleanup ordering; transactional child
-terminal + parent unlock; revision duplicate first-write-wins; retry-before-revalidation; server-side cursor seek;
-handler/CloudBase seam behavior tests; and the fixed-path runtime-timeout invariant. No public DTO, user flow,
-retention period, dependency, admin mode, UI, deployment or catalog boundary changes.
+The activation commit is controller-owned and contains no C03 implementation code. `luna-worker` must re-read all
+required sources, verify the branch/worktree, run baselines, report the mandatory handshake and capture a real focused
+RED before implementing GREEN.
 
 ## 12. Executor implementation checkpoint — 2026-08-09
 
-- The required RED was captured after registering `test:track-owner`: `corepack npm@10.9.2 run test:track-owner`
-  failed with `MODULE_NOT_FOUND` before the runner or owner modules existed.
-- GREEN remains within this file allowlist. The handler is server-OpenID-only and exposes only the five owner modes;
-  injected repository/storage/clock/ID/parser seams keep tests offline. The implementation covers exact begin
-  reservation/idempotency/race/revision, strict fileID host/path binding, bounded actual-byte download and immutable
-  review copy/parse, processing lease/takeover, CAS/version, expiry/cursor DTOs and cancel deletion-pending retry.
-- `wx-server-sdk@4.0.2` is the only added dependency; C01 `saxes@6.0.0` and npm 10.9.2 lock generation remain exact.
-  No admin/evidence/retention timer/UI/catalog/CloudBase mutation/deployment path was added.
-- Focused behavior test and complete local repository gate matrix are GREEN: owner/parser/root/integration, lint
-  (nine pre-existing warnings, zero errors), typecheck, `CI=1` host build, diff-check, allowlist and residue scans all
-  pass. Executor status is `READY_FOR_CONTROLLER_REVIEW`; latest-head CI and controller approval remain pending.
+```text
+TDD RED: test:track-admin and test:track-retention both exited 1 with real MODULE_NOT_FOUND before their runners existed.
+GREEN: focused admin/retention contracts and all required repository gates pass.
+Status: READY_FOR_CONTROLLER_REVIEW
+Runtime model visibility: UNVERIFIED_RUNTIME_MODEL
+```
 
-## 13. Draft PR checkpoint — 2026-08-09
+The bounded GREEN adds only the allowlisted handler/admin/reviewed-evidence/retention/repository/lifecycle seams and
+focused runners. It keeps server OpenID/admin configuration fail-closed, raw access explicit and ≤300 seconds, review
+CAS/attempt replay immutable, evidence keys isolated to the evidence record, and timer cleanup limited to
+`TRIGGER_SRC='timer'` with empty server OpenID, max-20 cursor/CAS and pending-before-delete recovery. No UI,
+deployment, real CloudBase mutation, new dependency, catalog write or public cleanup mode was added. Sol XHigh owns
+independent Review, CI interpretation, PR/merge and final status decisions.
 
-- The reviewed implementation and controller-owned contract corrections were committed as `6d41219` and pushed to
-  `codex/119-track-owner-lifecycle`; draft PR #125 is open with `Refs #119` and no automatic close.
-- Two independent pre-publication Sol Reviews returned `APPROVED` with no P0–P3 findings after the final transaction
-  mutation test. The exact published head must still pass GitHub `quality` and exact-head Sol metadata/diff Review.
-- C02/#119, the Goal and the milestone remain open. No deployment, CloudBase mutation, admin mode or C03 activation is
-  authorized by this checkpoint.
+## 13. Controller scope correction — post-expiry owner revision
+
+Read-only Sol reproduction confirmed a merged C02 P2: a fresh revision could use an expired same-owner
+`changes_requested` parent, mutate its replacement pointer/version and create a child with a new 30-day deadline.
+This violates the already-frozen rule that all direct owner/admin mutations act not-found at logical expiry.
+
+The controller therefore adds only `owner-service.js` and `track-owner-contract-test.js` to this Issue for the exact
+expiry correction; `submission-repository.js` was already allowlisted. No mode, DTO, error, retention period or public
+authority changes. `luna-worker` must record RED/GREEN for the exact boundary and rerun the complete matrix before the
+checkpoint may return to `READY_FOR_CONTROLLER_REVIEW`.
+
+## 14. Executor expiry-correction checkpoint — 2026-08-09
+
+```text
+TDD RED: after adding the expired and equal-now fresh-revision cases, test:track-owner returned upload_reservation
+instead of submission_not_found and the parent mutation remained possible.
+GREEN: owner-service samples one clock value and rejects missing/expired changes_requested parents before mutation;
+memory and CloudBase insertRevision require recordExpiresAt > now, with the CloudBase CAS condition carrying expiry.
+Coverage: expired/equal-now zero child/pointer/version/storage effects, unexpired success, same-attempt replay stability,
+and CloudBase expired CAS no-update/no-add.
+Focused owner: PASS. Full required matrix: PASS (integration 55/0; lint 0 errors/9 existing warnings).
+Status: READY_FOR_CONTROLLER_REVIEW
+Runtime model visibility: UNVERIFIED_RUNTIME_MODEL
+```
+
+No C02 public mode, DTO, error, deadline, identity or storage behavior changed outside this exact controller-approved
+post-expiry revision correction. No commit, push, merge, deployment or real CloudBase mutation was performed.
+
+## 15. Sol Review-fix round 1 — raw TTL and contract sensitivity
+
+Independent Review found that admin detail clamped only the displayed raw expiry while the storage adapter still asked
+the SDK for a fixed 300-second URL. Near `rawExpiresAt`, that could preserve raw access beyond the 30-day privacy
+boundary. The controller adds only `storage-adapter.js` for exact remaining-whole-seconds pass-through; the existing
+owner contract test may cover adapter behavior. This is not a new mode, retention period or deployment change.
+
+The same round must make the frozen matrix mutation-sensitive: eight actions and strict cursor order, approval
+CAS/transaction/rollback and cancel race, 180-day first-write/no-extension, actual handler timer dispatch, and exact
+CloudBase retention/evidence pagination/query shapes. No mechanical coverage target or new framework is required.
+
+Pinned SDK inspection confirms `getTempFileURL` returns exact item fields `fileID`, `status`, `errMsg`, `maxAge` and
+`tempFileURL`. The adapter therefore validates exactly one matching item, status `0`, non-empty URL/message and an
+integer returned `maxAge <= requested TTL`; malformed/mismatched responses fail `storage_unavailable`.
+
+Independent Review also found that query updates inside the pinned SDK transaction wrapper are not a safe atomic
+primitive. This round replaces every transactional `where(...).update()` in the repository with transaction-bound
+document get/condition validation/update, and adds staged rollback evidence. The memory approval seam must also close
+the await race described above. These are correctness fixes inside the existing records/modes, not schema or public
+contract changes.
+
+## 16. Executor Review-fix checkpoint — 2026-08-09
+
+```text
+TDD RED: storage TTL, near-deadline raw access, transaction query-update bypass, memory approval/cancel barrier,
+non-transactional approval fallback, and a valid unexpired revision using the pinned SDK command shape
+`{operator:'gt', operands:[date]}` each failed before its corresponding Review-fix implementation.
+GREEN: exact raw TTL pass-through/validation, transaction-bound document CAS with staged rollback, post-await memory
+approval CAS/orphan cleanup, fail-closed approval, exact admin action/cursor/order/limit/replay boundaries, timer
+routing and CloudBase retention/evidence query seams now pass focused contracts. Local frozen-condition checks no
+longer interpret SDK query command objects; sampled expiry is validated explicitly before the document CAS.
+Focused: test:track-owner PASS; test:track-parser PASS; test:track-admin PASS; test:track-retention PASS.
+Full gates: root npm test PASS; integration PASS 55/0; lint PASS (0 errors / 9 pre-existing warnings); typecheck PASS;
+CI=1 build:weapp PASS; git diff --check PASS (Corepack npm 10.9.2).
+Files: only the existing C03 allowlist plus controller-approved storage-adapter.js were touched; GOAL.md remains a
+controller-owned concurrent documentation change. No commit, push, merge, deployment, real CloudBase mutation, new
+dependency or collection/index/rule/env/timer mutation was performed.
+Status: READY_FOR_CONTROLLER_REVIEW
+Runtime model visibility: UNVERIFIED_RUNTIME_MODEL
+```
+
+Sol XHigh owns independent Review, CI interpretation, mergeability and final status. The executor does not approve,
+merge or publish a PR.
+
+## 17. Sol Review-fix round 2 — exact lifecycle, privacy keys and Cloud query shape
+
+Round-1 Review closes all P1 findings but proves the remaining P2 tests can still self-confirm mutated implementation
+values. The bounded round 2 changes no mode, DTO, record, collection, period or authority. It must:
+
+- use test-owned literal millisecond expectations to prove review snapshot → raw/record expiry is exactly 30 days and
+  approval → submission/evidence expiry is exactly 180 days, including before-edge retention and at-edge deletion;
+- remove the duplicate finalize literal by using the existing `RAW_DAYS` constant, while making 29/31 and 179/181
+  mutations RED and preserving first-write/replay no-extension;
+- table-drive expired `awaiting_upload`, `processing` and `changes_requested` cleanup, including the server-derived
+  upload file ID, logical zero projection, pending-before-delete and duplicate-delivery repair;
+- lock literal exact keys for the evidence record, nested `ApprovedEvidence`, admin list/detail projections and the
+  identity-bearing submission exclusion. Adding submission/OpenID/raw/provenance/file/evidence-key linkage must RED;
+- call Cloud admin list with both status and cursor and assert the complete strict descending tuple, status/expiry
+  base and `limit+1`; reversing either seek comparison must RED;
+- deep-assert all four Cloud retention due branches, the strict ascending record cursor, and the exact evidence
+  expiry/id cursor, order and `limit+1`; deleting any due branch or using a broad fixed limit must RED.
+
+This is the final bounded evidence round for these exact findings. Full local gates and both independent actual-diff
+Reviews remain required before any commit or PR decision.
+
+## 18. Executor Review-fix round-2 checkpoint — 2026-08-09
+
+```text
+TDD RED/GREEN: test-owned literal 30/180-day expiry, before-edge/at-edge cleanup, replay no-extension, expired
+awaiting_upload/processing/changes_requested cleanup, literal evidence/admin/submission keys, Cloud admin status+
+cursor DESC, Cloud retention due branches/ASC tuple, evidence expiry/id cursor and limit+1 assertions all pass.
+Mutation RED: RAW_DAYS 29/31; EVIDENCE_DAYS 179/181; deleting either retention due branch; broad limit; admin lt→gt;
+and adding evidence provenance each failed its focused contract and was restored immediately.
+Implementation: finalize imports/reuses RAW_DAYS; no public/schema/period/authority behavior changed.
+Focused: test:track-owner PASS; test:track-parser PASS; test:track-admin PASS; test:track-retention PASS.
+Full gates: root npm test PASS; integration PASS 55/0; lint PASS (0 errors / 9 pre-existing warnings); typecheck PASS;
+CI=1 build:weapp PASS; node --check changed/new JS PASS; git diff --check PASS.
+Files: existing C03 allowlist only plus controller-owned GOAL.md concurrent documentation change; no commit, push,
+merge, deployment, real CloudBase mutation, dependency or collection/index/rule/env/timer mutation.
+Status: READY_FOR_CONTROLLER_REVIEW
+Runtime model visibility: UNVERIFIED_RUNTIME_MODEL
+```
+
+Sol XHigh owns both independent actual-diff Reviews, CI interpretation, mergeability and final status. The executor
+does not approve, merge or publish a PR.
+
+## 19. Executor final P2 evidence checkpoint — 2026-08-09
+
+```text
+Test: after approval, retrieves the real identity-bearing submission record and asserts exact-own-key absence plus
+recursive absence of serverEvidenceKey/evidenceKey; serialized submission content excludes the random evidence row ID.
+Mutation RED: temporary `patch.serverEvidenceKey = evidenceRecord._id` made test:track-admin fail; the mutation was
+restored immediately. No production code changed in this final round.
+Focused: test:track-admin PASS; test:track-retention PASS; test:track-owner PASS; root npm test PASS; git diff --check PASS.
+Status: READY_FOR_CONTROLLER_REVIEW
+Runtime model visibility: UNVERIFIED_RUNTIME_MODEL
+```
+
+No commit, push, PR, deployment or real CloudBase mutation was performed. Sol XHigh retains independent Review,
+mergeability and final status authority.
+
+## 20. Controller publication checkpoint — 2026-08-09
+
+- Additive implementation commit `d62bf4e` was pushed normally and published as draft PR #126 with `Refs #120`.
+- PR #126 targets `main@75fcd92`; its initial latest-head GitHub `quality` check passed. GitHub live PR metadata is
+  the CI fact source rather than a copied run identifier.
+- Pre-publication actual-worktree Reviews both returned `APPROVED` with P0–P3 none. Fresh Reviews must inspect the
+  current PR latest head after this additive status commit and latest-head CI; prior approvals do not authorize merge.
+- #120 remains open, #121 remains dependency-blocked, and no deployment or real CloudBase mutation is authorized.

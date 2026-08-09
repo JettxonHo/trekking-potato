@@ -209,6 +209,52 @@ async function run() {
   const pointerReread = await pointerRace.begin({ beginAttemptId: 'pointer-child', revisesSubmissionId: pointerParent._id, title: 'changed retry' })
   assert.deepEqual(pointerReread, pointerChild)
 
+  // A fresh revision may not mutate an expired parent; the exact deadline is expired too.
+  for (const [label, deadline] of [
+    ['past', '2026-08-08T23:59:59.999Z'],
+    ['at-deadline', '2026-08-09T00:00:00.000Z'],
+  ]) {
+    const expired = harness()
+    const expiredReservation = await expired.begin({ beginAttemptId: `expired-parent-${label}` })
+    const expiredParent = (await expired.repository.snapshot()).find((item) => item._id === expiredReservation.submissionId)
+    const changed = await expired.repository.update(expiredParent._id, {
+      _openid: expired.owner, status: 'awaiting_upload', version: expiredParent.version,
+    }, {
+      status: 'changes_requested', version: expiredParent.version + 1,
+      recordExpiresAt: new Date(deadline), updatedAt: new Date('2026-08-08T00:00:00.000Z'),
+    })
+    assert.equal(changed.status, 'changes_requested')
+    const before = await expired.repository.get(expiredParent._id)
+    const expiredRevision = await expired.begin({
+      beginAttemptId: `expired-revision-${label}`, revisesSubmissionId: expiredParent._id,
+    })
+    assert.equal(errorCode(expiredRevision), 'submission_not_found')
+    assert.equal(expired.state.readCount, 0)
+    assert.equal(expired.state.uploadCount, 0)
+    assert.equal(expired.state.deleteCount, 0)
+    assert.equal((await expired.repository.snapshot()).length, 1)
+    const after = await expired.repository.get(expiredParent._id)
+    assert.equal(after.replacementSubmissionId, before.replacementSubmissionId || null)
+    assert.equal(after.version, before.version)
+  }
+
+  // An unexpired revision succeeds and the existing attempt remains idempotent.
+  {
+    const fresh = harness()
+    const freshParentReservation = await fresh.begin({ beginAttemptId: 'fresh-parent' })
+    const freshParent = (await fresh.repository.snapshot()).find((item) => item._id === freshParentReservation.submissionId)
+    await fresh.repository.update(freshParent._id, { _openid: fresh.owner, status: 'awaiting_upload', version: freshParent.version }, {
+      status: 'changes_requested', version: freshParent.version + 1,
+      recordExpiresAt: new Date('2026-08-10T00:00:00.000Z'), updatedAt: new Date('2026-08-09T00:00:00.000Z'),
+    })
+    const freshRevision = await fresh.begin({ beginAttemptId: 'fresh-revision', revisesSubmissionId: freshParent._id, title: '新修订' })
+    assert.equal(freshRevision.phase, 'upload_reservation')
+    const freshChildBeforeReplay = await fresh.repository.findByAttempt(fresh.owner, 'fresh-revision')
+    const freshReplay = await fresh.begin({ beginAttemptId: 'fresh-revision', revisesSubmissionId: freshParent._id, title: '忽略重试变更' })
+    assert.deepEqual(freshReplay, freshRevision)
+    assert.deepEqual(await fresh.repository.findByAttempt(fresh.owner, 'fresh-revision'), freshChildBeforeReplay)
+  }
+
   // Exact fileID host/path binding rejects prefix/suffix, query, userinfo, encoded and duplicate paths.
   {
     const record = (await h.repository.snapshot()).find((item) => item._id === revision.submissionId)
@@ -237,6 +283,10 @@ async function run() {
   assert.equal(h.state.readCount, 1)
   assert.equal(h.state.deleteCount, 1)
   assert.equal(finalized.submission.cleanup.pending, false)
+  const finalizedStored = await h.repository.get(finalizeRecord._id)
+  const DAY_MS = 24 * 60 * 60 * 1000
+  assert.equal(finalizedStored.rawExpiresAt.getTime() - finalizedStored.reviewSnapshotAt.getTime(), 30 * DAY_MS)
+  assert.equal(finalizedStored.recordExpiresAt.getTime() - finalizedStored.reviewSnapshotAt.getTime(), 30 * DAY_MS)
   assert.deepEqual(finalized.submission.allowedActions, ['cancel'])
   assert.deepEqual(Object.keys(finalized).sort(), ['phase', 'submission'])
   assert.deepEqual(Object.keys(finalized.submission).sort(), [
@@ -316,6 +366,36 @@ async function run() {
   // Actual bounded streaming and GET Content-Length authority are tested at the storage seam.
   {
     async function* stream(chunks) { for (const chunk of chunks) yield Buffer.from(chunk) }
+    const expectedTemporaryFileID = `cloud://${HOST}/track-submissions/submission-1/upload.gpx`
+    const temporaryCalls = []
+    const temporary = createStorageAdapter({
+      env: { TRACK_STORAGE_FILEID_HOST: HOST },
+      cloud: {
+        async getTempFileURL(options) {
+          temporaryCalls.push(options)
+          return { fileList: [{
+            fileID: expectedTemporaryFileID, status: 0, errMsg: 'getTempFileURL:ok', maxAge: 123,
+            tempFileURL: 'https://download.example/temporary',
+          }] }
+        },
+      },
+    })
+    assert.equal(await temporary.getTemporaryUrl(expectedTemporaryFileID, 123), 'https://download.example/temporary')
+    assert.deepEqual(temporaryCalls, [{ fileList: [{ fileID: expectedTemporaryFileID, maxAge: 123 }] }])
+    for (const result of [
+      { fileList: [] },
+      { fileList: [{ fileID: 'cloud://other.example.test/x', status: 0, errMsg: 'ok', maxAge: 123, tempFileURL: 'https://download.example/temporary' }] },
+      { fileList: [{ fileID: expectedTemporaryFileID, status: 1, errMsg: 'ok', maxAge: 123, tempFileURL: 'https://download.example/temporary' }] },
+      { fileList: [{ fileID: expectedTemporaryFileID, status: 0, errMsg: '', maxAge: 123, tempFileURL: 'https://download.example/temporary' }] },
+      { fileList: [{ fileID: expectedTemporaryFileID, status: 0, errMsg: 'ok', maxAge: 124, tempFileURL: 'https://download.example/temporary' }] },
+      { fileList: [{ fileID: expectedTemporaryFileID, status: 0, errMsg: 'ok', maxAge: 123, tempFileURL: '' }] },
+    ]) {
+      const malformed = createStorageAdapter({
+        env: { TRACK_STORAGE_FILEID_HOST: HOST },
+        cloud: { async getTempFileURL() { return result } },
+      })
+      await assert.rejects(() => malformed.getTemporaryUrl(expectedTemporaryFileID, 123), (error) => error.code === 'storage_unavailable')
+    }
     const bounded = await collectBounded({ headers: { 'content-length': '4' }, [Symbol.asyncIterator]: () => stream(['ab', 'cd']) })
     assert.deepEqual(bounded, Buffer.from('abcd'))
     await assert.rejects(() => collectBounded({ headers: { 'content-length': '5' }, [Symbol.asyncIterator]: () => stream(['ab', 'cd']) }), (error) => error.code === 'file_size_invalid')
@@ -325,7 +405,10 @@ async function run() {
     const adapter = createStorageAdapter({
       env: { TRACK_STORAGE_FILEID_HOST: HOST },
       cloud: {
-        async getTempFileURL() { return { fileList: [{ tempFileURL: 'https://download.example/temporary' }] } },
+        async getTempFileURL({ fileList }) { return { fileList: [{
+          fileID: fileList[0].fileID, status: 0, errMsg: 'getTempFileURL:ok', maxAge: fileList[0].maxAge,
+          tempFileURL: 'https://download.example/temporary',
+        }] } },
       },
       request: async (_url, method) => {
         requestCount += 1
@@ -338,7 +421,10 @@ async function run() {
     const mismatchAdapter = createStorageAdapter({
       env: { TRACK_STORAGE_FILEID_HOST: HOST },
       cloud: {
-        async getTempFileURL() { return { fileList: [{ tempFileURL: 'https://download.example/temporary' }] } },
+        async getTempFileURL({ fileList }) { return { fileList: [{
+          fileID: fileList[0].fileID, status: 0, errMsg: 'getTempFileURL:ok', maxAge: fileList[0].maxAge,
+          tempFileURL: 'https://download.example/temporary',
+        }] } },
       },
       request: async (_url, method) => method === 'HEAD'
         ? { headers: {} }
@@ -794,6 +880,7 @@ async function run() {
             async get() { return { data: [] } },
             async update({ data }) {
               if (!inTransaction && transactionActive) throw new Error('transaction token required')
+              if (inTransaction) throw new Error('transaction query update forbidden')
               queryCalls.push({ type: 'update', data, condition, transaction: inTransaction })
               if (inTransaction) {
                 transactionUpdateCount += 1
@@ -819,7 +906,20 @@ async function run() {
           return { _id: data._id }
         },
         doc(id) {
-          return { async get() { return { data: state[id] || null } } }
+          return {
+            async get() { queryCalls.push({ type: 'doc.get', id, transaction: inTransaction }); return { data: state[id] || null } },
+            async update({ data }) {
+              if (!inTransaction && transactionActive) throw new Error('transaction token required')
+              queryCalls.push({ type: 'doc.update', id, data, transaction: inTransaction })
+              if (inTransaction) {
+                transactionUpdateCount += 1
+                if (failTransactionUpdateAt === transactionUpdateCount) return { stats: { updated: 0 } }
+              }
+              if (!state[id]) return { stats: { updated: 0 } }
+              Object.assign(state[id], data)
+              return { stats: { updated: 1 } }
+            },
+          }
         },
       }
     }
@@ -846,7 +946,19 @@ async function run() {
       () => db.runTransaction(async () => db.collection().where({ _id: 'parent' }).update({ data: { replacementSubmissionId: 'direct-bypass' } })),
       /transaction token/,
     )
+    await assert.rejects(
+      () => db.runTransaction(async (transaction) => transaction.collection('track_submissions').where({ _id: 'parent' }).update({ data: { replacementSubmissionId: 'query-bypass' } })),
+      /transaction query update forbidden/,
+    )
     const cloudRepository = createCloudBaseRepository({ db })
+    const realShapeCommand = {
+      gt: (value) => ({ operator: 'gt', operands: [value] }),
+      lt: (value) => ({ operator: 'lt', operands: [value] }),
+      lte: (value) => ({ operator: 'lte', operands: [value] }),
+      or: (...expressions) => ({ operator: 'or', operands: expressions }),
+      and: (...expressions) => ({ operator: 'and', operands: expressions }),
+    }
+    const realShapeRepository = createCloudBaseRepository({ db, command: realShapeCommand })
     queryCalls.length = 0
     await cloudRepository.findByAttempt('server-owner', 'attempt-lookup')
     const attemptWhere = queryCalls.find((entry) => entry.type === 'where').condition
@@ -869,6 +981,22 @@ async function run() {
       { field: '_id', direction: 'desc' },
     ])
     assert.equal(queryCalls.find((entry) => entry.type === 'limit').value, 3)
+
+    // The pinned CloudBase SDK represents gt as a command object, not a local {$gt: value} predicate.
+    records['real-shape-parent'] = {
+      _id: 'real-shape-parent', _openid: 'server-owner', status: 'changes_requested', version: 1,
+      replacementSubmissionId: null, recordExpiresAt: new Date('2026-08-10T00:00:00.000Z'),
+    }
+    const realShapeChild = {
+      _id: 'real-shape-child', _openid: 'server-owner', beginAttemptId: 'real-shape-attempt',
+      status: 'awaiting_upload', version: 1, revisesSubmissionId: 'real-shape-parent',
+      createdAt: new Date('2026-08-09T00:00:00.000Z'),
+    }
+    const realShapeInsert = await realShapeRepository.insertRevision(
+      'real-shape-parent', 'server-owner', realShapeChild, new Date('2026-08-09T00:00:00.000Z'),
+    )
+    assert.deepEqual(realShapeInsert, realShapeChild)
+
     queryCalls.length = 0
     await cloudRepository.update('child', { _openid: 'server-owner', status: 'processing', version: 1 }, { status: 'pending_review' })
     const updateWhere = queryCalls.filter((entry) => entry.type === 'where').at(-1).condition
@@ -880,16 +1008,20 @@ async function run() {
     const transition = await cloudRepository.transitionRevisionTerminal('child', 'server-owner', {
       _openid: 'server-owner', status: 'processing', version: 1, 'processing.leaseId': 'lease-1',
     }, { status: 'invalid', version: 2 }, new Date('2026-08-09T00:00:00.000Z'))
-    const transitionWhere = queryCalls.filter((entry) => entry.type === 'where').map((entry) => entry.condition)
-    assert.deepEqual(transitionWhere, [
-      { _id: 'child', _openid: 'server-owner', status: 'processing', version: 1, 'processing.leaseId': 'lease-1' },
-      { _id: 'parent', _openid: 'server-owner', replacementSubmissionId: 'child', version: 4 },
+    assert.deepEqual(queryCalls.filter((entry) => entry.type === 'doc.get' && entry.transaction).map((entry) => entry.id), ['child', 'parent'])
+    assert.deepEqual(queryCalls.filter((entry) => entry.type === 'doc.update').map((entry) => ({ id: entry.id, data: entry.data })), [
+      { id: 'child', data: { status: 'invalid', version: 2 } },
+      { id: 'parent', data: { replacementSubmissionId: null, version: 5, updatedAt: new Date('2026-08-09T00:00:00.000Z') } },
     ])
+    assert.equal(queryCalls.some((entry) => entry.type === 'update' && entry.transaction), false)
     assert.equal(transition.child.status, 'invalid')
     assert.equal(records.parent.replacementSubmissionId, null)
     assert.equal(records.parent.version, 5)
 
-    records.parent = { _id: 'parent', _openid: 'server-owner', status: 'changes_requested', version: 5, replacementSubmissionId: null }
+    records.parent = {
+      _id: 'parent', _openid: 'server-owner', status: 'changes_requested', version: 5, replacementSubmissionId: null,
+      recordExpiresAt: new Date('2026-08-10T00:00:00.000Z'),
+    }
     delete records['child-new']
     const insertedChild = {
       _id: 'child-new', _openid: 'server-owner', beginAttemptId: 'attempt-child', status: 'awaiting_upload', version: 1,
@@ -897,16 +1029,43 @@ async function run() {
     }
     queryCalls.length = 0
     const beforeInsertTransactions = transactionCalls
-    const inserted = await cloudRepository.insertRevision('parent', 'server-owner', insertedChild)
+    const revisionNow = new Date('2026-08-09T00:00:00.000Z')
+    const inserted = await cloudRepository.insertRevision('parent', 'server-owner', insertedChild, revisionNow)
     assert.equal(transactionCalls, beforeInsertTransactions + 1)
     assert.deepEqual(inserted, insertedChild)
     assert.equal(records.parent.replacementSubmissionId, 'child-new')
     assert.equal(records.parent.version, 6)
-    assert.deepEqual(queryCalls.find((entry) => entry.type === 'where').condition, {
-      _id: 'parent', _openid: 'server-owner', status: 'changes_requested', version: 5, replacementSubmissionId: null,
+    assert.equal(queryCalls.some((entry) => entry.type === 'where' && entry.transaction), false)
+    assert.deepEqual(queryCalls.find((entry) => entry.type === 'doc.update').data, {
+      replacementSubmissionId: 'child-new', version: 6, updatedAt: insertedChild.createdAt,
     })
-    assert.equal(queryCalls.find((entry) => entry.type === 'where').transaction, true)
     assert.deepEqual(queryCalls.find((entry) => entry.type === 'add').data, insertedChild)
+
+    records.parent = {
+      _id: 'parent', _openid: 'server-owner', status: 'changes_requested', version: 7, replacementSubmissionId: null,
+      recordExpiresAt: revisionNow,
+    }
+    const expiredChild = { ...insertedChild, _id: 'expired-child', beginAttemptId: 'expired-attempt' }
+    const beforeExpiredRevision = structuredClone(records)
+    queryCalls.length = 0
+    const expiredInsert = await cloudRepository.insertRevision('parent', 'server-owner', expiredChild, revisionNow)
+    assert.equal(expiredInsert, null)
+    assert.deepEqual(records, beforeExpiredRevision)
+    assert.equal(queryCalls.some((entry) => entry.type === 'update' || entry.type === 'add'), false)
+
+    records.parent = {
+      _id: 'parent', _openid: 'server-owner', status: 'changes_requested', version: 8, replacementSubmissionId: null,
+      recordExpiresAt: new Date('2026-08-10T00:00:00.000Z'),
+    }
+    const rollbackChild = { ...insertedChild, _id: 'rollback-child', beginAttemptId: 'rollback-attempt' }
+    const beforeInsertRollback = structuredClone(records)
+    failTransactionUpdateAt = 2
+    await assert.rejects(
+      () => cloudRepository.insertRevision('parent', 'server-owner', rollbackChild, revisionNow),
+      /staged add failed/,
+    )
+    failTransactionUpdateAt = null
+    assert.deepEqual(records, beforeInsertRollback)
 
     records.child = { _id: 'child', _openid: 'server-owner', status: 'processing', version: 1, revisesSubmissionId: 'parent', processing: { leaseId: 'lease-1' } }
     records.parent = { _id: 'parent', _openid: 'server-owner', status: 'changes_requested', version: 4, replacementSubmissionId: 'child' }
@@ -930,10 +1089,10 @@ async function run() {
     assert.equal(repaired._id, 'child')
     assert.equal(records.parent.replacementSubmissionId, null)
     assert.equal(records.parent.version, 8)
-    assert.deepEqual(queryCalls.find((entry) => entry.type === 'where').condition, {
-      _id: 'parent', _openid: 'server-owner', replacementSubmissionId: 'child', version: 7,
+    assert.equal(queryCalls.some((entry) => entry.type === 'where' && entry.transaction), false)
+    assert.deepEqual(queryCalls.find((entry) => entry.type === 'doc.update').data, {
+      replacementSubmissionId: null, version: 8, updatedAt: new Date('2026-08-09T00:00:00.000Z'),
     })
-    assert.equal(queryCalls.find((entry) => entry.type === 'where').transaction, true)
   }
 
   console.log('PASS: C02 owner lifecycle contract (auth, reservation, binding, bounded immutable finalize, lease/CAS, revision, DTO/cursor/expiry, cancel cleanup)')
