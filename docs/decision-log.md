@@ -727,3 +727,50 @@
 - Why: the Goal explicitly ends at code readiness and excludes deployment. Proportional review found no current
   exploit or P0/P1 behavior defect, while honest disclosure and separate deployment gates preserve safety without
   over-defensive scope expansion.
+
+## 2026-08-09 — TP-D051 现有 cloud1 仅作为 staging 候选
+
+- Status: Accepted for `TP-STAGING-001`; production remains nonexistent
+- Context: The owner authorized the remaining deployment validation after creating `trip_contexts` and `history`,
+  deploying `getAdvice` and `history`, configuring the current keys and completing an owner-reported real-device
+  smoke. Console inspection found only one CloudBase environment, `cloud1-d0gtzgqzh9c128aaf`, already referenced by
+  the Taro app. Creating a second environment may add cost and would require a new AppID/environment/configuration
+  decision.
+- Decision: Treat the existing environment as the pre-production staging candidate for the 5–10 user closed-beta
+  preparation. Do not call it production and do not create a second environment inside #114. Keep the environment ID
+  embedded configuration as disclosed staging debt; externalize it in a focused release-config Issue before a real
+  production environment exists.
+- Safety boundary: The console renders external-service environment-variable values in plaintext. Values are never
+  copied into project artifacts, but both keys are treated as exposed and must be rotated before new users are
+  invited. Rotation and any permission/configuration change remain human-confirmed actions.
+- Route boundary: A reviewed GPX/KML proves geometry, not current management status. Exact-route official/operator
+  evidence is required to mark a Variant open. Unknown status stays visible; Gongga is excluded from the recommended
+  first cohort pending exact confirmation; Wutai stays blocked.
+- Alternatives: create a second paid staging/production pair immediately; relabel the existing environment as
+  production; silently keep the observed credentials; infer route openness from geometry or adjacent attractions.
+- Why: Reusing the only existing environment for a tightly bounded staging beta is proportional and reversible.
+  Separating production authority, rotating exposed keys and refusing to infer open status preserve the real trust
+  boundaries without expanding the validation Issue into infrastructure migration.
+
+## 2026-08-09 — TP-D052 受限闭测白名单与社区审核管理员边界
+
+- Status: Accepted by human; staging decision pending #114 Review/merge
+- Context: The human confirmed both exposed external-service keys were rotated, the current CloudBase package remains
+  valid for the planned closed beta, `trip_contexts` and `history` are configured, and a real-device smoke has been
+  completed. A fresh post-rotation DevTools Wugong full-route/weather/v2-queryId/advice flow also succeeded. Exact
+  opening evidence remains unavailable for every full Variant, and post-rotation arbitrary AMap fallback was not
+  independently captured.
+- Decision: Return `CONDITIONAL_GO` for a controlled 5–10 user staging beta after #114 approval and merge. The initial
+  plannable cohort is Wugong, Siguniang, Blue Moon Valley–Yunshanping and Dangling; retain visible `unknown` status and
+  require same-day official/operator confirmation. Exclude Gongga. Keep Wutai Grand Pilgrimage blocked. Do not depend
+  on arbitrary AMap place fallback for this cohort.
+- Community authority: Accept private community GPX/KML submissions only through the future #115 workflow. Use the
+  server-only environment variable `TRACK_REVIEW_ADMIN_OPENIDS` as the initial administrator allowlist. Never store,
+  log or publish its values. Uploader tracks remain creator/admin private and do not enter the trusted route catalog
+  until administrator review plus separate official management evidence pass.
+- Safety boundary: This decision does not authorize production/public release, public raw-track access, automatic
+  route publication, data deletion, permission broadening or function deployment. #115 remains a separately reviewed
+  implementation and deployment sequence.
+- Why: A four-route, warning-preserving cohort exercises the proven trusted-route path without presenting unknown
+  management status as open. A server-only admin allowlist is proportionate for 5–10 users and keeps uploader identity
+  and raw geometry private while avoiding a premature public moderation system.

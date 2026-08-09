@@ -1,12 +1,42 @@
-# TP-BETA-001 当前状态
+# 当前状态 — TP-STAGING-001
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Goal status: `COMPLETE — CODE_READY`（approved PR #111 merge 生效）
-- Active milestone: `M7 Acceptance — COMPLETE_ON_MERGE`
-- Active task: `I25 / #34 / APPROVED — CLOSE_ON_MERGE`
+- Previous Goal: `TP-BETA-001 / COMPLETE — CODE_READY`
+- Current Goal: `TP-STAGING-001 / COMPLETE_ON_MERGE — CONDITIONAL_GO`
+- Active task: `#114 / READY_FOR_CONTROLLER_REVIEW`
+- Branch/base: `codex/114-staging-validation` from `main@da18b68`
+- Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
+- Current verdict: `CONDITIONAL_GO` for a bounded four-route staging cohort after #114 Review/merge; not production
+- Next stage: after approved #114, unblock #115 for private community GPX/KML submission plus administrator review;
+  no automatic route publication
+
+## Current staging checkpoint
+
+- AppID/CloudBase binding, both deployed functions, `trip_contexts`, `history`, openid-scoped history and one real
+  full-route weather/verdict/queryId/advice journey are verified.
+- Recent observed `getAdvice` and `history` log rows are successful. Both functions are ordinary Node.js 16.13
+  functions; `getAdvice` uses 256 MB and a 60-second timeout.
+- Storage is creator/admin private. This supports a future private upload boundary but does not yet implement a
+  submission or review workflow.
+- Plaintext environment-variable values were exposed by the console UI during authorized inspection. Values were not
+  copied into repository or GitHub content. The human confirmed both keys were rotated; a fresh post-rotation Wugong
+  full-route/weather/v2-queryId/advice flow succeeded at approximately 12:22–12:24 Asia/Shanghai.
+- Current official-source refresh does not justify calling any full exact Variant open. The initial allowlist is
+  Wugong, Siguniang, Blue Moon Valley–Yunshanping and Dangling with visible `unknown` status and same-day manual
+  confirmation. Gongga is excluded; Wutai remains blocked.
+- Human confirmed the current CloudBase package covers the planned closed-beta period and approved server-only
+  `TRACK_REVIEW_ADMIN_OPENIDS` for the next community-track Goal. No OpenID or secret is stored in Git.
+- Successful v2 requests were observed more than 30 minutes apart. Post-rotation AMap fallback remains
+  `UNVERIFIED_RUNTIME_TOOL` and is not required by the initial cohort.
+- Root `npm test` is green. Current official npm audit remains root `0`, Taro `46`, and each Cloud Function `6`
+  transitive advisories; no exploit is demonstrated, but production readiness is not claimed.
+- Authoritative evidence and remaining gates are in `docs/staging-deployment-validation.md`.
+
+## Historical TP-BETA-001 checkpoints
+
 - Completion source: docs-only PR #111 from `codex/34-goal-final-review`
-- Review baseline: `main@1bba5f9`; completion state enters `main` through PR #111
+- Review baseline: `main@1bba5f9`; completion state entered `main` through PR #111
 - I24c completion / I25 activation checkpoint (2026-08-09): PR #110 exact head `bfb9f43` passed latest-head
   GitHub `quality`; two independent final Reviews returned `APPROVED` with P0–P3 none. Sol squash merged it as
   `1bba5f9`, then closed #107 and parent #33. The durable checklist truthfully retains DevTools rows as
