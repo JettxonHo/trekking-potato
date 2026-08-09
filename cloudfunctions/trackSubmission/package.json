@@ -1,0 +1,10 @@
+{
+  "name": "track-submission",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Private GPX/KML track parser for reviewed geometry",
+  "main": "domain/track-parser.js",
+  "dependencies": {
+    "saxes": "6.0.0"
+  }
+}

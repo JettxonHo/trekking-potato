@@ -1,10 +1,10 @@
 # ACTIVE TASK — C01 bounded GPX/KML parser
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C01 IMPLEMENTATION_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C01 READY_FOR_CONTROLLER_REVIEW`
 - Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
 - GitHub Issue: `#118`
-- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW_FIX`
 - Controller: Sol XHigh
 - Implementation executor: exact custom Agent `luna-worker`
 - Branch: `codex/118-track-parser`
@@ -97,3 +97,36 @@ Implementation routing: exact custom Agent luna-worker only; Terra fallback proh
 
 The activation commit is controller-owned and contains no implementation code. `luna-worker` must re-read all
 required sources, verify the branch/worktree and run baseline commands before recording the first RED.
+
+The activation instructions above are historical. Sol's round-1 Review-fix is the current execution state; no
+scope, dependency, public contract, parser library or runtime engine was changed.
+
+## 12. Implementation checkpoint — 2026-08-09
+
+```text
+RED: corepack npm@10.9.2 run test:track-parser -> exit 1 (missing script); direct runner -> MODULE_NOT_FOUND
+GREEN: focused parser/projection contract PASS
+Toolchain: npm 10.9.2 (isolated cache for lock generation); no npm 11 lockfile generation
+Local gates: root test PASS; integration 55/0; lint 0 errors/9 existing warnings; typecheck PASS;
+  CI=1 build:weapp PASS; git diff --check PASS
+Status: historical checkpoint superseded by the completed REVIEW_FIX checkpoint below (READY_FOR_CONTROLLER_REVIEW)
+```
+
+The implementation remains limited to the allowlist and has no handler, storage, database, network, UI, catalog or
+deployment wiring. The focused contract covers GPX, KML LineString and paired KML 2.2 `gx:Track`, safe UTF-8 XML,
+all frozen parser limits, deterministic preview sampling and privacy-safe `ReviewedGeometry` projection.
+
+## 13. Review-fix completion checkpoint — 2026-08-09
+
+```text
+Review: round 1 CHANGES_REQUESTED addressed within the original allowlist
+Focused/mutation: PASS; radius, floor and projection-schema mutations each RED then restored
+Clean install: corepack npm@10.9.2 run bootstrap PASS after moving ignored trackSubmission/node_modules; explicit
+  `test -f .../saxes.js && corepack npm@10.9.2 ci --prefix cloudfunctions/trackSubmission && focused` PASS
+Toolchain: npm 10.9.2 lock regenerated with official registry.npmjs.org and isolated cache
+Local gates: focused/root/integration 55/0/lint 0 errors+9 existing warnings/typecheck/build/diff PASS
+Status: READY_FOR_CONTROLLER_REVIEW; latest-head GitHub quality and PR remain controller-owned
+```
+
+The round-1 fixes add no handler, storage, database, network, UI, catalog or deployment behavior and preserve the
+exact `saxes@6.0.0` dependency and frozen parser outputs.

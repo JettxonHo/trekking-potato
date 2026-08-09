@@ -3,8 +3,8 @@
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C01 IMPLEMENTATION_ACTIVE`
-- Active task: `#118 / IMPLEMENTATION`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C01 READY_FOR_CONTROLLER_REVIEW`
+- Active task: `#118 / READY_FOR_CONTROLLER_REVIEW`
 - Branch/base: `codex/118-track-parser` from `main@988cf8b`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
@@ -14,8 +14,9 @@
 
 - Planning PR #117 passed latest-head quality and two independent exact-head Reviews, then squash merged as `988cf8b`.
 - Milestone #8 and serial child Issues #118–#123 are live. Only C01/#118 is active; #119–#123 remain dependency-blocked.
-- C01 branch `codex/118-track-parser` is created from exact merged `main@988cf8b`. The controller activation commit
-  changes only Goal/status/task documents; implementation is assigned only after that commit is pushed.
+- C01 branch `codex/118-track-parser` was created from exact merged `main@988cf8b`. The controller activation commit
+  changed only Goal/status/task documents; the assigned `luna-worker` implementation and review-fix are complete,
+  pending the controller's staging, commit, push, draft PR and latest-head review gates.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
@@ -29,6 +30,41 @@
 - Contract Review-fix now closes upload overwrite/HEAD TOCTOU, exact fileID binding, `gx:Track`, processing lease,
   CAS/revision races, DTO/error/action gaps and the 30/180-day retention lifecycle. Full post-retention planning gates
   pass and live #115 is synchronized; both latest-diff independent Reviews are approved.
+
+## C01 implementation checkpoint — 2026-08-09
+
+- The required pre-implementation RED was recorded on the clean activation head: `corepack npm@10.9.2 run
+  test:track-parser` failed because the script was absent, and the direct script invocation failed with
+  `MODULE_NOT_FOUND`.
+- The bounded GREEN adds only the new `trackSubmission` package with exact `saxes@6.0.0`, a namespace-aware pure
+  GPX/KML parser, a de-identified reviewed-geometry projector and the focused contract runner. It enforces the
+  frozen UTF-8/DTD/ENTITY, depth, point/segment, coordinate/elevation, RFC-3339 pairing, Haversine, rounding and
+  500-point deterministic preview rules; no handler, storage, database, network, catalog or UI path is wired.
+- Focused C01, root test, offline integration `55/0`, lint (`0 errors / 9 existing warnings`), typecheck, host
+  `CI=1 build:weapp` and `git diff --check` pass under the repository-approved Corepack npm `10.9.2`. The lockfile
+  was generated with npm `10.9.2` using an isolated cache; the Corepack wrapper reported its local Node runtime
+  separately and no npm 11 lockfile was generated.
+- Current implementation state is `READY_FOR_CONTROLLER_REVIEW` pending Sol's actual-diff review and latest-head
+  GitHub `quality`; no deployment, publication or merge has occurred.
+
+## C01 Review-fix checkpoint — 2026-08-09
+
+- Sol's round-1 `CHANGES_REQUESTED` is addressed within the original allowlist: bootstrap now installs the parser
+  function, the subpackage does not freeze a CloudBase runtime engine, XML namespace/path checks are strict, and
+  LineString/gx:coord point accounting is bounded at 50,001 before the parser retains another point.
+- Independent focused assertions now lock the literal `ReviewedGeometry` schema, known Haversine radius and
+  non-connected segment distance, coordinate/elevation/bounds rounding and coverage, the full floor-index preview
+  formula and the 200-segment endpoint budget. Wrong-namespace `when` and GPX tracks outside the direct path are
+  behavior-tested.
+- The nested parser `node_modules` was moved aside and a clean `corepack npm@10.9.2 run bootstrap` completed
+  successfully. The authoritative sequential clean-install command
+  `test -f cloudfunctions/trackSubmission/node_modules/saxes/saxes.js && corepack npm@10.9.2 ci --prefix
+  cloudfunctions/trackSubmission && corepack npm@10.9.2 run test:track-parser` passed. The parser lock was regenerated
+  by npm `10.9.2` with an isolated cache and official `registry.npmjs.org` tarball URLs.
+- Mutation checks are recorded: changing the Haversine radius, replacing sampling `floor` with `ceil`, or removing
+  the projected `distanceM` field each makes `test:track-parser` fail; all three mutations were restored.
+- Review-fix local state is `READY_FOR_CONTROLLER_REVIEW`; latest-head GitHub `quality`, commit, push and PR remain
+  controller-owned and no deployment/publication occurred.
 
 ## Completed staging checkpoint
 
@@ -771,15 +807,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: no implementation assignment until the #115 planning PR merges. After merge it receives one serial
-  child at a time beginning with C01 and cannot approve its own PR.
+- `luna-worker`: completed the bounded C01/#118 implementation and review-fix within the exact allowlist; it cannot
+  approve or merge its own work.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Commit and push the controller-owned C01 activation checkpoint on `codex/118-track-parser`.
-2. Verify exact custom Agent `luna-worker` configuration/runtime visibility, then assign only #118 with its frozen
-   contract and clean branch/base.
+1. Stage and create the additive controller-owned C01 commit on `codex/118-track-parser`.
+2. Push the branch, open the focused draft PR with `Refs #118`, verify latest-head GitHub `quality`, and hand the
+   actual diff to Sol for independent Review and mergeability decision.
 3. Keep #119–#123 blocked until each preceding approved PR merges.
 
 ## Blockers and risks
@@ -820,8 +856,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Push the C01 activation checkpoint, verify exact `luna-worker` routing, and dispatch only #118. The executor must
-record RED before implementation and return `READY_FOR_CONTROLLER_REVIEW`; it cannot approve or merge its own PR.
+Stage and commit the completed C01 review-fix, push `codex/118-track-parser`, open the focused draft PR with
+`Refs #118`, and verify latest-head GitHub `quality` before Sol's independent Review and mergeability decision. The
+executor cannot approve or merge its own PR.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
