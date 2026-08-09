@@ -9,6 +9,7 @@
 - Implementation executor: exact custom Agent `luna-worker`
 - Branch: `codex/118-track-parser`
 - Base: `main@988cf8b`
+- Pull Request: draft `#124` (`Refs #118`); latest-head GitHub `quality` passed
 
 ## 1. Goal and background
 
@@ -125,8 +126,18 @@ Clean install: corepack npm@10.9.2 run bootstrap PASS after moving ignored track
   `test -f .../saxes.js && corepack npm@10.9.2 ci --prefix cloudfunctions/trackSubmission && focused` PASS
 Toolchain: npm 10.9.2 lock regenerated with official registry.npmjs.org and isolated cache
 Local gates: focused/root/integration 55/0/lint 0 errors+9 existing warnings/typecheck/build/diff PASS
-Status: READY_FOR_CONTROLLER_REVIEW; latest-head GitHub quality and PR remain controller-owned
+Status: READY_FOR_CONTROLLER_REVIEW; draft PR #124 is published and latest-head GitHub quality passed;
+  exact-head Review and mergeability remain controller-owned
 ```
 
 The round-1 fixes add no handler, storage, database, network, UI, catalog or deployment behavior and preserve the
 exact `saxes@6.0.0` dependency and frozen parser outputs.
+
+## 14. Controller publication checkpoint — 2026-08-09
+
+- Controller committed and pushed the exact eight-file implementation allowlist, then opened draft PR #124 with
+  `Refs #118`; the earlier activation documents remain controller-owned.
+- PR #124 latest-head GitHub `quality` passed. Live PR checks remain the CI fact source rather than a persisted run
+  identifier.
+- Remaining work is exact-head independent Review and Sol's mergeability decision. C01/#118 stays open until a
+  remote squash merge is confirmed; #119 remains blocked until then.

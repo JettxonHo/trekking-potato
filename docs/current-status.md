@@ -16,7 +16,8 @@
 - Milestone #8 and serial child Issues #118–#123 are live. Only C01/#118 is active; #119–#123 remain dependency-blocked.
 - C01 branch `codex/118-track-parser` was created from exact merged `main@988cf8b`. The controller activation commit
   changed only Goal/status/task documents; the assigned `luna-worker` implementation and review-fix are complete,
-  pending the controller's staging, commit, push, draft PR and latest-head review gates.
+  committed and published in draft PR #124. Its latest-head GitHub `quality` check passed; exact-head Review and
+  Sol's mergeability decision remain.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
@@ -44,8 +45,9 @@
   `CI=1 build:weapp` and `git diff --check` pass under the repository-approved Corepack npm `10.9.2`. The lockfile
   was generated with npm `10.9.2` using an isolated cache; the Corepack wrapper reported its local Node runtime
   separately and no npm 11 lockfile was generated.
-- Current implementation state is `READY_FOR_CONTROLLER_REVIEW` pending Sol's actual-diff review and latest-head
-  GitHub `quality`; no deployment, publication or merge has occurred.
+- Current implementation state is `READY_FOR_CONTROLLER_REVIEW`: draft PR #124 is published and its latest-head
+  GitHub `quality` check passed. Exact-head Review and Sol's mergeability decision remain; no deployment or merge
+  has occurred.
 
 ## C01 Review-fix checkpoint — 2026-08-09
 
@@ -63,8 +65,9 @@
   by npm `10.9.2` with an isolated cache and official `registry.npmjs.org` tarball URLs.
 - Mutation checks are recorded: changing the Haversine radius, replacing sampling `floor` with `ceil`, or removing
   the projected `distanceM` field each makes `test:track-parser` fail; all three mutations were restored.
-- Review-fix local state is `READY_FOR_CONTROLLER_REVIEW`; latest-head GitHub `quality`, commit, push and PR remain
-  controller-owned and no deployment/publication occurred.
+- Review-fix state is `READY_FOR_CONTROLLER_REVIEW`; the controller committed and published draft PR #124, whose
+  latest-head GitHub `quality` check passed. Exact-head Review and mergeability remain controller-owned; no
+  deployment occurred.
 
 ## Completed staging checkpoint
 
@@ -813,9 +816,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Stage and create the additive controller-owned C01 commit on `codex/118-track-parser`.
-2. Push the branch, open the focused draft PR with `Refs #118`, verify latest-head GitHub `quality`, and hand the
-   actual diff to Sol for independent Review and mergeability decision.
+1. Complete exact-head independent Review of draft PR #124 after its latest-head GitHub `quality` check passed.
+2. If Review remains `APPROVED`, let Sol decide readiness and squash-merge; close #118 only after the merge is
+   confirmed remotely.
 3. Keep #119–#123 blocked until each preceding approved PR merges.
 
 ## Blockers and risks
@@ -856,9 +859,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Stage and commit the completed C01 review-fix, push `codex/118-track-parser`, open the focused draft PR with
-`Refs #118`, and verify latest-head GitHub `quality` before Sol's independent Review and mergeability decision. The
-executor cannot approve or merge its own PR.
+Draft PR #124 is open at the committed C01 implementation head and its latest-head GitHub `quality` check passed.
+Complete the exact-head independent Reviews, then let Sol decide readiness and squash-merge. The executor cannot
+approve or merge its own PR, and #118 remains open until the remote merge is confirmed.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
