@@ -2,7 +2,7 @@
 
 - Project baseline: completed `TP-BETA-001`, code-ready at `main@6d0d404`
 - GitHub Issue: `#112`
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW`
+- Status/Mode: `COMPLETE_ON_MERGE / REVIEW`
 - Controller: Sol XHigh
 - Executor: exact custom Agent `luna-worker`
 - Branch: `codex/112-product-showcase`
@@ -127,3 +127,12 @@ portfolio artifact; it does not reopen, deploy or expand TP-BETA-001.
 - Sol reran the complete root `npm test` suite and `git diff --check`; both passed. The approved diff remains limited to
   `product-showcase.html` and this task checkpoint. Status: `APPROVED`, ready for focused PR publication and latest-head
   CI; merging does not deploy or publish the showcase to a public website.
+
+## 12. PR and merge checkpoint — 2026-08-09
+
+- Focused draft PR `#113` targets `main` from `codex/112-product-showcase`, references Issue `#112`, and contains only
+  the approved showcase file plus this durable task record.
+- GitHub Actions `quality` passed on the reviewed implementation head. Sol's code, content and visual Review and the
+  independent focused re-review both returned `APPROVED` with no remaining P0–P3 findings.
+- This task becomes complete only when the latest head passes `quality` again, PR `#113` is squash-merged, and Issue
+  `#112` is closed. The merge adds a repository-local HTML artifact; it does not authorize hosting or deployment.
