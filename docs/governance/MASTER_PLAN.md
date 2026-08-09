@@ -1,9 +1,9 @@
 # 徒步薯 Trekking Potato — 主控规划
 
 - Plan ID: `TP-MASTER-PLAN`
-- Plan version: `2.0.0`
+- Plan version: `2.1.0`
 - Governance version: `TP-GOV-2.0.0`
-- Updated on: `2026-08-06`
+- Updated on: `2026-08-09`
 - Maintainer: 项目主控
 - Status: `ACTIVE`
 
@@ -36,9 +36,18 @@ AI 负责解释、归纳和非关键补充，不负责决定路线身份、类�
 - P0-3：`trek / climb / tour` 贯穿解析、规则、建议和展示。
 - P0-4 调查：已确认模糊候选缺少前端确认闭环，详细证据待固化为任务完成记录。
 
-## 4. 当前 Beta 路线图
+## 4. 当前路线图
 
-当前 Goal `TP-BETA-001` 分为：
+`TP-BETA-001` 与 `TP-STAGING-001` 已完成。当前 `TP-COMMUNITY-001` 在不建立公共社区的前提下，增加：
+
+1. 私有 GPX/KML 提交与安全解析；
+2. 创建者自己的状态/取消；
+3. server-only 管理员 allowlist 与审核；
+4. 去身份的 reviewed-evidence projection；
+5. raw 最长 30 天、去身份证据最长 180 天的可审计清理；
+6. 独立 catalog promotion 与 deployment 门禁。
+
+历史 Beta Goal 分为：
 
 1. 工程门禁
 2. 路线确认和确定性安全正确性
@@ -54,11 +63,11 @@ AI 负责解释、归纳和非关键补充，不负责决定路线身份、类�
 
 当前 Goal 不包含：
 
-- iOS/Android 原生壳、多语言、社区、付费
+- iOS/Android 原生壳、多语言、公共社区/feed、付费
 - H5 分享和大规模视觉重构
 - 行中导航、救援调度和攀登技术教学
-- 公共 UGC 贡献流程
-- 部署、生产发布或真实闭测
+- 自动路线发布、第三方平台抓取或公共 raw-track 下载
+- 生产发布或公共闭测；staging 部署仍需单独人工门禁
 - 删除存量数据或不可逆迁移
 
 ## 6. 验收权

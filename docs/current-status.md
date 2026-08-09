@@ -1,17 +1,33 @@
-# 当前状态 — TP-STAGING-001
+# 当前状态 — TP-COMMUNITY-001
 
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
-- Previous Goal: `TP-BETA-001 / COMPLETE — CODE_READY`
-- Current Goal: `TP-STAGING-001 / COMPLETE_ON_MERGE — CONDITIONAL_GO`
-- Active task: `#114 / READY_FOR_CONTROLLER_REVIEW`
-- Branch/base: `codex/114-staging-validation` from `main@da18b68`
+- Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
+- Current Goal: `TP-COMMUNITY-001 / PLANNING_PR_READY`
+- Active task: `#115 / READY_FOR_CONTROLLER_REVIEW`
+- Branch/base: `codex/115-community-track-planning` from `main@b1bc994`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
-- Current verdict: `CONDITIONAL_GO` for a bounded four-route staging cohort after #114 Review/merge; not production
-- Next stage: after approved #114, unblock #115 for private community GPX/KML submission plus administrator review;
-  no automatic route publication
+- Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
+- Current work: freeze private community GPX/KML submission/admin review before serial child implementation
 
-## Current staging checkpoint
+## Current community-track checkpoint
+
+- #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
+- Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
+- Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
+  de-identified reviewed-evidence record; GitHub CLI authentication is restored.
+- #115 planning contract has two independent `APPROVED` Reviews with no P0–P3. Implementation remains blocked until
+  the docs-only planning PR passes latest-head quality, exact-head metadata Review and merges.
+- `TRACK-SUBMISSION-1` freezes GPX/KML rights, limits, private storage, owner/admin APIs, status machine, DTOs,
+  cleanup-pending behavior, errors and no-catalog-publication boundary.
+- Planned serial work is C01 parser → C02 owner API → C03 admin API → C04 user UX → C05 admin UX → C06 acceptance
+  and human staging deployment.
+- The first staging cohort still excludes Gongga; community evidence cannot change operational status.
+- Contract Review-fix now closes upload overwrite/HEAD TOCTOU, exact fileID binding, `gx:Track`, processing lease,
+  CAS/revision races, DTO/error/action gaps and the 30/180-day retention lifecycle. Full post-retention planning gates
+  pass and live #115 is synchronized; both latest-diff independent Reviews are approved.
+
+## Completed staging checkpoint
 
 - AppID/CloudBase binding, both deployed functions, `trip_contexts`, `history`, openid-scoped history and one real
   full-route weather/verdict/queryId/advice journey are verified.
@@ -749,24 +765,25 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Agent assignments
 
-- Sol XHigh: I25 reviewer of record, report author, controller and merge authority.
-- Independent Sol reviewers: read-only product/frontend/evidence and architecture/data/privacy audits; no edit or
-  approval authority outside their reported findings.
-- `luna-worker`: no active I25 assignment; its completed implementation history remains valid and it cannot approve
-  the Goal.
+- Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
+- Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
+  merge their own findings.
+- `luna-worker`: no implementation assignment until the #115 planning PR merges. After merge it receives one serial
+  child at a time beginning with C01 and cannot approve its own PR.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Confirm latest-head quality and focused metadata Review for the completion-on-merge commit, then squash merge
-   docs-only PR #111.
-2. Close #34 and M7 after the merge, update local `main`, and publish the Goal completion result.
-3. Treat dependency reachability, normal DevTools R1–R3, staging CloudBase/API and device/user testing as a new,
-   separately human-authorized deployment-validation stage.
+1. Publish the independently approved `TRACK-SUBMISSION-1` docs-only planning PR.
+2. Require latest-head quality plus exact-head metadata Review, then merge only if both remain green.
+3. Only after that merge, create serial child Issues C01–C06 with exact contracts and route C01 to `luna-worker`.
 
 ## Blockers and risks
 
-- Root toolchain, lockfiles, offline integration, CI and branch protection are merged and verified.
+- No product/retention human decision remains. The 30/180 periods and server-only admin authority are approved.
+- GitHub CLI authentication is restored and live #115 matches the contract. The planning PR still must pass
+  latest-head quality and exact-head Review before implementation begins.
+- Root toolchain, lockfiles, offline integration, CI and branch protection remain merged and verified.
 - Node 24 随附的 npm 11 与 `@nutui/nutui-react-taro@3.0.20` 的不可解析可选依赖
   存在锁文件校验不兼容：npm 11 生成锁时省略该包、`npm ci` 又报缺失。I01 已按
   GitHub #10 的控制端决策固定 npm 10.9.2，并以 `engine-strict` 拒绝错误 npm。
@@ -786,20 +803,22 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Historical constraint: I21 could not be split into frontend-only/backend-only merges and therefore shipped as
   one atomic public cutover in PR #93. It is no longer an active blocker. I22 is intentionally split because #94
   adds display-safe provenance before #95 consumes it.
-- Deployment and real-device validation remain outside the Goal.
+- Deployment and real-device validation for this new function remain C06 human-controlled gates; prior #114 staging
+  validation does not deploy or validate `trackSubmission`.
 
-## Stop conditions during I25
+## Stop conditions during community-track planning
 
-- Do not mix production, test, dependency, fixture, route-data, package/config or generated-output changes into the
-  report PR; required code fixes become separate Issues and block completion.
-- Do not hide failed gates, dependency advisories, the #83/#84 deferred cleanup, nine lint warnings, unknown route
-  operating status or unavailable GUI/runtime evidence.
-- Do not deploy, use real CloudBase/API/user data, alter production configuration or claim real beta readiness.
+- Do not modify application/Cloud Function code, dependencies, CloudBase collections/indexes/rules/env or deployed
+  functions in the planning PR.
+- Do not weaken exact private-file binding, server OpenID/admin gates, parser limits or immutable-review authority to
+  fit the current SDK. A non-implementable CloudBase seam returns to Sol/human.
+- Do not scrape or bulk-import third-party platforms, expose raw tracks publicly, publish routes automatically, infer
+  opening/safety from geometry, or perform cleanup outside the human-approved new-record 30/180 contract.
 
 ## Next action
 
-Run latest-head quality and focused metadata recheck for docs-only PR #111, then squash merge. Immediately after the
-merge, close #34 and M7 and publish the code-ready result; deployment and Goal-external #83/#84 remain outside it.
+Publish the approved docs-only planning PR, wait for latest-head quality and exact-head metadata Review, then merge.
+Create C01–C06 only after that merge; route C01 to exact `luna-worker`.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

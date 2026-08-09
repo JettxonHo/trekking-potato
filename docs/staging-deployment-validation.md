@@ -4,7 +4,7 @@
 - Issue: `#114`
 - Environment: `cloud1-d0gtzgqzh9c128aaf`
 - Date: `2026-08-09`
-- Status: `READY_FOR_CONTROLLER_REVIEW — CONDITIONAL_GO`
+- Status: `COMPLETE — CONDITIONAL_GO`（approved PR #116 merged as `b1bc994`）
 
 ## 1. Decision boundary
 
@@ -165,7 +165,8 @@ Executed first on `main@da18b68` and repeated after the final docs-only validati
 - [ ] General AMap place fallback remains `UNVERIFIED_RUNTIME_TOOL` after rotation. Keep it outside the cohort's
   required path until a later normal DevTools/device smoke captures it.
 
-Decision: **CONDITIONAL_GO** for the bounded staging cohort after this report passes independent Review and merges.
+Decision: **CONDITIONAL_GO** for the bounded staging cohort. This report passed independent Review and merged through
+PR #116 as `b1bc994`.
 Do not call the environment production, enable public discovery or remove the per-route management warnings. Stop
 the cohort for any new P0/P1 defect, key/package failure, privacy breach, v1-context regression or official closure.
 Community-track Issue #115 may begin after #114 merges; its upload/review function and permissions require a separate

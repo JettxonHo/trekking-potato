@@ -12,12 +12,13 @@
 
 ## 项目状态
 
-`TP-BETA-001` 已完成代码层面的核心闭测就绪版本：可信路线、小时天气、确定性结论、服务端 `queryId`、
-结构化结果、私人历史和显式恢复流程均已合并；M7/I25 Goal 统一 Review 通过，完成结论由 PR #111
-固化。DevTools 运行时证据仍按实际工具可用性记录，部署、真实闭测和生产发布不属于本 Goal。
+`TP-BETA-001` 已完成核心代码就绪，`TP-STAGING-001` 又以 `CONDITIONAL_GO` 完成受限 staging 验证。
+当前 `TP-COMMUNITY-001` 正在规划私有 GPX/KML 提交和管理员审核：它只把经审核的轨迹变成几何证据，
+不自动发布路线，也不改变路线开放状态、天气、安全规则或出发结论。
 
 - 当前产品入口：`taro-app/`
 - 云函数：`cloudfunctions/getAdvice/`、`cloudfunctions/history/`
+- 规划中的新云函数：`trackSubmission`（尚未实现或部署）
 - `miniprogram/`：早期原生原型，不是当前生产界面
 - 当前 Goal：[GOAL.md](GOAL.md)
 - 当前状态：[docs/current-status.md](docs/current-status.md)
@@ -25,7 +26,7 @@
 - Beta 验收报告：[docs/beta-acceptance-report.md](docs/beta-acceptance-report.md)
 - Goal 完成报告：[docs/goal-completion-report.md](docs/goal-completion-report.md)
 
-部署、真实闭测和生产发布不属于当前 Goal。
+生产发布和公共社区不属于当前 Goal；新功能的 CloudBase 部署仍需单独人工门禁。
 
 ## 产品边界
 
@@ -42,7 +43,8 @@
 - 日出、日落和晨昏时刻计算
 - 微信 openid 隔离的私人历史基础
 
-公共 UGC 当前不属于可信产品方向。手动坐标查询不会在新 Goal 中静默写入公共路线库。
+公共 UGC 当前不属于可信产品方向。新 Goal 只增加私有提交/管理员审核，不提供公共 feed 或 raw 下载；
+任何获批轨迹仍需独立 catalog PR 才可能成为路线几何证据。手动坐标查询不会静默写入路线库。
 
 ## 技术架构
 

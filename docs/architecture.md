@@ -1,7 +1,7 @@
-# 徒步薯核心 Beta 架构
+# 徒步薯架构
 
-- Architecture scope: `TP-BETA-001`
-- Status: `COMPLETE — TP-BETA-001 CODE_READY`
+- Architecture scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 PLANNING_PR_READY`
+- Status: `COMMUNITY TRACK CONTRACT — APPROVED FOR PLANNING PR`
 - Updated: `2026-08-09`
 
 ## 1. 系统边界
@@ -9,9 +9,13 @@
 - `taro-app/`：实际微信小程序前端。
 - `cloudfunctions/getAdvice/`：路线解析、天气、规则、短期上下文和 AI 编排。
 - `cloudfunctions/history/`：仅私人历史。
+- `cloudfunctions/trackSubmission/`：规划中的私有轨迹提交、解析、持久化和管理员审核；尚未实现/部署。
 - `miniprogram/`：历史原生原型，不是生产入口。
 
 依赖方向为 UI → 云函数契约 → 领域/规则纯模块 → 外部 API。LLM 位于解释层，不能反向覆盖领域事实或规则结果。
+
+社区轨迹的新增依赖方向为 UI → `trackSubmission` 判别式契约 → owner/admin 服务层 → 安全 parser/storage
+adapter → 私有 CloudBase collection/storage。它不依赖 `getAdvice`，也不能反向写入 runtime catalog。
 
 I24a/#105、I24b/#106 与 I24c/#107 已完成并合并，parent #33 已关闭；I25/#34 的 Goal 统一 Review
 通过两位独立审查者批准，代码就绪结论随 docs-only PR #111 合并生效。I24c 的临时 DevTools fixture
@@ -87,6 +91,26 @@ RouteVariant (blocked)
 blocked 的 `effectiveFrom/effectiveTo=null` 只表示官方来源未披露对应边界，不表示永久
 禁令；`sourceCheckedAt` 必须跟随记录并在上线/闭测前重新核验。静态条目不得从旧公告
 推导当前状态。
+
+### 私有社区提交边界（TRACK-SUBMISSION-1）
+
+`trackSubmission` 是与 `getAdvice/history` 平行的新 Cloud Function。它拥有八个精确客户端 mode、私有
+`track_submissions` / 去身份 `track_review_evidence` collections 和一个注入式 storage adapter。server OpenID
+是 owner/admin 权限的
+唯一身份源；`TRACK_REVIEW_ADMIN_OPENIDS` 缺失时所有 admin mode fail closed。
+
+纯 parser 使用 `saxes@6.0.0`，拒绝 DTD/ENTITY、非 UTF-8、危险深度和超限点数，只接受 GPX track、
+KML LineString 与 KML 2.2 `gx:Track`；后者要求 `when/gx:coord` 一一对应，支持现有党岭用户轨迹的真实
+格式。parser 只产出私有 bounded summary/review preview，不创建 Source/Route/Variant。
+
+`begin` 先保存 random reservation；客户端只上传到 server path；`finalize` 接收 CloudBase 上传返回的
+opaque `fileID`，但 storage adapter 必须用 server-only `TRACK_STORAGE_FILEID_HOST` + exact reserved path 校验，
+禁止 suffix/prefix 匹配。HEAD 只作早期拒绝，最终大小由有界 streaming GET 计数决定；同一 Buffer 先复制
+到 service-owned immutable review object，再交给 parser。管理员短时 raw URL 最长 300 秒且不持久化。
+含身份的 `track_submissions` 和原始对象按不可变快照起 30 天最长周期清理；通过后只将去身份
+`ApprovedEvidence` 投影到独立 `track_review_evidence` 并最长保留 180 天。每日 CloudBase timer 触发内部幂等
+清理，客户端不获得 cleanup mode。状态、DTO、版本/重试和 cleanup-pending 语义由
+`docs/community-track-workflow.md` 唯一定义。
 
 ### I07 冻结目录边界
 

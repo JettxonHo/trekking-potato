@@ -1,7 +1,7 @@
-# 徒步薯核心 Beta 产品需求
+# 徒步薯产品需求
 
-- Product scope: `TP-BETA-001`
-- Status: `COMPLETE — TP-BETA-001 CODE_READY`
+- Product scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 PLANNING_PR_READY`
+- Status: `COMMUNITY TRACK PLANNING — APPROVED FOR PLANNING PR`
 - Updated: `2026-08-09`
 
 ## 1. 产品与用户
@@ -91,7 +91,9 @@ PRs #96–#98 合并，#94/#95/parent #31 已关闭；I23a/I23b 又通过 PRs #1
 
 ## 8. 非目标
 
-本 Goal 不实现部署发布、真实闭测、原生端、多语言、社区、商业化、H5 分享、行中导航、救援、攀登技术教学、公共贡献审核或大规模视觉改版。
+TP-BETA-001 不实现部署发布、真实闭测、原生端、多语言、社区、商业化、H5 分享、行中导航、救援、
+攀登技术教学、公共贡献审核或大规模视觉改版。TP-COMMUNITY-001 只覆盖私有轨迹提交和管理员审核，
+仍不实现公共社区、自动路线发布、第三方平台抓取、生产发布或大规模视觉改版。
 
 ## 9. 产品验收
 
@@ -106,3 +108,33 @@ PRs #96–#98 合并，#94/#95/parent #31 已关闭；I23a/I23b 又通过 PRs #1
   unknown 自动修改规则结论。place-only 标明非完整路线，blocked 标明本次未请求天气。
 - 路线来源显示标题、发布方、A/B 等级、类型、核验日期和可选链接；社区轨迹无公开 URL 时保持无链接，
   不伪造来源。最低装备支持本地勾选，勾选状态不持久化。
+
+## 10. 私有社区轨迹扩展
+
+### 用户价值
+
+闭测用户可提交自己记录或获授权分享的 GPX/KML，让管理员复用真实几何，减少人工抄录轨迹工作。
+用户看到自己的上传、校验和审核状态，但看不到其他用户提交。
+
+### 明确能力
+
+- 选择单个本地 GPX/KML，填写路线标题、可选地区/说明/来源页并确认权利基础；
+- 文件上传到创建者/服务端/管理员私有存储，服务端校验实际文件而不是信任扩展名或客户端摘要；
+- 展示 `awaiting_upload / processing / pending_review / changes_requested / approved_evidence / rejected /
+  cancelled / invalid` 状态及可公开给提交者的审核说明；
+- 提交者仅可在 `awaiting_upload / pending_review / changes_requested` 取消；`processing` 只刷新，
+  `rejected / invalid / cancelled` 只在清理失败时重试清理。修改要求通过新 submission 修订并保留审核链；
+- allowlisted 管理员查看私有摘要/短时 raw 链接并请求修改、拒绝或批准为几何证据。
+- 不可变审核快照创建后，原始上传/审核对象的可访问期最长 30 天；通过审核的去身份几何证据
+  在独立私有记录中最长可访问 180 天。到期后服务立即不再返回记录/执行审核并进入物理删除；
+  云端删除失败可延迟物理清理，但不恢复访问。取消/无效/拒绝立即尝试删除 raw。
+
+### 不可越过的产品边界
+
+- “批准为证据”不等于路线发布。Place/Route/RouteVariant 仍由 controller 在独立 PR 中创建；
+- GPX/KML 不证明路线开放、许可、天气、安全或适合某能力用户；
+- 不抓取两步路、六只脚等平台。用户只有在拥有轨迹或获得授权/开放许可时才能提交导出文件；
+- 不提供公共 UGC 列表、点赞、评论、公开 raw 下载或自动 AI 审核；
+- 原始个人时间序列、OpenID、平台账号和临时链接不进入 reviewed-evidence projection。
+
+详细权利文案、保留/取消语义、模式和验收以 `docs/community-track-workflow.md` 为准。
