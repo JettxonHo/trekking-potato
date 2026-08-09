@@ -1113,8 +1113,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Publish the approved local C04 change as a focused draft PR with `Refs #121`, wait for latest-head `quality`, and
-   repeat both independent exact-head Reviews before Sol decides whether to mark ready and squash merge.
+1. Draft PR #127 is open at exact head `22107f4` over `main@a809f54`; latest-head GitHub `quality` run
+   `31327348582` passed. After this additive status-only head, repeat both exact-head Reviews before Sol decides
+   whether to mark ready and squash merge.
 2. Keep #122–#123 dependency-blocked until an approved C04 change is remotely verified merged.
 3. C06 acceptance, deployment and real-device/runtime validation remain human-controlled gates.
 
@@ -1156,9 +1157,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Return this exact-head C04 round-4 executor handoff to Sol XHigh for independent Review; the executor must not commit,
-push, open a PR, merge, deploy or mutate real CloudBase. #122 remains blocked until an approved C04 change is remotely
-verified merged.
+Publish this additive status-only checkpoint to draft PR #127, wait for the new latest-head `quality`, then repeat both
+exact-head Reviews. Sol may decide ready/squash merge only after those gates pass; #121 remains open and #122 remains
+blocked until the merge is remotely verified. Deployment and real CloudBase mutation remain outside C04 authority.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

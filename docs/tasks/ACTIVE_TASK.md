@@ -313,3 +313,13 @@ Rerun the complete frozen matrix and return `READY_FOR_CONTROLLER_REVIEW`. No co
 - These approvals are pre-publication worktree evidence, not GitHub latest-head evidence and not a merge decision.
   Remaining controller work is one focused draft PR with `Refs #121`, latest-head `quality`, two exact-head Reviews,
   and only then a Sol ready/squash-merge decision. #121 remains open and #122–#123 remain dependency-blocked.
+
+## 21. Publication checkpoint — 2026-08-10
+
+- Controller commit `22107f4` is published as draft PR #127 over exact base `main@a809f54`; the PR is OPEN,
+  MERGEABLE/CLEAN and uses `Refs #121`. GitHub latest-head `quality` run `31327348582` passed.
+- The first exact-head Review found only this durable-status lag; it found no product, privacy, compatibility, test or
+  scope defect. This additive docs-only checkpoint records the live PR/CI facts without claiming approval, merge,
+  Issue closure, deployment or real CloudBase execution.
+- Remaining gate: publish this additive head, wait for its latest-head `quality`, repeat both exact-head Reviews, then
+  let Sol decide ready/squash merge. #121 remains open and #122–#123 remain dependency-blocked.
