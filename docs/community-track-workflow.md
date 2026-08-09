@@ -143,6 +143,9 @@ contradictory success/error phase.
 - `submissionId` and `_id` are the same server-generated random opaque ID.
 - The creator-writable reservation is exactly `track-submissions/<submissionId>/upload.<gpx|kml>` and contains no
   OpenID. The verified service-owned object is exactly `track-reviews/<submissionId>/review.<gpx|kml>`.
+  Because this path is intentionally stable, C06 must configure and verify a hard `trackSubmission` function timeout
+  of at most 240 seconds, strictly below the five-minute processing lease. A stale takeover cannot be enabled in an
+  environment that cannot prove this invariant; otherwise an older invocation could overwrite the winner's object.
 - `beginAttemptId` is a client-generated random retry identity, scoped to the server OpenID. Same owner/attempt returns
   the first reservation byte-for-byte even when a retry changes other fields; different owners never deduplicate.
   IDs are trimmed strings of 1–80 characters. No hash/SHA is introduced.
@@ -441,9 +444,13 @@ awaiting_upload → cancelled
 ```
 
 - `finalize` is idempotent for terminal parse outcomes; concurrent `processing` returns `processing` without a second
-  parser run. Claiming processing writes random private `processing.leaseId`, `processing.startedAt` and increments
-  version. A lease is fresh for 5 minutes. A retry after 5 minutes may conditionally replace the stale lease; a fresh
-  lease returns retryable `processing_in_progress` with `nextAction='refresh'` and `retryAfterSeconds=5`.
+  parser run. A replay on `pending_review` or `invalid` retries only raw targets already marked `deletion_pending`,
+  never reparses or changes summary/review facts, and never touches a target already `deleted`. Claiming processing
+  writes random private `processing.leaseId`, `processing.startedAt` and increments version. A lease is fresh for 5
+  minutes. A retry after 5 minutes may conditionally replace the stale lease; a fresh
+  lease returns retryable `processing_in_progress` with `nextAction='refresh'` and `retryAfterSeconds=5`. The frozen
+  fixed review path is safe only with the separately verified `function timeout <=240s < 300s lease` invariant; C02
+  does not claim deployed takeover safety, and C06 must stop rather than weaken this relationship.
 - Storage/network failure before immutable snapshot creation conditionally returns the same lease to
   `awaiting_upload`, increments version and returns retryable `storage_unavailable`. A parser/input failure transitions
   to `invalid`, increments version and starts cleanup. If the process crashes or the store write fails after claim,
@@ -457,13 +464,23 @@ awaiting_upload → cancelled
   even if the client changes decision/note. A different attempt after a terminal review returns `invalid_state`.
   Review and owner cancel compete through the same status/version CAS, so exactly one transition wins. It never
   publishes or modifies the route catalog.
-- `cancel` is owner-only and valid only in the three documented states. The database first records `cancelled` and
-  increments `version`; server raw deletion is then attempted. Failure records the affected
-  `rawFileState.upload/review='deletion_pending'` field and returns an honest cleanup-pending flag instead of hiding it.
-- Replaying `cancel` on `cancelled`, `invalid` or `rejected` is an idempotent cleanup retry: it does not change status,
-  review facts or version unless cleanup state changes. Replaying the same rejecting `admin_review` attempt likewise
-  retries pending cleanup. Cleanup covers creator upload and immutable review objects separately; success sets their
-  internal states to `deleted` and the public `cleanup.pending=false`.
+- `cancel` is owner-only and valid only in the three documented states. Before any destructive deletion, the first
+  successful terminal/snapshot CAS atomically records every planned raw target as
+  `rawFileState.upload/review='deletion_pending'` and increments `version`. Server deletion is attempted only after
+  that recoverable state exists; success advances the target to `deleted`, while failure leaves it pending.
+  For `awaiting_upload`, the server derives the creator object identity only from the validated server storage host
+  and the reserved `cloudPath`; it never needs or accepts a client fileID to clean an object uploaded before finalize.
+  CloudBase per-file deletion results are authoritative and must match the requested fileID. Status `0` is success;
+  the exact pinned-SDK status `-503003` (`storage file not exists`) is also an idempotent success because the target is
+  already absent. Any other non-zero status, missing/mismatched item or malformed result is a deletion failure. If the
+  cleanup state cannot be persisted with CAS, return `store_unavailable` rather than a Mine projection that falsely
+  claims deletion.
+- Replaying `cancel` on `cancelled`, `invalid` or `rejected` is an idempotent cleanup retry: a syntactically valid stale
+  `expectedVersion` is accepted only for this terminal replay, the service reads the current version, and it retries
+  only targets whose current state is exactly `deletion_pending`. It does not change status, review facts or version
+  unless pending cleanup state changes, and a fully clean replay has zero storage/database side effects. Replaying the
+  same rejecting `admin_review` attempt follows the same rule. Cleanup covers creator upload and immutable review
+  objects separately; success sets their internal states to `deleted` and the public `cleanup.pending=false`.
 - `begin` sets `recordExpiresAt=createdAt+30 days`. The immutable review snapshot atomically sets
   `reviewSnapshotAt`, `rawExpiresAt=reviewSnapshotAt+30 days` and `recordExpiresAt=rawExpiresAt` exactly once.
   Revision, review, retry and status changes never extend either deadline. `pending_review`, `changes_requested` and
@@ -605,6 +622,8 @@ creator/admin-private storage rules, configuration of `TRACK_REVIEW_ADMIN_OPENID
 recorded, and a dry-run/duplicate-delivery retention check before enabling deletion,
 private owner/admin smoke, rejection/cancel cleanup check, processing-lease recovery, rollback instructions and
 secret/residue review.
+The deployed `trackSubmission` hard timeout must be configured and observed at no more than 240 seconds; the
+five-minute stale-processing takeover is forbidden until that strict inequality is verified.
 Never ask the human to paste an OpenID into chat or Git; configure it directly in CloudBase.
 
 Stop for human decision if CloudBase cannot expose a trustworthy server-observed object length before download, if

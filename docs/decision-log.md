@@ -820,3 +820,24 @@
 - Why: Separate stores make the 180-day object genuinely de-identified. An immutable deadline limits privacy exposure,
   while idempotent scheduled cleanup is compatible with repeated timer delivery and avoids pretending best-effort
   manual operations enforce a maximum period.
+
+## 2026-08-09 — TP-D055 固定审核对象路径依赖严格短于 lease 的函数超时
+
+- Status: Accepted by Sol during C02 Review-fix; C06 runtime verification required
+- Context: C02 keeps one service-owned review object at the stable per-submission path. A five-minute stale lease
+  takeover is unsafe if an older invocation can still run and overwrite that path after the new worker wins. Using a
+  lease-specific path would isolate writers but would also create externally stored loser objects whose failed
+  deletion cannot be represented inside the approved 30-day cleanup model without a new orphan-job store.
+- Decision: Keep the stable review path and require the deployed `trackSubmission` function hard timeout to be at
+  most 240 seconds, strictly below the 300-second lease. C06 must configure and observe this before stale takeover is
+  enabled; if CloudBase cannot prove the inequality, deployment stops. C02 also makes child terminal transition and
+  parent revision unlock transactional, treats the exact pinned-SDK per-item deletion result as authoritative,
+  accepts only status `0` or exact not-found status `-503003` for the requested fileID as success, derives
+  pre-finalize creator cleanup from trusted host/path, atomically marks every planned target `deletion_pending` before
+  destructive deletion, retries only exact pending targets, and refuses to return a false clean projection when the
+  post-delete cleanup CAS cannot be persisted.
+- Alternatives: lease-specific review paths plus a new durable orphan cleanup collection; disabling takeover;
+  trusting a pre-upload lease check despite a race window; leaving timeout implicit.
+- Why: The hard runtime limit makes an old worker impossible before takeover while preserving one review authority
+  and the already approved retention schema. Explicit deployment verification is safer than an undocumented timing
+  assumption and avoids expanding C02 into a new cleanup data model.

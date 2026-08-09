@@ -3,26 +3,26 @@
 - Updated: `2026-08-09`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C01 READY_FOR_CONTROLLER_REVIEW`
-- Active task: `#118 / READY_FOR_CONTROLLER_REVIEW`
-- Branch/base: `codex/118-track-parser` from `main@988cf8b`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C02 REVIEW_ACTIVE`
+- Active task: `#119 / READY_FOR_CONTROLLER_REVIEW`
+- Branch/base: `codex/119-track-owner-lifecycle` from `main@b3e2cd0`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: C01 pure bounded GPX/KML parser and reviewed-geometry projection
+- Current work: C02 owner-only submission lifecycle and immutable storage snapshot
 
 ## Current community-track checkpoint
 
 - Planning PR #117 passed latest-head quality and two independent exact-head Reviews, then squash merged as `988cf8b`.
-- Milestone #8 and serial child Issues #118–#123 are live. Only C01/#118 is active; #119–#123 remain dependency-blocked.
-- C01 branch `codex/118-track-parser` was created from exact merged `main@988cf8b`. The controller activation commit
-  changed only Goal/status/task documents; the assigned `luna-worker` implementation and review-fix are complete,
-  committed and published in draft PR #124. Its latest-head GitHub `quality` check passed; exact-head Review and
-  Sol's mergeability decision remain.
+- C01 PR #124 passed latest-head quality and two independent exact-head Reviews, then squash merged as `b3e2cd0`;
+  #118 is closed. Only C02/#119 is active; #120–#123 remain dependency-blocked.
+- C02 implementation commit `6d41219` is published in draft PR #125. The exact implementation allowlist is 12 paths
+  plus three controller-owned contract documents. Pre-publication local gates and two independent Reviews passed;
+  latest-head GitHub `quality` and exact-head Sol Review remain required before merge.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
   de-identified reviewed-evidence record; GitHub CLI authentication is restored.
-- #115 remains open as the parent Goal. Planning is merged; bounded C01 implementation is now authorized under #118.
+- #115 remains open as the parent Goal. C01/#118 is complete; C02/#119 remains open in exact-head PR Review.
 - `TRACK-SUBMISSION-1` freezes GPX/KML rights, limits, private storage, owner/admin APIs, status machine, DTOs,
   cleanup-pending behavior, errors and no-catalog-publication boundary.
 - Planned serial work is C01 parser → C02 owner API → C03 admin API → C04 user UX → C05 admin UX → C06 acceptance
@@ -68,6 +68,58 @@
 - Review-fix state is `READY_FOR_CONTROLLER_REVIEW`; the controller committed and published draft PR #124, whose
   latest-head GitHub `quality` check passed. Exact-head Review and mergeability remain controller-owned; no
   deployment occurred.
+
+## C01 completion and C02 activation checkpoint — 2026-08-09
+
+- Sol recorded exact-head `APPROVED` after two independent Reviews returned no P0–P3 findings. PR #124 squash merged
+  remotely as `b3e2cd0`; only then was #118 closed and #119's dependency-blocked label removed.
+- C02 uses branch `codex/119-track-owner-lifecycle` from exact merged `main@b3e2cd0`. Its controller activation is
+  docs-only and changes no handler, storage, database, collection, permission, environment or deployment state.
+- C02 is limited to owner modes `begin/finalize/list_mine/get_mine/cancel`, server OpenID, exact reservation/fileID
+  binding, bounded server read, immutable review snapshot, CAS/lease/revision locks and exact owner DTOs. Admin modes,
+  evidence retention, frontend and real CloudBase mutation remain later serial Issues.
+- Implementation routing is the exact custom Agent `luna-worker`; configuration is verified as
+  `gpt-5.6-luna/max`, while runtime model evidence must be recorded separately. Terra is not authorized as fallback.
+
+## C02 implementation checkpoint — 2026-08-09
+
+- TDD RED was recorded immediately after activation by registering `test:track-owner`: the focused command failed
+  with `MODULE_NOT_FOUND` for the not-yet-created contract runner. No owner implementation existed at that point.
+- GREEN is limited to the exact C02 allowlist. `trackSubmission/index.js` authenticates only server `OPENID` and
+  exposes `begin/finalize/list_mine/get_mine/cancel`; owner-service/lifecycle/repository/response seams implement
+  exact reservation, owner retry/race isolation, revision lock, CAS/version and five-minute processing lease.
+- The storage adapter validates trimmed server-only `TRACK_STORAGE_FILEID_HOST` and exact `cloud:` host/path binding,
+  performs optional HEAD plus bounded streaming GET (10 MiB actual-byte authority), uploads the same Buffer to the
+  service review path, parses that Buffer, and keeps creator cleanup truthfully deletion-pending when needed.
+- Focused behavior coverage includes forged identity/zero side effects, begin race/idempotency, revision lock,
+  malformed binding/config, HEAD/GET length/stream limits, immutable upload/parse bytes, expiry, cursor seek/order,
+  terminal cleanup retry, parser failure and CAS/lease paths. No admin mode, evidence store, UI, catalog mutation,
+  collection/index/rule/env change or deployment is wired.
+- Exact `wx-server-sdk@4.0.2` was added while retaining `saxes@6.0.0`; the lock was generated with Corepack npm
+  `10.9.2`. Final local owner/parser/root/integration/lint/typecheck/CI host-build/diff checks pass (lint retains
+  nine pre-existing warnings and no new errors). Executor status is `READY_FOR_CONTROLLER_REVIEW`; draft PR creation
+  is focused on `Refs #119`, and approval/merge remain controller-owned.
+
+## C02 review-fix round 1 checkpoint — 2026-08-09
+
+- Sol's bounded TP-D055 correction is implemented only in the original C02 allowlist. The stable review path remains
+  unchanged; code/tests export and assert the fixed-path timeout invariant (`240s < 300s` lease) without deployment
+  or claiming C06 runtime verification.
+- Awaiting-upload cancellation now derives the trusted creator object from server host plus reserved cloudPath,
+  honors per-item CloudBase delete status/errMsg, and persists deletion-pending truthfully. Parser/reset/finalize/
+  cancel writes are CAS-checked; cleanup never runs before its terminal CAS wins, and cleanup persistence failures
+  return `store_unavailable` rather than a false Mine DTO with unchanged version.
+- Revision child terminal transition plus parent unlock is repository-transactional with replay repair; duplicate
+  begin races reread the first reservation, retries lookup the owner-scoped attempt before changed-field/config
+  validation, and list queries push owner/expiry/tuple seek with limit+1 into both repository seams.
+- Behavior coverage now includes the server-OpenID handler seam, CloudBase query/CAS/transaction stubs, timeout/lease
+  invariant, per-item delete failures, cleanup CAS loss, revision transaction loss/replay, retry-before-validation,
+  and server-side pagination. Coordinate-bearing fields remain limited to the exact `TrackSummary` projection.
+- Follow-up SDK-shape correction validates `wx-server-sdk@4.0.2` delete items as `{fileID,status,errMsg}` against the
+  requested file ID; only status `0` and idempotent `-503003` (storage file not exists) succeed.
+- Cleanup recovery now atomically marks planned terminal/snapshot targets `deletion_pending` before deletion, advances
+  only successful targets to `deleted`, and replays only pending targets without reparsing or touching immutable facts;
+  fully clean terminal replay has no storage/write/version side effects.
 
 ## Completed staging checkpoint
 
@@ -810,16 +862,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: completed the bounded C01/#118 implementation and review-fix within the exact allowlist; it cannot
-  approve or merge its own work.
+- `luna-worker`: completed the bounded C02/#119 implementation and Review-fix under the exact owner-lifecycle
+  allowlist; it cannot approve or merge its own work.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Complete exact-head independent Review of draft PR #124 after its latest-head GitHub `quality` check passed.
-2. If Review remains `APPROVED`, let Sol decide readiness and squash-merge; close #118 only after the merge is
-   confirmed remotely.
-3. Keep #119–#123 blocked until each preceding approved PR merges.
+1. Rerun latest-head GitHub `quality` after this additive authority-state sync and obtain exact-head Sol Review.
+2. If approved, Sol may mark PR #125 ready and squash merge; close #119 only after the remote merge is verified.
+3. Keep #120–#123 blocked until each preceding approved PR merges; C03/#120 remains next but inactive.
 
 ## Blockers and risks
 
@@ -859,9 +910,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Draft PR #124 is open at the committed C01 implementation head and its latest-head GitHub `quality` check passed.
-Complete the exact-head independent Reviews, then let Sol decide readiness and squash-merge. The executor cannot
-approve or merge its own PR, and #118 remains open until the remote merge is confirmed.
+Publish this additive authority-state sync, rerun PR #125 latest-head `quality`, and obtain exact-head Sol Review.
+Only after approval may Sol mark the PR ready and squash merge it; #119 closes only after remote merge verification,
+and #120 remains blocked until then.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

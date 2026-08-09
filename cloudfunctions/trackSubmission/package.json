@@ -5,6 +5,7 @@
   "description": "Private GPX/KML track parser for reviewed geometry",
   "main": "domain/track-parser.js",
   "dependencies": {
-    "saxes": "6.0.0"
+    "saxes": "6.0.0",
+    "wx-server-sdk": "4.0.2"
   }
 }
