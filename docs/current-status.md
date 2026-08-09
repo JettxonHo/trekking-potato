@@ -82,6 +82,46 @@
 - Implementation routing is the exact custom Agent `luna-worker`; configuration is verified as
   `gpt-5.6-luna/max`, while runtime model evidence must be recorded separately. Terra is not authorized as fallback.
 
+## C02 implementation checkpoint — 2026-08-09
+
+- TDD RED was recorded immediately after activation by registering `test:track-owner`: the focused command failed
+  with `MODULE_NOT_FOUND` for the not-yet-created contract runner. No owner implementation existed at that point.
+- GREEN is limited to the exact C02 allowlist. `trackSubmission/index.js` authenticates only server `OPENID` and
+  exposes `begin/finalize/list_mine/get_mine/cancel`; owner-service/lifecycle/repository/response seams implement
+  exact reservation, owner retry/race isolation, revision lock, CAS/version and five-minute processing lease.
+- The storage adapter validates trimmed server-only `TRACK_STORAGE_FILEID_HOST` and exact `cloud:` host/path binding,
+  performs optional HEAD plus bounded streaming GET (10 MiB actual-byte authority), uploads the same Buffer to the
+  service review path, parses that Buffer, and keeps creator cleanup truthfully deletion-pending when needed.
+- Focused behavior coverage includes forged identity/zero side effects, begin race/idempotency, revision lock,
+  malformed binding/config, HEAD/GET length/stream limits, immutable upload/parse bytes, expiry, cursor seek/order,
+  terminal cleanup retry, parser failure and CAS/lease paths. No admin mode, evidence store, UI, catalog mutation,
+  collection/index/rule/env change or deployment is wired.
+- Exact `wx-server-sdk@4.0.2` was added while retaining `saxes@6.0.0`; the lock was generated with Corepack npm
+  `10.9.2`. Final local owner/parser/root/integration/lint/typecheck/CI host-build/diff checks pass (lint retains
+  nine pre-existing warnings and no new errors). Executor status is `READY_FOR_CONTROLLER_REVIEW`; draft PR creation
+  is focused on `Refs #119`, and approval/merge remain controller-owned.
+
+## C02 review-fix round 1 checkpoint — 2026-08-09
+
+- Sol's bounded TP-D055 correction is implemented only in the original C02 allowlist. The stable review path remains
+  unchanged; code/tests export and assert the fixed-path timeout invariant (`240s < 300s` lease) without deployment
+  or claiming C06 runtime verification.
+- Awaiting-upload cancellation now derives the trusted creator object from server host plus reserved cloudPath,
+  honors per-item CloudBase delete status/errMsg, and persists deletion-pending truthfully. Parser/reset/finalize/
+  cancel writes are CAS-checked; cleanup never runs before its terminal CAS wins, and cleanup persistence failures
+  return `store_unavailable` rather than a false Mine DTO with unchanged version.
+- Revision child terminal transition plus parent unlock is repository-transactional with replay repair; duplicate
+  begin races reread the first reservation, retries lookup the owner-scoped attempt before changed-field/config
+  validation, and list queries push owner/expiry/tuple seek with limit+1 into both repository seams.
+- Behavior coverage now includes the server-OpenID handler seam, CloudBase query/CAS/transaction stubs, timeout/lease
+  invariant, per-item delete failures, cleanup CAS loss, revision transaction loss/replay, retry-before-validation,
+  and server-side pagination. Coordinate-bearing fields remain limited to the exact `TrackSummary` projection.
+- Follow-up SDK-shape correction validates `wx-server-sdk@4.0.2` delete items as `{fileID,status,errMsg}` against the
+  requested file ID; only status `0` and idempotent `-503003` (storage file not exists) succeed.
+- Cleanup recovery now atomically marks planned terminal/snapshot targets `deletion_pending` before deletion, advances
+  only successful targets to `deleted`, and replays only pending targets without reparsing or touching immutable facts;
+  fully clean terminal replay has no storage/write/version side effects.
+
 ## Completed staging checkpoint
 
 - AppID/CloudBase binding, both deployed functions, `trip_contexts`, `history`, openid-scoped history and one real

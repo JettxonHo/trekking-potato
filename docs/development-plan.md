@@ -418,6 +418,8 @@ scrape a third-party platform, publish routes automatically or collect more iden
   `docs/current-status.md`; `docs/tasks/ACTIVE_TASK.md`.
 - Constraints: add only the already pinned `wx-server-sdk@4.0.2`; inject database/storage/clock/ID seams; no admin
   modes, frontend, real CloudBase mutation or new authentication. Exact `TRACK_STORAGE_FILEID_HOST` is server config.
+  C02 freezes a maximum deployed function timeout of 240 seconds as a C06 gate, strictly below the five-minute lease;
+  no environment may enable stale takeover without proving that invariant.
 - Acceptance: owner, concurrency, expiry, TOCTOU, side-effect, cursor, cleanup and retry matrix from
   `TRACK-SUBMISSION-1` is behavior-tested, including awaiting-upload expiry and post-deadline zero owner projection.
   Failure to validate exact CloudBase host/path stops the Issue.

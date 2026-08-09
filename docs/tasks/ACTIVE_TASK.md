@@ -40,6 +40,10 @@ state transitions, storage binding, side-effect order, expiry and tests.
 
 No other file may change without a controller-owned contract update.
 
+Controller-owned Review-fix contract files are additionally allowed only for Sol's concurrency correction:
+`docs/community-track-workflow.md`, `docs/development-plan.md`, `docs/testing-strategy.md` and
+`docs/decision-log.md`. The implementation executor must not broaden or rewrite those decisions.
+
 ## 4. Non-scope
 
 Administrator modes/allowlist/evidence store/retention timer, frontend, real CloudBase collection/index/rule/env
@@ -67,13 +71,30 @@ dependency/framework upgrades and changes to the merged C01 parser contract.
 - Every transition uses exact authorization/status/version/lease CAS. Processing claims a random five-minute lease;
   fresh retry returns `processing_in_progress`, stale retry may take over, and pre-snapshot storage failure returns the
   record to `awaiting_upload`. Parser failures become `invalid` and begin cleanup.
+- The fixed review path is safe only when C06 configures a hard function timeout at most 240 seconds, strictly below
+  the 300-second lease. C02 must encode/test this deployment invariant without deploying; an environment that cannot
+  prove it cannot enable stale takeover.
 - Owner list/detail always require server `_openid` and `recordExpiresAt > now`; expired/foreign/missing all return or
   project not-found without summary/review facts. List order/cursor/limits are exact and filter-independent.
-- `cancel` transitions only the frozen allowed states, then attempts creator/review deletion. Terminal
-  `cancelled/invalid/rejected` replay only retries deletion-pending cleanup and never fabricates deletion success.
+- Before any destructive deletion, the first successful terminal/snapshot CAS atomically marks every planned target
+  `deletion_pending`. Success advances it to `deleted`; a failure or interrupted second CAS leaves an honest,
+  recoverable pending state. `finalize` replay on `pending_review/invalid` and terminal `cancel` replay retry only
+  exact pending targets, never reparse, never touch `deleted`, and a fully clean replay has zero side effects.
+- `cancel` transitions only the frozen allowed states, then attempts creator/review deletion. A syntactically valid
+  stale `expectedVersion` is accepted only for terminal `cancelled/invalid/rejected` cleanup replay; the service uses
+  the current stored version and never fabricates deletion success.
+- Cancelling `awaiting_upload` derives the creator file identity from the trusted host plus reserved cloudPath, so an
+  upload completed before finalize is still deleted. The returned per-item CloudBase result must match the requested
+  fileID: status `0` succeeds, exact pinned-SDK status `-503003` (`storage file not exists`) is idempotent success, and
+  every other non-zero/missing/mismatched result fails. A cleanup state CAS/store failure returns `store_unavailable`,
+  never a false `cleanup.pending=false` Mine.
+- Child terminal transition plus parent revision-pointer clearing is one repository transaction. Parser-invalid and
+  cancel paths must not delete shared objects or clear the parent before that transaction wins; replay repairs only
+  through the same transactional invariant.
 - Exact `Mine`, `MineListItem`, `MineList`, `UploadReservation`, owner action order and all public messages/error
-  metadata are frozen. No DTO/log contains OpenID, temporary URL, file path/ID, raw XML, coordinate, filename in logs,
-  rights/provenance URL, SDK/XML details, secrets or future evidence-store key.
+  metadata are frozen. No DTO/log contains OpenID, temporary URL, file path/ID, raw XML or coordinate data outside the
+  exact `TrackSummary` projection, filename in logs, rights/provenance URL, SDK/XML details, secrets or future
+  evidence-store key.
 - Do not add SHA/hash, automatic catalog publication, operational-status/safety/verdict inference or speculative
   compatibility layers.
 
@@ -83,14 +104,23 @@ Use TDD. Register `test:track-owner` in root `npm test`. Behavior tests must pro
 
 - unauthenticated/forged identity and invalid mode/input/rights/format/config have zero forbidden side effects;
 - begin retry isolation, exact first-write response, unique-race reread and different-owner separation;
+- retry lookup occurs after validating only the owner-scoped attempt ID and before revalidating changed request
+  fields/config, so even an otherwise-invalid retry returns the first reservation byte-for-byte;
 - exact fileID URI host/path binding, malformed URI/config cases and no prefix/suffix authority;
 - reservation expiry, actual streamed byte limits, GET length mismatch, HEAD non-authority, overwrite/TOCTOU and
   immutable uploaded/parsed bytes;
 - finalize idempotency, fresh processing response, five-minute stale lease takeover, storage/store/parser failures,
-  CAS/version conflicts and no partial summary authority;
+  CAS/version conflicts, no partial summary authority, and pending-review/invalid cleanup replay without reparsing;
+- hard runtime timeout/lease ordering, parser-invalid/reset/cleanup CAS loss, no pre-CAS destructive cleanup and
+  actual pinned-SDK per-item delete shapes (`0`, idempotent `-503003`, other failure and fileID mismatch);
 - revision same-owner/state/one-active-child transaction and pointer clearing only for allowed terminal child states;
-- exact owner DTO/privacy/action rows, cursor seek/order/filter rules, limit bounds and post-deadline zero projection;
-- cancel races, creator/review cleanup, deletion-pending truthfulness and idempotent cleanup retry;
+- literal exact-key `Mine/MineListItem/MineList` privacy projections and all eight status/action rows; cursor
+  seek/order/filter rules, limit bounds and post-deadline zero projection;
+- actual handler `getWXContext().OPENID` wiring and exact CloudBase repository query/transaction/update shapes,
+  including owner+attempt `limit(1)`, both `updatedAt DESC`/`_id DESC` orderings, the two strict cursor `lt` branches
+  with exact values, child/parent CAS conditions, and server-side `limit+1` rather than an in-memory 1,000-row cap;
+- cancel races, atomic pre-delete pending state, creator/review cleanup, cleanup-CAS loss then replay, fully-clean
+  zero-side-effect terminal replay, deletion-pending truthfulness and idempotent cleanup retry;
 - the merged C01 parser contract and all repository gates remain green.
 
 Required commands:
@@ -144,3 +174,25 @@ Implementation routing: exact custom Agent luna-worker only; Terra fallback proh
 The activation commit is controller-owned and contains no implementation code. `luna-worker` must re-read all
 required sources, verify the branch/worktree, run baselines, record a concise handshake, then create the focused test
 and capture a real RED before implementing GREEN.
+
+## 12. Sol Review-fix round 1 — 2026-08-09
+
+Two independent Reviews returned `CHANGES_REQUESTED`. The bounded fix must close: uploaded-before-finalize cancel
+cleanup; per-item delete status and truthful cleanup CAS failures; parser/reset cleanup ordering; transactional child
+terminal + parent unlock; revision duplicate first-write-wins; retry-before-revalidation; server-side cursor seek;
+handler/CloudBase seam behavior tests; and the fixed-path runtime-timeout invariant. No public DTO, user flow,
+retention period, dependency, admin mode, UI, deployment or catalog boundary changes.
+
+## 12. Executor implementation checkpoint — 2026-08-09
+
+- The required RED was captured after registering `test:track-owner`: `corepack npm@10.9.2 run test:track-owner`
+  failed with `MODULE_NOT_FOUND` before the runner or owner modules existed.
+- GREEN remains within this file allowlist. The handler is server-OpenID-only and exposes only the five owner modes;
+  injected repository/storage/clock/ID/parser seams keep tests offline. The implementation covers exact begin
+  reservation/idempotency/race/revision, strict fileID host/path binding, bounded actual-byte download and immutable
+  review copy/parse, processing lease/takeover, CAS/version, expiry/cursor DTOs and cancel deletion-pending retry.
+- `wx-server-sdk@4.0.2` is the only added dependency; C01 `saxes@6.0.0` and npm 10.9.2 lock generation remain exact.
+  No admin/evidence/retention timer/UI/catalog/CloudBase mutation/deployment path was added.
+- Focused behavior test and complete local repository gate matrix are GREEN: owner/parser/root/integration, lint
+  (nine pre-existing warnings, zero errors), typecheck, `CI=1` host build, diff-check, allowlist and residue scans all
+  pass. Executor status is `READY_FOR_CONTROLLER_REVIEW`; latest-head CI and controller approval remain pending.
