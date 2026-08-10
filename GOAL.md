@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C07 IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — C07 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -53,10 +53,34 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
 through PR #128 (`0e534d49`) and the C06 offline acceptance package through PR #130 (`59ef3c2`). Issues #118–#122
 are closed. C06/#123 is now blocked only on the remaining separately controlled staging upload/review/timer rows;
-it is not the active implementation Issue. Human-approved C07/#131 is the only active implementation child and
-moves the complete community-track owner/admin workflow to a secondary page while preserving TP-D056 Option A.
+it is not the active review task. C07/#131 implementation is complete locally and is now the only active review task;
+it moves the complete community-track owner/admin workflow to a secondary page while preserving TP-D056 Option A.
 Each implementation child gets one focused branch/PR and exact allowlist. Neither C06 staging evidence nor C07
-claims deployment, production readiness or Goal completion.
+claims a PR, approval, merge, deployment, production readiness or Goal completion.
+
+## C07 implementation checkpoint — 2026-08-10
+
+- The bounded frontend moves the owner/admin track orchestration and render into
+  `taro-app/src/pages/community-track/index.jsx`; the existing `track-submission-model` and
+  `track-submission-service` remain the single state/I/O seams.
+- `pages/community-track/index` is registered. The homepage keeps one `社区轨迹` entry and the existing
+  route-not-found/location-failed manual fallback adds `提交轨迹供审核`; the homepage no longer renders track/admin
+  cards or visible CLIMB SUPPORT and requests retain `climbSupport='solo_or_unsure'`.
+- The focused contract recorded a real missing-page RED before implementation and is GREEN after mutation-sensitive
+  route/config/homepage/secondary-page/unmount assertions. Local gates are code evidence only; staging upload/review,
+  timer, deployment and runtime model visibility remain separate and unverified.
+
+## C07 review-fix round 1 checkpoint — 2026-08-10
+
+- The focused UI contract now asserts element-level handlers for both homepage entries, the secondary submit button,
+  owner list actions and owner detail actions. Each isolated binding-removal mutation produced a real RED and was
+  restored to GREEN; the final output is `PASS: C04/C05/C07 track-submission UI contract`.
+- Production implementation remains unchanged. The required local gates remain code evidence only, with runtime model
+  identity `UNVERIFIED_RUNTIME_MODEL` and #123 staging upload/review/timer rows still blocked.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+- Open work / Next action: obtain two fresh independent Reviews; the controller commits, pushes and publishes the draft
+  PR; latest-head CI and actual-diff Review must pass; Sol XHigh then decides mergeability. No C07 PR, approval or merge
+  is claimed in this checkpoint.
 
 ## 6. Completion criteria
 

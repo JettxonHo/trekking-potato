@@ -919,3 +919,6 @@
 - Why: a secondary page restores a clear primary journey while retaining discoverability at the two moments when a
   user is most likely to contribute. Reusing the reviewed deep module preserves privacy, retries and concurrency
   behavior, and the conservative hidden default avoids turning a visual simplification into a safety-policy change.
+- Implementation checkpoint: C07 now registers and renders the independent secondary page, removes the owner/admin
+  workflow from the homepage, preserves both bounded entry paths and passes the focused mutation-sensitive UI contract.
+  This is local code-ready evidence only; it does not verify runtime model identity, CloudBase behavior or staging.

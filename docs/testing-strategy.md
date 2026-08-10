@@ -597,6 +597,10 @@ lint、typecheck、fixture-free WeChat build 与 diff check。测试输出与部
 - `test:track-ui`：exact rights/privacy copy、local precheck、upload/finalize recovery、八状态 action matrix、
   error/retry、pagination、revision/cancel/cleanup retry、admin separation，以及 C05 对 `view_raw`/`rawAccess`
   fail-closed：不渲染、不请求 `includeRawLink`、不打开/下载/保存/分享/复制原始文件；
+- C07 对 `test:track-ui` 增加 mutation-sensitive 页面边界合同：主页和手动 fallback 的两个入口、精确
+  `navigateTo` 目标、`app.config` 页面注册、主页无 owner/admin/CLIMB SUPPORT 视觉残留、二级页的 owner/admin
+  上传/列表/详情/审核 wiring、共享 model/service seam，以及卸载时 `clearSession`/continuation invalidation。
+  该合同先以缺失二级页产生真实 RED，再在独立页面提取后 GREEN；它不放宽既有 C04/C05 合同。
 - `test:track-acceptance`：owner-to-review vertical flow, exact stored/display evidence projections and proof that the
   acceptance flow performs no runtime catalog/product-fact/public-UGC mutation. Route/weather/verdict/history integrity
   remains attributed to the exact production-file allowlist/diff and the existing focused gates, not same-run snapshots.

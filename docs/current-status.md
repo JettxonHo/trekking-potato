@@ -3,16 +3,16 @@
 - Updated: `2026-08-10`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C07 IMPLEMENTATION_ACTIVE`
-- Active task: `#131 / IMPLEMENTATION`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_ACTIVE`
+- Active task: `#131 / REVIEW`
 - Branch/base: `codex/131-community-track-page` from `main@59ef3c2`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: C06 PR #130 merged as `59ef3c2`. #123 retains only separately controlled staging upload/review/timer
-  evidence and is `BLOCKED_STAGING`. Human-approved C07/#131 is the sole active implementation Issue: move the
-  complete private community-track owner/admin workflow to a secondary page, add two bounded homepage entries and
-  remove the visible CLIMB SUPPORT section while preserving its conservative internal default. No production/public
-  release or automatic destructive cleanup is authorized.
+  evidence and is `BLOCKED_STAGING`. C07/#131 implementation is complete locally and is the sole active review task:
+  move the complete private community-track owner/admin workflow to a secondary page, add two bounded homepage entries
+  and remove the visible CLIMB SUPPORT section while preserving its conservative internal default. No C07 PR, approval,
+  merge, production/public release or automatic destructive cleanup is claimed or authorized here.
 
 ## Current community-track checkpoint
 
@@ -23,17 +23,18 @@
   `75fcd92`; #119 is closed. C03 PR #126 then passed latest-head GitHub `quality`, two exact-head independent Reviews
   and squash merged as `a809f54`; #120 is closed. C04 PR #127 passed latest-head `quality` and two independent
   exact-head Reviews, then squash merged as `ff5774a`; #121 is closed. C05 PR #128 passed latest-head quality and two
-  exact-head Reviews, then squash merged as `0e534d49`; #122 is closed. C06/#123 is now active.
+  exact-head Reviews, then squash merged as `0e534d49`; #122 is closed. C06/#123 remains blocked on staging rows;
+  C07/#131 is now the active review task.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
   de-identified reviewed-evidence record; GitHub CLI authentication is restored.
 - #115 remains open as the parent Goal. C01/#118 through C05/#122 are complete and C06 PR #130 is merged; #123 is
-  blocked on remaining human staging rows. C07/#131 is the only active implementation child.
+  blocked on remaining human staging rows. C07/#131 is the only active review task.
 - `TRACK-SUBMISSION-1` freezes GPX/KML rights, limits, private storage, owner/admin APIs, status machine, DTOs,
   cleanup-pending behavior, errors and no-catalog-publication boundary.
 - Completed serial code work is C01 parser → C02 owner API → C03 admin API → C04 user UX → C05 admin UX → C06
-  offline acceptance. C07 is the human-approved focused UX correction; remaining staging evidence stays separate.
+  offline acceptance. C07 is the focused UX correction under review; remaining staging evidence stays separate.
 
 ## C07 secondary-page activation checkpoint — 2026-08-10
 
@@ -43,7 +44,7 @@
   administrator empty-queue read. Secret/OpenID/storage-host values are not recorded.
 - File upload, review mutation, deletion and timer rows remain unverified; destructive cleanup remains disabled.
   #123 is therefore `BLOCKED_STAGING`, not silently complete or production-ready.
-- Human-approved #131 is activated on `codex/131-community-track-page` from exact `main@59ef3c2`. The homepage keeps
+- #131 is activated on `codex/131-community-track-page` from exact `main@59ef3c2`. The homepage keeps
   one deliberate community-track entry and the route-not-found fallback gains a second entry. The full owner/admin
   workflow moves to `pages/community-track/index` and reuses the existing model/service as its single state machine.
 - The visible CLIMB SUPPORT field leaves the homepage. Requests retain the conservative internal
@@ -54,7 +55,48 @@
 - The first staging cohort still excludes Gongga; community evidence cannot change operational status.
 - Contract Review-fix now closes upload overwrite/HEAD TOCTOU, exact fileID binding, `gx:Track`, processing lease,
   CAS/revision races, DTO/error/action gaps and the 30/180-day retention lifecycle. Full post-retention planning gates
-  pass and live #115 is synchronized; both latest-diff independent Reviews are approved.
+  pass and live #115 is synchronized; C07 now awaits two fresh independent Reviews.
+
+### C07 implementation checkpoint — 2026-08-10
+
+- TDD RED was captured by the focused UI gate after adding the secondary-page contract: the missing
+  `pages/community-track/index.jsx` caused the real `ENOENT`/missing-page assertion before production edits.
+- The implementation now registers `pages/community-track/index`, moves the complete owner/admin orchestration and
+  render out of the route-query homepage, and keeps `track-submission-model` plus `track-submission-service` as the
+  only state/I/O seams. The homepage has one lightweight `社区轨迹` entry and the route-not-found/location-failed
+  manual fallback adds `提交轨迹供审核`.
+- The homepage no longer renders owner/admin cards or visible CLIMB SUPPORT. Requests continue using the conservative
+  internal `solo_or_unsure` value. New-page unmount calls the existing service `clearSession` and invalidates the
+  reducer state; TP-D056 Option A remains raw-inert.
+- Focused C04/C05/C06 and C07 routing/page assertions, root tests, integration `55/0`, lint (0 errors/9 existing
+  warnings), typecheck, fixture-free WeChat build and `git diff --check` pass. This is code-ready evidence only;
+  #123 staging/runtime rows and runtime model identity remain separate (`UNVERIFIED_RUNTIME_MODEL`).
+
+### C07 review-fix round 1 checkpoint — 2026-08-10
+
+- The focused UI contract now checks element-level handlers for both homepage entries, the secondary submit button,
+  owner list actions and owner detail actions. Isolated removal of each binding produced a real RED and was restored;
+  final output is `PASS: C04/C05/C07 track-submission UI contract`.
+- Production implementation is unchanged in this round. Focused/root/integration/lint/typecheck/build evidence remains
+  local code evidence only; runtime model identity is `UNVERIFIED_RUNTIME_MODEL` and #123 remains `BLOCKED_STAGING`.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+
+## C07 independent Reviews and local DevTools smoke — 2026-08-10
+
+- Two fresh independent Reviews approved the Review-fix worktree with no P0–P3. One reviewer independently removed
+  each of the five required handler bindings in isolated copies; every mutation turned `test:track-ui` RED and the
+  restored worktree returned `PASS: C04/C05/C07 track-submission UI contract`.
+- A normal fixture-free WeChat DevTools compile rendered the simplified homepage with no visible CLIMB SUPPORT or
+  owner/admin cards. The `社区轨迹` button navigated to `pages/community-track/index`, the private owner list reached
+  the honest empty state, and `返回路线查询` returned to the homepage. DevTools reported zero errors; only existing
+  framework/deprecation and long-text suggestions remained.
+- This smoke did not select or upload a file, write/review/delete database data, enable a timer, or prove a real-device
+  or production deployment. #123 upload/review/timer rows remain `BLOCKED_STAGING`.
+- Controller next action is an additive commit, push and draft PR. That new exact head still requires latest-head
+  GitHub quality and actual-diff Review before any merge decision.
+- Open work / Next action: obtain two fresh independent Reviews; the controller commits, pushes and publishes the draft
+  PR; latest-head CI and actual-diff Review must pass; Sol XHigh decides mergeability. No C07 PR, approval or merge is
+  claimed in this checkpoint.
 
 ## C06 offline acceptance executor checkpoint — 2026-08-10
 
@@ -1292,14 +1334,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: assigned the bounded C07/#131 secondary-page implementation under its exact frontend/test/docs
-  allowlist; it cannot approve or merge its own work.
+- `luna-worker`: completed the bounded C07/#131 secondary-page implementation and review-fix under its exact
+  frontend/test/docs allowlist, returning `READY_FOR_CONTROLLER_REVIEW`; it cannot approve or merge its own work.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Implement and test #131 under its exact allowlist, then obtain two independent Reviews and latest-head CI before
-   Sol may decide merge.
+1. C07 implementation and review-fix evidence are complete locally. Obtain two fresh independent Reviews; the
+   controller commits, pushes and publishes the draft PR; latest-head CI and actual-diff Review must pass before Sol
+   decides mergeability. No C07 PR, approval or merge is claimed here.
 2. Keep #123 staging upload/review/timer rows separately blocked. No C07 test or build may be used as runtime,
    deployment or destructive-cleanup evidence.
 
@@ -1342,10 +1385,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Dispatch exact `luna-worker` for C07/#131 after the controller activation diff is frozen. Require real RED→GREEN,
-the full focused/root/integration/lint/typecheck/fixture-free build matrix and two independent Reviews. Only Sol may
-publish or merge the PR. #123 staging and future viewer #129 remain separate and blocked; C07 performs no CloudBase
-mutation or deployment.
+Obtain two fresh independent Reviews for the completed C07/#131 diff. The controller must commit, push and publish the
+draft PR; latest-head CI and actual-diff Review are required before Sol decides mergeability. #123 staging and future
+viewer #129 remain separate and blocked; C07 performs no CloudBase mutation or deployment. No C07 PR, approval or
+merge is claimed in this checkpoint.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

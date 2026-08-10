@@ -1,10 +1,10 @@
 # ACTIVE TASK — C07 community-track secondary page
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C07 IMPLEMENTATION_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_ACTIVE`
 - Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
 - GitHub Issue: `#131`
-- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW`
 - Controller: Sol XHigh
 - Implementation executor: exact custom Agent `luna-worker`
 - Branch: `codex/131-community-track-page`
@@ -94,8 +94,20 @@ Required final commands:
 
 Synchronize product, architecture, testing, development, decision, current-status and task language. Preserve the
 difference between code-ready, the partial staging evidence already verified, and the remaining blocked upload/review/
-timer rows. Executor returns `READY_FOR_CONTROLLER_REVIEW`; Sol owns two independent Reviews, PR publication,
-latest-head CI, merge and Goal acceptance.
+timer rows. The implementation is complete locally and the executor returns `READY_FOR_CONTROLLER_REVIEW`.
+
+## 8. Independent Review and local GUI checkpoint — 2026-08-10
+
+- Two fresh independent Reviews returned `APPROVED` with no P0–P3 after the handler-binding Review-fix.
+- Normal fixture-free WeChat DevTools rendered the simplified homepage, navigated through `社区轨迹` to the new page,
+  loaded the owner empty state and returned to route search with zero debugger errors. No upload, review, delete,
+  timer, real-device or production action occurred.
+- Remaining gate: controller commit/push/draft PR, latest-head GitHub quality and exact-head actual-diff Review. Do not
+  close #131/#115 or mark the Goal complete before the approved merge and post-merge synchronization.
+
+Open work / Next action: obtain two fresh independent Reviews; the controller commits, pushes and publishes the draft
+PR; latest-head CI and actual-diff Review must pass; Sol owns the merge decision and Goal acceptance. No C07 PR,
+approval or merge is claimed in this task handoff.
 
 ## 7. Stop conditions
 

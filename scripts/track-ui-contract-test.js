@@ -483,7 +483,7 @@ function reviewFixRoundTwoModelContract() {
 }
 
 async function sourceWiringContract() {
-  const page = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
+  const page = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/community-track/index.jsx'), 'utf8')
   const service = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/track-submission-service.js'), 'utf8')
   const modelSource = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/track-submission-model.js'), 'utf8')
   ;[
@@ -596,7 +596,7 @@ async function sourceWiringContract() {
   ].forEach((literal) => assert.match(page, new RegExp(literal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), literal))
   ;["name: 'trackSubmission'", "mode: 'begin'", "mode: 'finalize'", "mode: 'list_mine'", "mode: 'get_mine'", "mode: 'cancel'"].forEach((literal) => assert.match(service + modelSource, new RegExp(literal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), literal))
   assert.doesNotMatch(service, /setTimeout|setInterval/)
-  const css = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.css'), 'utf8')
+  const css = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/community-track/index.css'), 'utf8')
   assert.match(css, /track-input[^\n]*min-height: 88rpx/)
   assert.match(css, /track-file-btn, \.track-submit-btn[^\n]*height: 88rpx/)
   assert.match(css, /track-submission-actions \.inline-retry-btn[^\n]*min-height: 88rpx/)
@@ -900,7 +900,7 @@ async function adminRawPathRemovedContract() {
 }
 
 async function adminSourceWiringContract() {
-  const page = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
+  const page = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/community-track/index.jsx'), 'utf8')
   const service = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/track-submission-service.js'), 'utf8')
   const modelSource = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/track-submission-model.js'), 'utf8')
   ;[
@@ -955,9 +955,63 @@ async function adminSourceWiringContract() {
   assert.doesNotMatch(page, /isAdmin\s*=/)
   assert.match(modelSource, /allowedAdminActions: safeAdminActions\(item\.allowedAdminActions\)/)
   assert.doesNotMatch(modelSource, /rawAccess\s*:/)
-  const css = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.css'), 'utf8')
+  const css = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/community-track/index.css'), 'utf8')
   assert.match(css, /track-admin-card/)
   assert.match(css, /track-admin-action/)
+}
+
+function secondaryCommunityPageContract() {
+  const root = path.join(__dirname, '../taro-app/src')
+  const homepage = fs.readFileSync(path.join(root, 'pages/index/index.jsx'), 'utf8')
+  const homeCss = fs.readFileSync(path.join(root, 'pages/index/index.css'), 'utf8')
+  const config = fs.readFileSync(path.join(root, 'app.config.js'), 'utf8')
+  const pagePath = path.join(root, 'pages/community-track/index.jsx')
+  const pageCssPath = path.join(root, 'pages/community-track/index.css')
+  assert.equal(fs.existsSync(pagePath), true, 'secondary community-track page must exist')
+  assert.equal(fs.existsSync(pageCssPath), true, 'secondary community-track stylesheet must exist')
+  const page = fs.readFileSync(pagePath, 'utf8')
+  const pageCss = fs.readFileSync(pageCssPath, 'utf8')
+  const homepageRender = homepage.slice(homepage.indexOf('  render() {'))
+  assert.match(config, /pages\/community-track\/index/)
+  assert.match(homepage, /Taro\.navigateTo\(\s*\{\s*url:\s*['"]\/pages\/community-track\/index['"]\s*\}\s*\)/)
+  assert.match(homepage, /<Button[^>]+className="community-track-entry-btn"[^>]*>社区轨迹<\/Button>/)
+  assert.match(homepage, /<Button[^>]+className="community-track-fallback-btn"[^>]*>提交轨迹供审核<\/Button>/)
+  assert.match(homepage, /<Button[^>]*className="community-track-entry-btn"[^>]*onClick=\{this\.onCommunityTrackEntry\}[^>]*>社区轨迹<\/Button>/)
+  assert.match(homepage, /<Button[^>]*className="community-track-fallback-btn"[^>]*onClick=\{this\.onCommunityTrackEntry\}[^>]*>提交轨迹供审核<\/Button>/)
+  assert.doesNotMatch(homepageRender, /<View className="track-owner-card card">/)
+  assert.doesNotMatch(homepageRender, /<View className="track-admin-card card">/)
+  assert.doesNotMatch(homepageRender, /CLIMB SUPPORT|攀登支持|climbSupportLabels|onClimbSupportChange/)
+  assert.doesNotMatch(homeCss, /track-owner-card|track-admin-card/)
+  assert.doesNotMatch(homepage, /track-submission-model|track-submission-service|createTrackSubmissionService|_trackBegin|onTrackAdminRefresh|renderTrackPage\(\)/)
+
+  ;[
+    'createTrackSubmissionService', 'createInitialTrackUiState', 'reduceTrackUi', 'selectTrackUiView',
+    'onTrackChooseFile', 'onTrackRefresh', 'onTrackOpenDetail', 'onTrackAdminRefresh',
+    'onTrackAdminOpenDetail', 'onTrackAdminReview', 'onTrackAdminReset', 'componentWillUnmount',
+    'clearSession', 'listMine', 'getMine', 'listAdmin', 'getAdmin', 'reviewAdmin',
+  ].forEach((literal) => assert.match(page, new RegExp(literal.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')), `secondary page: ${literal}`))
+  assert.match(page, /<View className="track-owner-card card">/)
+  assert.match(page, /<View className="track-admin-card card">/)
+  assert.match(page, /trackUi\.list\.items\.map/)
+  assert.match(page, /trackUi\.detail\.submission/)
+  assert.match(page, /trackUi\.admin\.items\.map/)
+  assert.match(page, /allowedAdminActions\.map/)
+  assert.match(page, /onTrackAdminReview/)
+  assert.match(page, /trackUi\.admin\.items\.map[\s\S]*onClick=\{\(event\) => this\.onTrackAdminReview\(action, item, event\)\}/)
+  assert.match(page, /trackUi\.admin\.detail\.submission\.allowedAdminActions\.map[\s\S]*onClick=\{\(event\) => this\.onTrackAdminReview\(action, trackUi\.admin\.detail\.submission, event\)\}/)
+  assert.match(page, /onClick=\{this\.onTrackChooseFile\}/)
+  assert.match(page, /<Button[^>]*className="track-submit-btn"[^>]*onClick=\{this\.onTrackSubmit\}[^>]*>/)
+  assert.match(page, /trackUi\.list\.items\.map[\s\S]*onClick=\{\(\) => this\.onTrackOpenDetail\(item\.submissionId\)\}/)
+  assert.match(page, /<Button[^>]*className="inline-retry-btn"[^>]*onClick=\{\(event\) => this\.onTrackAction\(action, item, event\)\}[^>]*>/)
+  assert.match(page, /<Button[^>]*className="inline-retry-btn"[^>]*onClick=\{\(event\) => this\.onTrackAction\(action, trackUi\.detail\.submission, event\)\}[^>]*>/)
+  assert.match(page, /componentWillUnmount\(\) \{\n\s+this\._unmounted = true\n\s+if \(this\._trackService\) this\._trackService\.clearSession\(\)/)
+  assert.match(page, /navigateBack|navigateTo/)
+  assert.match(pageCss, /track-owner-card/)
+  assert.match(pageCss, /track-admin-card/)
+  assert.match(pageCss, /track-admin-action/)
+  assert.match(page, /track-submission-model/)
+  assert.match(page, /track-submission-service/)
+  assert.match(page, /\{this\.renderTrackPage\(\)\}/)
 }
 
 Promise.resolve()
@@ -973,7 +1027,8 @@ Promise.resolve()
   .then(adminModelContract)
   .then(sourceWiringContract)
   .then(adminSourceWiringContract)
-  .then(() => console.log('PASS: C05 track-submission UI contract'))
+  .then(secondaryCommunityPageContract)
+  .then(() => console.log('PASS: C04/C05/C07 track-submission UI contract'))
   .catch((error) => {
     console.error(error.stack || error)
     process.exitCode = 1

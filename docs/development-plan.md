@@ -385,6 +385,7 @@ is split serially:
 | C04 | user choose/upload/finalize/status/revision/cancel UX | C03 | no admin UI/deploy |
 | C05 | admin queue/detail/review UX; raw viewer deferred | C04 | no deploy/catalog mutation |
 | C06 | cross-layer acceptance, docs and human staging deployment checklist | C05 | no production/public release |
+| C07 | move complete community-track owner/admin workflow to a secondary page; simplify homepage entries and hide visible CLIMB SUPPORT | C06 | no server/catalog/deploy mutation |
 
 Default is strict serial execution because C02/C03 share one function and C04/C05 share the page/service contracts.
 Each child is one focused Issue/branch/PR with a complete task contract. Any discovered need to broaden storage read,
@@ -495,6 +496,24 @@ scrape a third-party platform, publish routes automatically or collect more iden
   timer timezone, observed server-owned `TRIGGER_SRC=timer`, normal client non-timer value, forged-event rejection,
   empty-OpenID behavior, duplicate-delivery/dry-run/backlog drain, lease/cleanup/rollback and residue rows are recorded
   truthfully as verified or blocked.
+
+### C07 — secondary community-track page
+
+- Depends on merged C06 and the human-approved TP-D059 contract. Goal: remove the complete private owner/admin workflow
+  from the route-query homepage without duplicating the reviewed model/service state machine; preserve two deliberate
+  homepage entry paths and keep the manual-coordinate fallback intact.
+- Allowlist: `taro-app/src/app.config.js`, `taro-app/src/pages/index/index.jsx`,
+  `taro-app/src/pages/index/index.css`, new `taro-app/src/pages/community-track/index.jsx`,
+  `taro-app/src/pages/community-track/index.css`, focused additions to `scripts/track-ui-contract-test.js`, and
+  approved documentation updates. No CloudBase function, collection, route catalog, deployment or dependency change.
+- Constraints: the secondary page owns all owner submission/list/detail/revision/cancel/cleanup and allowlisted admin
+  queue/detail/review rendering and orchestration; it must not inherit the homepage or trigger homepage route/history/cache
+  lifecycle. Reuse `track-submission-model` and `track-submission-service` as the only state/I/O seams. Hide visible
+  CLIMB SUPPORT while retaining `solo_or_unsure` as the request default, and keep TP-D056 Option A raw-inert.
+- Acceptance: mutation-sensitive UI contracts prove both entry paths, exact registration/target, homepage removal,
+  shared seam, secondary owner/admin wiring and unmount invalidation; existing C04/C05 contracts plus root integration,
+  lint, typecheck, WeChat build and diff checks remain green. Runtime model identity, CloudBase and staging rows remain
+  separately reported and are not inferred from local tests or compilation.
 
 ## 19. I23 串行恢复合同
 

@@ -123,6 +123,15 @@
 .retry-btn::after { border: none !important; }
 .retry-btn:active { transform: scale(0.95); }
 
+.community-track-entry-btn, .community-track-fallback-btn {
+  width: 100% !important; height: 88rpx !important; line-height: 88rpx !important;
+  background: #f5f5f7 !important; color: #1d1d1f !important; border: none !important;
+  border-radius: 16rpx !important; font-size: 28rpx !important; font-weight: 600 !important;
+  margin-top: 20rpx !important;
+}
+.community-track-entry-btn::after, .community-track-fallback-btn::after { border: none !important; }
+.community-track-entry-btn:active, .community-track-fallback-btn:active { transform: scale(0.97); }
+
 .manual-submit-btn {
   width: 100% !important; height: 88rpx !important; line-height: 88rpx !important;
   background: #1a1a1a !important; color: #fff !important; border: none !important;
@@ -581,59 +590,3 @@
   0%, 100% { opacity: 0.4; }
   50% { opacity: 0.82; }
 }
-
-/* ============================================
- * C04 私有轨迹提交（沿用现有卡片与表单语言）
- * ============================================ */
-
-.track-owner-card { margin-top: 36rpx; padding: 32rpx; }
-.track-rights-copy { display: block; color: #3a3a3c; font-size: 23rpx; line-height: 1.7; margin-bottom: 18rpx; }
-.track-rights-warning { color: #86868b; }
-.track-field-label { display: block; color: #86868b; font-size: 22rpx; letter-spacing: 1rpx; margin: 18rpx 0 10rpx; }
-.track-input { display: block; width: 100%; box-sizing: border-box; min-height: 88rpx; padding: 18rpx 20rpx; border-radius: 14rpx; background: #ffffff; color: #1d1d1f; font-size: 27rpx; }
-.track-rights-bases { display: flex; flex-direction: column; gap: 12rpx; }
-.track-rights-basis { padding: 18rpx 20rpx; border-radius: 14rpx; background: #ffffff; border: 1rpx solid rgba(0,0,0,0.06); min-height: 88rpx; box-sizing: border-box; }
-.track-rights-basis-active { border-color: #1a1a1a; background: #fafafa; }
-.track-rights-basis-name { display: block; color: #1d1d1f; font-size: 26rpx; font-weight: 600; }
-.track-rights-basis-copy { display: block; color: #86868b; font-size: 22rpx; line-height: 1.5; margin-top: 8rpx; }
-.track-license-fields { display: flex; flex-direction: column; gap: 12rpx; margin-top: 12rpx; }
-.track-consent-row { display: flex; align-items: center; gap: 12rpx; margin-top: 20rpx; min-height: 88rpx; }
-.track-consent-group { display: flex; align-items: center; min-width: 88rpx; min-height: 88rpx; }
-.track-consent-row checkbox { flex-shrink: 0; min-width: 88rpx; min-height: 88rpx; }
-.track-consent-copy { flex: 1; color: #3a3a3c; font-size: 23rpx; line-height: 1.5; }
-.track-file-btn, .track-submit-btn { height: 88rpx !important; line-height: 88rpx !important; border-radius: 14rpx !important; font-size: 27rpx !important; margin-top: 18rpx !important; }
-.track-file-btn { background: #ffffff !important; color: #1d1d1f !important; border: 1rpx solid rgba(0,0,0,0.14) !important; }
-.track-file-btn::after, .track-submit-btn::after { border: none !important; }
-.track-submit-btn { background: #1a1a1a !important; color: #ffffff !important; }
-.track-submit-btn[disabled] { opacity: 0.35; }
-.track-file-hint, .track-progress { display: block; color: #86868b; font-size: 21rpx; line-height: 1.5; margin-top: 10rpx; }
-.track-error-box { background: rgba(255,59,48,0.08); border-radius: 12rpx; padding: 16rpx 20rpx; margin-top: 16rpx; }
-.track-error-box text { display: block; color: #ff3b30; font-size: 23rpx; line-height: 1.5; }
-.track-list-heading, .track-detail-heading { display: flex; align-items: center; justify-content: space-between; margin-top: 32rpx; }
-.track-list-title { color: #1d1d1f; font-size: 27rpx; font-weight: 700; }
-.track-submission-row { padding: 20rpx 0; border-bottom: 1rpx solid rgba(0,0,0,0.06); }
-.track-submission-row:last-child { border-bottom: none; }
-.track-submission-unavailable { opacity: 0.55; }
-.track-submission-row-disabled { opacity: 0.4; pointer-events: none; }
-.track-submission-main { display: flex; flex-direction: column; gap: 5rpx; }
-.track-submission-title { color: #1d1d1f; font-size: 26rpx; font-weight: 600; }
-.track-submission-status { color: #3a3a3c; font-size: 23rpx; font-weight: 600; }
-.track-submission-meta { color: #86868b; font-size: 21rpx; }
-.track-submission-actions { display: flex; flex-wrap: wrap; gap: 8rpx; margin-top: 10rpx; }
-.track-owner-card .inline-retry-btn { min-height: 88rpx; line-height: 88rpx; padding-left: 24rpx; padding-right: 24rpx; }
-.track-submission-actions .inline-retry-btn { margin-top: 0 !important; min-height: 88rpx; line-height: 88rpx; }
-.track-more-btn { margin-top: 12rpx !important; }
-.track-detail-panel { margin-top: 16rpx; padding: 20rpx; border-radius: 14rpx; background: #ffffff; }
-.track-detail-close { min-height: 88rpx !important; line-height: 88rpx !important; color: #86868b !important; font-size: 23rpx !important; padding: 0 24rpx !important; }
-.track-detail-note { display: block; color: #3a3a3c; font-size: 22rpx; line-height: 1.5; margin-top: 10rpx; }
-.track-admin-card { margin-top: 36rpx; padding: 32rpx; border: 2rpx solid rgba(38, 70, 83, 0.18); background: #f8fbfc; }
-.track-admin-heading { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; margin-bottom: 16rpx; }
-.track-admin-caption { display: block; color: #65757c; font-size: 21rpx; line-height: 1.5; margin-top: 8rpx; }
-.track-admin-filter { min-height: 88rpx; display: flex; align-items: center; padding: 0 24rpx; margin: 14rpx 0; border: 1rpx solid rgba(38, 70, 83, 0.2); border-radius: 12rpx; color: #29434b; background: #fff; box-sizing: border-box; }
-.track-admin-row { padding: 20rpx 0; border-bottom: 1rpx solid rgba(38, 70, 83, 0.12); }
-.track-admin-row:last-child { border-bottom: none; }
-.track-admin-action { min-height: 88rpx !important; line-height: 88rpx !important; padding: 0 24rpx !important; margin-top: 0 !important; color: #29434b !important; }
-.track-admin-error { background: rgba(255, 59, 48, 0.08); border-radius: 12rpx; padding: 16rpx 20rpx; margin: 16rpx 0; }
-.track-admin-error text { display: block; color: #a33a32; font-size: 22rpx; line-height: 1.5; }
-.track-admin-detail-panel { margin-top: 20rpx; padding: 24rpx; border-radius: 14rpx; border: 1rpx solid rgba(38, 70, 83, 0.16); background: #fff; }
-.adminReviewNote { min-height: 88rpx; margin-top: 18rpx; padding: 0 20rpx; border: 1rpx solid rgba(38, 70, 83, 0.18); border-radius: 12rpx; box-sizing: border-box; }
