@@ -1,10 +1,10 @@
 # ACTIVE TASK — C05 private administrator track review UX
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C05 REVIEW_FIX_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C05 REVIEW_ACTIVE`
 - Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
 - GitHub Issue: `#122`
-- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX round 3`
+- Status/Mode: `REVIEW_ACTIVE / FINAL_REVIEW`
 - Controller: Sol XHigh
 - Implementation executor: exact custom Agent `luna-worker`
 - Branch: `codex/122-track-admin-ui`
@@ -226,3 +226,12 @@ Rerun the full required matrix and return `READY_FOR_CONTROLLER_REVIEW` for the 
   removed; any future ephemeral viewer is a separate Issue. No server/API/schema/storage/retention/dependency/deploy/
   CloudBase/commit/push/PR/merge action is authorized; runtime identity remains `UNVERIFIED_RUNTIME_MODEL` and the
   exact `luna-worker` TOML is configuration-verified as `gpt-5.6-luna/max`.
+
+## 9.2 Publication checkpoint — 2026-08-10
+
+- The reviewed implementation was committed as `9f4d60b`, pushed to `codex/122-track-admin-ui`, and published as
+  draft PR #128 with `Refs #122`. Its first latest-head GitHub `quality` run `31349891164` passed.
+- Two independent option-A code Reviews found no P0–P2; the only remaining P3 was publication-state drift. This
+  additive update changes status documents only and does not alter product code, tests, contracts or deployment.
+- Required next gate is fresh latest-head GitHub `quality` plus exact-head metadata/diff Review. Only Sol may mark the
+  PR ready or squash merge; #122 and C06/#123 remain open/blocked until remote merge verification.
