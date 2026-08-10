@@ -106,9 +106,9 @@ timer rows. The implementation is complete locally and the executor returns `REA
   disclosure-hierarchy change. The pending new head requires fresh quality and two exact-head Reviews. Do not close
   #131/#115 or mark the Goal complete before the approved merge and post-merge synchronization.
 
-Open work / Next action: commit and push the round-2 increment to existing draft PR #132, then require latest-head CI
-and two exact-head independent Reviews. Sol owns the decision to mark ready and merge. No approval or merge is claimed
-in this task handoff.
+Open work / Next action: round 2 is published to existing draft PR #132. Live GitHub PR metadata is the dynamic source
+for the current head and quality result; the final docs-only status sync requires latest-head CI and two exact-head
+independent Reviews. Sol owns the decision to mark ready and merge. No approval or merge is claimed in this handoff.
 
 ## 9. Review-fix round 2 — human-approved disclosure hierarchy
 
@@ -138,9 +138,9 @@ in this task handoff.
 - Normal WeChat DevTools rendered the final ordering and verified default-collapsed → expanded → collapsed behavior
   with zero debugger errors. No file selection/upload, review, delete, timer, deployment or CloudBase mutation ran.
 - Executor status: `READY_FOR_CONTROLLER_REVIEW`.
-- Open work / Next action: the controller commits and pushes this increment to existing draft PR #132; latest-head CI
-  and two exact-head independent Reviews must pass before Sol XHigh decides mergeability. No approval or merge is
-  claimed in this checkpoint.
+- Open work / Next action: round 2 is published to existing draft PR #132. Live GitHub PR metadata is the dynamic
+  source for the current head and quality result; the final docs-only status sync requires latest-head CI and two
+  exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge is claimed here.
 
 ## 7. Stop conditions
 

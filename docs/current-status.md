@@ -105,9 +105,9 @@
   consent, submit, then a default-collapsed full-policy control. Expand and collapse both worked; the debugger showed
   zero errors. No file was selected or uploaded and no CloudBase mutation occurred.
 - Executor status: `READY_FOR_CONTROLLER_REVIEW`.
-- Open work / Next action: the controller commits and pushes this increment to existing draft PR #132; latest-head CI
-  and two exact-head independent Reviews must pass before Sol XHigh decides mergeability. No approval or merge is
-  claimed in this checkpoint.
+- Open work / Next action: round 2 is published to existing draft PR #132. Live GitHub PR metadata is the dynamic
+  source for the current head and quality result; the final docs-only status sync still requires latest-head CI and
+  two exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge is claimed here.
 
 ## C07 independent Reviews and local DevTools smoke — 2026-08-10
 
@@ -123,8 +123,9 @@
 - Draft PR #132 was published after this smoke, and its pre-round-2 exact head passed GitHub quality and actual-diff
   Review. Those approvals are superseded by the human-approved disclosure-hierarchy Review-fix and are not merge
   evidence for the pending new head.
-- Open work / Next action: commit and push the round-2 increment to existing draft PR #132, then require latest-head CI
-  and two exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge is claimed.
+- Open work / Next action: round 2 is published to existing draft PR #132. Use live GitHub metadata for the current
+  head and quality result; the final docs-only status sync requires latest-head CI and two exact-head independent
+  Reviews before Sol XHigh decides mergeability. No approval or merge is claimed.
 
 ## C06 offline acceptance executor checkpoint — 2026-08-10
 
@@ -1413,10 +1414,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Commit and push the round-2 increment to existing draft PR #132, then require latest-head CI and two exact-head
-independent Reviews before Sol decides whether to mark it ready and merge. #123 staging and future viewer #129 remain
-separate and blocked; C07 performs no CloudBase mutation or deployment. No approval or merge is claimed in this
-checkpoint.
+Round 2 is published to existing draft PR #132. Use live GitHub PR metadata for the current head and quality result;
+the final docs-only status sync requires latest-head CI and two exact-head independent Reviews before Sol decides
+whether to mark it ready and merge. #123 staging and future viewer #129 remain separate and blocked; C07 performs no
+CloudBase mutation or deployment. No approval or merge is claimed in this checkpoint.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

@@ -103,9 +103,9 @@ claims a PR, approval, merge, deployment, production readiness or Goal completio
   build and `git diff --check` pass. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`; #123 staging rows
   remain `BLOCKED_STAGING`.
 - Executor status: `READY_FOR_CONTROLLER_REVIEW`.
-- Open work / Next action: the controller commits and pushes this increment to existing draft PR #132; latest-head CI
-  and two exact-head independent Reviews must pass before Sol XHigh decides mergeability. No approval or merge is
-  claimed in this checkpoint.
+- Open work / Next action: round 2 is published to existing draft PR #132. Live GitHub PR metadata is the dynamic
+  source for the current head and quality result; the final docs-only status sync still requires latest-head CI and
+  two exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge is claimed here.
 
 ## 6. Completion criteria
 
