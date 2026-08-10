@@ -9,9 +9,9 @@
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: C07 PR #132 passed latest-head quality and two independent exact-head Reviews, then squash merged as
-  `86fafb6`; #131 is closed. #123 is again the active blocking task and retains only separately controlled staging
-  upload/review/delete/timer evidence. No production/public release or automatic destructive cleanup is claimed or
-  authorized here.
+  `86fafb6`; #131 is closed. #123 is again the active blocking task. Its authoritative staging ledger still marks
+  S1–S15/S20 `BLOCKED` and S16–S18 `UNVERIFIED_RUNTIME_TOOL`; no live comment may promote those rows without direct,
+  sanitized evidence in that ledger. No production/public release or automatic destructive cleanup is authorized.
 
 ## Current community-track checkpoint
 
@@ -46,12 +46,12 @@
 
 ## C07 secondary-page activation checkpoint — 2026-08-10
 
-- PR #130 merged as `59ef3c2` after latest-head quality and two independent Reviews. Subsequent authorized staging
-  inspection verified the two private collections, six exact indexes, non-empty server env configuration, function
-  timeout `<=240s`, fixture-free WeChat compile, unauthenticated admin rejection, owner empty-list read and allowlisted
-  administrator empty-queue read. Secret/OpenID/storage-host values are not recorded.
-- File upload, review mutation, deletion and timer rows remain unverified; destructive cleanup remains disabled.
-  #123 is therefore `BLOCKED_STAGING`, not silently complete or production-ready.
+- PR #130 merged as `59ef3c2` after latest-head quality and two independent Reviews. A later controller comment
+  reported observations of collections, indexes, non-empty server env configuration, function timeout, compile and
+  empty owner/admin reads, without recording secret/OpenID/storage-host values. Those observations have not yet been
+  reconciled row-by-row with the authoritative staging ledger and therefore do not promote S1–S18.
+- The ledger still marks S1–S15/S20 `BLOCKED` and S16–S18 `UNVERIFIED_RUNTIME_TOOL`; destructive cleanup remains
+  disabled. #123 is `BLOCKED_STAGING`, not silently complete or production-ready.
 - #131 is activated on `codex/131-community-track-page` from exact `main@59ef3c2`. The homepage keeps
   one deliberate community-track entry and the route-not-found fallback gains a second entry. The full owner/admin
   workflow moves to `pages/community-track/index` and reuses the existing model/service as its single state machine.
@@ -1377,8 +1377,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Keep #123 staging upload/review/delete/timer rows blocked until the separately authorized human runtime evidence
-   is captured. No C07 test or build may be used as deployment or destructive-cleanup evidence.
+1. Reconcile #123 staging rows only from direct, sanitized evidence. Until then preserve the authoritative ledger's
+   S1–S15/S20 `BLOCKED` and S16–S18 `UNVERIFIED_RUNTIME_TOOL` states. No C07 test or build is deployment evidence.
 2. After the remaining #123 rows pass, require an explicit controller decision before enabling cleanup, inviting the
    closed-beta cohort or claiming production/public readiness.
 
@@ -1421,10 +1421,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-C07 is merged and #131 is closed. Continue only with the separately authorized #123 staging evidence: upload,
-administrator review, deletion/cleanup recovery and timer authority/dry-run/rollback. Future viewer #129 remains
-separate. Do not enable destructive cleanup, invite users or claim production readiness without the required human
-evidence and controller decision.
+C07 is merged and #131 is closed. Continue only with row-by-row, sanitized #123 staging evidence, preserving the
+authoritative ledger until each exact requirement is directly observed. Future viewer #129 remains separate. Do not
+enable destructive cleanup, invite users or claim production readiness without the required human evidence and
+controller decision.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

@@ -15,12 +15,12 @@ Complete only the remaining sanitized staging evidence in
 `docs/community-track-staging-validation.md`. This task does not authorize production/public release, route-catalog
 promotion, raw-track viewing/export, real-user invitation or destructive cleanup.
 
-## 2. Verified staging boundary
+## 2. Authoritative staging boundary
 
-Authorized staging inspection has already verified the two private collections, the six exact indexes, non-empty
-server environment configuration, function timeout `<=240s`, a normal WeChat compile, unauthenticated administrator
-rejection, owner empty-list read and allowlisted administrator empty-queue read. Secret, OpenID and storage-host values
-must not be written to Git, GitHub or chat.
+The durable source of truth is `docs/community-track-staging-validation.md`. It currently marks S1–S15/S20
+`BLOCKED` and S16–S18 `UNVERIFIED_RUNTIME_TOOL`. A controller comment reported partial console/runtime observations,
+but those observations have not been reconciled against each row's exact evidence requirement and therefore do not
+promote any row. Secret, OpenID and storage-host values must not be written to Git, GitHub or chat.
 
 C07 PR #132 passed latest-head quality and two independent exact-head Reviews, squash merged as `86fafb6`, and #131
 closed after merge confirmation. Its tests and DevTools rendering are code/UI evidence only, not staging upload,
@@ -28,6 +28,8 @@ review, deletion, timer or production evidence.
 
 ## 3. Remaining blocking evidence
 
+- First reconcile collection, exact index, storage-host, administrator allowlist, timeout and DevTools observations
+  row-by-row. “Non-empty env” does not prove exact S4/S5, and a compile does not prove S17 import/render.
 - Upload a bounded GPX/KML through the real staging client and verify owner begin/upload/finalize/list/detail.
 - Exercise allowlisted administrator `request_changes`, `reject` and `approve_evidence` without exposing identity,
   raw paths, OpenIDs or evidence-store keys.
@@ -38,6 +40,7 @@ review, deletion, timer or production evidence.
   rollback and orphan/residue checks.
 - Keep destructive cleanup disabled until every prerequisite above passes and the human explicitly authorizes it.
 - Record normal WeChat runtime/device evidence for TP-D056 Option A: summary/preview only and zero raw presentation.
+- Preserve every untouched row's current `BLOCKED` or `UNVERIFIED_RUNTIME_TOOL` status, including S20.
 
 ## 4. Evidence rules
 
