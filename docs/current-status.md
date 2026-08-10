@@ -3,16 +3,15 @@
 - Updated: `2026-08-10`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_ACTIVE`
-- Active task: `#131 / REVIEW`
-- Branch/base: `codex/131-community-track-page` from `main@59ef3c2`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING`
+- Active task: `#123 / BLOCKED_STAGING`
+- Branch/base: post-merge status sync from `main@86fafb6`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: C06 PR #130 merged as `59ef3c2`. #123 retains only separately controlled staging upload/review/timer
-  evidence and is `BLOCKED_STAGING`. Draft PR #132 contains the C07 secondary-page implementation and is now in a
-  human-approved disclosure-hierarchy Review-fix: move the long rights/platform explanation below submit in a
-  collapsed disclosure while retaining a concise pre-submit 30/180-day summary and consent. No approval, merge,
-  production/public release or automatic destructive cleanup is claimed or authorized here.
+- Current work: C07 PR #132 passed latest-head quality and two independent exact-head Reviews, then squash merged as
+  `86fafb6`; #131 is closed. #123 is again the active blocking task and retains only separately controlled staging
+  upload/review/delete/timer evidence. No production/public release or automatic destructive cleanup is claimed or
+  authorized here.
 
 ## Current community-track checkpoint
 
@@ -23,18 +22,27 @@
   `75fcd92`; #119 is closed. C03 PR #126 then passed latest-head GitHub `quality`, two exact-head independent Reviews
   and squash merged as `a809f54`; #120 is closed. C04 PR #127 passed latest-head `quality` and two independent
   exact-head Reviews, then squash merged as `ff5774a`; #121 is closed. C05 PR #128 passed latest-head quality and two
-  exact-head Reviews, then squash merged as `0e534d49`; #122 is closed. C06/#123 remains blocked on staging rows;
-  C07/#131 is now the active review task.
+  exact-head Reviews, then squash merged as `0e534d49`; #122 is closed. C07 PR #132 passed latest-head quality and two
+  exact-head Reviews, then squash merged as `86fafb6`; #131 is closed. C06/#123 remains blocked on staging rows.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
   de-identified reviewed-evidence record; GitHub CLI authentication is restored.
-- #115 remains open as the parent Goal. C01/#118 through C05/#122 are complete and C06 PR #130 is merged; #123 is
-  blocked on remaining human staging rows. C07/#131 is the only active review task.
+- #115 remains open as the parent Goal. C01/#118 through C05/#122 and C07/#131 are complete; C06 PR #130 is merged,
+  while #123 is the only active blocking task pending remaining human staging rows.
 - `TRACK-SUBMISSION-1` freezes GPX/KML rights, limits, private storage, owner/admin APIs, status machine, DTOs,
   cleanup-pending behavior, errors and no-catalog-publication boundary.
 - Completed serial code work is C01 parser → C02 owner API → C03 admin API → C04 user UX → C05 admin UX → C06
-  offline acceptance. C07 is the focused UX correction under review; remaining staging evidence stays separate.
+  offline acceptance → C07 focused UX. Remaining staging evidence stays separate under #123.
+
+## C07 merge checkpoint — 2026-08-10
+
+- PR #132 exact head passed GitHub quality and two independent exact-head Reviews with no P0–P3, then squash merged
+  to `main@86fafb6`; #131 closed after the remote merge was confirmed.
+- The shipped hierarchy is one-line intro → form/file selection → exact 30/180-day summary → unchecked consent →
+  submit → default-collapsed full policy. The homepage remains simplified and TP-D056 Option A remains raw-inert.
+- No deployment or CloudBase mutation was part of C07. #123 remains `BLOCKED_STAGING` for separately authorized
+  upload/review/delete/timer evidence; the parent Goal #115 remains open.
 
 ## C07 secondary-page activation checkpoint — 2026-08-10
 
@@ -1369,11 +1377,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Commit and push the completed C07 disclosure-hierarchy Review-fix to existing draft PR #132, then require
-   latest-head CI and two exact-head independent Reviews before Sol decides mergeability. No approval or merge is
-   claimed here.
-2. Keep #123 staging upload/review/timer rows separately blocked. No C07 test or build may be used as runtime,
-   deployment or destructive-cleanup evidence.
+1. Keep #123 staging upload/review/delete/timer rows blocked until the separately authorized human runtime evidence
+   is captured. No C07 test or build may be used as deployment or destructive-cleanup evidence.
+2. After the remaining #123 rows pass, require an explicit controller decision before enabling cleanup, inviting the
+   closed-beta cohort or claiming production/public readiness.
 
 ## Blockers and risks
 
@@ -1414,10 +1421,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Round 2 is published to existing draft PR #132. Use live GitHub PR metadata for the current head and quality result;
-the final docs-only status sync requires latest-head CI and two exact-head independent Reviews before Sol decides
-whether to mark it ready and merge. #123 staging and future viewer #129 remain separate and blocked; C07 performs no
-CloudBase mutation or deployment. No approval or merge is claimed in this checkpoint.
+C07 is merged and #131 is closed. Continue only with the separately authorized #123 staging evidence: upload,
+administrator review, deletion/cleanup recovery and timer authority/dry-run/rollback. Future viewer #129 remains
+separate. Do not enable destructive cleanup, invite users or claim production readiness without the required human
+evidence and controller decision.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
