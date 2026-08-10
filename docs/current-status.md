@@ -3,13 +3,14 @@
 - Updated: `2026-08-10`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C05 REVIEW_ACTIVE`
-- Active task: `#122 / REVIEW`
-- Branch/base: `codex/122-track-admin-ui` from `main@ff5774a`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C06 REVIEW_ACTIVE`
+- Active task: `#123 / REVIEW`
+- Branch/base: `codex/123-track-acceptance` from `main@0e534d49`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: C05 option-A implementation is published in draft PR #128; raw GPX/KML presentation/request paths
-  are removed, initial latest-head quality passed, and only additive-head CI/Review plus merge remain
+- Current work: C06 offline acceptance draft PR #130 is open. The implementation/evidence diff passed two independent
+  local Reviews; the status-only head still requires latest-head CI and exact-head Review before merge. No
+  production/public release or automatic destructive cleanup is authorized.
 
 ## Current community-track checkpoint
 
@@ -19,12 +20,13 @@
 - C02 PR #125 passed latest-head GitHub `quality` and two independent exact-head Reviews, then squash merged as
   `75fcd92`; #119 is closed. C03 PR #126 then passed latest-head GitHub `quality`, two exact-head independent Reviews
   and squash merged as `a809f54`; #120 is closed. C04 PR #127 passed latest-head `quality` and two independent
-  exact-head Reviews, then squash merged as `ff5774a`; #121 is closed. C05/#122 is now active; #123 remains blocked.
+  exact-head Reviews, then squash merged as `ff5774a`; #121 is closed. C05 PR #128 passed latest-head quality and two
+  exact-head Reviews, then squash merged as `0e534d49`; #122 is closed. C06/#123 is now active.
 - #114 closed after approved PR #116 merged as `b1bc994`; key rotation/package validity are human-confirmed.
 - Human approved server-only `TRACK_REVIEW_ADMIN_OPENIDS`; no value is requested or stored in Git/GitHub.
 - Human approved maximum retention of 30 days for raw upload/review objects and 180 days for the separate
   de-identified reviewed-evidence record; GitHub CLI authentication is restored.
-- #115 remains open as the parent Goal. C01/#118 through C04/#121 are complete; C05/#122 is the only active child.
+- #115 remains open as the parent Goal. C01/#118 through C05/#122 are complete; C06/#123 is the only active child.
 - `TRACK-SUBMISSION-1` freezes GPX/KML rights, limits, private storage, owner/admin APIs, status machine, DTOs,
   cleanup-pending behavior, errors and no-catalog-publication boundary.
 - Planned serial work is C01 parser → C02 owner API → C03 admin API → C04 user UX → C05 admin UX → C06 acceptance
@@ -33,6 +35,63 @@
 - Contract Review-fix now closes upload overwrite/HEAD TOCTOU, exact fileID binding, `gx:Track`, processing lease,
   CAS/revision races, DTO/error/action gaps and the 30/180-day retention lifecycle. Full post-retention planning gates
   pass and live #115 is synchronized; both latest-diff independent Reviews are approved.
+
+## C06 offline acceptance executor checkpoint — 2026-08-10
+
+- The bounded C06 executor added only `scripts/fixtures/track-acceptance.js`,
+  `scripts/track-acceptance-contract-test.js`, `docs/community-track-staging-validation.md` and the root
+  `test:track-acceptance` registration. No production page/Cloud Function, existing contract test, dependency,
+  lockfile, CloudBase config, deployment or catalog file changed.
+- The acceptance gate composes the existing public parser, owner, admin, retention and UI model/service seams through
+  injected in-memory storage/database/time. Its independent literal oracles and mutation probes cover owner/admin
+  privacy, revision/CAS, exact 30/180-day retention, timer/backlog/deletion-pending behavior, TP-D056 Option A raw
+  inertness and no runtime mutation by the acceptance flow. Route/weather/verdict/history integrity is attributed to
+  the exact production-file allowlist/diff and existing focused gates, not same-run snapshots.
+- `TDD_DEVIATION_INITIAL_GREEN` is intentional and explicit: the new vertical skeleton ran direct GREEN because C01–C05
+  already supplied the required behavior. No missing-script or artificial RED was fabricated; subsequent literal
+  expectations and mutation probes provide discrimination for the new gate.
+- Staging/runtime rows remain separated in `docs/community-track-staging-validation.md`; human/console/device rows are
+  not inferred from offline tests or the fixture-free build. Runtime model identity is `UNVERIFIED_RUNTIME_MODEL`;
+  configuration remains the exact `luna-worker` `gpt-5.6-luna/max`, with no Terra fallback.
+- Final local matrix after the executor edits is GREEN: focused C06/C01–C05 contracts, root `corepack npm@10.9.2 test`,
+  offline integration `55/0`, lint `0 errors / 9 existing warnings`, typecheck, fixture-free `CI=1 build:weapp` and
+  `git diff --check`. This is code-ready evidence only; no CloudBase or runtime staging row changed status.
+
+## C06 independent Review-fix round 1 checkpoint — 2026-08-10
+
+- Added literal exact-key oracles for the stored evidence record, nested `approvedEvidence`/`geometry` and admin
+  display DTO. The fixture now supplies non-empty private provenance (`self`) and note input, while evidence/display
+  projections exclude provenance, note, raw and linkage fields. Clone-based representative provenance/note/raw/linkage
+  mutations each produce the expected oracle RED; no production defect was found.
+- Added `shareFileMessage` to the Option A source-residue scan with an isolated mutation string/assertion. The poisoned
+  raw list/detail model state still has no raw keys, request URL, `includeRawLink`, opener or platform call.
+- Added a KML begin → `.kml` reserved path → finalize/parser → owner/admin DTO vertical scenario with literal format,
+  point/segment and review-path assertions; it reuses the production parser and services.
+- Narrowed O8 to no runtime mutation by the acceptance flow. Weather/verdict/catalog/history integrity is explicitly
+  attributed to the unchanged production-file allowlist/diff and existing focused gates. Split staging S3 into S3a–S3f,
+  recording all six authoritative index field orders and unique flags as `BLOCKED`.
+- `TDD_DEVIATION_INITIAL_GREEN` remains unchanged and honest: no missing-script/artificial RED was fabricated; the
+  new exact-key, KML, Option A and mutation expectations were added as Review-fix evidence.
+- The final isolated `shareFileMessage` mutation contains no earlier residue token and independently turns the focused
+  gate RED. Both independent reviewers approved the resulting 13-path implementation/evidence worktree with no P0–P3.
+- Commit `555ffd4` was pushed and published as draft PR #130 (`Refs #123`, `Refs #115`). The new status-only head must
+  pass latest-head GitHub `quality` and exact-head Review before Sol may mark the PR ready or merge it. #123/#115 and
+  milestone #8 remain open.
+
+## C05 merge / C06 activation checkpoint — 2026-08-10
+
+- C05 option A passed the full local matrix, latest-head GitHub `quality` run `31350213002` and two independent exact-
+  head Reviews with no P0–P3. Sol squash merged PR #128 as `0e534d49` and closed #122.
+- The current client reviews normalized summary, keyless evidence and at most 500 preview points. It has no
+  `view_raw`, `rawAccess`, `includeRawLink`, raw state/opener or open/download/save/share/clipboard path. The backend
+  raw retention contract remains private and unchanged; future safe viewer #129 is separately blocked after C06.
+- C06/#123 is activated on `codex/123-track-acceptance` from exact `main@0e534d49`. Its executor allowlist is limited
+  to a new offline acceptance script/fixture, staging validation record, root test registration and release-facing
+  documents. Production page/Cloud Function code, existing contract tests, dependencies and CloudBase config are
+  forbidden.
+- Human staging actions remain separate from executor implementation. Collection/index/rule/env/function/timer
+  changes, destructive cleanup and real-device/runtime claims require observed evidence and human control; no
+  unexecuted row may be called verified.
 
 ## C05 implementation checkpoint — 2026-08-10
 
@@ -1213,19 +1272,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: assigned the bounded C05/#122 administrator UX implementation under the exact page/model/service allowlist; it cannot
+- `luna-worker`: assigned the bounded C06/#123 acceptance/evidence implementation under its exact test/docs allowlist; it cannot
   approve or merge its own work.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Draft PR #128 is open from `codex/122-track-admin-ui`; its initial implementation head `9f4d60b` passed GitHub
-   `quality` run `31349891164` and option-A exact-head code Review. The PR live head and live latest-head `quality`
-   check are the current CI fact sources; Sol may proceed only while that head is unchanged, its check is successful,
-   and the exact-head Reviews remain valid.
-2. Only after the approved PR is remotely merged may Sol close #122 and unlock C06/#123.
-3. Keep #123 dependency-blocked until an approved C05 change is remotely verified merged; C06 acceptance, deployment
-   and real-device/runtime validation remain human-controlled gates.
+1. Wait for draft PR #130 latest-head `quality` and exact-head independent Reviews; only then may Sol mark it ready and
+   decide squash merge. Close #123/#115 only after the remote merge and post-merge status synchronization.
+2. Human staging rows remain separately controlled: collection/index/rule/env/function/timer changes are never inferred
+   from offline tests and must be recorded truthfully as `VERIFIED`, `BLOCKED` or `UNVERIFIED_RUNTIME_TOOL`.
 
 ## Blockers and risks
 
@@ -1266,9 +1322,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Verify that draft PR #128's live head is unchanged, its live latest-head GitHub `quality` is successful, and both
-exact-head Reviews are valid. Sol may then mark the PR ready and decide the squash merge. Only the verified remote
-merge unlocks C06/#123; the separate future viewer remains out of scope.
+Complete draft PR #130 latest-head CI and exact-head independent Review. If both remain green, Sol may mark the PR ready
+and decide squash merge; #123/#115 close only after the remote merge is confirmed. No CloudBase mutation or deployment
+is performed by this PR; the future viewer #129 remains blocked until C06/Goal closeout.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

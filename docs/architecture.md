@@ -1,15 +1,16 @@
 # 徒步薯架构
 
-- Architecture scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 ACTIVE — C01 IMPLEMENTATION_ACTIVE`
-- Status: `COMMUNITY TRACK C01 IMPLEMENTATION`
-- Updated: `2026-08-09`
+- Architecture scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 ACTIVE — C06 IMPLEMENTATION_ACTIVE`
+- Status: `COMMUNITY TRACK C06 CODE-READY REVIEW`
+- Updated: `2026-08-10`
 
 ## 1. 系统边界
 
 - `taro-app/`：实际微信小程序前端。
 - `cloudfunctions/getAdvice/`：路线解析、天气、规则、短期上下文和 AI 编排。
 - `cloudfunctions/history/`：仅私人历史。
-- `cloudfunctions/trackSubmission/`：规划中的私有轨迹提交、解析、持久化和管理员审核；尚未实现/部署。
+- `cloudfunctions/trackSubmission/`：私有轨迹提交、解析、持久化和管理员审核；代码已实现并由离线合同覆盖，
+  尚未部署或做真实运行时验收。
 - `miniprogram/`：历史原生原型，不是生产入口。
 
 依赖方向为 UI → 云函数契约 → 领域/规则纯模块 → 外部 API。LLM 位于解释层，不能反向覆盖领域事实或规则结果。
@@ -111,6 +112,12 @@ opaque `fileID`，但 storage adapter 必须用 server-only `TRACK_STORAGE_FILEI
 `ApprovedEvidence` 投影到独立 `track_review_evidence` 并最长保留 180 天。每日 CloudBase timer 触发内部幂等
 清理，客户端不获得 cleanup mode。状态、DTO、版本/重试和 cleanup-pending 语义由
 `docs/community-track-workflow.md` 唯一定义。
+
+C06 的 owner→admin→retention/UI 验收通过注入式内存 repository、storage、clock 和现有公开 service/model
+seams 执行，入口为 `test:track-acceptance`；它不复制业务逻辑，也不写入 runtime catalog。当前客户端采用
+TP-D056 Option A，只展示标准化摘要、去身份 evidence 与最多 500 个预览点；`view_raw`、`rawAccess`、
+`includeRawLink`、opener 和任何下载/保存/分享/剪贴板路径均不属于客户端边界。离线结果与尚未执行的
+CloudBase/微信运行时行分别记录在 [community-track-staging-validation.md](community-track-staging-validation.md)。
 
 ### I07 冻结目录边界
 

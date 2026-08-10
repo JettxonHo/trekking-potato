@@ -597,10 +597,19 @@ lint、typecheck、fixture-free WeChat build 与 diff check。测试输出与部
 - `test:track-ui`：exact rights/privacy copy、local precheck、upload/finalize recovery、八状态 action matrix、
   error/retry、pagination、revision/cancel/cleanup retry、admin separation，以及 C05 对 `view_raw`/`rawAccess`
   fail-closed：不渲染、不请求 `includeRawLink`、不打开/下载/保存/分享/复制原始文件；
-- `test:track-acceptance`：owner-to-review vertical flow, privacy projections and exact proof that runtime catalog,
-  operational status, weather, deterministic verdict and public UGC remain unchanged.
+- `test:track-acceptance`：owner-to-review vertical flow, exact stored/display evidence projections and proof that the
+  acceptance flow performs no runtime catalog/product-fact/public-UGC mutation. Route/weather/verdict/history integrity
+  remains attributed to the exact production-file allowlist/diff and the existing focused gates, not same-run snapshots.
 
 No mechanical coverage percentage is introduced. Mutation-sensitive representative assertions must fail when owner
 filters, reserved-path binding, DTD rejection, actual-size authority, admin gate, state/version guard, private DTO or
 no-catalog-mutation wiring is removed. Every PR also runs integration `55/0`, lint, typecheck, WeChat build and
 latest-head GitHub quality.
+
+C06 evidence note: the new acceptance script is a table-driven offline vertical gate over the existing public seams;
+its independent literal exact-key oracles and mutation probes cover stored/nested/display evidence, owner/admin/privacy,
+retention/timer, KML parsing and Option A UI boundaries without copying production business logic. The initial skeleton
+was already GREEN because C01–C05 seams were implemented before this cross-layer gate; record this honest order as
+`TDD_DEVIATION_INITIAL_GREEN` rather than manufacturing a missing-script or artificial RED. Runtime rows, the
+acceptance-flow-only no-mutation boundary and deployment evidence are authoritatively separated in
+`docs/community-track-staging-validation.md`.
