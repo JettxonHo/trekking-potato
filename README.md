@@ -13,20 +13,22 @@
 ## 项目状态
 
 `TP-BETA-001` 已完成核心代码就绪，`TP-STAGING-001` 又以 `CONDITIONAL_GO` 完成受限 staging 验证。
-当前 `TP-COMMUNITY-001` 正在规划私有 GPX/KML 提交和管理员审核：它只把经审核的轨迹变成几何证据，
-不自动发布路线，也不改变路线开放状态、天气、安全规则或出发结论。
+当前 `TP-COMMUNITY-001` 已完成 C01–C05 的实现，C06 正在进行 owner→admin→retention/UI 的离线代码验收：
+它只把经审核的轨迹变成几何证据，不自动发布路线，也不改变路线开放状态、天气、安全规则或出发结论。
 
 - 当前产品入口：`taro-app/`
 - 云函数：`cloudfunctions/getAdvice/`、`cloudfunctions/history/`
-- 规划中的新云函数：`trackSubmission`（尚未实现或部署）
+- 新云函数：`trackSubmission`（代码已实现并通过离线合同测试，尚未部署或做真实运行时验收）
 - `miniprogram/`：早期原生原型，不是当前生产界面
 - 当前 Goal：[GOAL.md](GOAL.md)
 - 当前状态：[docs/current-status.md](docs/current-status.md)
+- 社区轨迹 staging 验证记录：[docs/community-track-staging-validation.md](docs/community-track-staging-validation.md)
 - Beta 验收清单：[docs/beta-acceptance-checklist.md](docs/beta-acceptance-checklist.md)
 - Beta 验收报告：[docs/beta-acceptance-report.md](docs/beta-acceptance-report.md)
 - Goal 完成报告：[docs/goal-completion-report.md](docs/goal-completion-report.md)
 
-生产发布和公共社区不属于当前 Goal；新功能的 CloudBase 部署仍需单独人工门禁。
+生产发布和公共社区不属于当前 Goal；`trackSubmission` 的 CloudBase 部署、定时清理和真实客户端/设备验收仍需
+单独人工门禁，不能由离线测试或构建结果替代。
 
 ## 产品边界
 
@@ -124,7 +126,9 @@ corepack npm@10.9.2 run test:integration
 corepack npm@10.9.2 run build:weapp
 ```
 
-`test` 运行全部根级行为合同，包括路线、天气、判定、TripContext、公共响应、结构化结果和恢复流程。
+`test` 运行全部根级行为合同，包括路线、天气、判定、TripContext、公共响应、结构化结果、恢复流程和
+`trackSubmission` owner→admin→retention/UI 离线验收。`test:track-acceptance` 使用注入式内存边界，
+不访问真实 CloudBase、存储或外部 API；每一项 staging/runtime 状态见独立验证记录。
 `test:integration` 当前保留早期离线 E2E 基线；I24b 的 `test:beta-acceptance` 已覆盖当前五条
 RouteVariant 的 `prepare/confirm → queryId → advice` 跨层验收，不把旧三路线管线冒充最终 Beta 纵向证据。
 所有离线测试都使用 fixture/mock，不访问真实 Open-Meteo、CloudBase 或 DeepSeek。I24c 的 DevTools

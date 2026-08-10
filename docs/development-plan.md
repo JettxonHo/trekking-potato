@@ -482,6 +482,13 @@ scrape a third-party platform, publish routes automatically or collect more iden
 - Code PR non-scope: CloudBase collection/index/rule/env/function mutation, production/public release, route catalog
   promotion and cleanup outside the approved new-record 30/180 lifecycle. The human performs the separately authorized
   staging rows after code Review; no timer deletion is enabled before dry-run and rollback evidence.
+- The offline gate is registered as `test:track-acceptance` and uses the injected fixture in
+  `scripts/fixtures/track-acceptance.js` with existing parser, owner, admin, retention and UI seams. It proves the
+  owner→admin→retention/UI flow (including a KML vertical path), exact stored/nested/display evidence keys,
+  TP-D056 Option A poisoned-raw inertness, exact retention/timer boundaries and no runtime mutation by the acceptance
+  flow. Route/weather/verdict/history integrity remains attributed to the exact allowlist/diff and existing focused
+  gates. The initial skeleton was direct GREEN because C01–C05 behavior already existed; `TDD_DEVIATION_INITIAL_GREEN`
+  records that order and independent literal/mutation probes supply discrimination.
 - Acceptance: full gates and latest-head CI pass; `track_submissions`, `track_review_evidence`, unique
   `_openid+beginAttemptId`, exact owner/admin list and raw/record/evidence expiry indexes, exact file host, private
   rules, admin env, owner/admin smoke, daily

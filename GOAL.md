@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C06 IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — C06 REVIEW_FIX_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -51,7 +51,9 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, and C05
 through PR #128 (`0e534d49`); Issues #118–#122 are closed. C06/#123 is the only active child. Each
-child gets one focused branch/PR and exact allowlist.
+child gets one focused branch/PR and exact allowlist. C06's offline acceptance fixture, contract gate and separate
+staging-validation record are prepared on the active branch; this does not claim deployment, runtime verification or
+Goal completion. The current client follows TP-D056 Option A and has no raw-track presentation/export path.
 
 ## 6. Completion criteria
 
@@ -63,6 +65,10 @@ child gets one focused branch/PR and exact allowlist.
 - no route catalog, operational status, deterministic result or public UGC path is mutated;
 - CloudBase collection/index/env/function changes are executed only through the separately approved C06 staging step;
 - final Review reports code-ready versus deployed/closed-beta-tested truthfully.
+
+C06 evidence must retain the honest test-order note `TDD_DEVIATION_INITIAL_GREEN`: existing C01–C05 public seams
+already supplied the required behavior, so the new vertical acceptance skeleton ran GREEN before its independent
+literal-oracle and mutation probes were added. No artificial failure or missing-script RED is manufactured.
 
 ## 7. Agent routing and stop conditions
 

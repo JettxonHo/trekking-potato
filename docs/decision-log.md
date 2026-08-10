@@ -860,3 +860,42 @@
 - Why: Option A closes submission and administrator review now without overstating platform support or weakening the
   human-approved privacy lifecycle. A separate viewer can later choose a genuinely ephemeral, testable design without
   blocking the private evidence workflow.
+
+## 2026-08-10 — TP-D057 C06 离线纵向验收与 staging 证据分界
+
+- Status: Prepared on C06/#123 for controller review; no deployment or CloudBase mutation
+- Context: C01–C05 public parser, owner, admin, retention and UI seams already implement the frozen
+  `TRACK-SUBMISSION-1` behavior. C06 must show that those seams compose without writing the route catalog or leaking
+  private submission data, while separating deterministic offline proof from human-controlled staging/runtime work.
+- Decision: Register `test:track-acceptance` with an injected in-memory fixture and table-driven owner→admin→retention/UI
+  scenarios. Use independent literal DTO/privacy/retention/catalog oracles and mutation probes, including Option A
+  poisoned `view_raw`/`rawAccess` zero-effect checks. Record each staging/runtime row only as `VERIFIED`, `BLOCKED` or
+  `UNVERIFIED_RUNTIME_TOOL` in `docs/community-track-staging-validation.md`; never infer deployment, timer, index,
+  permission or real-device evidence from offline tests or a build.
+- TDD note: the acceptance skeleton ran GREEN immediately because its required underlying seams were already present.
+  This is recorded as `TDD_DEVIATION_INITIAL_GREEN`; no missing-script or artificial RED was fabricated. The later
+  independent oracles and mutation probes provide a truthful failure signal for the new gate.
+- Alternatives: copy production business logic into a large end-to-end mock; call CloudBase from default tests; label
+  unexecuted staging rows verified; manufacture an initial RED. Each would make the evidence less trustworthy or cross
+  the C06 executor boundary.
+- Why: injected boundaries keep the gate deterministic and offline, literal oracles detect wiring regressions, and the
+  explicit status vocabulary preserves the difference between code-ready review and deployed/closed-beta evidence.
+
+## 2026-08-10 — TP-D058 C06 Review-fix 的证据精确性、KML 纵向路径与 index 分界
+
+- Status: Prepared on C06/#123 Review-fix round 1; no deployment or CloudBase mutation
+- Context: Independent Review required the acceptance package to prove exact stored/display privacy shapes and a KML
+  path, while keeping O8 within the evidence C06 actually owns. Staging index verification must be partial-safe and
+  match the authoritative field order/unique flags exactly.
+- Decision: Freeze literal key sets for the stored evidence record, nested `ApprovedEvidence`/`ReviewedGeometry` and
+  admin display DTO. Seed non-empty private provenance and note inputs, then assert representative provenance/note/raw/
+  linkage mutations are rejected. Add `shareFileMessage` to the Option A static residue/mutation boundary and cover a
+  KML `.kml` reservation → finalize/parser → owner/admin DTO path using the existing seams.
+- O8 boundary: C06 asserts only that its own flow does not mutate the runtime catalog/product-fact/public-UGC
+  boundaries. Route/weather/verdict/history integrity is attributed to the exact allowlist/diff and existing focused
+  gates; an in-run before/after snapshot is not claimed to detect a source mutation that predates the run.
+- Staging evidence: replace the single index row with six rows: owner list, filtered admin list, all-status admin/cleanup,
+  raw expiry, unique owner-attempt and evidence expiry. Each records exact field order plus `unique=true|false`, and all
+  remain `BLOCKED` until human query-planner evidence exists.
+- Why: exact-key oracles make privacy failures visible without duplicating business logic, and explicit runtime/index
+  boundaries prevent a local acceptance pass from being mistaken for catalog integrity or deployed CloudBase proof.

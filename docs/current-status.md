@@ -3,13 +3,13 @@
 - Updated: `2026-08-10`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C06 IMPLEMENTATION_ACTIVE`
-- Active task: `#123 / IMPLEMENTATION`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C06 REVIEW_FIX_ACTIVE`
+- Active task: `#123 / REVIEW_FIX`
 - Branch/base: `codex/123-track-acceptance` from `main@0e534d49`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: C05 option A is merged; C06 cross-layer acceptance, final documentation and separately authorized
-  staging-evidence package are active. No production/public release or automatic destructive cleanup is authorized.
+- Current work: C06 offline acceptance Review-fix; exact evidence privacy, one KML vertical path and truthful O8/index
+  evidence are being tightened. No production/public release or automatic destructive cleanup is authorized.
 
 ## Current community-track checkpoint
 
@@ -34,6 +34,43 @@
 - Contract Review-fix now closes upload overwrite/HEAD TOCTOU, exact fileID binding, `gx:Track`, processing lease,
   CAS/revision races, DTO/error/action gaps and the 30/180-day retention lifecycle. Full post-retention planning gates
   pass and live #115 is synchronized; both latest-diff independent Reviews are approved.
+
+## C06 offline acceptance executor checkpoint — 2026-08-10
+
+- The bounded C06 executor added only `scripts/fixtures/track-acceptance.js`,
+  `scripts/track-acceptance-contract-test.js`, `docs/community-track-staging-validation.md` and the root
+  `test:track-acceptance` registration. No production page/Cloud Function, existing contract test, dependency,
+  lockfile, CloudBase config, deployment or catalog file changed.
+- The acceptance gate composes the existing public parser, owner, admin, retention and UI model/service seams through
+  injected in-memory storage/database/time. Its independent literal oracles and mutation probes cover owner/admin
+  privacy, revision/CAS, exact 30/180-day retention, timer/backlog/deletion-pending behavior, TP-D056 Option A raw
+  inertness and no runtime mutation by the acceptance flow. Route/weather/verdict/history integrity is attributed to
+  the exact production-file allowlist/diff and existing focused gates, not same-run snapshots.
+- `TDD_DEVIATION_INITIAL_GREEN` is intentional and explicit: the new vertical skeleton ran direct GREEN because C01–C05
+  already supplied the required behavior. No missing-script or artificial RED was fabricated; subsequent literal
+  expectations and mutation probes provide discrimination for the new gate.
+- Staging/runtime rows remain separated in `docs/community-track-staging-validation.md`; human/console/device rows are
+  not inferred from offline tests or the fixture-free build. Runtime model identity is `UNVERIFIED_RUNTIME_MODEL`;
+  configuration remains the exact `luna-worker` `gpt-5.6-luna/max`, with no Terra fallback.
+- Final local matrix after the executor edits is GREEN: focused C06/C01–C05 contracts, root `corepack npm@10.9.2 test`,
+  offline integration `55/0`, lint `0 errors / 9 existing warnings`, typecheck, fixture-free `CI=1 build:weapp` and
+  `git diff --check`. This is code-ready evidence only; no CloudBase or runtime staging row changed status.
+
+## C06 independent Review-fix round 1 checkpoint — 2026-08-10
+
+- Added literal exact-key oracles for the stored evidence record, nested `approvedEvidence`/`geometry` and admin
+  display DTO. The fixture now supplies non-empty private provenance (`self`) and note input, while evidence/display
+  projections exclude provenance, note, raw and linkage fields. Clone-based representative provenance/note/raw/linkage
+  mutations each produce the expected oracle RED; no production defect was found.
+- Added `shareFileMessage` to the Option A source-residue scan with an isolated mutation string/assertion. The poisoned
+  raw list/detail model state still has no raw keys, request URL, `includeRawLink`, opener or platform call.
+- Added a KML begin → `.kml` reserved path → finalize/parser → owner/admin DTO vertical scenario with literal format,
+  point/segment and review-path assertions; it reuses the production parser and services.
+- Narrowed O8 to no runtime mutation by the acceptance flow. Weather/verdict/catalog/history integrity is explicitly
+  attributed to the unchanged production-file allowlist/diff and existing focused gates. Split staging S3 into S3a–S3f,
+  recording all six authoritative index field orders and unique flags as `BLOCKED`.
+- `TDD_DEVIATION_INITIAL_GREEN` remains unchanged and honest: no missing-script/artificial RED was fabricated; the
+  new exact-key, KML, Option A and mutation expectations were added as Review-fix evidence.
 
 ## C05 merge / C06 activation checkpoint — 2026-08-10
 
@@ -1235,9 +1272,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. `luna-worker` implements the bounded C06 offline acceptance and documentation package without mutating CloudBase.
-2. Sol XHigh reviews the exact diff and latest-head CI before any human staging action.
-3. Human staging rows remain separately controlled: collection/index/rule/env/function/timer changes are never inferred
+1. Sol XHigh reviews the bounded C06 offline acceptance and documentation package and latest-head CI before any human
+   staging action; the executor package is `READY_FOR_CONTROLLER_REVIEW` and did not mutate CloudBase.
+2. Human staging rows remain separately controlled: collection/index/rule/env/function/timer changes are never inferred
    from offline tests and must be recorded truthfully as `VERIFIED`, `BLOCKED` or `UNVERIFIED_RUNTIME_TOOL`.
 
 ## Blockers and risks
@@ -1279,9 +1316,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Run the C06 baseline, register the focused `test:track-acceptance` RED, then implement the offline cross-layer fixture,
-staging validation record and synchronized completion documents under #123. No CloudBase mutation or deployment is
-performed by the executor; the future viewer #129 remains blocked until C06/Goal closeout.
+Review the C06 baseline, offline cross-layer fixture, staging validation record and synchronized completion documents
+under #123. The initial acceptance skeleton was direct GREEN because C01–C05 seams already existed; retain
+`TDD_DEVIATION_INITIAL_GREEN` and independent literal/mutation evidence rather than fabricating a RED. No CloudBase
+mutation or deployment is performed by the executor; the future viewer #129 remains blocked until C06/Goal closeout.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

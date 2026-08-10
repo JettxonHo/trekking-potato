@@ -1,10 +1,10 @@
 # ACTIVE TASK — C06 community-track acceptance and staging evidence
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C06 IMPLEMENTATION_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C06 REVIEW_FIX_ACTIVE`
 - Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
 - GitHub Issue: `#123`
-- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
+- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX round 1`
 - Controller: Sol XHigh
 - Implementation executor: exact custom Agent `luna-worker`
 - Branch: `codex/123-track-acceptance`
@@ -63,12 +63,14 @@ The table-driven fixture must prove:
   provenance, submission/evidence-key or reviewer linkage across the public/client boundary;
 - literal raw/record 30-day and evidence 180-day before/equal/after boundaries, no deadline extension, timer-only
   authority, duplicate delivery, max-20/backlog, CAS/deletion-pending repair and missing-delete idempotency;
-- runtime route catalog, operational status, weather, deterministic verdict, history and public UGC paths remain
-  byte-for-byte or deep-equal unchanged through the acceptance flow.
+- the acceptance flow itself does not mutate the loaded route catalog, history or public-UGC source state. The
+  unchanged weather/verdict implementation is established by the exact no-production-file allowlist/diff plus its
+  existing focused contracts, not by pretending a before/after snapshot can detect a pre-run source mutation.
 
-Representative mutations must turn the focused gate RED: forged owner/admin identity, reserved-path mismatch, DTO
-identity/key leak, client raw action/request reintroduction, review version/attempt weakening, 30/180 drift, timer
-authority bypass, max-20 removal and catalog/product-fact mutation.
+Representative mutations must turn the focused gate RED: forged owner/admin identity, reserved-path mismatch, exact
+evidence/privacy-key or provenance leak, client raw action/request or `shareFileMessage` reintroduction, review
+version/attempt weakening, 30/180 drift, timer authority bypass and max-20 removal. Do not claim that a pre-run
+production-source mutation is caught by a same-process before/after snapshot.
 
 ## 5. Staging validation record
 
@@ -119,8 +121,30 @@ Do not mark TP-COMMUNITY-001 complete inside executor work. Executor returns `RE
 independent Reviews, PR publication/latest-head CI/merge, human runtime coordination and Goal acceptance. #115/#123
 close only after the approved PR merges and required closeout facts are synchronized.
 
+C06 executor evidence note: the focused acceptance skeleton was direct GREEN because the C01–C05 public seams were
+already implemented. This honest order is recorded as `TDD_DEVIATION_INITIAL_GREEN`; no missing-script or artificial
+RED is manufactured. Independent literal oracles and mutation probes were added afterward to demonstrate that the new
+gate detects owner/privacy, Option A raw, retention/timer and catalog-wiring regressions.
+
 ## 8. Stop conditions
 
 Stop and escalate before paid infrastructure, permission broadening, production/public release, real-user invitation,
 secret/OpenID disclosure, destructive deletion of pre-existing data, automatic catalog promotion, route fact/status/
 safety/verdict mutation, raw viewer/export implementation, dependency upgrade or any file outside the allowlist.
+
+## 9. Independent Review round 1 — 2026-08-10
+
+Verdict: `CHANGES_REQUESTED`; no production defect and no human product decision.
+
+- Add independent literal exact-key oracles for stored evidence record, nested approved evidence/geometry and display
+  DTO. Use non-empty private provenance input and prove a representative provenance/note/raw/linkage field leak makes
+  `test:track-acceptance` RED. Include `shareFileMessage` in the option-A source residue/mutation boundary.
+- Add one KML vertical scenario through begin → `.kml` reservation/upload → finalize/parser → owner/admin DTO with
+  literal format/summary/snapshot assertions. Reuse the existing parser and services; do not copy parsing logic.
+- Narrow O8 to what C06 actually proves: no runtime mutation by the acceptance flow, exact production-file allowlist,
+  and explicit attribution to existing route/weather/verdict/history gates. Do not claim same-run snapshots catch a
+  source mutation that occurred before the run.
+- Split the staging index row into the six exact index definitions from the authoritative workflow, including field
+  order and the unique flag, so partial runtime verification can be recorded truthfully.
+- Keep `TDD_DEVIATION_INITIAL_GREEN` honest, rerun every required command and mutation probe, and return within the
+  same allowlist. No production file, dependency, deploy or CloudBase mutation is authorized.

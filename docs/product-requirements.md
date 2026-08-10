@@ -1,8 +1,8 @@
 # 徒步薯产品需求
 
-- Product scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 ACTIVE — C01 IMPLEMENTATION_ACTIVE`
-- Status: `COMMUNITY TRACK C01 IMPLEMENTATION`
-- Updated: `2026-08-09`
+- Product scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 ACTIVE — C06 IMPLEMENTATION_ACTIVE`
+- Status: `COMMUNITY TRACK C06 CODE-READY REVIEW`
+- Updated: `2026-08-10`
 
 ## 1. 产品与用户
 
@@ -124,7 +124,9 @@ TP-BETA-001 不实现部署发布、真实闭测、原生端、多语言、社�
   cancelled / invalid` 状态及可公开给提交者的审核说明；
 - 提交者仅可在 `awaiting_upload / pending_review / changes_requested` 取消；`processing` 只刷新，
   `rejected / invalid / cancelled` 只在清理失败时重试清理。修改要求通过新 submission 修订并保留审核链；
-- allowlisted 管理员查看私有摘要/短时 raw 链接并请求修改、拒绝或批准为几何证据。
+- allowlisted 管理员在当前 TP-D056 Option A 客户端查看私有标准化摘要、去身份 evidence 和最多 500 个预览点，
+  并请求修改、拒绝或批准为几何证据；客户端不展示或导出 raw GPX/KML。服务端 raw 合同仍是私有边界，
+  未来 viewer #129 需另行设计和审批。
 - 不可变审核快照创建后，原始上传/审核对象的可访问期最长 30 天；通过审核的去身份几何证据
   在独立私有记录中最长可访问 180 天。到期后服务立即不再返回记录/执行审核并进入物理删除；
   云端删除失败可延迟物理清理，但不恢复访问。取消/无效/拒绝立即尝试删除 raw。
@@ -137,4 +139,6 @@ TP-BETA-001 不实现部署发布、真实闭测、原生端、多语言、社�
 - 不提供公共 UGC 列表、点赞、评论、公开 raw 下载或自动 AI 审核；
 - 原始个人时间序列、OpenID、平台账号和临时链接不进入 reviewed-evidence projection。
 
-详细权利文案、保留/取消语义、模式和验收以 `docs/community-track-workflow.md` 为准。
+详细权利文案、保留/取消语义、模式和验收以 `docs/community-track-workflow.md` 为准。C06 离线
+owner→admin→retention/UI 验收及尚未执行的 staging/runtime 行见
+`docs/community-track-staging-validation.md`；离线通过不等于部署或真实闭测。
