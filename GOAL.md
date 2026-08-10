@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C06 REVIEW_ACTIVE`
+- Status: `ACTIVE — C07 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -48,13 +48,64 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C4 User UX | C04 | rights, upload, status, revision and cancel are usable without public UGC |
 | C5 Admin UX | C05 | admin-only queue/detail/review works without exposing identity or secrets |
 | C6 Acceptance | C06 | cross-layer gates, docs and human staging checklist are complete |
+| C7 Focused UX | C07 | community-track owner/admin workflow moves to a secondary page and the route-query homepage is simplified |
 
-C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, and C05
-through PR #128 (`0e534d49`); Issues #118–#122 are closed. C06/#123 is the only active child. Each
-child gets one focused branch/PR and exact allowlist. C06's offline acceptance fixture, contract gate and separate
-staging-validation record are prepared on the active branch; this does not claim deployment, runtime verification or
-Goal completion. Draft PR #130 is open for the C06 evidence package; #123/#115 remain open until exact-head CI,
-Review and merge complete. The current client follows TP-D056 Option A and has no raw-track presentation/export path.
+C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
+through PR #128 (`0e534d49`) and the C06 offline acceptance package through PR #130 (`59ef3c2`). Issues #118–#122
+are closed. C06/#123 is now blocked only on the remaining separately controlled staging upload/review/timer rows;
+it is not the active review task. C07/#131 implementation is complete locally and is now the only active review task;
+it moves the complete community-track owner/admin workflow to a secondary page while preserving TP-D056 Option A.
+Each implementation child gets one focused branch/PR and exact allowlist. Neither C06 staging evidence nor C07
+claims a PR, approval, merge, deployment, production readiness or Goal completion.
+
+## C07 implementation checkpoint — 2026-08-10
+
+- The bounded frontend moves the owner/admin track orchestration and render into
+  `taro-app/src/pages/community-track/index.jsx`; the existing `track-submission-model` and
+  `track-submission-service` remain the single state/I/O seams.
+- `pages/community-track/index` is registered. The homepage keeps one `社区轨迹` entry and the existing
+  route-not-found/location-failed manual fallback adds `提交轨迹供审核`; the homepage no longer renders track/admin
+  cards or visible CLIMB SUPPORT and requests retain `climbSupport='solo_or_unsure'`.
+- The focused contract recorded a real missing-page RED before implementation and is GREEN after mutation-sensitive
+  route/config/homepage/secondary-page/unmount assertions. Local gates are code evidence only; staging upload/review,
+  timer, deployment and runtime model visibility remain separate and unverified.
+
+## C07 review-fix round 1 checkpoint — 2026-08-10
+
+- The focused UI contract now asserts element-level handlers for both homepage entries, the secondary submit button,
+  owner list actions and owner detail actions. Each isolated binding-removal mutation produced a real RED and was
+  restored to GREEN; the final output is `PASS: C04/C05/C07 track-submission UI contract`.
+- Production implementation remains unchanged. The required local gates remain code evidence only, with runtime model
+  identity `UNVERIFIED_RUNTIME_MODEL` and #123 staging upload/review/timer rows still blocked.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+- Open work / Next action: draft PR #132 is published; wait for latest-head CI and two exact-head actual-diff Reviews.
+  Sol XHigh then decides whether to mark ready and merge. No approval or merge is claimed in this checkpoint.
+
+## C07 review-fix round 2 authorization — 2026-08-10
+
+- The human approved a clearer disclosure hierarchy on the secondary page: rename the owner card to `提交私有轨迹`,
+  remove the long rights/platform text from the top, keep a concise private-review and exact 30/180-day summary plus
+  consent before submission, and place the complete unchanged explanation below the submit button in a collapsed,
+  user-expandable disclosure.
+- This is a bounded presentation change only. The rights text, consent requirement, retention periods, uploader
+  validation, owner/admin workflow, TP-D056 Option A and all server/data contracts remain unchanged.
+- The local Review-fix requires a real focused RED, final full gates, two fresh independent Reviews and latest-head
+  GitHub quality before Sol may reconsider mergeability.
+
+## C07 review-fix round 2 checkpoint — 2026-08-10
+
+- The focused UI contract recorded a real RED before the page edit, then returned GREEN after the owner-card title,
+  concise pre-submit privacy summary, consent ordering and collapsed full-policy disclosure were implemented.
+- Six isolated production mutations (rights placement, summary removal, consent reorder, platform-copy placement,
+  disclosure default and toggle handler) each produced RED and were restored. The unchanged `RIGHTS_COPY` and
+  `RIGHTS_PLATFORM_COPY` remain below submission; no model/service/server behavior changed.
+- The full required matrix, integration `55/0`, lint (0 errors/9 existing warnings), typecheck, fixture-free WeChat
+  build and `git diff --check` pass. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`; #123 staging rows
+  remain `BLOCKED_STAGING`.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+- Open work / Next action: round 2 is published to existing draft PR #132. Live GitHub PR metadata is the dynamic
+  source for the current head and quality result; the final docs-only status sync still requires latest-head CI and
+  two exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge is claimed here.
 
 ## 6. Completion criteria
 

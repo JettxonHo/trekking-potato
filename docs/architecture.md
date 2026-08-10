@@ -1,7 +1,7 @@
 # 徒步薯架构
 
-- Architecture scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 ACTIVE — C06 IMPLEMENTATION_ACTIVE`
-- Status: `COMMUNITY TRACK C06 CODE-READY REVIEW`
+- Architecture scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 ACTIVE — C07 IMPLEMENTATION_ACTIVE`
+- Status: `COMMUNITY TRACK C07 CODE-READY REVIEW`
 - Updated: `2026-08-10`
 
 ## 1. 系统边界
@@ -118,6 +118,17 @@ seams 执行，入口为 `test:track-acceptance`；它不复制业务逻辑，�
 TP-D056 Option A，只展示标准化摘要、去身份 evidence 与最多 500 个预览点；`view_raw`、`rawAccess`、
 `includeRawLink`、opener 和任何下载/保存/分享/剪贴板路径均不属于客户端边界。离线结果与尚未执行的
 CloudBase/微信运行时行分别记录在 [community-track-staging-validation.md](community-track-staging-validation.md)。
+
+### C07 前端页面边界
+
+`pages/community-track/index` 是社区轨迹 owner/admin 工作流的唯一编排页面：它直接复用既有
+`track-submission-model` reducer 与 `track-submission-service` I/O seam，承载提交、上传、列表、详情、修订、
+取消、清理重试和 allowlisted 管理员队列/审核。路线查询主页不再持有这套状态、服务或生命周期，也不继承
+主页组件；它只导航到二级页，并在路线未找到/定位失败的手动坐标弹窗提供 `提交轨迹供审核` 入口。
+
+二级页卸载时调用 service session cleanup 并重置本地 reducer，令挂起的本地 continuation 失效；这不改变
+服务端状态机、TP-D056 Option A raw-inert 边界或路线目录。主页隐藏 CLIMB SUPPORT 视觉字段，但请求仍保留
+`solo_or_unsure` 默认值。
 
 ### I07 冻结目录边界
 

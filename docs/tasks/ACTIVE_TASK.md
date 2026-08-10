@@ -1,106 +1,88 @@
-# ACTIVE TASK — C06 community-track acceptance and staging evidence
+# ACTIVE TASK — C07 community-track secondary page
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C06 REVIEW_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_ACTIVE`
 - Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
-- GitHub Issue: `#123`
+- GitHub Issue: `#131`
 - Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW`
 - Controller: Sol XHigh
 - Implementation executor: exact custom Agent `luna-worker`
-- Branch: `codex/123-track-acceptance`
-- Base: `main@0e534d49`
-- Dependency: C05/#122 completed through approved PR #128 (`0e534d49`)
+- Branch: `codex/131-community-track-page`
+- Base: `main@59ef3c2`
+- Dependency: C06 offline acceptance merged through approved PR #130; #123 remains `BLOCKED_STAGING`
 
 ## 1. Objective
 
-Complete the offline owner-to-review acceptance gate, durable final documentation and a truthful staging-validation
-record for `trackSubmission`. This Issue may prepare and document separately authorized human staging actions; the
-executor does not deploy, mutate CloudBase, enable destructive cleanup, publish routes or claim production readiness.
+Move the complete private community-track owner/admin workflow from the main route-query page to a dedicated
+`pages/community-track/index` secondary page. Keep the homepage focused on route planning, expose one lightweight
+community-track entry, and add the same choice beside the existing route-not-found/manual-coordinate fallback.
 
-Human option A / TP-D056 is frozen: the current mini-program reviews normalized summary, keyless evidence and at most
-500 preview points. It contains no raw GPX/KML presentation/export path. Future viewer #129 remains blocked and is not
-part of C06.
+Remove the visible CLIMB SUPPORT field from the homepage. Preserve the existing conservative internal
+`climbSupport='solo_or_unsure'` request value; this Issue does not change deterministic safety or the server contract.
 
 ## 2. Required reading
 
-Read the mandatory governance sequence, live #115/#123, full `docs/community-track-workflow.md`,
-`docs/development-plan.md` C06, the community gate in `docs/testing-strategy.md`,
-`docs/staging-deployment-validation.md`, the C01–C05 public seams and existing completion-report conventions.
+Read the mandatory governance sequence, live #115/#123/#131, `docs/community-track-workflow.md`, C04/C05 model and
+service seams, product requirements, architecture, testing strategy, development plan and TP-D056/TP-D059.
 
-## 3. Exact allowlist
+## 3. Exact implementation allowlist
 
-- new `scripts/track-acceptance-contract-test.js`
-- new `scripts/fixtures/track-acceptance.js`
-- new `docs/community-track-staging-validation.md`
-- root `package.json`
-- `README.md`
+- `taro-app/src/app.config.js`
+- `taro-app/src/pages/index/index.jsx`
+- `taro-app/src/pages/index/index.css`
+- new `taro-app/src/pages/community-track/index.jsx`
+- new `taro-app/src/pages/community-track/index.css`
+- `taro-app/src/pages/index/track-submission-model.js` only for a minimal reusable export if required
+- `taro-app/src/pages/index/track-submission-service.js` only for a minimal reusable export if required
+- `scripts/track-ui-contract-test.js`
 - `GOAL.md`
-- `docs/architecture.md`
+- `docs/current-status.md`
+- `docs/tasks/ACTIVE_TASK.md`
 - `docs/product-requirements.md`
+- `docs/architecture.md`
 - `docs/testing-strategy.md`
 - `docs/development-plan.md`
 - `docs/decision-log.md`
-- `docs/current-status.md`
-- `docs/tasks/ACTIVE_TASK.md`
 
-No production page, Cloud Function, existing contract-test, dependency/lockfile, CloudBase config, fixture switch or
-deployment file may change. A discovered production defect becomes a separate focused Bug Issue; it is not repaired in
-this acceptance/evidence PR.
+No Cloud Function, API, database schema, storage, index, timer, permission, env, dependency/lockfile, catalog,
+route/weather/verdict/history or deployment file may change.
 
-## 4. Frozen offline acceptance
+## 4. Frozen product and interface contract
 
-Register `test:track-acceptance` in root `package.json` and root `test`. Use injected in-memory storage/database/time
-and existing public parser, owner, admin, retention and page-model/service seams; do not duplicate their business logic.
-The table-driven fixture must prove:
+- Register `pages/community-track/index` in Taro app configuration.
+- Homepage button navigates with `Taro.navigateTo({url:'/pages/community-track/index'})`.
+- The existing manual-coordinate fallback remains. A route-not-found/location-failed state additionally offers
+  `提交轨迹供审核` and navigates to the same secondary page.
+- The homepage no longer renders the track submission form, owner list/detail, administrator review card or visible
+  CLIMB SUPPORT field.
+- The secondary page owns private GPX/KML selection, exact rights/consent copy, upload/finalize, list/detail,
+  revision/cancel/cleanup and the allowlisted administrator queue/detail/review flow.
+- Reuse the existing `track-submission-model` and `track-submission-service` as the single state machine and I/O seam.
+  Do not copy or fork reducer, DTO/privacy, retry, token, loading or CloudBase logic.
+- Secondary-page unmount invalidates pending local continuations. C04/C05 loading/disabled, stale-response, exact
+  reservation-ID, privacy and TP-D056 Option-A raw-inert boundaries remain unchanged.
 
-- owner begin → exact reserved upload → finalize → private list/detail, including retry identity, expiry and DTO privacy;
-- revision after `changes_requested`, cancel/cleanup-pending recovery and stale/version conflict boundaries;
-- administrator queue/detail/review for `request_changes`, `reject`, `approve_evidence`, with server-only authority,
-  stable review attempt/replay and cancel/review race behavior;
-- human option A: poisoned `view_raw`/`rawAccess.url` is inert in the client; no `includeRawLink`, opener, download,
-  save, share, clipboard, state, log or cache path exists;
-- approval creates a keyless de-identified geometry display and separate evidence record, with no OpenID, raw,
-  provenance, submission/evidence-key or reviewer linkage across the public/client boundary;
-- literal raw/record 30-day and evidence 180-day before/equal/after boundaries, no deadline extension, timer-only
-  authority, duplicate delivery, max-20/backlog, CAS/deletion-pending repair and missing-delete idempotency;
-- the acceptance flow itself does not mutate the loaded route catalog, history or public-UGC source state. The
-  unchanged weather/verdict implementation is established by the exact no-production-file allowlist/diff plus its
-  existing focused contracts, not by pretending a before/after snapshot can detect a pre-run source mutation.
+## 5. TDD and mutation-sensitive acceptance
 
-Representative mutations must turn the focused gate RED: forged owner/admin identity, reserved-path mismatch, exact
-evidence/privacy-key or provenance leak, client raw action/request or `shareFileMessage` reintroduction, review
-version/attempt weakening, 30/180 drift, timer authority bypass and max-20 removal. Do not claim that a pre-run
-production-source mutation is caught by a same-process before/after snapshot.
+Record one real focused RED before implementation. The final `test:track-ui` must make representative production
+mutations RED for:
 
-## 5. Staging validation record
+- removing either homepage entry or routing it to the wrong page;
+- omitting the secondary page from `app.config.js`;
+- reintroducing homepage track/admin cards or visible CLIMB SUPPORT;
+- bypassing the shared model/service seam;
+- removing secondary-page upload/list/detail/admin-review wiring or unmount invalidation.
 
-Create `docs/community-track-staging-validation.md` with one authoritative row per required runtime action. Each row is
-exactly `VERIFIED`, `BLOCKED` or `UNVERIFIED_RUNTIME_TOOL`; no unexecuted row is called verified. Separate automated
-offline evidence from human/console/runtime evidence.
+Required final commands:
 
-Rows include:
-
-- private ADMINONLY `track_submissions` and `track_review_evidence` collections;
-- exact unique owner-attempt and owner/admin list plus raw/record/evidence expiry indexes;
-- `TRACK_STORAGE_FILEID_HOST`, server-only `TRACK_REVIEW_ADMIN_OPENIDS` and function timeout `<=240s`, without values;
-- function upload and private owner/admin/rejection/cancel/lease-recovery smoke;
-- daily timer timezone, server-owned `TRIGGER_SRC=timer`, empty server OpenID, normal-client and forged-event rejection;
-- pre-enable dry-run, duplicate delivery, max-20/backlog drain, rollback and residue proof;
-- option-A client smoke confirming summary/preview-only review and zero raw presentation/export;
-- normal fixture-free WeChat build/import and real-device boundaries.
-
-Human confirmation is required before any collection/index/rule/env/function/timer mutation. Destructive cleanup stays
-disabled until its dry-run and rollback rows are verified. Secrets/OpenIDs/URLs/fileIDs/raw paths never enter Git,
-GitHub, screenshots or logs.
-
-## 6. Required commands
-
+- `corepack npm@10.9.2 run test:track-ui`
 - `corepack npm@10.9.2 run test:track-acceptance`
-- `corepack npm@10.9.2 run test:track-parser`
+- `corepack npm@10.9.2 run test:trip-flow`
+- `corepack npm@10.9.2 run test:result-page`
+- `corepack npm@10.9.2 run test:recovery`
 - `corepack npm@10.9.2 run test:track-owner`
 - `corepack npm@10.9.2 run test:track-admin`
 - `corepack npm@10.9.2 run test:track-retention`
-- `corepack npm@10.9.2 run test:track-ui`
 - `corepack npm@10.9.2 test`
 - `corepack npm@10.9.2 run test:integration`
 - `corepack npm@10.9.2 run lint`
@@ -108,52 +90,60 @@ GitHub, screenshots or logs.
 - `CI=1 corepack npm@10.9.2 run build:weapp`
 - `git diff --check`
 
-## 7. Documentation and completion boundary
+## 6. Documentation and completion boundary
 
-Synchronize README/product/architecture/testing/development/current status and Goal language to distinguish:
+Synchronize product, architecture, testing, development, decision, current-status and task language. Preserve the
+difference between code-ready, the partial staging evidence already verified, and the remaining blocked upload/review/
+timer rows. The implementation is complete locally and the executor returns `READY_FOR_CONTROLLER_REVIEW`.
 
-- implemented and independently tested code;
-- staging runtime rows actually verified by the human/tool;
-- deployment/publication/real-user beta still unauthorized or unverified;
-- residual dependency/tooling debt and future viewer #129.
+## 8. Independent Review and local GUI checkpoint — 2026-08-10
 
-Do not mark TP-COMMUNITY-001 complete inside executor work. Executor returns `READY_FOR_CONTROLLER_REVIEW`; Sol owns
-independent Reviews, PR publication/latest-head CI/merge, human runtime coordination and Goal acceptance. #115/#123
-close only after the approved PR merges and required closeout facts are synchronized.
+- Two fresh independent Reviews returned `APPROVED` with no P0–P3 after the handler-binding Review-fix.
+- Normal fixture-free WeChat DevTools rendered the simplified homepage, navigated through `社区轨迹` to the new page,
+  loaded the owner empty state and returned to route search with zero debugger errors. No upload, review, delete,
+  timer, real-device or production action occurred.
+- Draft PR #132 is published. Its pre-round-2 head passed quality and Review, but that evidence is superseded by the
+  disclosure-hierarchy change. The pending new head requires fresh quality and two exact-head Reviews. Do not close
+  #131/#115 or mark the Goal complete before the approved merge and post-merge synchronization.
 
-C06 executor evidence note: the focused acceptance skeleton was direct GREEN because the C01–C05 public seams were
-already implemented. This honest order is recorded as `TDD_DEVIATION_INITIAL_GREEN`; no missing-script or artificial
-RED is manufactured. Independent literal oracles and mutation probes were added afterward to demonstrate that the new
-gate detects owner/privacy, Option A raw, retention/timer and catalog-wiring regressions.
+Open work / Next action: round 2 is published to existing draft PR #132. Live GitHub PR metadata is the dynamic source
+for the current head and quality result; the final docs-only status sync requires latest-head CI and two exact-head
+independent Reviews. Sol owns the decision to mark ready and merge. No approval or merge is claimed in this handoff.
 
-## 8. Stop conditions
+## 9. Review-fix round 2 — human-approved disclosure hierarchy
 
-Stop and escalate before paid infrastructure, permission broadening, production/public release, real-user invitation,
-secret/OpenID disclosure, destructive deletion of pre-existing data, automatic catalog promotion, route fact/status/
-safety/verdict mutation, raw viewer/export implementation, dependency upgrade or any file outside the allowlist.
+- Rename the owner card from `私有轨迹审核` to `提交私有轨迹`.
+- The long `RIGHTS_COPY` and `RIGHTS_PLATFORM_COPY` paragraphs must not precede the form. Keep their exact text
+  unchanged and render it below the submit button in a disclosure collapsed by default with an explicit accessible
+  expand/collapse control.
+- Before submit, show a concise summary that states private review/no automatic publication and the exact maximum
+  30-day raw/identity and 180-day de-identified evidence periods. Keep the existing CheckboxGroup consent before the
+  submit button; submission must remain disabled until consent and file selection are present.
+- `test:track-ui` must record RED before production edits and make representative placement, compact-summary,
+  consent-order and expand/collapse wiring mutations RED. Reuse the existing page-local rendering seam; do not create
+  a second state machine or change model/service/server behavior.
+- Required outcome: full §5 matrix GREEN, exact allowlist/secret/raw-residue audits, two fresh independent Reviews and
+  latest-head PR quality. PR #132 stays draft until all gates pass.
 
-## 9. Independent Review round 1 — 2026-08-10
+## 10. Review-fix round 2 executor checkpoint — 2026-08-10
 
-Verdict: `CHANGES_REQUESTED`; no production defect and no human product decision.
+- The focused UI contract recorded a real RED before the page edit, then returned GREEN after the owner-card title,
+  concise pre-submit privacy summary, consent ordering and collapsed full-policy disclosure were implemented.
+- Six isolated production mutations (rights placement, summary removal, consent reorder, platform-copy placement,
+  disclosure default and toggle handler) each produced RED and were restored. The unchanged `RIGHTS_COPY` and
+  `RIGHTS_PLATFORM_COPY` remain below submission; no model/service/server behavior changed.
+- The full required matrix, integration `55/0`, lint (0 errors/9 existing warnings), typecheck, fixture-free WeChat
+  build and `git diff --check` pass. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`; #123 staging rows
+  remain `BLOCKED_STAGING`.
+- Normal WeChat DevTools rendered the final ordering and verified default-collapsed → expanded → collapsed behavior
+  with zero debugger errors. No file selection/upload, review, delete, timer, deployment or CloudBase mutation ran.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+- Open work / Next action: round 2 is published to existing draft PR #132. Live GitHub PR metadata is the dynamic
+  source for the current head and quality result; the final docs-only status sync requires latest-head CI and two
+  exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge is claimed here.
 
-- Add independent literal exact-key oracles for stored evidence record, nested approved evidence/geometry and display
-  DTO. Use non-empty private provenance input and prove a representative provenance/note/raw/linkage field leak makes
-  `test:track-acceptance` RED. Include `shareFileMessage` in the option-A source residue/mutation boundary.
-- Add one KML vertical scenario through begin → `.kml` reservation/upload → finalize/parser → owner/admin DTO with
-  literal format/summary/snapshot assertions. Reuse the existing parser and services; do not copy parsing logic.
-- Narrow O8 to what C06 actually proves: no runtime mutation by the acceptance flow, exact production-file allowlist,
-  and explicit attribution to existing route/weather/verdict/history gates. Do not claim same-run snapshots catch a
-  source mutation that occurred before the run.
-- Split the staging index row into the six exact index definitions from the authoritative workflow, including field
-  order and the unique flag, so partial runtime verification can be recorded truthfully.
-- Keep `TDD_DEVIATION_INITIAL_GREEN` honest, rerun every required command and mutation probe, and return within the
-  same allowlist. No production file, dependency, deploy or CloudBase mutation is authorized.
+## 7. Stop conditions
 
-## 10. Draft PR review checkpoint — 2026-08-10
-
-- The final Review-fix worktree passed two independent Reviews with no P0–P3. The isolated `shareFileMessage` mutation
-  contains only that residue and independently produces the required focused RED; restoration is GREEN.
-- Commit `555ffd4` is published as draft PR #130 with `Refs #123` and `Refs #115`. The PR is not accepted or merged;
-  #123/#115 and milestone #8 remain open.
-- This status-only additive head must pass latest-head GitHub `quality` and exact-head independent Reviews before Sol
-  may mark the PR ready or decide squash merge. Runtime/CloudBase/staging rows retain their recorded evidence status.
+Stop before scope expansion, server/API/schema/dependency change, CloudBase mutation, deployment/public release,
+destructive cleanup, raw viewer/export, automatic catalog publication, real-user invitation, or any file outside the
+allowlist. Preserve unrelated/controller edits; do not approve or merge executor-owned work.

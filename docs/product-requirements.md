@@ -1,7 +1,7 @@
 # 徒步薯产品需求
 
-- Product scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 ACTIVE — C06 IMPLEMENTATION_ACTIVE`
-- Status: `COMMUNITY TRACK C06 CODE-READY REVIEW`
+- Product scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 ACTIVE — C07 IMPLEMENTATION_ACTIVE`
+- Status: `COMMUNITY TRACK C07 CODE-READY REVIEW`
 - Updated: `2026-08-10`
 
 ## 1. 产品与用户
@@ -138,6 +138,17 @@ TP-BETA-001 不实现部署发布、真实闭测、原生端、多语言、社�
 - 不抓取两步路、六只脚等平台。用户只有在拥有轨迹或获得授权/开放许可时才能提交导出文件；
 - 不提供公共 UGC 列表、点赞、评论、公开 raw 下载或自动 AI 审核；
 - 原始个人时间序列、OpenID、平台账号和临时链接不进入 reviewed-evidence projection。
+
+### C07 页面边界
+
+- 完整的 owner 提交/列表/详情/修订/取消/清理和 allowlisted admin 队列/详情/审核流程归
+  `pages/community-track/index`；路线查询主页只保留一个轻量 `社区轨迹` 入口，路线未找到/定位失败的
+  手动坐标弹窗保留人工坐标流程并提供 `提交轨迹供审核` 入口。
+- 主页不展示 owner/admin 卡片，也不展示 CLIMB SUPPORT；请求继续固定使用保守的内部
+  `climbSupport='solo_or_unsure'` 默认值。二级页复用既有 `track-submission-model` 与
+  `track-submission-service`，不复制 reducer/I/O 或继承主页路由生命周期。
+- TP-D056 Option A 仍然生效：客户端只呈现标准化摘要、去身份 evidence 和最多 500 个预览点，不展示或导出
+  raw GPX/KML。二级页卸载时清理本地 service session 并使未完成的本地 continuation 失效。
 
 详细权利文案、保留/取消语义、模式和验收以 `docs/community-track-workflow.md` 为准。C06 离线
 owner→admin→retention/UI 验收及尚未执行的 staging/runtime 行见
