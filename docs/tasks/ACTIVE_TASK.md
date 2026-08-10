@@ -1,10 +1,10 @@
 # ACTIVE TASK — C07 community-track secondary page
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_FIX_ACTIVE`
 - Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
 - GitHub Issue: `#131`
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW`
+- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
 - Controller: Sol XHigh
 - Implementation executor: exact custom Agent `luna-worker`
 - Branch: `codex/131-community-track-page`
@@ -107,6 +107,21 @@ timer rows. The implementation is complete locally and the executor returns `REA
 
 Open work / Next action: wait for draft PR #132 latest-head CI, then obtain two exact-head actual-diff Reviews. Sol
 owns the decision to mark ready and merge. No approval or merge is claimed in this task handoff.
+
+## 9. Review-fix round 2 — human-approved disclosure hierarchy
+
+- Rename the owner card from `私有轨迹审核` to `提交私有轨迹`.
+- The long `RIGHTS_COPY` and `RIGHTS_PLATFORM_COPY` paragraphs must not precede the form. Keep their exact text
+  unchanged and render it below the submit button in a disclosure collapsed by default with an explicit accessible
+  expand/collapse control.
+- Before submit, show a concise summary that states private review/no automatic publication and the exact maximum
+  30-day raw/identity and 180-day de-identified evidence periods. Keep the existing CheckboxGroup consent before the
+  submit button; submission must remain disabled until consent and file selection are present.
+- `test:track-ui` must record RED before production edits and make representative placement, compact-summary,
+  consent-order and expand/collapse wiring mutations RED. Reuse the existing page-local rendering seam; do not create
+  a second state machine or change model/service/server behavior.
+- Required outcome: full §5 matrix GREEN, exact allowlist/secret/raw-residue audits, two fresh independent Reviews and
+  latest-head PR quality. PR #132 stays draft until all gates pass.
 
 ## 7. Stop conditions
 

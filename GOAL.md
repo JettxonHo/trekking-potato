@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C07 REVIEW_ACTIVE`
+- Status: `ACTIVE — C07 REVIEW_FIX_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -80,6 +80,17 @@ claims a PR, approval, merge, deployment, production readiness or Goal completio
 - Executor status: `READY_FOR_CONTROLLER_REVIEW`.
 - Open work / Next action: draft PR #132 is published; wait for latest-head CI and two exact-head actual-diff Reviews.
   Sol XHigh then decides whether to mark ready and merge. No approval or merge is claimed in this checkpoint.
+
+## C07 review-fix round 2 authorization — 2026-08-10
+
+- The human approved a clearer disclosure hierarchy on the secondary page: rename the owner card to `提交私有轨迹`,
+  remove the long rights/platform text from the top, keep a concise private-review and exact 30/180-day summary plus
+  consent before submission, and place the complete unchanged explanation below the submit button in a collapsed,
+  user-expandable disclosure.
+- This is a bounded presentation change only. The rights text, consent requirement, retention periods, uploader
+  validation, owner/admin workflow, TP-D056 Option A and all server/data contracts remain unchanged.
+- PR #132 remains draft. The Review-fix requires a real focused RED, final full gates, two fresh independent Reviews
+  and latest-head GitHub quality before Sol may reconsider mergeability.
 
 ## 6. Completion criteria
 

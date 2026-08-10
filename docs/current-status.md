@@ -3,16 +3,16 @@
 - Updated: `2026-08-10`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_ACTIVE`
-- Active task: `#131 / REVIEW`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_FIX_ACTIVE`
+- Active task: `#131 / REVIEW_FIX`
 - Branch/base: `codex/131-community-track-page` from `main@59ef3c2`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: C06 PR #130 merged as `59ef3c2`. #123 retains only separately controlled staging upload/review/timer
-  evidence and is `BLOCKED_STAGING`. C07/#131 implementation is complete locally and is the sole active review task:
-  move the complete private community-track owner/admin workflow to a secondary page, add two bounded homepage entries
-  and remove the visible CLIMB SUPPORT section while preserving its conservative internal default. No C07 PR, approval,
-  merge, production/public release or automatic destructive cleanup is claimed or authorized here.
+  evidence and is `BLOCKED_STAGING`. Draft PR #132 contains the C07 secondary-page implementation and is now in a
+  human-approved disclosure-hierarchy Review-fix: move the long rights/platform explanation below submit in a
+  collapsed disclosure while retaining a concise pre-submit 30/180-day summary and consent. No approval, merge,
+  production/public release or automatic destructive cleanup is claimed or authorized here.
 
 ## Current community-track checkpoint
 
@@ -80,6 +80,16 @@
 - Production implementation is unchanged in this round. Focused/root/integration/lint/typecheck/build evidence remains
   local code evidence only; runtime model identity is `UNVERIFIED_RUNTIME_MODEL` and #123 remains `BLOCKED_STAGING`.
 - Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+
+### C07 review-fix round 2 authorization — 2026-08-10
+
+- The human approved the recommended information hierarchy: `提交私有轨迹` as the owner-card title; form and file
+  selection first; a concise private-review/no-auto-publication and exact 30/180-day summary plus consent before the
+  submit button; and the complete unchanged rights/retention/platform explanation below submit, collapsed by default.
+- Scope stays within the existing community-page JSX/CSS, focused UI contract and synchronized status/design docs.
+  No model/service/server/API/schema/storage/dependency/CloudBase/deploy/catalog behavior may change.
+- The executor must record a real focused RED before production edits and make representative placement, summary,
+  consent and disclosure-toggle mutations RED. PR #132 remains draft during the fix.
 
 ## C07 independent Reviews and local DevTools smoke — 2026-08-10
 
@@ -1340,9 +1350,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. C07 implementation and review-fix passed two fresh independent Reviews, and the controller published draft PR
-   #132. The additive status-only head still requires latest-head CI and two exact-head actual-diff Reviews before Sol
-   decides mergeability. No approval or merge is claimed here.
+1. Complete the human-approved C07 disclosure-hierarchy Review-fix on draft PR #132, rerun the full matrix and obtain
+   two fresh independent Reviews plus latest-head GitHub quality before Sol decides mergeability. No approval or merge
+   is claimed here.
 2. Keep #123 staging upload/review/timer rows separately blocked. No C07 test or build may be used as runtime,
    deployment or destructive-cleanup evidence.
 
@@ -1385,10 +1395,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Wait for draft PR #132's latest-head GitHub quality result, then obtain two exact-head actual-diff Reviews. Only after
-those gates pass may Sol decide whether to mark the PR ready and merge it. #123 staging and future viewer #129 remain
-separate and blocked; C07 performs no CloudBase mutation or deployment. No approval or merge is claimed in this
-checkpoint.
+Dispatch the bounded C07 disclosure-hierarchy Review-fix through the exact `luna-worker`, then run the full required
+matrix and obtain two fresh independent Reviews plus latest-head GitHub quality. Only after those gates pass may Sol
+decide whether to mark draft PR #132 ready and merge it. #123 staging and future viewer #129 remain separate and
+blocked; C07 performs no CloudBase mutation or deployment. No approval or merge is claimed in this checkpoint.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
