@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C07 REVIEW_ACTIVE`
+- Status: `ACTIVE — BLOCKED_STAGING`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -51,12 +51,11 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C7 Focused UX | C07 | community-track owner/admin workflow moves to a secondary page and the route-query homepage is simplified |
 
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
-through PR #128 (`0e534d49`) and the C06 offline acceptance package through PR #130 (`59ef3c2`). Issues #118–#122
-are closed. C06/#123 is now blocked only on the remaining separately controlled staging upload/review/timer rows;
-it is not the active review task. C07/#131 implementation is complete locally and is now the only active review task;
-it moves the complete community-track owner/admin workflow to a secondary page while preserving TP-D056 Option A.
-Each implementation child gets one focused branch/PR and exact allowlist. Neither C06 staging evidence nor C07
-claims a PR, approval, merge, deployment, production readiness or Goal completion.
+through PR #128 (`0e534d49`), the C06 offline acceptance package through PR #130 (`59ef3c2`), and C07 through
+PR #132 (`86fafb6`). Issues #118–#122 and #131 are closed. The complete community-track owner/admin workflow now
+lives on a secondary page while preserving TP-D056 Option A. The Goal remains active only because #123 still requires
+separately controlled staging upload/review/delete/timer evidence; no deployment, production readiness or Goal
+completion is claimed.
 
 ## C07 implementation checkpoint — 2026-08-10
 
@@ -106,6 +105,14 @@ claims a PR, approval, merge, deployment, production readiness or Goal completio
 - Open work / Next action: round 2 is published to existing draft PR #132. Live GitHub PR metadata is the dynamic
   source for the current head and quality result; the final docs-only status sync still requires latest-head CI and
   two exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge is claimed here.
+
+## C07 merge checkpoint — 2026-08-10
+
+- PR #132 exact head passed GitHub quality and two independent exact-head Reviews with no P0–P3, then squash merged
+  to `main@86fafb6`; #131 closed only after the remote merge was confirmed.
+- C07 is complete. The Goal remains `ACTIVE — BLOCKED_STAGING` because #123 still lacks the separately controlled
+  upload/review/delete/timer runtime evidence. No deployment, cleanup enablement, production release or Goal-level
+  completion is claimed.
 
 ## 6. Completion criteria
 
