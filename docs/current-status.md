@@ -1340,9 +1340,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. C07 implementation and review-fix evidence are complete locally. Obtain two fresh independent Reviews; the
-   controller commits, pushes and publishes the draft PR; latest-head CI and actual-diff Review must pass before Sol
-   decides mergeability. No C07 PR, approval or merge is claimed here.
+1. C07 implementation and review-fix passed two fresh independent Reviews, and the controller published draft PR
+   #132. The additive status-only head still requires latest-head CI and two exact-head actual-diff Reviews before Sol
+   decides mergeability. No approval or merge is claimed here.
 2. Keep #123 staging upload/review/timer rows separately blocked. No C07 test or build may be used as runtime,
    deployment or destructive-cleanup evidence.
 
@@ -1385,10 +1385,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Obtain two fresh independent Reviews for the completed C07/#131 diff. The controller must commit, push and publish the
-draft PR; latest-head CI and actual-diff Review are required before Sol decides mergeability. #123 staging and future
-viewer #129 remain separate and blocked; C07 performs no CloudBase mutation or deployment. No C07 PR, approval or
-merge is claimed in this checkpoint.
+Wait for draft PR #132's latest-head GitHub quality result, then obtain two exact-head actual-diff Reviews. Only after
+those gates pass may Sol decide whether to mark the PR ready and merge it. #123 staging and future viewer #129 remain
+separate and blocked; C07 performs no CloudBase mutation or deployment. No approval or merge is claimed in this
+checkpoint.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

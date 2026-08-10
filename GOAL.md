@@ -78,9 +78,8 @@ claims a PR, approval, merge, deployment, production readiness or Goal completio
 - Production implementation remains unchanged. The required local gates remain code evidence only, with runtime model
   identity `UNVERIFIED_RUNTIME_MODEL` and #123 staging upload/review/timer rows still blocked.
 - Executor status: `READY_FOR_CONTROLLER_REVIEW`.
-- Open work / Next action: obtain two fresh independent Reviews; the controller commits, pushes and publishes the draft
-  PR; latest-head CI and actual-diff Review must pass; Sol XHigh then decides mergeability. No C07 PR, approval or merge
-  is claimed in this checkpoint.
+- Open work / Next action: draft PR #132 is published; wait for latest-head CI and two exact-head actual-diff Reviews.
+  Sol XHigh then decides whether to mark ready and merge. No approval or merge is claimed in this checkpoint.
 
 ## 6. Completion criteria
 

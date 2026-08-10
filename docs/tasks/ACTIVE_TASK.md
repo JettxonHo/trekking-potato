@@ -102,12 +102,11 @@ timer rows. The implementation is complete locally and the executor returns `REA
 - Normal fixture-free WeChat DevTools rendered the simplified homepage, navigated through `社区轨迹` to the new page,
   loaded the owner empty state and returned to route search with zero debugger errors. No upload, review, delete,
   timer, real-device or production action occurred.
-- Remaining gate: controller commit/push/draft PR, latest-head GitHub quality and exact-head actual-diff Review. Do not
-  close #131/#115 or mark the Goal complete before the approved merge and post-merge synchronization.
+- Draft PR #132 is published. Remaining gates are latest-head GitHub quality and two exact-head actual-diff Reviews.
+  Do not close #131/#115 or mark the Goal complete before the approved merge and post-merge synchronization.
 
-Open work / Next action: obtain two fresh independent Reviews; the controller commits, pushes and publishes the draft
-PR; latest-head CI and actual-diff Review must pass; Sol owns the merge decision and Goal acceptance. No C07 PR,
-approval or merge is claimed in this task handoff.
+Open work / Next action: wait for draft PR #132 latest-head CI, then obtain two exact-head actual-diff Reviews. Sol
+owns the decision to mark ready and merge. No approval or merge is claimed in this task handoff.
 
 ## 7. Stop conditions
 
