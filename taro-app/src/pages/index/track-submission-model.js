@@ -51,6 +51,15 @@ const ACTION_LABELS = Object.freeze({
   retry_cleanup: '重试清理',
 })
 
+const ADMIN_ACTIONS = Object.freeze(['request_changes', 'reject', 'approve_evidence'])
+const MAX_ADMIN_PREVIEW_POINTS = 500
+
+const ADMIN_ACTION_LABELS = Object.freeze({
+  request_changes: '要求修改',
+  reject: '拒绝',
+  approve_evidence: '批准为几何证据',
+})
+
 const STATUS_ROWS = Object.freeze(Object.keys(STATUS_LABELS).map((status) => Object.freeze({
   status,
   label: STATUS_LABELS[status],
@@ -81,13 +90,13 @@ const ERROR_TABLE = Object.freeze({
   invalid_state: ['当前状态不允许此操作', false, null],
   version_conflict: ['记录已更新，请刷新后重试', true, 'refresh'],
   processing_in_progress: ['正在校验轨迹，请稍后刷新', true, 'refresh'],
-  raw_unavailable: ['原始文件暂不可用', true, 'retry'],
   storage_unavailable: ['文件服务暂不可用，请稍后重试', true, 'retry'],
   store_unavailable: ['提交服务暂不可用，请稍后重试', true, 'retry'],
   processing_failed: ['轨迹处理未完成，请重新上传', false, 'restart_upload'],
 })
 
 const TRACK_OPERATIONS = Object.freeze(['begin', 'upload', 'list', 'detail', 'cancel', 'cleanup'])
+const ADMIN_OPERATIONS = Object.freeze(['admin_list', 'admin_detail', 'admin_review'])
 const SUBMISSION_STATUSES = Object.freeze(Object.keys(STATUS_LABELS))
 
 const FORM_FIELDS = Object.freeze([
@@ -149,7 +158,7 @@ function normalizeOptionalText(value, max) {
 }
 
 function normalizeOperation(value) {
-  return TRACK_OPERATIONS.includes(value) ? value : null
+  return TRACK_OPERATIONS.includes(value) || ADMIN_OPERATIONS.includes(value) ? value : null
 }
 
 function safeIntent(operation, value) {
@@ -161,9 +170,30 @@ function safeIntent(operation, value) {
       cursor: typeof source.cursor === 'string' && source.cursor.length > 0 && source.cursor.length <= 2048 ? source.cursor : null,
     }
   }
+  if (intentOperation === 'admin_list') {
+    return {
+      append: source.append === true,
+      status: source.status === undefined || source.status === null || source.status === '' ? null : (SUBMISSION_STATUSES.includes(source.status) ? source.status : null),
+      cursor: typeof source.cursor === 'string' && source.cursor.length > 0 && source.cursor.length <= 2048 ? source.cursor : null,
+    }
+  }
   if (intentOperation === 'detail') {
     return typeof source.submissionId === 'string' && source.submissionId.length > 0 && source.submissionId.length <= 80
       ? { submissionId: source.submissionId }
+      : null
+  }
+  if (intentOperation === 'admin_detail') {
+    return typeof source.submissionId === 'string' && source.submissionId.length > 0 && source.submissionId.length <= 80
+      ? { submissionId: source.submissionId }
+      : null
+  }
+  if (intentOperation === 'admin_review') {
+    const decision = ['changes_requested', 'rejected', 'approved_evidence'].includes(source.decision) ? source.decision : null
+    return typeof source.submissionId === 'string' && source.submissionId.length > 0 && source.submissionId.length <= 80
+      && Number.isInteger(source.expectedVersion) && source.expectedVersion >= 1
+      && typeof source.reviewAttemptId === 'string' && source.reviewAttemptId.length > 0 && source.reviewAttemptId.length <= 80
+      && decision
+      ? { submissionId: source.submissionId, expectedVersion: source.expectedVersion, reviewAttemptId: source.reviewAttemptId, decision, note: source.note === null || source.note === undefined ? null : safeString(source.note) }
       : null
   }
   if (intentOperation === 'cancel' || intentOperation === 'cleanup') {
@@ -313,9 +343,26 @@ function isExpired(submission, now = Date.now()) {
   return Number.isFinite(expiry) && expiry <= asNow(now)
 }
 
+function isAdminReviewExpired(submission, now = Date.now()) {
+  if (!submission || !submission.retention || typeof submission.retention.rawExpiresAt !== 'string') return true
+  const expiry = Date.parse(submission.retention.rawExpiresAt)
+  return !Number.isFinite(expiry) || expiry <= asNow(now)
+}
+
 function safeActions(value) {
   if (!Array.isArray(value)) return []
   const allowed = new Set(['upload_finalize', 'refresh', 'begin_revision', 'cancel', 'retry_cleanup'])
+  const seen = new Set()
+  return value.filter((action) => {
+    if (!allowed.has(action) || seen.has(action)) return false
+    seen.add(action)
+    return true
+  })
+}
+
+function safeAdminActions(value) {
+  if (!Array.isArray(value)) return []
+  const allowed = new Set(ADMIN_ACTIONS)
   const seen = new Set()
   return value.filter((action) => {
     if (!allowed.has(action) || seen.has(action)) return false
@@ -373,6 +420,163 @@ function safeSummary(summary) {
   }
 }
 
+function safeNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+function safeGeometryPoint(point) {
+  if (!isRecord(point)) return { lat: null, lon: null, elevationM: null }
+  return {
+    lat: safeNumber(point.lat),
+    lon: safeNumber(point.lon),
+    elevationM: safeNumber(point.elevationM),
+  }
+}
+
+function safeGeometry(summary) {
+  if (!isRecord(summary)) return null
+  const bounds = isRecord(summary.bounds) ? {
+    minLat: safeNumber(summary.bounds.minLat),
+    maxLat: safeNumber(summary.bounds.maxLat),
+    minLon: safeNumber(summary.bounds.minLon),
+    maxLon: safeNumber(summary.bounds.maxLon),
+  } : null
+  const elevation = isRecord(summary.elevation) ? {
+    presentPointCount: safeInteger(summary.elevation.presentPointCount),
+    coverage: safeNumber(summary.elevation.coverage),
+    minM: safeNumber(summary.elevation.minM),
+    maxM: safeNumber(summary.elevation.maxM),
+  } : null
+  const previewSegments = []
+  let previewPointCount = 0
+  if (Array.isArray(summary.previewSegments)) {
+    for (const segment of summary.previewSegments) {
+      if (!isRecord(segment) || !Number.isInteger(segment.segmentIndex) || !Array.isArray(segment.points)) continue
+      const points = []
+      for (const point of segment.points) {
+        if (previewPointCount >= MAX_ADMIN_PREVIEW_POINTS) break
+        points.push(safeGeometryPoint(point))
+        previewPointCount += 1
+      }
+      if (points.length > 0) previewSegments.push({ segmentIndex: segment.segmentIndex, points })
+      if (previewPointCount >= MAX_ADMIN_PREVIEW_POINTS) break
+    }
+  }
+  return {
+    summaryVersion: summary.summaryVersion === 'track-summary-v1' ? summary.summaryVersion : null,
+    pointCount: safeInteger(summary.pointCount),
+    segmentCount: safeInteger(summary.segmentCount),
+    bounds,
+    start: safeGeometryPoint(summary.start),
+    end: safeGeometryPoint(summary.end),
+    distanceM: safeInteger(summary.distanceM),
+    elevation,
+    previewSegments,
+  }
+}
+
+function safeAdminSummary(summary) {
+  const geometry = safeGeometry(summary)
+  if (!geometry) return null
+  return { ...geometry, hasTimestamps: summary.hasTimestamps === true }
+}
+
+function projectApprovedEvidence(value) {
+  if (!isRecord(value)) return null
+  const geometry = safeGeometry(value.geometry)
+  if (!geometry) return null
+  const limitations = Array.isArray(value.limitations)
+    ? value.limitations.filter((item) => ['geometry_only', 'not_operational_status', 'not_route_publication'].includes(item))
+    : []
+  return {
+    evidenceVersion: value.evidenceVersion === 'reviewed-track-evidence-v1' ? value.evidenceVersion : null,
+    sourceKind: value.sourceKind === 'community_track_candidate' ? value.sourceKind : null,
+    reviewStage: value.reviewStage === 'admin_approved' ? value.reviewStage : null,
+    title: safeString(value.title),
+    region: safeString(value.region),
+    format: ['gpx', 'kml'].includes(value.format) ? value.format : null,
+    geometry,
+    reviewedOn: safeString(value.reviewedOn),
+    limitations,
+  }
+}
+
+function projectAdminListItem(item, now = Date.now()) {
+  if (!isRecord(item)) return null
+  const retentionValue = safeRetention(item.retention)
+  const record = {
+    submissionId: safeString(item.submissionId),
+    title: safeString(item.title),
+    region: safeString(item.region),
+    format: ['gpx', 'kml'].includes(item.format) ? item.format : null,
+    actualSizeBytes: safeInteger(item.actualSizeBytes),
+    rightsBasis: RIGHTS_BASES.includes(item.rightsBasis) ? item.rightsBasis : null,
+    status: SUBMISSION_STATUSES.includes(item.status) ? item.status : null,
+    version: safeInteger(item.version),
+    reviewNote: safeString(item.reviewNote),
+    revisesSubmissionId: safeString(item.revisesSubmissionId),
+    pointCount: safeInteger(item.pointCount === undefined ? item.summary && item.summary.pointCount : item.pointCount),
+    segmentCount: safeInteger(item.segmentCount === undefined ? item.summary && item.summary.segmentCount : item.segmentCount),
+    cleanup: safeCleanup(item.cleanup),
+    retention: retentionValue,
+    allowedAdminActions: safeAdminActions(item.allowedAdminActions),
+    createdAt: safeTimestamp(item.createdAt),
+    updatedAt: safeTimestamp(item.updatedAt),
+  }
+  const recordExpiry = retentionValue.recordExpiresAt ? Date.parse(retentionValue.recordExpiresAt) : NaN
+  const rawExpiry = retentionValue.rawExpiresAt ? Date.parse(retentionValue.rawExpiresAt) : NaN
+  const recordExpired = !Number.isFinite(recordExpiry) || recordExpiry <= asNow(now)
+  const rawExpired = !Number.isFinite(rawExpiry) || rawExpiry <= asNow(now)
+  record.unavailable = recordExpired
+  record.allowedAdminActions = recordExpired || rawExpired ? [] : record.allowedAdminActions
+  record.statusLabel = recordExpired ? '内容已过期，暂不可用' : (STATUS_LABELS[record.status] || '状态待确认')
+  if (recordExpired) record.reviewNote = null
+  return record
+}
+
+function projectAdminDetail(item, now = Date.now()) {
+  if (!isRecord(item)) return null
+  const base = projectSubmission(item, now)
+  if (!base) return null
+  const detail = {
+    ...base,
+    summary: safeAdminSummary(item.summary),
+    note: safeString(item.note),
+    provenancePlatform: safeString(item.provenancePlatform),
+    provenancePageUrl: safeString(item.provenancePageUrl),
+    approvedEvidence: projectApprovedEvidence(item.approvedEvidence),
+    allowedAdminActions: safeAdminActions(item.allowedAdminActions),
+  }
+  const rawExpiry = detail.retention.rawExpiresAt ? Date.parse(detail.retention.rawExpiresAt) : NaN
+  const rawExpired = !Number.isFinite(rawExpiry) || rawExpiry <= asNow(now)
+  detail.allowedAdminActions = detail.unavailable || rawExpired ? [] : detail.allowedAdminActions
+  if (detail.unavailable) {
+    detail.note = null
+    detail.provenancePlatform = null
+    detail.provenancePageUrl = null
+    detail.approvedEvidence = null
+  }
+  return detail
+}
+
+function createInitialAdminUiState() {
+  return {
+    session: false,
+    generation: 0,
+    filter: null,
+    items: [],
+    nextCursor: null,
+    loading: false,
+    listToken: 0,
+    requestIntent: null,
+    detailToken: 0,
+    detail: { submission: null, loading: false, open: false, requestIntent: null },
+    review: { loading: false, token: 0, intent: null },
+    reviewNote: '',
+    error: null,
+  }
+}
+
 function projectSubmission(submission, now = Date.now()) {
   if (!isRecord(submission)) return null
   const projected = {
@@ -425,6 +629,7 @@ function createInitialTrackUiState() {
     uploadSessionAvailable: false,
     uploadBusy: false,
     uploadOperation: null,
+    admin: createInitialAdminUiState(),
   }
 }
 
@@ -662,6 +867,249 @@ function reduceTrackUi(previous, event = {}, now = Date.now()) {
     const responseOperation = event.operation || (event.intent && event.intent.operation) || (state.mutation.requestIntent && state.mutation.requestIntent.operation) || 'cancel'
     return { ...state, phase: 'error', error: mapTrackError(response, responseOperation, event.intent || state.mutation.requestIntent), mutation: { ...state.mutation, loading: false, action: null } }
   }
+  if (type === 'ADMIN_LIST_REQUEST') {
+    if (state.admin.review.loading) return state
+    const requestedFilter = event.status === undefined || event.status === null || event.status === '' ? null : event.status
+    if (requestedFilter !== null && !SUBMISSION_STATUSES.includes(requestedFilter)) {
+      const error = mapTrackError({ code: 'invalid_input' }, 'admin_list')
+      return { ...state, admin: { ...state.admin, loading: false, error } }
+    }
+    const filter = requestedFilter
+    const changedFilter = filter !== state.admin.filter
+    const append = !changedFilter && event.append === true
+    const nextToken = state.admin.listToken + 1
+    const cursor = append
+      ? (typeof event.cursor === 'string' && event.cursor.length > 0 ? event.cursor : state.admin.nextCursor)
+      : null
+    const nextGeneration = changedFilter ? state.admin.generation + 1 : state.admin.generation
+    return {
+      ...state,
+      admin: {
+        ...state.admin,
+        session: state.admin.session,
+        generation: nextGeneration,
+        filter,
+        items: append ? state.admin.items : [],
+        nextCursor: append ? state.admin.nextCursor : null,
+        loading: true,
+        listToken: nextToken,
+        requestIntent: { append, cursor, status: filter },
+        detailToken: changedFilter ? state.admin.detailToken + 1 : state.admin.detailToken,
+        detail: changedFilter ? { submission: null, loading: false, open: false, requestIntent: null } : state.admin.detail,
+        review: changedFilter ? { loading: false, token: state.admin.review.token + 1, intent: null } : state.admin.review,
+        reviewNote: changedFilter ? '' : state.admin.reviewNote,
+        error: null,
+      },
+    }
+  }
+  if (type === 'ADMIN_LIST_RESPONSE') {
+    if (event.token !== state.admin.listToken) return state
+    if (event.generation !== undefined && event.generation !== state.admin.generation) return state
+    const requestedFilter = state.admin.filter
+    if (event.status !== undefined && event.status !== requestedFilter) return state
+    const response = event.response
+    if (response && response.phase === 'admin_list') {
+      const incoming = Array.isArray(response.items)
+        ? response.items.map((item) => projectAdminListItem(item, now)).filter(Boolean)
+        : []
+      const append = event.append === true || (state.admin.requestIntent && state.admin.requestIntent.append === true)
+      const items = append
+        ? incoming.reduce((all, item) => {
+          const rest = all.filter((existing) => existing.submissionId !== item.submissionId)
+          rest.push(item)
+          return rest
+        }, state.admin.items)
+        : incoming
+      return {
+        ...state,
+        admin: {
+          ...state.admin,
+          session: true,
+          loading: false,
+          requestIntent: null,
+          items,
+          nextCursor: typeof response.nextCursor === 'string' && response.nextCursor.length > 0 ? response.nextCursor : null,
+          error: null,
+        },
+      }
+    }
+    const error = mapTrackError(response, 'admin_list', state.admin.requestIntent)
+    const clear = error.code === 'forbidden' || error.code === 'admin_not_configured'
+    return {
+      ...state,
+      admin: {
+        ...state.admin,
+        session: clear ? false : state.admin.session,
+        items: clear ? [] : state.admin.items,
+        nextCursor: clear ? null : state.admin.nextCursor,
+        loading: false,
+        requestIntent: null,
+        detail: clear ? { submission: null, loading: false, open: false, requestIntent: null } : state.admin.detail,
+        generation: clear ? state.admin.generation + 1 : state.admin.generation,
+        listToken: clear ? state.admin.listToken + 1 : state.admin.listToken,
+        detailToken: clear ? state.admin.detailToken + 1 : state.admin.detailToken,
+        review: clear ? { loading: false, token: state.admin.review.token + 1, intent: null } : state.admin.review,
+        reviewNote: clear ? '' : state.admin.reviewNote,
+        error,
+      },
+    }
+  }
+  if (type === 'ADMIN_DETAIL_REQUEST') {
+    if (!state.admin.session || state.admin.review.loading
+      || typeof event.submissionId !== 'string' || event.submissionId.length < 1) return state
+    const detailToken = state.admin.detailToken + 1
+    return {
+      ...state,
+      admin: {
+        ...state.admin,
+        detailToken,
+          detail: {
+            ...state.admin.detail,
+            submission: null,
+            loading: true,
+            open: true,
+            requestIntent: { submissionId: event.submissionId },
+          },
+          reviewNote: '',
+      },
+    }
+  }
+  if (type === 'ADMIN_DETAIL_RESPONSE') {
+    if (event.token !== state.admin.detailToken) return state
+    if (event.generation !== undefined && event.generation !== state.admin.generation) return state
+    const response = event.response
+    if (response && response.phase === 'admin_detail' && response.submission) {
+      const submission = projectAdminDetail(response.submission, now)
+      return {
+        ...state,
+        admin: {
+          ...state.admin,
+          detail: { submission, loading: false, open: true, requestIntent: null },
+          error: null,
+        },
+      }
+    }
+    const error = mapTrackError(response, 'admin_detail', state.admin.detail.requestIntent)
+    const clear = error.code === 'forbidden' || error.code === 'admin_not_configured'
+    return {
+      ...state,
+      admin: {
+        ...state.admin,
+        session: clear ? false : state.admin.session,
+        generation: clear ? state.admin.generation + 1 : state.admin.generation,
+        listToken: clear ? state.admin.listToken + 1 : state.admin.listToken,
+        detailToken: clear ? state.admin.detailToken + 1 : state.admin.detailToken,
+        items: clear ? [] : state.admin.items,
+        nextCursor: clear ? null : state.admin.nextCursor,
+        loading: false,
+        requestIntent: null,
+        detail: clear ? { submission: null, loading: false, open: false, requestIntent: null } : { ...state.admin.detail, loading: false },
+        review: clear ? { loading: false, token: state.admin.review.token + 1, intent: null } : state.admin.review,
+        reviewNote: clear ? '' : state.admin.reviewNote,
+        error,
+      },
+    }
+  }
+  if (type === 'ADMIN_REVIEW_REQUEST') {
+    const intent = isRecord(event.intent) ? {
+      submissionId: safeString(event.intent.submissionId),
+      expectedVersion: safeInteger(event.intent.expectedVersion),
+      reviewAttemptId: safeString(event.intent.reviewAttemptId),
+      decision: ['changes_requested', 'rejected', 'approved_evidence'].includes(event.intent.decision) ? event.intent.decision : null,
+      note: event.intent.note === null || event.intent.note === undefined ? null : safeString(event.intent.note),
+    } : null
+    if (!state.admin.session || state.admin.loading || state.admin.review.loading
+      || !intent || !intent.submissionId || !intent.reviewAttemptId || !intent.decision
+      || !Number.isInteger(intent.expectedVersion) || intent.expectedVersion < 1) return state
+    const item = state.admin.detail.submission && state.admin.detail.submission.submissionId === intent.submissionId
+      ? state.admin.detail.submission
+      : state.admin.items.find((candidate) => candidate.submissionId === intent.submissionId)
+    const decisionAction = { changes_requested: 'request_changes', rejected: 'reject', approved_evidence: 'approve_evidence' }[intent.decision]
+    if (!item || item.unavailable || isAdminReviewExpired(item, now) || !decisionAction
+      || !safeAdminActions(item.allowedAdminActions).includes(decisionAction)) return state
+    return {
+      ...state,
+      admin: { ...state.admin, review: { loading: true, token: state.admin.review.token + 1, intent }, error: null },
+    }
+  }
+  if (type === 'ADMIN_REVIEW_NOTE') {
+    if (state.admin.review.loading) return state
+    const reviewNote = typeof event.value === 'string' ? Array.from(event.value).slice(0, 500).join('') : ''
+    return { ...state, admin: { ...state.admin, reviewNote } }
+  }
+  if (type === 'ADMIN_REVIEW_RESPONSE') {
+    if (event.token !== state.admin.review.token) return state
+    if (event.generation !== undefined && event.generation !== state.admin.generation) return state
+    const response = event.response
+    if (response && response.phase === 'admin_detail' && response.submission) {
+      const submission = projectAdminDetail(response.submission, now)
+      const items = state.admin.items.map((item) => item.submissionId === submission.submissionId
+        ? projectAdminListItem(response.submission, now) : item)
+      return {
+        ...state,
+        admin: {
+          ...state.admin,
+          items,
+          listToken: state.admin.listToken + 1,
+          detailToken: state.admin.detailToken + 1,
+          detail: { submission, loading: false, open: true, requestIntent: null },
+          review: { ...state.admin.review, loading: false, token: state.admin.review.token + 1 },
+          reviewNote: '',
+          error: null,
+        },
+      }
+    }
+    const error = mapTrackError(response, 'admin_review', state.admin.review.intent)
+    const clear = error.code === 'forbidden' || error.code === 'admin_not_configured'
+    const conflict = error.code === 'version_conflict'
+    return {
+      ...state,
+      admin: {
+        ...state.admin,
+        session: clear ? false : state.admin.session,
+        generation: clear ? state.admin.generation + 1 : state.admin.generation,
+        listToken: clear ? state.admin.listToken + 1 : state.admin.listToken,
+        detailToken: clear ? state.admin.detailToken + 1 : state.admin.detailToken,
+        items: clear ? [] : state.admin.items,
+        nextCursor: clear ? null : state.admin.nextCursor,
+        loading: false,
+        requestIntent: null,
+        detail: clear ? { submission: null, loading: false, open: false, requestIntent: null } : state.admin.detail,
+        review: clear || conflict
+          ? { loading: false, token: state.admin.review.token + 1, intent: null }
+          : { ...state.admin.review, loading: false },
+        reviewNote: clear ? '' : state.admin.reviewNote,
+        error,
+      },
+    }
+  }
+  if (type === 'ADMIN_CLOSE_DETAIL') {
+    if (state.admin.review.loading) return state
+    return {
+      ...state,
+      admin: {
+        ...state.admin,
+        detailToken: state.admin.detailToken + 1,
+        detail: { submission: null, loading: false, open: false, requestIntent: null },
+        review: { loading: false, token: state.admin.review.token + 1, intent: null },
+        reviewNote: '',
+      },
+    }
+  }
+  if (type === 'ADMIN_RESET') {
+    const clean = createInitialAdminUiState()
+    return {
+      ...state,
+      admin: {
+        ...clean,
+        generation: state.admin.generation + 1,
+        listToken: state.admin.listToken + 1,
+        detailToken: state.admin.detailToken + 1,
+        review: { ...clean.review, token: state.admin.review.token + 1 },
+        reviewNote: '',
+      },
+    }
+  }
   if (type === 'START_REVISION') {
     const source = event.submission || state.detail.submission || state.list.items.find((item) => item.submissionId === event.submissionId)
     if (!source || isExpired(source, now) || !safeActions(source.allowedActions).includes('begin_revision')) return state
@@ -691,7 +1139,20 @@ function reduceTrackUi(previous, event = {}, now = Date.now()) {
   }
   if (type === 'RESET' || type === 'INVALIDATE') {
     const clean = createInitialTrackUiState()
-    return { ...clean, sessionToken: state.sessionToken + 1, list: { ...clean.list, token: state.list.token + 1 }, detail: { ...clean.detail, token: state.detail.token + 1 }, mutation: { ...clean.mutation, token: state.mutation.token + 1 } }
+    return {
+      ...clean,
+      sessionToken: state.sessionToken + 1,
+      list: { ...clean.list, token: state.list.token + 1 },
+      detail: { ...clean.detail, token: state.detail.token + 1 },
+      mutation: { ...clean.mutation, token: state.mutation.token + 1 },
+      admin: {
+        ...clean.admin,
+        generation: state.admin.generation + 1,
+        listToken: state.admin.listToken + 1,
+        detailToken: state.admin.detailToken + 1,
+        review: { ...clean.admin.review, token: state.admin.review.token + 1 },
+      },
+    }
   }
   return state
 }
@@ -714,6 +1175,8 @@ function selectTrackUiView(state = createInitialTrackUiState(), now = Date.now()
   }
   const list = state.list.items.map((item) => hideUploadResume(projectSubmission(item, now)))
   const detail = state.detail.submission ? hideUploadResume(projectSubmission(state.detail.submission, now)) : null
+  const adminItems = state.admin.items.map((item) => projectAdminListItem(item, now)).filter(Boolean)
+  const adminDetail = state.admin.detail.submission ? projectAdminDetail(state.admin.detail.submission, now) : null
   return {
     form: clone(state.form),
     file: clone(state.file),
@@ -726,6 +1189,20 @@ function selectTrackUiView(state = createInitialTrackUiState(), now = Date.now()
     uploadBusy: state.uploadBusy,
     uploadOperation: state.uploadOperation,
     revisionParentId: state.revisionParentId,
+    admin: {
+      session: state.admin.session,
+      generation: state.admin.generation,
+      filter: state.admin.filter,
+      items: adminItems,
+      nextCursor: state.admin.nextCursor,
+      loading: state.admin.loading,
+      listToken: state.admin.listToken,
+      detailToken: state.admin.detailToken,
+      detail: { submission: adminDetail, loading: state.admin.detail.loading, open: state.admin.detail.open },
+      review: clone(state.admin.review),
+      reviewNote: state.admin.reviewNote,
+      error: state.admin.error ? mapTrackError(state.admin.error, state.admin.error.operation) : null,
+    },
     statusRows: STATUS_ROWS.map((row) => ({ status: row.status, label: row.label, actions: [...row.actions] })),
   }
 }
@@ -745,10 +1222,14 @@ function createTrackSubmissionModel(options = {}) {
 }
 
 module.exports = {
+  ADMIN_ACTIONS,
+  ADMIN_OPERATIONS,
+  ADMIN_ACTION_LABELS,
   ACTION_LABELS,
   ERROR_TABLE,
   FORM_FIELDS,
   MAX_TRACK_BYTES,
+  MAX_ADMIN_PREVIEW_POINTS,
   OWNER_ACTIONS,
   PROVENANCE_PLATFORMS,
   RIGHTS_BASES,
@@ -760,16 +1241,23 @@ module.exports = {
   STATUS_ROWS,
   TRACK_OPERATIONS,
   buildBeginPayload,
+  createInitialAdminUiState,
   createInitialTrackForm,
   createInitialTrackUiState,
   createTrackSubmissionModel,
   fileFormat,
   isExpired,
+  isAdminReviewExpired,
   mapTrackError,
   normalizeOperation,
+  projectAdminDetail,
+  projectAdminListItem,
+  projectApprovedEvidence,
   projectSubmission,
   reduceTrackUi,
   safeActions,
+  safeAdminActions,
+  safeGeometry,
   safeSummary,
   selectTrackUiView,
   validateLocalFile,

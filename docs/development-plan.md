@@ -383,7 +383,7 @@ is split serially:
 | C02 | owner begin/finalize/list/get/cancel, storage/stat/download, collection seam | C01 | no admin/UI/deploy |
 | C03 | server-only admin allowlist, admin list/get/review, evidence store, retention planner/version/retry | C02 | no UI/deploy |
 | C04 | user choose/upload/finalize/status/revision/cancel UX | C03 | no admin UI/deploy |
-| C05 | admin queue/detail/raw/review UX | C04 | no deploy/catalog mutation |
+| C05 | admin queue/detail/review UX; raw viewer deferred | C04 | no deploy/catalog mutation |
 | C06 | cross-layer acceptance, docs and human staging deployment checklist | C05 | no production/public release |
 
 Default is strict serial execution because C02/C03 share one function and C04/C05 share the page/service contracts.
@@ -458,15 +458,18 @@ scrape a third-party platform, publish routes automatically or collect more iden
 
 ### C05 — administrator review UX
 
-- Depends on merged C04. Goal: add an allowlist-gated queue/detail/raw/review surface separated from owner UI.
+- Depends on merged C04. Goal: add an allowlist-gated queue/detail/review surface separated from owner UI; raw
+  GPX/KML presentation is deferred to a separately reviewed ephemeral viewer.
 - Allowlist: `taro-app/src/pages/index/index.jsx`, `taro-app/src/pages/index/index.css`,
   `taro-app/src/pages/index/track-submission-model.js`, `taro-app/src/pages/index/track-submission-service.js`;
   root `package.json`; focused additions to `scripts/track-ui-contract-test.js`; `docs/current-status.md`;
   `docs/tasks/ACTIVE_TASK.md`.
-- Constraints: server response is the only admin authority; raw links are opened only after explicit admin action;
-  no allowlist value, uploader identity, public moderation page, catalog mutation or visual redesign.
-- Acceptance: forbidden/not-configured states, pagination, raw expiry, review notes, CAS conflicts and all review actions
-  have behavior/wiring evidence; no owner/admin cross-data exposure.
+- Constraints: server response is the only admin authority; the C05 client filters `view_raw` and never requests,
+  opens, downloads, saves, shares, copies or caches raw links/files; no allowlist value, uploader identity, public
+  moderation page, catalog mutation or visual redesign.
+- Acceptance: forbidden/not-configured states, pagination, review notes, CAS conflicts and the three visible review
+  actions have behavior/wiring evidence; `view_raw`/`rawAccess` cannot enter the current UI or trigger client I/O; no
+  owner/admin cross-data exposure.
 
 ### C06 — acceptance and separately authorized staging cutover
 

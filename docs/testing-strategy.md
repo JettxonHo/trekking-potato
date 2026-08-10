@@ -595,7 +595,8 @@ lint、typecheck、fixture-free WeChat build 与 diff check。测试输出与部
   最多 20、CAS/游标、`TRIGGER_SRC=timer` + empty OpenID、伪造 event/普通 client 无法调用内部清理以及
   deletion-pending 恢复；
 - `test:track-ui`：exact rights/privacy copy、local precheck、upload/finalize recovery、八状态 action matrix、
-  error/retry、pagination、revision/cancel/cleanup retry、admin separation；
+  error/retry、pagination、revision/cancel/cleanup retry、admin separation，以及 C05 对 `view_raw`/`rawAccess`
+  fail-closed：不渲染、不请求 `includeRawLink`、不打开/下载/保存/分享/复制原始文件；
 - `test:track-acceptance`：owner-to-review vertical flow, privacy projections and exact proof that runtime catalog,
   operational status, weather, deterministic verdict and public UGC remain unchanged.
 

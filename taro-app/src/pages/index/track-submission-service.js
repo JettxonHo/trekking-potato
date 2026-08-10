@@ -53,6 +53,7 @@ function createTrackSubmissionService({
   let generation = 0
   let session = null
   let inFlight = { begin: null, upload: null, finalize: null }
+  let reviewAttemptCounter = 0
 
   function invalidateSession() {
     generation += 1
@@ -267,6 +268,57 @@ function createTrackSubmissionService({
     return (await invoke({ mode: 'get_mine', submissionId: submissionId.trim() })) || errorResponse('store_unavailable')
   }
 
+  async function listAdmin({ status, cursor, limit } = {}) {
+    const data = { mode: 'admin_list' }
+    if (status !== undefined && status !== null && status !== '') data.status = status
+    if (cursor) data.cursor = cursor
+    if (limit !== undefined) data.limit = limit
+    return (await invoke(data)) || errorResponse('store_unavailable')
+  }
+
+  async function getAdmin(submissionId) {
+    if (typeof submissionId !== 'string' || submissionId.trim().length < 1) return errorResponse('invalid_input')
+    return (await invoke({ mode: 'admin_get', submissionId: submissionId.trim() })) || errorResponse('store_unavailable')
+  }
+
+  function createReviewIntent({ submissionId, expectedVersion, decision, note } = {}) {
+    const id = typeof submissionId === 'string' ? submissionId.trim() : ''
+    const version = Number.isInteger(expectedVersion) && expectedVersion >= 1 ? expectedVersion : null
+    const normalizedDecision = ['changes_requested', 'rejected', 'approved_evidence'].includes(decision) ? decision : null
+    const normalizedNote = note === undefined || note === null || note === '' ? null : String(note).trim()
+    if (!id || !version || !normalizedDecision || (normalizedDecision === 'changes_requested' && !normalizedNote)
+      || (normalizedNote && Array.from(normalizedNote).length > 500)) return null
+    return {
+      submissionId: id,
+      expectedVersion: version,
+      reviewAttemptId: `${makeAttemptId(now, random)}_${reviewAttemptCounter++}`.slice(0, 80),
+      decision: normalizedDecision,
+      note: normalizedNote,
+    }
+  }
+
+  async function reviewAdmin(intent) {
+    if (!intent || typeof intent !== 'object'
+      || typeof intent.submissionId !== 'string' || intent.submissionId.trim().length < 1
+      || !Number.isInteger(intent.expectedVersion)
+      || intent.expectedVersion < 1 || typeof intent.reviewAttemptId !== 'string'
+      || intent.reviewAttemptId.trim().length < 1
+      || !['changes_requested', 'rejected', 'approved_evidence'].includes(intent.decision)) {
+      return errorResponse('invalid_input')
+    }
+    const note = intent.note === undefined || intent.note === null || intent.note === '' ? null : String(intent.note).trim()
+    if (intent.decision === 'changes_requested' && !note) return errorResponse('invalid_input')
+    if (note && Array.from(note).length > 500) return errorResponse('invalid_input')
+    return (await invoke({
+      mode: 'admin_review',
+      submissionId: intent.submissionId.trim(),
+      expectedVersion: intent.expectedVersion,
+      reviewAttemptId: intent.reviewAttemptId.trim(),
+      decision: intent.decision,
+      note,
+    })) || errorResponse('store_unavailable')
+  }
+
   async function cancel(submissionId, expectedVersion) {
     if (typeof submissionId !== 'string' || submissionId.trim().length < 1 || !Number.isInteger(expectedVersion) || expectedVersion < 1) {
       return errorResponse('invalid_input')
@@ -294,10 +346,14 @@ function createTrackSubmissionService({
     clearSession,
     finalize,
     getMine,
+    getAdmin,
     hasUploadSession,
     isUploadBusy,
     listMine,
+    listAdmin,
     makeAttemptId: () => makeAttemptId(now, random),
+    createReviewIntent,
+    reviewAdmin,
     rememberFile,
     resumeUploadFinalize,
     submit: uploadAndFinalize,

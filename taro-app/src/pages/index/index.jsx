@@ -11,14 +11,17 @@ const { createGetAdviceService } = require('./get-advice-service')
 const { createTrackSubmissionService } = require('./track-submission-service')
 const {
   ACTION_LABELS: TRACK_ACTION_LABELS,
+  ADMIN_ACTION_LABELS: TRACK_ADMIN_ACTION_LABELS,
   RIGHTS_BASES,
   RIGHTS_BASIS_COPY,
   RIGHTS_COPY,
   RIGHTS_PLATFORM_COPY,
   createInitialTrackUiState,
+  isAdminReviewExpired,
   isExpired: isTrackExpired,
   reduceTrackUi,
   selectTrackUiView,
+  STATUS_LABELS: TRACK_STATUS_LABELS,
 } = require('./track-submission-model')
 const {
   RESULT_CACHE_KEY,
@@ -78,6 +81,7 @@ const AI_UNAVAILABLE_NOTE = 'AI 说明暂不可用，当前仅展示确定性规
 const HISTORY_SAVE_ERROR = '历史未保存，不影响本次结果'
 
 function trackErrorRetryLabel(error = {}) {
+  if (error.code === 'version_conflict' && error.nextAction === 'refresh') return '刷新审核详情'
   if (error.nextAction === 'restart_upload') return '重新选择文件'
   if (error.nextAction === 'refresh') {
     if (error.operation === 'list') return '刷新提交列表'
@@ -91,8 +95,22 @@ function trackErrorRetryLabel(error = {}) {
   if (error.operation === 'detail') return '重试详情'
   if (error.operation === 'cleanup') return '重试清理'
   if (error.operation === 'cancel') return '重试取消'
+  if (error.operation === 'admin_list') return '刷新审核列表'
+  if (error.operation === 'admin_detail') return '刷新审核详情'
+  if (error.operation === 'admin_review') return '重试审核'
   return '重试操作'
 }
+
+const TRACK_ADMIN_FILTER_OPTIONS = Object.freeze([
+  { value: null, label: '全部状态' },
+  ...Object.keys(TRACK_STATUS_LABELS).map((status) => ({ value: status, label: TRACK_STATUS_LABELS[status] })),
+])
+
+const TRACK_ADMIN_REVIEW_DECISIONS = Object.freeze({
+  request_changes: 'changes_requested',
+  reject: 'rejected',
+  approve_evidence: 'approved_evidence',
+})
 
 function parseManualElevation(value) {
   const text = value === undefined || value === null ? '' : String(value).trim()
@@ -597,6 +615,133 @@ export default class Index extends Component {
   onTrackReset = () => {
     this._getTrackService().clearSession()
     this._updateTrackUi({ type: 'RESET' })
+  }
+
+  onTrackAdminFilter = (event) => {
+    const value = event && event.detail && event.detail.value !== undefined ? event.detail.value : event
+    const option = TRACK_ADMIN_FILTER_OPTIONS[Number(value)]
+    this.onTrackAdminRefresh(false, option ? option.value : null)
+  }
+
+  onTrackAdminRefresh = (append = false, statusOverride, cursorOverride) => {
+    const admin = this._trackUiState.admin
+    if (admin.loading || admin.review.loading) return
+    const status = statusOverride === undefined ? admin.filter : statusOverride
+    const appendPage = append === true && status === admin.filter
+    const cursor = appendPage
+      ? (cursorOverride !== undefined ? cursorOverride : admin.nextCursor)
+      : null
+    if (appendPage && !cursor) return
+    this._updateTrackUi({ type: 'ADMIN_LIST_REQUEST', status, append: appendPage, cursor })
+    const token = this._trackUiState.admin.listToken
+    const generation = this._trackUiState.admin.generation
+    this._getTrackService().listAdmin({ status, cursor, limit: 10 }).then((response) => {
+      if (this._unmounted || this._trackUiState.admin.generation !== generation) return
+      this._trackResponse('ADMIN_LIST_RESPONSE', token, response, {
+        status,
+        append: appendPage,
+        operation: 'admin_list',
+      })
+    })
+  }
+
+  onTrackAdminOpenDetail = (submissionId) => {
+    const admin = this._trackUiState.admin
+    if (!admin.session || admin.loading || admin.review.loading || typeof submissionId !== 'string' || !submissionId) return
+    const cached = admin.items.find((item) => item.submissionId === submissionId)
+    if (cached && (cached.unavailable || isTrackExpired(cached))) {
+      this._updateTrackUi({ type: 'ADMIN_LIST_RESPONSE', token: admin.listToken, status: admin.filter, response: { phase: 'error', error: { code: 'submission_not_found' } } })
+      return
+    }
+    this._updateTrackUi({ type: 'ADMIN_DETAIL_REQUEST', submissionId })
+    const token = this._trackUiState.admin.detailToken
+    const generation = this._trackUiState.admin.generation
+    this._getTrackService().getAdmin(submissionId).then((response) => {
+      if (this._unmounted) return
+      this._trackResponse('ADMIN_DETAIL_RESPONSE', token, response, { generation, operation: 'admin_detail', intent: { submissionId } })
+    })
+  }
+
+  onTrackAdminCloseDetail = () => {
+    if (this._trackUiState.admin.review.loading) return
+    this._updateTrackUi({ type: 'ADMIN_CLOSE_DETAIL' })
+  }
+
+  onTrackAdminReviewNote = (event) => {
+    if (this._trackUiState.admin.review.loading) return
+    const value = event && event.detail ? event.detail.value : event
+    this._updateTrackUi({ type: 'ADMIN_REVIEW_NOTE', value: typeof value === 'string' ? value : '' })
+  }
+
+  _trackAdminReviewWithIntent = (intent) => {
+    if (!intent) {
+      this._updateTrackUi({ type: 'ADMIN_REVIEW_RESPONSE', token: this._trackUiState.admin.review.token, response: { phase: 'error', error: { code: 'invalid_input' } } })
+      return
+    }
+    this._updateTrackUi({ type: 'ADMIN_REVIEW_REQUEST', intent })
+    const token = this._trackUiState.admin.review.token
+    const generation = this._trackUiState.admin.generation
+    this._getTrackService().reviewAdmin(intent).then((response) => {
+      if (this._unmounted) return
+      this._trackResponse('ADMIN_REVIEW_RESPONSE', token, response, { generation, operation: 'admin_review', intent })
+      if (this._trackUiState.admin.generation === generation && this._trackUiState.admin.session
+        && response && response.phase === 'error' && response.error && response.error.code === 'version_conflict') {
+        this.onTrackAdminOpenDetail(intent.submissionId)
+      }
+    })
+  }
+
+  onTrackAdminReview = (action, item, event) => {
+    if (event && event.stopPropagation) event.stopPropagation()
+    const admin = this._trackUiState.admin
+    if (!admin.session || admin.loading || admin.review.loading || !item || typeof item.submissionId !== 'string'
+      || !item.submissionId || item.unavailable || !Array.isArray(item.allowedAdminActions)
+      || isAdminReviewExpired(item)
+      || item.allowedAdminActions.indexOf(action) < 0) return
+    if (action === 'request_changes' && (!admin.detail.open || !admin.detail.submission || admin.detail.submission.submissionId !== item.submissionId)) {
+      this.onTrackAdminOpenDetail(item.submissionId)
+      return
+    }
+    const decision = TRACK_ADMIN_REVIEW_DECISIONS[action]
+    if (!decision) return
+    const note = admin.reviewNote ? admin.reviewNote.trim() : ''
+    const intent = this._getTrackService().createReviewIntent({
+      submissionId: item.submissionId,
+      expectedVersion: item.version,
+      decision,
+      note: note || null,
+    })
+    this._trackAdminReviewWithIntent(intent)
+  }
+
+  onTrackAdminAction = (action, item, event) => this.onTrackAdminReview(action, item, event)
+
+  onTrackAdminReviewRetry = () => {
+    const intent = this._trackUiState.admin.review.intent
+    if (!intent || this._trackUiState.admin.loading || this._trackUiState.admin.review.loading) return
+    this._trackAdminReviewWithIntent(intent)
+  }
+
+  onTrackAdminErrorAction = () => {
+    const error = this._trackUiState.admin.error
+    if (!error || this._trackUiState.admin.loading || this._trackUiState.admin.review.loading) return
+    if (error.code === 'version_conflict' && error.nextAction === 'refresh') {
+      return this.onTrackAdminOpenDetail(error.intent && error.intent.submissionId)
+    }
+    if (error.operation === 'admin_review') return this.onTrackAdminReviewRetry()
+    if (error.operation === 'admin_detail' && this._trackUiState.admin.detail.requestIntent) {
+      return this.onTrackAdminOpenDetail(this._trackUiState.admin.detail.requestIntent.submissionId)
+    }
+    if (error.operation === 'admin_list' && error.code === 'invalid_cursor' && error.nextAction === 'refresh') {
+      const intent = error.intent || {}
+      return this.onTrackAdminRefresh(false, intent.status)
+    }
+    const intent = error.intent || this._trackUiState.admin.requestIntent || {}
+    this.onTrackAdminRefresh(intent.append === true, intent.status, intent.cursor)
+  }
+
+  onTrackAdminReset = () => {
+    this._updateTrackUi({ type: 'ADMIN_RESET' })
   }
 
   _openManualFallback(error) {
@@ -1531,6 +1676,46 @@ export default class Index extends Component {
               </>}
             </View>
           )}
+        </View>
+
+        <View className="track-admin-card card">
+          <View className="track-admin-heading" aria-busy={trackUi.admin.loading || trackUi.admin.review.loading}>
+            <View>
+              <Text className="card-title">管理员审核</Text>
+              <Text className="track-admin-caption">仅展示服务端授权的私有审核队列，不显示提交者或审核者身份。</Text>
+            </View>
+            {trackUi.admin.session
+              ? <Button size="small" disabled={trackUi.admin.loading || trackUi.admin.review.loading} className="track-admin-action" onClick={() => this.onTrackAdminRefresh(false)}>{trackUi.admin.loading ? '读取中…' : '刷新队列'}</Button>
+              : <Button size="small" disabled={trackUi.admin.loading} className="track-admin-action" onClick={() => this.onTrackAdminRefresh(false)}>进入审核</Button>}
+          </View>
+          {trackUi.admin.error && <View className="track-admin-error"><Text>{trackUi.admin.error.message}</Text>{trackUi.admin.error.code === 'admin_not_configured' && <Text>如需继续，请联系管理员确认审核配置。</Text>}{trackUi.admin.error.nextAction && trackUi.admin.error.nextAction !== 'contact_admin' && <Button size="small" disabled={trackUi.admin.loading || trackUi.admin.review.loading} className="track-admin-action" onClick={() => this.onTrackAdminErrorAction()}>{trackErrorRetryLabel({ ...trackUi.admin.error, operation: trackUi.admin.error.operation || 'admin_list' })}</Button>}</View>}
+          {trackUi.admin.session && <>
+            <Picker mode="selector" range={TRACK_ADMIN_FILTER_OPTIONS.map((option) => option.label)} value={Math.max(0, TRACK_ADMIN_FILTER_OPTIONS.findIndex((option) => option.value === trackUi.admin.filter))} onChange={this.onTrackAdminFilter} disabled={trackUi.admin.loading || trackUi.admin.review.loading}>
+              <View className="track-admin-filter" aria-disabled={trackUi.admin.loading || trackUi.admin.review.loading}><Text>{TRACK_ADMIN_FILTER_OPTIONS.find((option) => option.value === trackUi.admin.filter)?.label || '全部状态'}</Text></View>
+            </Picker>
+            {trackUi.admin.loading && <Text className="empty-hint">正在读取私有审核队列…</Text>}
+            {!trackUi.admin.loading && trackUi.admin.items.length === 0 && <Text className="empty-hint">当前没有可审核的私有轨迹</Text>}
+            {trackUi.admin.items.map((item) => (
+              <View key={item.submissionId} className={`track-admin-row ${item.unavailable ? 'track-submission-unavailable' : ''}`} aria-disabled={trackUi.admin.loading || trackUi.admin.review.loading} onClick={() => this.onTrackAdminOpenDetail(item.submissionId)}>
+                <View className="track-submission-main"><Text className="track-submission-title">{item.title || '未命名轨迹'}</Text><Text className="track-submission-status">{item.statusLabel}</Text><Text className="track-submission-meta">{(item.format || 'track').toUpperCase()} · {item.pointCount || 0} 点 · {item.segmentCount || 0} 段</Text></View>
+                <View className="track-submission-actions">{item.allowedAdminActions.map((action) => <Button key={action} size="small" disabled={trackUi.admin.loading || trackUi.admin.review.loading || item.unavailable} className="track-admin-action" onClick={(event) => this.onTrackAdminReview(action, item, event)}>{TRACK_ADMIN_ACTION_LABELS[action]}</Button>)}</View>
+              </View>
+            ))}
+            {trackUi.admin.nextCursor && <Button size="small" disabled={trackUi.admin.loading || trackUi.admin.review.loading} className="track-admin-action track-more-btn" onClick={() => this.onTrackAdminRefresh(true)}>{trackUi.admin.loading ? '读取中…' : '加载更多'}</Button>}
+            {trackUi.admin.detail.open && <View className="track-admin-detail-panel">
+              <View className="track-detail-heading"><Text className="track-list-title">管理员审核详情</Text><Button size="small" disabled={trackUi.admin.review.loading} className="track-detail-close" onClick={this.onTrackAdminCloseDetail}>关闭</Button></View>
+              {trackUi.admin.detail.loading && <Text className="empty-hint">正在读取审核详情…</Text>}
+              {!trackUi.admin.detail.loading && trackUi.admin.detail.submission && <>
+                <Text className="track-submission-title">{trackUi.admin.detail.submission.title || '未命名轨迹'}</Text>
+                <Text className="track-submission-status">{trackUi.admin.detail.submission.statusLabel}</Text>
+                {trackUi.admin.detail.submission.summary && <Text className="track-detail-note">轨迹点 {trackUi.admin.detail.submission.summary.pointCount} · 分段 {trackUi.admin.detail.submission.summary.segmentCount} · 距离 {trackUi.admin.detail.submission.summary.distanceM}m</Text>}
+                {trackUi.admin.detail.submission.approvedEvidence && <Text className="track-detail-note">已批准的内容仅作为去身份几何证据，不代表路线已开放或已发布。</Text>}
+                <Input className="adminReviewNote" maxLength={500} disabled={trackUi.admin.review.loading} placeholder="审核说明（要求修改时必填）" value={trackUi.admin.reviewNote} onInput={this.onTrackAdminReviewNote} />
+                <View className="track-submission-actions">{trackUi.admin.detail.submission.allowedAdminActions.map((action) => <Button key={action} size="small" disabled={trackUi.admin.review.loading || trackUi.admin.detail.submission.unavailable} className="track-admin-action" onClick={(event) => this.onTrackAdminReview(action, trackUi.admin.detail.submission, event)}>{TRACK_ADMIN_ACTION_LABELS[action]}</Button>)}</View>
+                {trackUi.admin.review.loading && <Text className="track-progress">正在提交审核决定，页面不会自动重试。</Text>}
+              </>}
+            </View>}
+          </>}
         </View>
 
         <Button block type="primary" className="submit-btn quirky-active" onClick={this.onSubmit}>叽里咕噜地看看带点啥</Button>

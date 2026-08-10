@@ -388,6 +388,12 @@ tuple: `updatedAt < cursor.updatedAt OR (updatedAt == cursor.updatedAt AND submi
 order shown there. Clients hide any action not listed. They do not infer additional authority from status, cleanup,
 the presence of rawAccess or locally remembered administrator state.
 
+The C05 mini-program client deliberately implements only the review subset `request_changes`, `reject` and
+`approve_evidence`. It must filter out `view_raw` even when the server projects that action, must never request
+`admin_get(includeRawLink=true)`, and must not open, download, save, share, copy or cache a raw GPX/KML file or signed
+URL. The server-side `view_raw`/`rawAccess` contract remains private and dormant for a separately reviewed future
+ephemeral viewer; it does not grant the current client a raw-file presentation capability.
+
 Every owner/admin list query requires `recordExpiresAt > now`; evidence lookup requires `expiresAt > now`. Owner/admin
 detail performs the same server-clock check after read: an expired record returns `submission_not_found`, exactly like
 a deleted/foreign record; `raw_unavailable` is reserved for a still-unexpired detail whose immutable raw object is
