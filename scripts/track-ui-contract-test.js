@@ -512,7 +512,7 @@ async function sourceWiringContract() {
   assert.doesNotMatch(page, /<Checkbox(?:\s|>)[^>]+onChange=/)
   assert.match(page, /disabled=\{trackUi\.uploadBusy/)
   assert.match(page, /<Button[^>]+onClick=\{this\.onTrackCloseDetail\}>关闭<\/Button>/)
-  assert.match(page, /_trackResponse\(eventType, token, response, extra = \{\}\) \{\n    if \(response && response\.stale\) return\n    this\._updateTrackUi/)
+  assert.match(page, /_trackResponse\(eventType, token, response, extra = \{\}\) \{[\s\S]*?if \(response && response\.stale\) return[\s\S]*?this\._updateTrackUi/)
   const submitStart = page.indexOf('  onTrackSubmit = () => {')
   const submitEnd = page.indexOf('\n  _trackFindSubmission', submitStart)
   const submitBody = page.slice(submitStart, submitEnd)
@@ -602,6 +602,364 @@ async function sourceWiringContract() {
   assert.match(css, /track-submission-actions \.inline-retry-btn[^\n]*min-height: 88rpx/)
 }
 
+function adminFixture(overrides = {}) {
+  return {
+    submissionId: 'admin-1', title: '管理员待审轨迹', region: '江西', format: 'gpx', actualSizeBytes: 1024,
+    rightsBasis: 'own_recording', status: 'pending_review', version: 7, reviewNote: null,
+    revisesSubmissionId: null, pointCount: 12, segmentCount: 2,
+    cleanup: { pending: false, target: null },
+    retention: { rawExpiresAt: '2026-12-01T00:00:00.000Z', recordExpiresAt: '2026-12-01T00:00:00.000Z', evidenceExpiresAt: null },
+    allowedAdminActions: ['view_raw', 'request_changes', 'reject', 'approve_evidence'],
+    createdAt: '2026-08-10T00:00:00.000Z', updatedAt: '2026-08-10T00:01:00.000Z',
+    ...overrides,
+  }
+}
+
+function adminDetailFixture(overrides = {}) {
+  return {
+    ...adminFixture(),
+    originalFilename: 'private.gpx', licenseName: null, licenseUrl: null,
+    rightsDeclarationVersion: 'track-rights-v1', actualSizeBytes: 1024,
+    summary: {
+      summaryVersion: 'track-summary-v1', format: 'gpx', pointCount: 12, segmentCount: 2,
+      bounds: { minLat: 1, maxLat: 2, minLon: 3, maxLon: 4 },
+      start: { lat: 1, lon: 3, elevationM: 100 }, end: { lat: 2, lon: 4, elevationM: 200 },
+      distanceM: 1234, elevation: { presentPointCount: 12, coverage: 1, minM: 100, maxM: 200 },
+      hasTimestamps: true,
+      previewSegments: [{ segmentIndex: 0, points: [{ lat: 1, lon: 3, elevationM: 100 }] }],
+    },
+    note: '私有备注', provenancePlatform: 'self', provenancePageUrl: null,
+    rawAccess: { url: 'https://private.invalid/raw?secret=1', expiresAt: '2026-08-10T00:05:00.000Z' },
+    approvedEvidence: null,
+    _openid: 'poison-owner', reviewerOpenid: 'poison-reviewer', adminAllowlist: ['secret'],
+    cloudPath: 'poison', fileID: 'poison', evidenceStoreKey: 'poison', secret: 'poison',
+    ...overrides,
+  }
+}
+
+function previewGeometryFixture(pointCount) {
+  const points = Array.from({ length: pointCount }, (_, index) => ({
+    lat: index / 10, lon: index / 10, elevationM: index,
+    time: `2026-08-10T00:${String(index % 60).padStart(2, '0')}:00.000Z`, extra: 'poison',
+  }))
+  const split = Math.min(250, points.length)
+  return {
+    summaryVersion: 'track-summary-v1', format: 'gpx', pointCount, segmentCount: 2,
+    bounds: { minLat: 0, maxLat: 100, minLon: 0, maxLon: 100 },
+    start: points[0], end: points[points.length - 1], distanceM: pointCount,
+    elevation: { presentPointCount: pointCount, coverage: 1, minM: 0, maxM: pointCount }, hasTimestamps: true,
+    previewSegments: [
+      { segmentIndex: 0, points: points.slice(0, split) },
+      { segmentIndex: 1, points: points.slice(split) },
+    ],
+  }
+}
+
+function adminModelContract() {
+  const row = model.projectAdminListItem({ ...adminFixture(), allowedAdminActions: ['approve_evidence', 'view_raw', 'request_changes', 'reject', 'view_raw', 'evil_action'], _openid: 'poison', rawUrl: 'poison', secret: 'poison' }, '2026-08-10T00:02:00.000Z')
+  assert.deepEqual(Object.keys(row).sort(), [
+    'actualSizeBytes', 'allowedAdminActions', 'cleanup', 'createdAt', 'format', 'pointCount', 'region',
+    'retention', 'rightsBasis', 'reviewNote', 'revisesSubmissionId', 'segmentCount', 'status', 'statusLabel',
+    'submissionId', 'title', 'unavailable', 'updatedAt', 'version',
+  ].sort())
+  assert.equal(row._openid, undefined)
+  assert.equal(row.rawUrl, undefined)
+  assert.deepEqual(row.allowedAdminActions, ['approve_evidence', 'request_changes', 'reject'], 'view_raw must always be filtered while server action order remains')
+
+  const detail = model.projectAdminDetail(adminDetailFixture(), '2026-08-10T00:02:00.000Z')
+  assert.equal(Object.prototype.hasOwnProperty.call(detail, 'rawAccess'), false, 'rawAccess must never enter model state')
+  assert.equal(detail._openid, undefined)
+  assert.equal(detail.reviewerOpenid, undefined)
+  assert.equal(detail.evidenceStoreKey, undefined)
+  assert.equal(detail.summary.bounds.minLat, 1)
+  assert.equal(detail.summary.previewSegments[0].points[0].lat, 1)
+  assert.deepEqual(Object.keys(detail.approvedEvidence || {}).sort(), [])
+  assert.deepEqual(detail.allowedAdminActions, ['request_changes', 'reject', 'approve_evidence'])
+
+  const bounded500 = model.projectAdminDetail(adminDetailFixture({ summary: previewGeometryFixture(500) }), '2026-08-10T00:02:00.000Z')
+  const bounded500Points = bounded500.summary.previewSegments.flatMap((segment) => segment.points)
+  assert.equal(bounded500Points.length, 500)
+  assert.equal(bounded500Points.every((point) => Object.keys(point).sort().join(',') === 'elevationM,lat,lon'), true)
+  const bounded501 = model.projectAdminDetail(adminDetailFixture({ summary: previewGeometryFixture(501) }), '2026-08-10T00:02:00.000Z')
+  const bounded501Points = bounded501.summary.previewSegments.flatMap((segment) => segment.points)
+  assert.equal(bounded501Points.length, 500)
+  assert.equal(bounded501.summary.previewSegments[1].points.length, 250)
+
+  const evidence = model.projectApprovedEvidence({
+    evidenceVersion: 'reviewed-track-evidence-v1', sourceKind: 'community_track_candidate', reviewStage: 'admin_approved',
+    title: '证据轨迹', region: '江西', format: 'gpx', reviewedOn: '2026-08-10',
+    geometry: adminDetailFixture().summary,
+    limitations: ['geometry_only', 'not_operational_status', 'not_route_publication'],
+    serverEvidenceKey: 'poison', reviewerOpenid: 'poison', rawUrl: 'poison', secret: 'poison',
+  })
+  assert.equal(evidence.serverEvidenceKey, undefined)
+  assert.equal(evidence.rawUrl, undefined)
+  assert.equal(evidence.geometry.bounds.minLat, 1)
+  assert.equal(evidence.geometry.previewSegments[0].points[0].lat, 1)
+
+  const expired = model.projectAdminListItem({ ...adminFixture(), retention: { ...adminFixture().retention, recordExpiresAt: '2026-08-10T00:02:00.000Z' } }, '2026-08-10T00:02:00.000Z')
+  assert.equal(expired.unavailable, true)
+  assert.deepEqual(expired.allowedAdminActions, [])
+  const rawExpired = model.projectAdminDetail({ ...adminDetailFixture(), retention: { ...adminDetailFixture().retention, rawExpiresAt: '2026-08-10T00:02:00.000Z' } }, '2026-08-10T00:02:00.000Z')
+  assert.equal(Object.prototype.hasOwnProperty.call(rawExpired, 'rawAccess'), false)
+  assert.deepEqual(rawExpired.allowedAdminActions, [])
+
+  let state = model.createInitialTrackUiState()
+  state = model.reduceTrackUi(state, { type: 'ADMIN_LIST_REQUEST', status: 'pending_review', append: false })
+  const listToken = state.admin.listToken
+  assert.equal(state.admin.filter, 'pending_review')
+  assert.deepEqual(state.admin.items, [])
+  assert.equal(state.list.items.length, 0, 'admin list must not touch owner list')
+  state = model.reduceTrackUi(state, { type: 'ADMIN_LIST_RESPONSE', token: listToken, status: 'pending_review', append: false, response: { phase: 'admin_list', items: [adminFixture()], nextCursor: 'cursor-a' } })
+  assert.equal(state.admin.session, true, 'only server admin_list response opens page-local session')
+  assert.equal(state.admin.items[0].submissionId, 'admin-1')
+  assert.deepEqual(state.admin.items[0].allowedAdminActions, ['request_changes', 'reject', 'approve_evidence'])
+  assert.equal(state.admin.nextCursor, 'cursor-a')
+  assert.equal(state.error, null, 'admin success must not overwrite owner error')
+  const reviewLoadingState = { ...state, admin: { ...state.admin, review: { ...state.admin.review, loading: true } } }
+  assert.strictEqual(model.reduceTrackUi(reviewLoadingState, { type: 'ADMIN_LIST_REQUEST', status: state.admin.filter }), reviewLoadingState)
+  assert.strictEqual(model.reduceTrackUi(reviewLoadingState, { type: 'ADMIN_DETAIL_REQUEST', submissionId: 'admin-1' }), reviewLoadingState)
+  const appendLoadingState = model.reduceTrackUi(state, { type: 'ADMIN_LIST_REQUEST', status: state.admin.filter, append: true, cursor: 'cursor-a' })
+  assert.equal(appendLoadingState.admin.loading, true)
+  ;[
+    { decision: 'rejected', reviewAttemptId: 'append-reject' },
+    { decision: 'approved_evidence', reviewAttemptId: 'append-approve' },
+  ].forEach((review) => {
+    assert.strictEqual(model.reduceTrackUi(appendLoadingState, {
+      type: 'ADMIN_REVIEW_REQUEST',
+      intent: { submissionId: 'admin-1', expectedVersion: 7, reviewAttemptId: review.reviewAttemptId, decision: review.decision, note: null },
+    }), appendLoadingState, `admin.loading must block ${review.decision} I/O`)
+  })
+  assert.equal(Object.prototype.hasOwnProperty.call(appendLoadingState.admin, 'raw'), false, 'admin raw state must not exist')
+  assert.strictEqual(model.reduceTrackUi(state, { type: 'ADMIN_RAW_REQUEST', submissionId: 'admin-1' }), state, 'removed raw request must be a reducer no-op')
+  assert.strictEqual(model.reduceTrackUi(state, { type: 'ADMIN_RAW_RESPONSE', response: { ok: true } }), state, 'removed raw response must be a reducer no-op')
+  const stale = model.reduceTrackUi(state, { type: 'ADMIN_LIST_RESPONSE', token: listToken - 1, status: 'pending_review', response: { phase: 'admin_list', items: [adminFixture({ submissionId: 'late' })], nextCursor: null } })
+  assert.equal(stale.admin.items[0].submissionId, 'admin-1')
+  const changed = model.reduceTrackUi(state, { type: 'ADMIN_LIST_REQUEST', status: 'approved_evidence', append: false })
+  assert.deepEqual(changed.admin.items, [])
+  assert.equal(changed.admin.nextCursor, null)
+  assert.ok(changed.admin.generation > state.admin.generation)
+  const authError = model.reduceTrackUi(state, { type: 'ADMIN_LIST_RESPONSE', token: state.admin.listToken, status: state.admin.filter, response: { phase: 'error', error: { code: 'forbidden' } } })
+  assert.equal(authError.admin.session, false)
+  assert.deepEqual(authError.admin.items, [])
+  assert.equal(authError.admin.error.code, 'forbidden')
+
+  const adminNotConfigured = { phase: 'error', error: { code: 'admin_not_configured' } }
+  const listPendingForConfig = model.reduceTrackUi(state, { type: 'ADMIN_LIST_REQUEST', status: state.admin.filter, append: false })
+  const listConfigCleared = model.reduceTrackUi(listPendingForConfig, {
+    type: 'ADMIN_LIST_RESPONSE', token: listPendingForConfig.admin.listToken, status: state.admin.filter,
+    response: adminNotConfigured,
+  })
+  assert.equal(listConfigCleared.admin.session, false)
+  assert.equal(listConfigCleared.admin.detail.open, false)
+  assert.equal(listConfigCleared.admin.items.length, 0)
+  const detailPendingForConfig = model.reduceTrackUi(state, { type: 'ADMIN_DETAIL_REQUEST', submissionId: 'admin-1' })
+  const detailConfigCleared = model.reduceTrackUi(detailPendingForConfig, {
+    type: 'ADMIN_DETAIL_RESPONSE', token: detailPendingForConfig.admin.detailToken, response: adminNotConfigured,
+  })
+  assert.equal(detailConfigCleared.admin.session, false)
+  assert.equal(detailConfigCleared.admin.detail.open, false)
+  assert.equal(detailConfigCleared.admin.detail.submission, null)
+  const detailReadyForConfig = model.reduceTrackUi(state, { type: 'ADMIN_DETAIL_REQUEST', submissionId: 'admin-1' })
+  const detailReadyToken = detailReadyForConfig.admin.detailToken
+  const configuredDetail = model.reduceTrackUi(detailReadyForConfig, {
+    type: 'ADMIN_DETAIL_RESPONSE', token: detailReadyToken, response: { phase: 'admin_detail', submission: adminDetailFixture() },
+  })
+  const reviewPendingForConfig = model.reduceTrackUi(configuredDetail, {
+    type: 'ADMIN_REVIEW_REQUEST', intent: { submissionId: 'admin-1', expectedVersion: 7, reviewAttemptId: 'config-review', decision: 'rejected', note: null },
+  })
+  const reviewConfigCleared = model.reduceTrackUi(reviewPendingForConfig, {
+    type: 'ADMIN_REVIEW_RESPONSE', token: reviewPendingForConfig.admin.review.token, response: adminNotConfigured,
+  })
+  assert.equal(reviewConfigCleared.admin.session, false)
+  assert.equal(reviewConfigCleared.admin.detail.open, false)
+  assert.equal(reviewConfigCleared.admin.detail.submission, null)
+  assert.equal(reviewConfigCleared.admin.review.loading, false)
+
+  const pendingForAuth = model.reduceTrackUi(state, { type: 'ADMIN_DETAIL_REQUEST', submissionId: 'admin-1' })
+  const pendingDetailToken = pendingForAuth.admin.detailToken
+  const listPending = model.reduceTrackUi(pendingForAuth, { type: 'ADMIN_LIST_REQUEST', status: state.admin.filter, append: false })
+  const listAuthError = model.reduceTrackUi(listPending, { type: 'ADMIN_LIST_RESPONSE', token: listPending.admin.listToken, status: state.admin.filter, response: { phase: 'error', error: { code: 'forbidden' } } })
+  const lateDetail = model.reduceTrackUi(listAuthError, {
+    type: 'ADMIN_DETAIL_RESPONSE', token: pendingDetailToken, generation: pendingForAuth.admin.generation,
+    response: { phase: 'admin_detail', submission: adminDetailFixture() },
+  })
+  assert.equal(lateDetail.admin.session, false, 'authorization loss must invalidate pending detail responses')
+  assert.equal(lateDetail.admin.detail.submission, null, 'late detail must not reopen an admin session')
+
+  state = model.reduceTrackUi(state, { type: 'ADMIN_DETAIL_REQUEST', submissionId: 'admin-1' })
+  const detailToken = state.admin.detailToken
+  state = model.reduceTrackUi(state, { type: 'ADMIN_DETAIL_RESPONSE', token: detailToken, response: { phase: 'admin_detail', submission: adminDetailFixture() } })
+  assert.equal(state.admin.detail.submission.submissionId, 'admin-1')
+  assert.equal(Object.prototype.hasOwnProperty.call(state.admin.detail.submission, 'rawAccess'), false)
+  assert.equal(Object.prototype.hasOwnProperty.call(model.selectTrackUiView(state).admin.detail.submission, 'rawAccess'), false)
+  const reviewIntent = { submissionId: 'admin-1', expectedVersion: 7, reviewAttemptId: 'attempt-1', decision: 'changes_requested', note: '请补充说明' }
+  const detailAuthState = model.reduceTrackUi(state, { type: 'ADMIN_DETAIL_REQUEST', submissionId: 'admin-1' })
+  const detailAuthError = model.reduceTrackUi(detailAuthState, { type: 'ADMIN_DETAIL_RESPONSE', token: detailAuthState.admin.detailToken, response: { phase: 'error', error: { code: 'forbidden' } } })
+  assert.equal(detailAuthError.admin.error.operation, 'admin_detail')
+  assert.equal(detailAuthError.admin.error.intent.submissionId, 'admin-1')
+  const reviewErrorState = model.reduceTrackUi(state, { type: 'ADMIN_REVIEW_REQUEST', intent: reviewIntent })
+  const reviewError = model.reduceTrackUi(reviewErrorState, { type: 'ADMIN_REVIEW_RESPONSE', token: reviewErrorState.admin.review.token, response: { phase: 'error', error: { code: 'store_unavailable' } } })
+  assert.equal(reviewError.admin.error.operation, 'admin_review')
+  assert.deepEqual(reviewError.admin.error.intent, reviewIntent)
+  state = model.reduceTrackUi(state, { type: 'ADMIN_REVIEW_NOTE', value: 'x'.repeat(600) })
+  assert.equal(state.admin.reviewNote.length, 500)
+  state = model.reduceTrackUi(state, { type: 'ADMIN_REVIEW_REQUEST', intent: reviewIntent })
+  assert.deepEqual(state.admin.review.intent, reviewIntent)
+  assert.equal(state.admin.review.loading, true)
+  state = model.reduceTrackUi(state, { type: 'ADMIN_REVIEW_RESPONSE', token: state.admin.review.token, response: { phase: 'admin_detail', submission: adminDetailFixture({ status: 'changes_requested', version: 8, allowedAdminActions: ['view_raw', 'request_changes', 'reject', 'approve_evidence'] }) } })
+  assert.equal(state.admin.review.loading, false)
+  assert.equal(state.admin.detail.submission.status, 'changes_requested')
+  assert.deepEqual(state.admin.detail.submission.allowedAdminActions, ['request_changes', 'reject', 'approve_evidence'])
+
+  const conflictState = model.reduceTrackUi(state, { type: 'ADMIN_REVIEW_REQUEST', intent: reviewIntent })
+  const conflict = model.reduceTrackUi(conflictState, {
+    type: 'ADMIN_REVIEW_RESPONSE', token: conflictState.admin.review.token,
+    response: { phase: 'error', error: { code: 'version_conflict' } },
+  })
+  assert.equal(conflict.admin.review.intent, null, 'version conflict must not retain a stale replay intent')
+  assert.equal(conflict.admin.review.token > conflictState.admin.review.token, true)
+  assert.equal(conflict.admin.error.operation, 'admin_review')
+
+  const cursorState = model.reduceTrackUi(state, { type: 'ADMIN_LIST_REQUEST', status: 'pending_review', append: true, cursor: 'stale-cursor' })
+  const cursorError = model.reduceTrackUi(cursorState, {
+    type: 'ADMIN_LIST_RESPONSE', token: cursorState.admin.listToken, status: 'pending_review', append: true,
+    response: { phase: 'error', error: { code: 'invalid_cursor' } },
+  })
+  assert.equal(cursorError.admin.error.operation, 'admin_list')
+  assert.deepEqual(cursorError.admin.error.intent, { append: true, status: 'pending_review', cursor: 'stale-cursor' })
+  const reset = model.reduceTrackUi(state, { type: 'ADMIN_RESET' })
+  assert.equal(reset.admin.session, false)
+  assert.deepEqual(reset.admin.items, [])
+  assert.equal(reset.admin.detail.submission, null)
+  assert.ok(reset.admin.generation > state.admin.generation)
+}
+
+async function adminServiceContract() {
+  const requests = []
+  const service = createTrackSubmissionService({
+    now: () => 1700000000000,
+    random: () => 0.25,
+    chooseFile: async () => ({ tempFiles: [] }),
+    uploadFile: async () => ({ fileID: 'cloud://bucket/unused' }),
+    callFunction: async ({ name, data }) => {
+      assert.equal(name, 'trackSubmission')
+      requests.push(JSON.parse(JSON.stringify(data)))
+      if (data.mode === 'admin_list') return { result: { phase: 'admin_list', items: [adminFixture()], nextCursor: 'cursor-1' } }
+      if (data.mode === 'admin_get') {
+        assert.equal(Object.prototype.hasOwnProperty.call(data, 'includeRawLink'), false, 'C05 must never request a raw link')
+        return { result: { phase: 'admin_detail', submission: adminDetailFixture({ rawAccess: { url: 'https://poison.invalid/raw', expiresAt: '2099-01-01T00:00:00.000Z' } }) } }
+      }
+      if (data.mode === 'admin_review') return { result: { phase: 'admin_detail', submission: adminDetailFixture({ status: data.decision, version: data.expectedVersion + 1, allowedAdminActions: ['approve_evidence', 'view_raw', 'request_changes', 'reject'] }) } }
+      throw new Error('unexpected mode')
+    },
+  })
+  const list = await service.listAdmin({ status: 'pending_review', cursor: null, limit: 10 })
+  assert.equal(list.phase, 'admin_list')
+  assert.deepEqual(requests[0], { mode: 'admin_list', status: 'pending_review', limit: 10 })
+  const detail = await service.getAdmin('admin-1')
+  assert.equal(detail.phase, 'admin_detail')
+  assert.deepEqual(requests[1], { mode: 'admin_get', submissionId: 'admin-1' })
+  const intent = service.createReviewIntent({ submissionId: 'admin-1', expectedVersion: 7, decision: 'changes_requested', note: '请补充说明' })
+  assert.equal(typeof intent.reviewAttemptId, 'string')
+  assert.equal(service.createReviewIntent({ submissionId: 'admin-1', expectedVersion: 7, decision: 'rejected', note: 'x'.repeat(501) }), null)
+  expectError(await service.reviewAdmin({ ...intent, reviewAttemptId: ' ' }), 'invalid_input', null)
+  await service.reviewAdmin(intent)
+  await service.reviewAdmin(intent)
+  assert.deepEqual(requests[2], requests[3], 'manual retry of frozen review intent reuses exact attempt/payload')
+  assert.equal(requests[2].mode, 'admin_review')
+  assert.equal(requests[2].reviewAttemptId, intent.reviewAttemptId)
+  const changedIntent = service.createReviewIntent({ submissionId: 'admin-1', expectedVersion: 7, decision: 'rejected', note: '改写' })
+  assert.notEqual(changedIntent.reviewAttemptId, intent.reviewAttemptId)
+  const rejected = await service.reviewAdmin(changedIntent)
+  assert.equal(rejected.phase, 'admin_detail')
+  const approvedIntent = service.createReviewIntent({ submissionId: 'admin-1', expectedVersion: 7, decision: 'approved_evidence', note: null })
+  const approved = await service.reviewAdmin(approvedIntent)
+  assert.equal(approved.phase, 'admin_detail')
+  assert.deepEqual(requests.slice(2).map((request) => request.decision), ['changes_requested', 'changes_requested', 'rejected', 'approved_evidence'], 'three review actions keep exact server decision order')
+}
+
+async function adminRawPathRemovedContract() {
+  const requests = []
+  const service = createTrackSubmissionService({
+    now: () => 1700000000000,
+    chooseFile: async () => ({ tempFiles: [] }),
+    uploadFile: async () => ({ fileID: 'cloud://bucket/unused' }),
+    callFunction: async ({ data }) => {
+      requests.push(JSON.parse(JSON.stringify(data)))
+      assert.equal(data.mode, 'admin_get')
+      assert.equal(Object.prototype.hasOwnProperty.call(data, 'includeRawLink'), false)
+      return { result: { phase: 'admin_detail', submission: adminDetailFixture({ rawAccess: { url: 'https://poison.invalid/raw', expiresAt: '2099-01-01T00:00:00.000Z' } }) } }
+    },
+  })
+  assert.equal(typeof service.openAdminRaw, 'undefined', 'raw opener service seam must be removed')
+  assert.equal(typeof service.invalidateAdminRaw, 'undefined', 'raw invalidation service seam must be removed')
+  const detail = await service.getAdmin('admin-1')
+  assert.equal(detail.phase, 'admin_detail')
+  assert.deepEqual(requests, [{ mode: 'admin_get', submissionId: 'admin-1' }])
+}
+
+async function adminSourceWiringContract() {
+  const page = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.jsx'), 'utf8')
+  const service = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/track-submission-service.js'), 'utf8')
+  const modelSource = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/track-submission-model.js'), 'utf8')
+  ;[
+    'onTrackAdminRefresh', 'onTrackAdminOpenDetail', 'onTrackAdminAction', 'onTrackAdminReview', 'onTrackAdminReset', 'onTrackAdminFilter',
+    'listAdmin', 'getAdmin', 'reviewAdmin', 'createReviewIntent', 'allowedAdminActions', 'track-admin-card', 'adminReviewNote',
+  ].forEach((literal) => assert.match(page + service + modelSource, new RegExp(literal.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')), literal))
+  assert.match(page, /<View className="track-admin-card card">/)
+  assert.match(page, /trackUi\.admin\.items\.map/)
+  assert.match(page, /item\.allowedAdminActions\.map/)
+  assert.match(page, /item\.allowedAdminActions\.indexOf\(action\) < 0/)
+  assert.match(page, /nextAction !== 'contact_admin'/)
+  assert.match(page, /maxLength=\{500\}/)
+  const adminRefreshStart = page.indexOf('  onTrackAdminRefresh = (append = false, statusOverride, cursorOverride) => {')
+  const adminRefreshEnd = page.indexOf('\n  onTrackAdminOpenDetail', adminRefreshStart)
+  const adminRefreshBody = page.slice(adminRefreshStart, adminRefreshEnd)
+  assert.match(adminRefreshBody, /admin\.review\.loading/)
+  assert.match(adminRefreshBody, /this\._trackUiState\.admin\.generation !== generation/)
+  assert.match(adminRefreshBody, /ADMIN_LIST_RESPONSE/)
+  const adminDetailStart = page.indexOf('  onTrackAdminOpenDetail = (submissionId) => {')
+  const adminDetailEnd = page.indexOf('\n  onTrackAdminCloseDetail', adminDetailStart)
+  const adminDetailBody = page.slice(adminDetailStart, adminDetailEnd)
+  assert.match(adminDetailBody, /admin\.review\.loading/)
+  assert.match(adminDetailBody, /ADMIN_DETAIL_RESPONSE/)
+  const adminReviewStart = page.indexOf('  onTrackAdminReview = (action, item, event) => {')
+  const adminReviewEnd = page.indexOf('\n  onTrackAdminAction =', adminReviewStart)
+  const adminReviewBody = page.slice(adminReviewStart, adminReviewEnd)
+  assert.match(adminReviewBody, /if \(!admin\.session \|\| admin\.loading \|\| admin\.review\.loading \|\| !item \|\| typeof item\.submissionId !== 'string'/)
+  assert.match(adminReviewBody, /admin\.loading/)
+  assert.doesNotMatch(adminReviewBody, /view_raw|rawAccess|openDocument|includeRawLink/)
+  const requestChangesStart = adminReviewBody.indexOf("if (action === 'request_changes'")
+  const requestChangesEnd = adminReviewBody.indexOf("\n    const decision =", requestChangesStart)
+  assert.match(adminReviewBody.slice(requestChangesStart, requestChangesEnd), /onTrackAdminOpenDetail\(item\.submissionId\)/)
+  const reviewWithIntentStart = page.indexOf('  _trackAdminReviewWithIntent = (intent) => {')
+  const reviewWithIntentEnd = page.indexOf('\n  onTrackAdminReview =', reviewWithIntentStart)
+  const reviewWithIntentBody = page.slice(reviewWithIntentStart, reviewWithIntentEnd)
+  assert.match(reviewWithIntentBody, /version_conflict[\s\S]*onTrackAdminOpenDetail\(intent\.submissionId\)/)
+  const adminErrorActionStart = page.indexOf('  onTrackAdminErrorAction = () => {')
+  const adminErrorActionEnd = page.indexOf('\n  onTrackAdminReset =', adminErrorActionStart)
+  const adminErrorActionBody = page.slice(adminErrorActionStart, adminErrorActionEnd)
+  assert.match(adminErrorActionBody, /if \(!error \|\| this\._trackUiState\.admin\.loading \|\| this\._trackUiState\.admin\.review\.loading\) return/)
+  assert.match(adminErrorActionBody, /invalid_cursor[\s\S]*onTrackAdminRefresh\(false, intent\.status\)/)
+  assert.match(page, /if \(this\._unmounted\) return/)
+  const unmountStart = page.indexOf('  componentWillUnmount() {')
+  const unmountEnd = page.indexOf('\n  render() {', unmountStart)
+  const unmountBody = page.slice(unmountStart, unmountEnd)
+  assert.doesNotMatch(unmountBody, /invalidateAdminRaw|openAdminRaw|ADMIN_RAW/)
+  assert.doesNotMatch(page + service + modelSource, /ADMIN_RAW|openAdminRaw|invalidateAdminRaw|includeRawLink|rawAccess|openDocument|downloadFile|clipboard/)
+  assert.doesNotMatch(page, /view_raw|查看原始文件/)
+  assert.match(page + service, /expectedVersion/)
+  assert.match(page + service, /reviewAttemptId/)
+  assert.match(page, /TRACK_ADMIN_REVIEW_DECISIONS/)
+  assert.doesNotMatch(page, /isAdmin\s*=/)
+  assert.match(modelSource, /allowedAdminActions: safeAdminActions\(item\.allowedAdminActions\)/)
+  assert.doesNotMatch(modelSource, /rawAccess\s*:/)
+  const css = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/index.css'), 'utf8')
+  assert.match(css, /track-admin-card/)
+  assert.match(css, /track-admin-action/)
+}
+
 Promise.resolve()
   .then(serviceContract)
   .then(modelContract)
@@ -610,8 +968,12 @@ Promise.resolve()
   .then(reviewFixRoundTwoServiceContract)
   .then(reviewFixRoundThreeServiceContract)
   .then(reviewFixRoundTwoModelContract)
+  .then(adminServiceContract)
+  .then(adminRawPathRemovedContract)
+  .then(adminModelContract)
   .then(sourceWiringContract)
-  .then(() => console.log('PASS: C04 track-submission UI contract'))
+  .then(adminSourceWiringContract)
+  .then(() => console.log('PASS: C05 track-submission UI contract'))
   .catch((error) => {
     console.error(error.stack || error)
     process.exitCode = 1

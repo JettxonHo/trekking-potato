@@ -3,12 +3,13 @@
 - Updated: `2026-08-10`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C05 IMPLEMENTATION_ACTIVE`
-- Active task: `#122 / IMPLEMENTATION`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C05 REVIEW_FIX_ACTIVE`
+- Active task: `#122 / REVIEW_FIX`
 - Branch/base: `codex/122-track-admin-ui` from `main@ff5774a`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: C05 private administrator queue, detail, raw access and review UX
+- Current work: C05 administrator UX Review-fix round 3; the human selected summary/preview-only option A, so the
+  current client must remove all raw GPX/KML presentation/request paths before final C05 publication
 
 ## Current community-track checkpoint
 
@@ -32,6 +33,110 @@
 - Contract Review-fix now closes upload overwrite/HEAD TOCTOU, exact fileID binding, `gx:Track`, processing lease,
   CAS/revision races, DTO/error/action gaps and the 30/180-day retention lifecycle. Full post-retention planning gates
   pass and live #115 is synchronized; both latest-diff independent Reviews are approved.
+
+## C05 implementation checkpoint — 2026-08-10
+
+- TDD RED was recorded before production edits: after adding focused C05 probes to the existing `test:track-ui`,
+  `corepack npm@10.9.2 run test:track-ui` failed on the missing `listAdmin` service seam. The restored GREEN adds
+  server-response-only page-local admin authority, strict admin list/detail/evidence projections, filter/cursor
+  generation guards, explicit raw opener/expiry checks and frozen review intent/retry behavior.
+- The admin model keeps queue/detail/review/error state separate from C04 owner state. Only a matching `admin_list`
+  response opens the current page-generation session; `forbidden` and `admin_not_configured` clear it and render the
+  exact public copy. Unknown DTO fields, identity/config/raw URL/fileID/path/evidence keys and poisoned actions are
+  discarded recursively; admin detail keeps only bounded private geometry and keyless approved evidence.
+- Admin error intents now preserve exact `admin_list`/`admin_detail`/`admin_review` retry routing; authorization loss
+  invalidates every pending admin token/generation so late responses cannot reopen the session. Review notes are capped
+  at 500 characters in the model, service and accessible input. At/equal `recordExpiresAt` or `rawExpiresAt`, detail
+  content, raw-access copy and actions fail closed; the equality boundary is covered by the focused contract.
+- `view_raw` is a user-gesture-only injected service call with `includeRawLink=true`; the returned URL is checked against
+  its expiry, handed immediately to the injected opener, and never returned to page/model state or logged. Review sends
+  exact server action order, `submissionId`, integer `expectedVersion`, one stable random attempt and visible note;
+  version conflicts refresh the exact detail, while successful returned DTOs invalidate older queue/detail/review tokens.
+- Mutation-sensitive focused probes each produced RED and were restored: removing `includeRawLink=true`, removing the raw
+  expiry boundary, bypassing poisoned action projection, and removing the `allowedAdminActions` page guard. Final
+  focused C05 UI, C04 trip/result/recovery/owner, C03 admin/retention, root `npm test`, offline integration `55/0`,
+  lint (`0 errors / 9 existing warnings`), typecheck, fixture-free `CI=1 build:weapp` and `git diff --check` pass under
+  Corepack npm `10.9.2`.
+- Only the exact C05 allowlist changed: page JSX/CSS, page-local model/service, focused UI contract test and these
+  status/task records. No server/API/schema/dependency/config/catalog/deployment/CloudBase mutation, commit, push or PR
+  occurred. The changed frontend/test/docs files contain no real admin OpenID, credential, production URL, raw file
+  ID/path, reviewer identity, evidence key or secret; synthetic `private.invalid`/poison/cloud fixture values are
+  confined to the focused contract tests. Runtime model visibility remains `UNVERIFIED_RUNTIME_MODEL`; controller
+  configuration is the exact `luna-worker` (`gpt-5.6-luna/max`).
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh owns independent Review, latest-head CI interpretation,
+  publication, merge and Issue/status decisions. C06/#123 remains dependency-blocked.
+
+## C05 independent Review-fix checkpoint — 2026-08-10
+
+- Review round 1 fixes are now GREEN under the same page/model/service allowlist. Focused RED was observed for each
+  representative removal and restored: the global preview cap (`501 !== 500`), raw single-flight (`2 !== 1`), both
+  late-raw guards (`true !== false`), version-conflict intent clearing (stale intent versus `null`), queue
+  `request_changes` detail routing, invalid-cursor first-page refresh, review/raw loading guards, and filter raw
+  invalidation. The restored focused command is `corepack npm@10.9.2 run test:track-ui` → `PASS: C05 track-submission UI contract`.
+- Raw requests now carry the current admin generation and submission ID through model, page and injected service; a
+  same-generation duplicate is one flight, while reset, filter change, authorization loss, unmount, newer submission
+  or newer generation makes late work stale before any opener call. Raw error intent remains URL-free, and version
+  conflicts open the exact detail without replaying the frozen review. `request_changes` opens detail before a note can
+  be submitted; `invalid_cursor + refresh` drops the stale cursor and starts page one.
+- Full required matrix is GREEN: focused UI, trip-flow, result-page, recovery, owner, admin, retention, root
+  `corepack npm@10.9.2 test`, offline integration `55/0`, lint `0 errors / 9 existing warnings`, typecheck,
+  fixture-free `CI=1 corepack npm@10.9.2 run build:weapp`, and `git diff --check`.
+- The fixed Taro/WeChat `openDocument` seam remains intentionally unresolved: GPX/KML raw presentation/export requires
+  a human platform decision. No persistent save, clipboard, generic share, new viewer, server/API/schema/dependency,
+  deployment, commit, push or PR was added; report `BLOCKED_RAW_OPEN_DECISION` alongside `READY_FOR_CONTROLLER_REVIEW`.
+- The only implementation/test/docs paths changed remain the exact C05 allowlist; controller-owned `GOAL.md` was
+  preserved. Added fixtures use only synthetic `private.invalid`/poison/cloud values; no real OpenID, credential,
+  production URL, raw file ID/path, reviewer identity, evidence key or secret entered the changed frontend/model/service.
+  `~/.codex/agents/luna-worker.toml` remains configuration-verified as `gpt-5.6-luna/max`; runtime identity remains
+  `UNVERIFIED_RUNTIME_MODEL`.
+
+## C05 independent Review-fix round 2 checkpoint — 2026-08-10
+
+- TDD RED preceded production edits: append `admin.loading` review probes failed because reject/approve entered review
+  I/O, and raw entered a raw flight. The minimum GREEN now blocks `ADMIN_REVIEW_REQUEST` and `ADMIN_RAW_REQUEST` while
+  the admin list is loading; page review/raw/retry/error handlers carry the same fail-closed guard. Focused
+  `corepack npm@10.9.2 run test:track-ui` is restored to `PASS: C05 track-submission UI contract`.
+- Behavior probes cover raw/reject/approve zero-I/O on append loading, all `admin_not_configured` list/detail/raw/review
+  paths clearing the opened session, detail and pending tokens, and the precise `componentWillUnmount` to
+  `invalidateAdminRaw` seam. Removing each representative guard makes focused RED and every mutation was restored.
+- Current raw policy is unchanged: the injected opener is retained only as a lifecycle seam and remains
+  `BLOCKED_RAW_OPEN_DECISION`; no save, clipboard, share, new viewer, URL persistence, server/API/schema/dependency,
+  deploy, commit, push or PR action is authorized. Publication/merge remains a Sol XHigh controller gate.
+
+## C05 human raw decision / Review-fix round 3 — 2026-08-10
+
+- The human selected option A. C05 completes the private submission/review loop using normalized summary, keyless
+  approved evidence and at most 500 preview points; it will not present raw GPX/KML. A safe ephemeral track viewer is
+  deferred to a separate future Issue.
+- The active bounded change removes `view_raw` rendering, `rawAccess` copy/projection, raw reducer/retry state,
+  `openAdminRaw`/injected opener and every `includeRawLink`, open, download, save, share or clipboard path from the
+  C05 client. The existing server raw contract, storage lifecycle and API/schema remain unchanged.
+- The new focused gate must prove poisoned `view_raw`/`rawAccess.url` input has zero UI/state/network/platform effect,
+  while the three review decisions, pagination, stale-response and loading guards remain GREEN. Publication, merge,
+  deployment and C06/#123 unlock remain controller-owned after two fresh independent Reviews.
+
+## C05 Review-fix round 3 executor checkpoint — 2026-08-10
+
+- TDD RED preceded production edits: after replacing the stale raw-capability expectations with the option-A behavior
+  contract, `corepack npm@10.9.2 run test:track-ui` failed at `adminServiceContract` because the old service still sent
+  `includeRawLink: false` (`detail.phase` was `error`, expected `admin_detail`).
+- Minimum GREEN removes `view_raw` from the client action projection while preserving the server-projected order of
+  `request_changes`, `reject`, `approve_evidence`; removes `rawAccess` from admin detail state, all `ADMIN_RAW_*` reducer
+  state/events, the raw retry intent, `openAdminRaw`/injected opener and `includeRawLink` request fields. The page has no
+  raw open/download/save/share/clipboard path; poisoned raw URL input has no UI, state, network or platform effect.
+- Mutation probes were run and restored: re-adding `view_raw` to the allowlist, re-adding `includeRawLink`, re-projecting
+  `rawAccess`, and re-introducing the service opener each made focused `test:track-ui` RED. Restored focused result:
+  `PASS: C05 track-submission UI contract`.
+- Latest required matrix is GREEN: all focused C04/C05/C03 suites, root `corepack npm@10.9.2 test`, integration `55/0`,
+  lint `0 errors / 9 existing warnings`, typecheck, fixture-free `CI=1 corepack npm@10.9.2 run build:weapp`, and
+  `git diff --check`.
+- Exact C05 allowlist remains page JSX/CSS, page-local model/service, focused UI contract test and these two status
+  records; controller-owned `GOAL.md` and the four contract documents were preserved. No server/API/schema/dependency,
+  catalog, deployment, CloudBase, commit, push or PR action occurred. Secret/static audit is clean; runtime model remains
+  `UNVERIFIED_RUNTIME_MODEL` while TOML configuration is verified `gpt-5.6-luna/max`.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; raw presentation is no longer a C05 capability, with a separate future
+  viewer still outside #122. Sol XHigh owns fresh independent Reviews, latest-head CI interpretation, publication, merge
+  and C06/#123 unlock.
 
 ## C04 implementation checkpoint — 2026-08-09
 
@@ -1114,14 +1219,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Dispatch exact `luna-worker` for C05/#122 on `codex/122-track-admin-ui` from `main@ff5774a`; require a real focused
-   RED before the bounded admin model/service/page GREEN and full gates.
-2. Keep #123 dependency-blocked until an approved C05 change is remotely verified merged.
-3. C06 acceptance, deployment and real-device/runtime validation remain human-controlled gates.
+1. Sol XHigh must record both fresh option-A independent Reviews, publish the approved exact C05 head, and require
+   latest-head GitHub `quality` plus an exact-head metadata/diff recheck before merge.
+2. Only after the approved PR is remotely merged may Sol close #122 and unlock C06/#123.
+3. Keep #123 dependency-blocked until an approved C05 change is remotely verified merged; C06 acceptance, deployment
+   and real-device/runtime validation remain human-controlled gates.
 
 ## Blockers and risks
 
-- No product/retention human decision remains. The 30/180 periods and server-only admin authority are approved.
+- The 30/180 periods and server-only admin authority are approved. The former raw-presentation blocker is resolved as
+  option A: no raw capability in C05; a future ephemeral viewer remains separate and unimplemented.
 - GitHub CLI authentication is restored. PR #117 is merged and live #115/#118–#123 match the serial plan.
 - Root toolchain, lockfiles, offline integration, CI and branch protection remain merged and verified.
 - Node 24 随附的 npm 11 与 `@nutui/nutui-react-taro@3.0.20` 的不可解析可选依赖
@@ -1157,8 +1264,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Commit and publish the C05 activation checkpoint, then dispatch the exact `luna-worker` implementation under Issue
-#122. C05 cannot deploy or mutate real CloudBase; #123 remains blocked until C05 is remotely verified merged.
+Record the two fresh option-A Reviews and publish the approved C05 exact head as a focused draft PR using `Refs #122`.
+After latest-head GitHub `quality` and exact-head Review pass, Sol may mark it ready and decide the squash merge. Only
+the verified remote merge unlocks C06/#123; the separate future viewer remains out of scope.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

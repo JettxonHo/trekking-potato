@@ -841,3 +841,22 @@
 - Why: The hard runtime limit makes an old worker impossible before takeover while preserving one review authority
   and the already approved retention schema. Explicit deployment verification is safer than an undocumented timing
   assumption and avoids expanding C02 into a new cleanup data model.
+
+## 2026-08-10 — TP-D056 C05 仅审核标准化轨迹，原始文件查看器独立建设
+
+- Status: Accepted by human for C05/#122
+- Context: The reviewed C05 client could request a 300-second signed raw URL and pass it to an injected opener, but
+  WeChat `openDocument` requires a local supported document type and does not support GPX/KML. Download/save/share or
+  clipboard alternatives would let the raw file escape the 30-day access boundary. The normalized summary, keyless
+  approved evidence and bounded 500-point preview are already sufficient for the first private review loop.
+- Decision: C05 renders only `request_changes`, `reject` and `approve_evidence`; it always filters `view_raw` and
+  never requests `admin_get(includeRawLink=true)`, renders `rawAccess`, or opens/downloads/saves/shares/copies/caches
+  raw GPX/KML or signed URLs. The server-side raw action and retention contract remain private and unchanged for a
+  separately scoped future ephemeral viewer. That viewer must be reviewed for lifetime, memory, navigation and
+  export boundaries before implementation.
+- Alternatives: keep the unusable direct `openDocument` path; download and hand off to another app; expand C05 with
+  an in-app viewer. The first is false capability, the second cannot enforce retention, and the third would mix a new
+  rendering/security surface into an already reviewed admin workflow.
+- Why: Option A closes submission and administrator review now without overstating platform support or weakening the
+  human-approved privacy lifecycle. A separate viewer can later choose a genuinely ephemeral, testable design without
+  blocking the private evidence workflow.
