@@ -1220,8 +1220,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 ## Open work
 
 1. Draft PR #128 is open from `codex/122-track-admin-ui`; its initial implementation head `9f4d60b` passed GitHub
-   `quality` run `31349891164` and option-A exact-head code Review. This status-only additive head must receive a fresh
-   latest-head quality run and exact-head metadata/diff recheck before merge.
+   `quality` run `31349891164` and option-A exact-head code Review. The PR live head and live latest-head `quality`
+   check are the current CI fact sources; Sol may proceed only while that head is unchanged, its check is successful,
+   and the exact-head Reviews remain valid.
 2. Only after the approved PR is remotely merged may Sol close #122 and unlock C06/#123.
 3. Keep #123 dependency-blocked until an approved C05 change is remotely verified merged; C06 acceptance, deployment
    and real-device/runtime validation remain human-controlled gates.
@@ -1265,9 +1266,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Push this status-only additive head to draft PR #128, wait for fresh latest-head GitHub `quality`, and perform one
-exact-head metadata/diff recheck. If both pass, Sol may mark the PR ready and decide the squash merge. Only the verified
-remote merge unlocks C06/#123; the separate future viewer remains out of scope.
+Verify that draft PR #128's live head is unchanged, its live latest-head GitHub `quality` is successful, and both
+exact-head Reviews are valid. Sol may then mark the PR ready and decide the squash merge. Only the verified remote
+merge unlocks C06/#123; the separate future viewer remains out of scope.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

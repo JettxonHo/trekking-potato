@@ -233,5 +233,6 @@ Rerun the full required matrix and return `READY_FOR_CONTROLLER_REVIEW` for the 
   draft PR #128 with `Refs #122`. Its first latest-head GitHub `quality` run `31349891164` passed.
 - Two independent option-A code Reviews found no P0–P2; the only remaining P3 was publication-state drift. This
   additive update changes status documents only and does not alter product code, tests, contracts or deployment.
-- Required next gate is fresh latest-head GitHub `quality` plus exact-head metadata/diff Review. Only Sol may mark the
-  PR ready or squash merge; #122 and C06/#123 remain open/blocked until remote merge verification.
+- The PR live head and live latest-head `quality` check are the current CI fact sources. Sol may mark ready or decide
+  squash merge only while that head is unchanged, its check is successful and both exact-head Reviews remain valid;
+  #122 and C06/#123 remain open/blocked until remote merge verification.
