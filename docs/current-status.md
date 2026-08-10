@@ -3,8 +3,8 @@
 - Updated: `2026-08-10`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_FIX_ACTIVE`
-- Active task: `#131 / REVIEW_FIX`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_ACTIVE`
+- Active task: `#131 / REVIEW`
 - Branch/base: `codex/131-community-track-page` from `main@59ef3c2`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
@@ -89,7 +89,25 @@
 - Scope stays within the existing community-page JSX/CSS, focused UI contract and synchronized status/design docs.
   No model/service/server/API/schema/storage/dependency/CloudBase/deploy/catalog behavior may change.
 - The executor must record a real focused RED before production edits and make representative placement, summary,
-  consent and disclosure-toggle mutations RED. PR #132 remains draft during the fix.
+  consent and disclosure-toggle mutations RED. External PR, approval and merge state remain controller-owned.
+
+### C07 review-fix round 2 checkpoint — 2026-08-10
+
+- The focused UI contract recorded a real RED before the page edit, then returned GREEN after the owner-card title,
+  concise pre-submit privacy summary, consent ordering and collapsed full-policy disclosure were implemented.
+- Six isolated production mutations (rights placement, summary removal, consent reorder, platform-copy placement,
+  disclosure default and toggle handler) each produced RED and were restored. The unchanged `RIGHTS_COPY` and
+  `RIGHTS_PLATFORM_COPY` remain below submission; no model/service/server behavior changed.
+- The full required matrix, integration `55/0`, lint (0 errors/9 existing warnings), typecheck, fixture-free WeChat
+  build and `git diff --check` pass. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`; #123 staging rows
+  remain `BLOCKED_STAGING`.
+- Normal WeChat DevTools rendered the approved hierarchy: one-line intro, form/file selection, 30/180-day summary,
+  consent, submit, then a default-collapsed full-policy control. Expand and collapse both worked; the debugger showed
+  zero errors. No file was selected or uploaded and no CloudBase mutation occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+- Open work / Next action: the controller commits and pushes this increment to existing draft PR #132; latest-head CI
+  and two exact-head independent Reviews must pass before Sol XHigh decides mergeability. No approval or merge is
+  claimed in this checkpoint.
 
 ## C07 independent Reviews and local DevTools smoke — 2026-08-10
 
@@ -102,11 +120,11 @@
   framework/deprecation and long-text suggestions remained.
 - This smoke did not select or upload a file, write/review/delete database data, enable a timer, or prove a real-device
   or production deployment. #123 upload/review/timer rows remain `BLOCKED_STAGING`.
-- Controller next action is an additive commit, push and draft PR. That new exact head still requires latest-head
-  GitHub quality and actual-diff Review before any merge decision.
-- Open work / Next action: obtain two fresh independent Reviews; the controller commits, pushes and publishes the draft
-  PR; latest-head CI and actual-diff Review must pass; Sol XHigh decides mergeability. No C07 PR, approval or merge is
-  claimed in this checkpoint.
+- Draft PR #132 was published after this smoke, and its pre-round-2 exact head passed GitHub quality and actual-diff
+  Review. Those approvals are superseded by the human-approved disclosure-hierarchy Review-fix and are not merge
+  evidence for the pending new head.
+- Open work / Next action: commit and push the round-2 increment to existing draft PR #132, then require latest-head CI
+  and two exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge is claimed.
 
 ## C06 offline acceptance executor checkpoint — 2026-08-10
 
@@ -1350,9 +1368,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Complete the human-approved C07 disclosure-hierarchy Review-fix on draft PR #132, rerun the full matrix and obtain
-   two fresh independent Reviews plus latest-head GitHub quality before Sol decides mergeability. No approval or merge
-   is claimed here.
+1. Commit and push the completed C07 disclosure-hierarchy Review-fix to existing draft PR #132, then require
+   latest-head CI and two exact-head independent Reviews before Sol decides mergeability. No approval or merge is
+   claimed here.
 2. Keep #123 staging upload/review/timer rows separately blocked. No C07 test or build may be used as runtime,
    deployment or destructive-cleanup evidence.
 
@@ -1395,10 +1413,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Dispatch the bounded C07 disclosure-hierarchy Review-fix through the exact `luna-worker`, then run the full required
-matrix and obtain two fresh independent Reviews plus latest-head GitHub quality. Only after those gates pass may Sol
-decide whether to mark draft PR #132 ready and merge it. #123 staging and future viewer #129 remain separate and
-blocked; C07 performs no CloudBase mutation or deployment. No approval or merge is claimed in this checkpoint.
+Commit and push the round-2 increment to existing draft PR #132, then require latest-head CI and two exact-head
+independent Reviews before Sol decides whether to mark it ready and merge. #123 staging and future viewer #129 remain
+separate and blocked; C07 performs no CloudBase mutation or deployment. No approval or merge is claimed in this
+checkpoint.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

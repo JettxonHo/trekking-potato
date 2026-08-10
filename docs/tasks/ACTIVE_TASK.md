@@ -1,10 +1,10 @@
 # ACTIVE TASK — C07 community-track secondary page
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_FIX_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C07 REVIEW_ACTIVE`
 - Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
 - GitHub Issue: `#131`
-- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW`
 - Controller: Sol XHigh
 - Implementation executor: exact custom Agent `luna-worker`
 - Branch: `codex/131-community-track-page`
@@ -102,11 +102,13 @@ timer rows. The implementation is complete locally and the executor returns `REA
 - Normal fixture-free WeChat DevTools rendered the simplified homepage, navigated through `社区轨迹` to the new page,
   loaded the owner empty state and returned to route search with zero debugger errors. No upload, review, delete,
   timer, real-device or production action occurred.
-- Draft PR #132 is published. Remaining gates are latest-head GitHub quality and two exact-head actual-diff Reviews.
-  Do not close #131/#115 or mark the Goal complete before the approved merge and post-merge synchronization.
+- Draft PR #132 is published. Its pre-round-2 head passed quality and Review, but that evidence is superseded by the
+  disclosure-hierarchy change. The pending new head requires fresh quality and two exact-head Reviews. Do not close
+  #131/#115 or mark the Goal complete before the approved merge and post-merge synchronization.
 
-Open work / Next action: wait for draft PR #132 latest-head CI, then obtain two exact-head actual-diff Reviews. Sol
-owns the decision to mark ready and merge. No approval or merge is claimed in this task handoff.
+Open work / Next action: commit and push the round-2 increment to existing draft PR #132, then require latest-head CI
+and two exact-head independent Reviews. Sol owns the decision to mark ready and merge. No approval or merge is claimed
+in this task handoff.
 
 ## 9. Review-fix round 2 — human-approved disclosure hierarchy
 
@@ -122,6 +124,23 @@ owns the decision to mark ready and merge. No approval or merge is claimed in th
   a second state machine or change model/service/server behavior.
 - Required outcome: full §5 matrix GREEN, exact allowlist/secret/raw-residue audits, two fresh independent Reviews and
   latest-head PR quality. PR #132 stays draft until all gates pass.
+
+## 10. Review-fix round 2 executor checkpoint — 2026-08-10
+
+- The focused UI contract recorded a real RED before the page edit, then returned GREEN after the owner-card title,
+  concise pre-submit privacy summary, consent ordering and collapsed full-policy disclosure were implemented.
+- Six isolated production mutations (rights placement, summary removal, consent reorder, platform-copy placement,
+  disclosure default and toggle handler) each produced RED and were restored. The unchanged `RIGHTS_COPY` and
+  `RIGHTS_PLATFORM_COPY` remain below submission; no model/service/server behavior changed.
+- The full required matrix, integration `55/0`, lint (0 errors/9 existing warnings), typecheck, fixture-free WeChat
+  build and `git diff --check` pass. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`; #123 staging rows
+  remain `BLOCKED_STAGING`.
+- Normal WeChat DevTools rendered the final ordering and verified default-collapsed → expanded → collapsed behavior
+  with zero debugger errors. No file selection/upload, review, delete, timer, deployment or CloudBase mutation ran.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+- Open work / Next action: the controller commits and pushes this increment to existing draft PR #132; latest-head CI
+  and two exact-head independent Reviews must pass before Sol XHigh decides mergeability. No approval or merge is
+  claimed in this checkpoint.
 
 ## 7. Stop conditions
 

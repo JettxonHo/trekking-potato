@@ -57,6 +57,7 @@ const TRACK_ADMIN_REVIEW_DECISIONS = Object.freeze({
 export default class CommunityTrack extends Component {
   state = {
     trackUi: selectTrackUiView(createInitialTrackUiState()),
+    trackDisclosureOpen: false,
   }
 
   _trackUiState = createInitialTrackUiState()
@@ -75,6 +76,10 @@ export default class CommunityTrack extends Component {
   }
 
   onCommunityTrackBack = () => Taro.navigateBack({ delta: 1 })
+
+  onTrackDisclosureToggle = () => {
+    this.setState((state) => ({ trackDisclosureOpen: !state.trackDisclosureOpen }))
+  }
 
   _getTrackService() {
     if (!this._trackService) {
@@ -430,14 +435,14 @@ export default class CommunityTrack extends Component {
 
 
   renderTrackPage() {
-    const { trackUi } = this.state
+    const { trackUi, trackDisclosureOpen } = this.state
     return (
       <>
         <View className="track-owner-card card">
-          <Text className="card-title">私有轨迹审核</Text>
-          <Text className="track-rights-copy">{RIGHTS_COPY}</Text>
-          <Text className="track-rights-copy track-rights-warning">{RIGHTS_PLATFORM_COPY}</Text>
-
+          <Text className="card-title">提交私有轨迹</Text>
+          <View className="track-policy-intro">
+            <Text className="track-policy-intro-copy">仅供私下审核，不会自动公开</Text>
+          </View>
           <Text className="track-field-label">轨迹标题</Text>
           <Input disabled={trackUi.uploadBusy || trackUi.mutation.loading} className="track-input" placeholder="例如：武功山东江村记录" value={trackUi.form.title} onInput={(event) => this.onTrackFieldInput('title', event)} />
           <Text className="track-field-label">地区（选填）</Text>
@@ -464,18 +469,37 @@ export default class CommunityTrack extends Component {
               <Input disabled={trackUi.uploadBusy || trackUi.mutation.loading} className="track-input" placeholder="开放许可 HTTPS 链接（必填）" value={trackUi.form.licenseUrl} onInput={(event) => this.onTrackFieldInput('licenseUrl', event)} />
             </View>
           )}
+          <Button block disabled={trackUi.uploadBusy || trackUi.mutation.loading} className="track-file-btn" onClick={this.onTrackChooseFile}>{trackUi.file ? `已选择：${trackUi.file.name}（${trackUi.file.size} bytes）` : '选择一个 GPX 或 KML 文件'}</Button>
+          {trackUi.file && <Text className="track-file-hint">仅做本地格式与大小提示，服务端仍会重新验证文件。</Text>}
+          {trackUi.error && <View className="track-error-box"><Text>{trackUi.error.message}</Text>{trackUi.error.nextAction === 'contact_admin' && <Text className="track-contact-admin-guidance">如需继续，请联系管理员确认审核配置。</Text>}{trackUi.error.nextAction && trackUi.error.nextAction !== 'contact_admin' && <Button size="small" disabled={trackUi.uploadBusy || trackUi.mutation.loading || trackUi.list.loading || trackUi.detail.loading} className="inline-retry-btn" onClick={this.onTrackErrorAction}>{trackErrorRetryLabel(trackUi.error)}</Button>}</View>}
+          <View className="track-policy-summary">
+            <Text className="track-policy-summary-copy">原始文件和含身份记录最长保留 30 天；去身份几何证据最长保留 180 天。</Text>
+          </View>
           <View className="track-consent-row">
             <CheckboxGroup className="track-consent-group" onChange={this.onTrackConsentChange}>
               <Checkbox value="track-rights-v1" disabled={trackUi.uploadBusy || trackUi.mutation.loading} checked={trackUi.form.rightsAccepted} />
             </CheckboxGroup>
             <Text className="track-consent-copy">我同意按上述保留与删除规则处理该文件。</Text>
           </View>
-
-          <Button block disabled={trackUi.uploadBusy || trackUi.mutation.loading} className="track-file-btn" onClick={this.onTrackChooseFile}>{trackUi.file ? `已选择：${trackUi.file.name}（${trackUi.file.size} bytes）` : '选择一个 GPX 或 KML 文件'}</Button>
-          {trackUi.file && <Text className="track-file-hint">仅做本地格式与大小提示，服务端仍会重新验证文件。</Text>}
-          {trackUi.error && <View className="track-error-box"><Text>{trackUi.error.message}</Text>{trackUi.error.nextAction === 'contact_admin' && <Text className="track-contact-admin-guidance">如需继续，请联系管理员确认审核配置。</Text>}{trackUi.error.nextAction && trackUi.error.nextAction !== 'contact_admin' && <Button size="small" disabled={trackUi.uploadBusy || trackUi.mutation.loading || trackUi.list.loading || trackUi.detail.loading} className="inline-retry-btn" onClick={this.onTrackErrorAction}>{trackErrorRetryLabel(trackUi.error)}</Button>}</View>}
           <Button block disabled={!trackUi.file || !trackUi.form.rightsAccepted || trackUi.uploadBusy || trackUi.mutation.loading} className="track-submit-btn" onClick={this.onTrackSubmit}>{trackUi.uploadBusy ? '正在上传并提交…' : trackUi.reservation ? '继续上传并提交' : trackUi.revisionParentId ? '提交新的修订轨迹' : '提交私有轨迹'}</Button>
           {trackUi.uploadBusy && <Text className="track-progress">正在{trackUi.uploadOperation === 'begin' ? '准备上传' : '上传并校验'}，页面不会自动重试。</Text>}
+          <View className="track-rights-disclosure">
+            <Button
+              size="small"
+              className="track-disclosure-toggle"
+              aria-expanded={trackDisclosureOpen}
+              aria-controls="track-rights-detail"
+              onClick={this.onTrackDisclosureToggle}
+            >
+              {trackDisclosureOpen ? '收起完整说明' : '查看完整权利与保留说明'}
+            </Button>
+            {trackDisclosureOpen && (
+              <View id="track-rights-detail" className="track-rights-detail">
+                <Text className="track-rights-copy">{RIGHTS_COPY}</Text>
+                <Text className="track-rights-copy track-rights-warning">{RIGHTS_PLATFORM_COPY}</Text>
+              </View>
+            )}
+          </View>
 
           <View className="track-list-heading" aria-busy={trackUi.list.loading}><Text className="track-list-title">我的轨迹提交</Text><Button size="small" disabled={trackUi.uploadBusy || trackUi.list.loading} className="inline-retry-btn" onClick={() => this.onTrackRefresh(false)}>{trackUi.list.loading ? '读取中…' : '刷新'}</Button></View>
           {trackUi.list.loading && <Text className="empty-hint">正在读取你的私有提交…</Text>}

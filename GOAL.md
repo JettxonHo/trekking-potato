@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C07 REVIEW_FIX_ACTIVE`
+- Status: `ACTIVE — C07 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -89,8 +89,23 @@ claims a PR, approval, merge, deployment, production readiness or Goal completio
   user-expandable disclosure.
 - This is a bounded presentation change only. The rights text, consent requirement, retention periods, uploader
   validation, owner/admin workflow, TP-D056 Option A and all server/data contracts remain unchanged.
-- PR #132 remains draft. The Review-fix requires a real focused RED, final full gates, two fresh independent Reviews
-  and latest-head GitHub quality before Sol may reconsider mergeability.
+- The local Review-fix requires a real focused RED, final full gates, two fresh independent Reviews and latest-head
+  GitHub quality before Sol may reconsider mergeability.
+
+## C07 review-fix round 2 checkpoint — 2026-08-10
+
+- The focused UI contract recorded a real RED before the page edit, then returned GREEN after the owner-card title,
+  concise pre-submit privacy summary, consent ordering and collapsed full-policy disclosure were implemented.
+- Six isolated production mutations (rights placement, summary removal, consent reorder, platform-copy placement,
+  disclosure default and toggle handler) each produced RED and were restored. The unchanged `RIGHTS_COPY` and
+  `RIGHTS_PLATFORM_COPY` remain below submission; no model/service/server behavior changed.
+- The full required matrix, integration `55/0`, lint (0 errors/9 existing warnings), typecheck, fixture-free WeChat
+  build and `git diff --check` pass. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`; #123 staging rows
+  remain `BLOCKED_STAGING`.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+- Open work / Next action: the controller commits and pushes this increment to existing draft PR #132; latest-head CI
+  and two exact-head independent Reviews must pass before Sol XHigh decides mergeability. No approval or merge is
+  claimed in this checkpoint.
 
 ## 6. Completion criteria
 
