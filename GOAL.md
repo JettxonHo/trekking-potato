@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C06 REVIEW_ACTIVE`
+- Status: `ACTIVE — C07 IMPLEMENTATION_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -48,13 +48,15 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C4 User UX | C04 | rights, upload, status, revision and cancel are usable without public UGC |
 | C5 Admin UX | C05 | admin-only queue/detail/review works without exposing identity or secrets |
 | C6 Acceptance | C06 | cross-layer gates, docs and human staging checklist are complete |
+| C7 Focused UX | C07 | community-track owner/admin workflow moves to a secondary page and the route-query homepage is simplified |
 
-C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, and C05
-through PR #128 (`0e534d49`); Issues #118–#122 are closed. C06/#123 is the only active child. Each
-child gets one focused branch/PR and exact allowlist. C06's offline acceptance fixture, contract gate and separate
-staging-validation record are prepared on the active branch; this does not claim deployment, runtime verification or
-Goal completion. Draft PR #130 is open for the C06 evidence package; #123/#115 remain open until exact-head CI,
-Review and merge complete. The current client follows TP-D056 Option A and has no raw-track presentation/export path.
+C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
+through PR #128 (`0e534d49`) and the C06 offline acceptance package through PR #130 (`59ef3c2`). Issues #118–#122
+are closed. C06/#123 is now blocked only on the remaining separately controlled staging upload/review/timer rows;
+it is not the active implementation Issue. Human-approved C07/#131 is the only active implementation child and
+moves the complete community-track owner/admin workflow to a secondary page while preserving TP-D056 Option A.
+Each implementation child gets one focused branch/PR and exact allowlist. Neither C06 staging evidence nor C07
+claims deployment, production readiness or Goal completion.
 
 ## 6. Completion criteria
 

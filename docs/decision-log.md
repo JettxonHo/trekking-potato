@@ -899,3 +899,23 @@
   remain `BLOCKED` until human query-planner evidence exists.
 - Why: exact-key oracles make privacy failures visible without duplicating business logic, and explicit runtime/index
   boundaries prevent a local acceptance pass from being mistaken for catalog integrity or deployed CloudBase proof.
+
+## 2026-08-10 — TP-D059 社区轨迹迁入二级页并简化路线查询主页
+
+- Status: Accepted by human for C07/#131
+- Context: C04/C05 placed the complete owner submission and administrator review workflow directly on the route-query
+  homepage. That proved the private workflow but made the primary product page long and mixed route planning with a
+  lower-frequency community contribution task. The same page also displayed CLIMB SUPPORT even though the current
+  product can preserve its conservative default without asking most users to make that specialist choice.
+- Decision: Register a dedicated `pages/community-track/index` secondary page and move the complete owner/admin UI
+  there while reusing the existing `track-submission-model` and `track-submission-service` as the only state/I/O
+  seams. The homepage keeps one deliberate community-track entry; the existing route-not-found/manual-coordinate
+  fallback adds a second `提交轨迹供审核` choice. Remove the visible CLIMB SUPPORT field but keep the internal
+  `solo_or_unsure` request default so deterministic safety and the server contract do not change. TP-D056 Option A
+  remains in force: no client raw GPX/KML presentation or export.
+- Alternatives: keep the full workflow inline; replace the manual fallback with upload; remove `climbSupport` from
+  requests; duplicate the track reducer/service under the new page. These respectively keep the homepage cluttered,
+  remove a useful deterministic fallback, change a safety contract, or create two divergent private-workflow states.
+- Why: a secondary page restores a clear primary journey while retaining discoverability at the two moments when a
+  user is most likely to contribute. Reusing the reviewed deep module preserves privacy, retries and concurrency
+  behavior, and the conservative hidden default avoids turning a visual simplification into a safety-policy change.
