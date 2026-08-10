@@ -3,13 +3,14 @@
 - Updated: `2026-08-10`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C06 REVIEW_FIX_ACTIVE`
-- Active task: `#123 / REVIEW_FIX`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C06 REVIEW_ACTIVE`
+- Active task: `#123 / REVIEW`
 - Branch/base: `codex/123-track-acceptance` from `main@0e534d49`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: C06 offline acceptance Review-fix; exact evidence privacy, one KML vertical path and truthful O8/index
-  evidence are being tightened. No production/public release or automatic destructive cleanup is authorized.
+- Current work: C06 offline acceptance draft PR #130 is open. The implementation/evidence diff passed two independent
+  local Reviews; the status-only head still requires latest-head CI and exact-head Review before merge. No
+  production/public release or automatic destructive cleanup is authorized.
 
 ## Current community-track checkpoint
 
@@ -71,6 +72,11 @@
   recording all six authoritative index field orders and unique flags as `BLOCKED`.
 - `TDD_DEVIATION_INITIAL_GREEN` remains unchanged and honest: no missing-script/artificial RED was fabricated; the
   new exact-key, KML, Option A and mutation expectations were added as Review-fix evidence.
+- The final isolated `shareFileMessage` mutation contains no earlier residue token and independently turns the focused
+  gate RED. Both independent reviewers approved the resulting 13-path implementation/evidence worktree with no P0–P3.
+- Commit `555ffd4` was pushed and published as draft PR #130 (`Refs #123`, `Refs #115`). The new status-only head must
+  pass latest-head GitHub `quality` and exact-head Review before Sol may mark the PR ready or merge it. #123/#115 and
+  milestone #8 remain open.
 
 ## C05 merge / C06 activation checkpoint — 2026-08-10
 
@@ -1272,8 +1278,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Sol XHigh reviews the bounded C06 offline acceptance and documentation package and latest-head CI before any human
-   staging action; the executor package is `READY_FOR_CONTROLLER_REVIEW` and did not mutate CloudBase.
+1. Wait for draft PR #130 latest-head `quality` and exact-head independent Reviews; only then may Sol mark it ready and
+   decide squash merge. Close #123/#115 only after the remote merge and post-merge status synchronization.
 2. Human staging rows remain separately controlled: collection/index/rule/env/function/timer changes are never inferred
    from offline tests and must be recorded truthfully as `VERIFIED`, `BLOCKED` or `UNVERIFIED_RUNTIME_TOOL`.
 
@@ -1316,10 +1322,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Review the C06 baseline, offline cross-layer fixture, staging validation record and synchronized completion documents
-under #123. The initial acceptance skeleton was direct GREEN because C01–C05 seams already existed; retain
-`TDD_DEVIATION_INITIAL_GREEN` and independent literal/mutation evidence rather than fabricating a RED. No CloudBase
-mutation or deployment is performed by the executor; the future viewer #129 remains blocked until C06/Goal closeout.
+Complete draft PR #130 latest-head CI and exact-head independent Review. If both remain green, Sol may mark the PR ready
+and decide squash merge; #123/#115 close only after the remote merge is confirmed. No CloudBase mutation or deployment
+is performed by this PR; the future viewer #129 remains blocked until C06/Goal closeout.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

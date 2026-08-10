@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C06 REVIEW_FIX_ACTIVE`
+- Status: `ACTIVE — C06 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -53,7 +53,8 @@ C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126
 through PR #128 (`0e534d49`); Issues #118–#122 are closed. C06/#123 is the only active child. Each
 child gets one focused branch/PR and exact allowlist. C06's offline acceptance fixture, contract gate and separate
 staging-validation record are prepared on the active branch; this does not claim deployment, runtime verification or
-Goal completion. The current client follows TP-D056 Option A and has no raw-track presentation/export path.
+Goal completion. Draft PR #130 is open for the C06 evidence package; #123/#115 remain open until exact-head CI,
+Review and merge complete. The current client follows TP-D056 Option A and has no raw-track presentation/export path.
 
 ## 6. Completion criteria
 

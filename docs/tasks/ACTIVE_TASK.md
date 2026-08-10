@@ -1,10 +1,10 @@
 # ACTIVE TASK — C06 community-track acceptance and staging evidence
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C06 REVIEW_FIX_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C06 REVIEW_ACTIVE`
 - Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
 - GitHub Issue: `#123`
-- Status/Mode: `REVIEW_FIX_ACTIVE / REVIEW_FIX round 1`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW`
 - Controller: Sol XHigh
 - Implementation executor: exact custom Agent `luna-worker`
 - Branch: `codex/123-track-acceptance`
@@ -148,3 +148,12 @@ Verdict: `CHANGES_REQUESTED`; no production defect and no human product decision
   order and the unique flag, so partial runtime verification can be recorded truthfully.
 - Keep `TDD_DEVIATION_INITIAL_GREEN` honest, rerun every required command and mutation probe, and return within the
   same allowlist. No production file, dependency, deploy or CloudBase mutation is authorized.
+
+## 10. Draft PR review checkpoint — 2026-08-10
+
+- The final Review-fix worktree passed two independent Reviews with no P0–P3. The isolated `shareFileMessage` mutation
+  contains only that residue and independently produces the required focused RED; restoration is GREEN.
+- Commit `555ffd4` is published as draft PR #130 with `Refs #123` and `Refs #115`. The PR is not accepted or merged;
+  #123/#115 and milestone #8 remain open.
+- This status-only additive head must pass latest-head GitHub `quality` and exact-head independent Reviews before Sol
+  may mark the PR ready or decide squash merge. Runtime/CloudBase/staging rows retain their recorded evidence status.
