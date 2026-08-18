@@ -1,4 +1,6 @@
 const assert = require('node:assert/strict')
+const { Command } = require('../cloudfunctions/trackSubmission/node_modules/@cloudbase/database/dist/commonjs/command')
+const { UpdateSerializer } = require('../cloudfunctions/trackSubmission/node_modules/@cloudbase/database/dist/commonjs/serializer/update')
 
 const { parseTrack } = require('../cloudfunctions/trackSubmission/domain/track-parser')
 const { createOwnerService } = require('../cloudfunctions/trackSubmission/owner-service')
@@ -382,12 +384,31 @@ async function run() {
     })
     assert.equal(await temporary.getTemporaryUrl(expectedTemporaryFileID, 123), 'https://download.example/temporary')
     assert.deepEqual(temporaryCalls, [{ fileList: [{ fileID: expectedTemporaryFileID, maxAge: 123 }] }])
+    const omittedResponseCalls = []
+    const omittedResponse = createStorageAdapter({
+      env: { TRACK_STORAGE_FILEID_HOST: HOST },
+      cloud: {
+        async getTempFileURL(options) {
+          omittedResponseCalls.push(options)
+          return { fileList: [{
+            fileID: options.fileList[0].fileID,
+            status: 0,
+            errMsg: 'getTempFileURL:ok',
+            tempFileURL: 'https://download.example/temporary',
+          }] }
+        },
+      },
+    })
+    assert.equal(await omittedResponse.getTemporaryUrl(expectedTemporaryFileID, 123), 'https://download.example/temporary')
+    assert.deepEqual(omittedResponseCalls, [{ fileList: [{ fileID: expectedTemporaryFileID, maxAge: 123 }] }])
     for (const result of [
       { fileList: [] },
       { fileList: [{ fileID: 'cloud://other.example.test/x', status: 0, errMsg: 'ok', maxAge: 123, tempFileURL: 'https://download.example/temporary' }] },
       { fileList: [{ fileID: expectedTemporaryFileID, status: 1, errMsg: 'ok', maxAge: 123, tempFileURL: 'https://download.example/temporary' }] },
       { fileList: [{ fileID: expectedTemporaryFileID, status: 0, errMsg: '', maxAge: 123, tempFileURL: 'https://download.example/temporary' }] },
       { fileList: [{ fileID: expectedTemporaryFileID, status: 0, errMsg: 'ok', maxAge: 124, tempFileURL: 'https://download.example/temporary' }] },
+      { fileList: [{ fileID: expectedTemporaryFileID, status: 0, errMsg: 'ok', maxAge: '123', tempFileURL: 'https://download.example/temporary' }] },
+      { fileList: [{ fileID: expectedTemporaryFileID, status: 0, errMsg: 'ok', maxAge: 0, tempFileURL: 'https://download.example/temporary' }] },
       { fileList: [{ fileID: expectedTemporaryFileID, status: 0, errMsg: 'ok', maxAge: 123, tempFileURL: '' }] },
     ]) {
       const malformed = createStorageAdapter({
@@ -480,15 +501,35 @@ async function run() {
 
   // Parser failures become invalid and cleanup is honest; CAS conflict returns retryable conflict.
   {
+    const processingSeam = harness()
+    let processingSeamCalls = 0
+    const originalProcessingUpdate = processingSeam.repository.updateProcessing
+    processingSeam.repository.updateProcessing = async (...args) => {
+      processingSeamCalls += 1
+      return originalProcessingUpdate.apply(processingSeam.repository, args)
+    }
+    const processingReservation = await processingSeam.begin()
+    const processingRecord = (await processingSeam.repository.snapshot()).find((item) => item._id === processingReservation.submissionId)
+    const processingResult = await processingSeam.call({ mode: 'finalize', submissionId: processingRecord._id, fileID: `cloud://${HOST}/${processingRecord.cloudPath}` })
+    assert.equal(processingResult.submission.status, 'pending_review')
+    assert.equal(processingSeamCalls, 1)
+
     const unavailable = harness()
     const reservationUnavailable = await unavailable.begin()
     const unavailableRecord = (await unavailable.repository.snapshot()).find((item) => item._id === reservationUnavailable.submissionId)
+    let storageResetSeamCalls = 0
+    const originalStorageReset = unavailable.repository.updateProcessing
+    unavailable.repository.updateProcessing = async (...args) => {
+      storageResetSeamCalls += 1
+      return originalStorageReset.apply(unavailable.repository, args)
+    }
     unavailable.state.readError = new StorageAdapterError('storage_unavailable', 'temporary read outage')
     const storageFailure = await unavailable.call({ mode: 'finalize', submissionId: unavailableRecord._id, fileID: `cloud://${HOST}/${unavailableRecord.cloudPath}` })
     assert.equal(errorCode(storageFailure), 'storage_unavailable')
     const resetRecord = (await unavailable.repository.snapshot()).find((item) => item._id === unavailableRecord._id)
     assert.equal(resetRecord.status, 'awaiting_upload')
     assert.equal(resetRecord.summary, null)
+    assert.equal(storageResetSeamCalls, 1)
 
     const bad = harness({ bytes: Buffer.from(`<gpx xmlns="${GPX_NS}"><trk><trkseg><trkpt lat="30" lon="100"></trkseg></trk></gpx>`) })
     const reservationBad = await bad.begin()
@@ -512,6 +553,12 @@ async function run() {
     const parserCas = harness()
     const parserCasReservation = await parserCas.begin()
     const parserCasRecord = (await parserCas.repository.snapshot()).find((item) => item._id === parserCasReservation.submissionId)
+    let parserResetSeamCalls = 0
+    const originalParserReset = parserCas.repository.updateProcessing
+    parserCas.repository.updateProcessing = async (...args) => {
+      parserResetSeamCalls += 1
+      return originalParserReset.apply(parserCas.repository, args)
+    }
     parserCas.state.parserError = new StorageAdapterError('malformed_xml', 'invalid')
     const parserCasUpdate = parserCas.repository.update
     parserCas.repository.update = async (id, conditions, patch) => {
@@ -521,6 +568,7 @@ async function run() {
     const parserCasResult = await parserCas.call({ mode: 'finalize', submissionId: parserCasRecord._id, fileID: `cloud://${HOST}/${parserCasRecord.cloudPath}` })
     assert.equal(errorCode(parserCasResult), 'version_conflict')
     assert.equal(parserCas.state.deleteCount, 0)
+    assert.equal(parserResetSeamCalls, 1)
 
     const resetCas = harness()
     const resetReservation = await resetCas.begin()
@@ -865,11 +913,23 @@ async function run() {
       lt: (value) => ({ $lt: value }),
       or: (...expressions) => ({ $or: expressions }),
       and: (...expressions) => ({ $and: expressions }),
+      set: Command.set,
     }
     let transactionActive = false
     let transactionCalls = 0
     let transactionUpdateCount = 0
     let failTransactionUpdateAt = null
+    let throwTransactionUpdateAt = null
+    let failTransactionInit = false
+    let failTransactionCommit = false
+    let transactionRetryAttempts = 1
+    function applyCloudBasePatch(target, data) {
+      Object.entries(data).forEach(([key, value]) => {
+        target[key] = value && value.operator === 'set' && Array.isArray(value.operands)
+          ? structuredClone(value.operands[0])
+          : structuredClone(value)
+      })
+    }
     function makeCollection(state, inTransaction) {
       return {
         where(condition) {
@@ -888,7 +948,7 @@ async function run() {
               }
               const id = condition._id
               if (!id || !state[id]) return { stats: { updated: 0 } }
-              Object.assign(state[id], data)
+              applyCloudBasePatch(state[id], data)
               return { stats: { updated: 1 } }
             },
           }
@@ -914,9 +974,10 @@ async function run() {
               if (inTransaction) {
                 transactionUpdateCount += 1
                 if (failTransactionUpdateAt === transactionUpdateCount) return { stats: { updated: 0 } }
+                if (throwTransactionUpdateAt === transactionUpdateCount) throw new Error('staged doc.update failed')
               }
               if (!state[id]) return { stats: { updated: 0 } }
-              Object.assign(state[id], data)
+              applyCloudBasePatch(state[id], data)
               return { stats: { updated: 1 } }
             },
           }
@@ -929,17 +990,24 @@ async function run() {
       collection() { return collection },
       async runTransaction(callback) {
         transactionCalls += 1
-        const staged = structuredClone(records)
-        transactionActive = true
-        transactionUpdateCount = 0
-        try {
-          const result = await callback({ token: Symbol('transaction-token'), collection() { return makeCollection(staged, true) } })
-          Object.keys(records).forEach((key) => delete records[key])
-          Object.assign(records, staged)
-          return result
-        } finally {
-          transactionActive = false
+        if (failTransactionInit) throw new Error('transaction init failed')
+        let result
+        for (let attempt = 0; attempt < transactionRetryAttempts; attempt += 1) {
+          const staged = structuredClone(records)
+          transactionActive = true
+          transactionUpdateCount = 0
+          try {
+            result = await callback({ token: Symbol('transaction-token'), collection() { return makeCollection(staged, true) } })
+            if (attempt < transactionRetryAttempts - 1) continue
+            if (failTransactionCommit) throw new Error('transaction commit failed')
+            Object.keys(records).forEach((key) => delete records[key])
+            Object.assign(records, staged)
+            return result
+          } finally {
+            transactionActive = false
+          }
         }
+        return result
       },
     }
     await assert.rejects(
@@ -957,8 +1025,218 @@ async function run() {
       lte: (value) => ({ operator: 'lte', operands: [value] }),
       or: (...expressions) => ({ operator: 'or', operands: expressions }),
       and: (...expressions) => ({ operator: 'and', operands: expressions }),
+      set: Command.set,
     }
-    const realShapeRepository = createCloudBaseRepository({ db, command: realShapeCommand })
+    const realShapeRepository = createCloudBaseRepository({
+      db,
+      command: realShapeCommand,
+    })
+    const processingConditions = {
+      _openid: 'server-owner', status: 'processing', version: 1, 'processing.leaseId': 'lease-1',
+    }
+    const pendingReviewPatch = {
+      status: 'pending_review', version: 2,
+      summary: { summaryVersion: 'track-summary-v1', pointCount: 2 },
+      processing: { leaseId: null, startedAt: null },
+    }
+    records.child = {
+      _id: 'child', _openid: 'server-owner', status: 'processing', version: 1,
+      summary: null,
+      processing: { leaseId: 'lease-1', startedAt: new Date('2026-08-09T00:00:00.000Z') },
+    }
+    queryCalls.length = 0
+    const pendingReview = await realShapeRepository.updateProcessing('child', processingConditions, pendingReviewPatch)
+    assert.equal(pendingReview.status, 'pending_review')
+    const pendingReviewUpdate = queryCalls.find((call) => call.type === 'doc.update' && call.id === 'child')
+    const encodedPendingReview = UpdateSerializer.encode(pendingReviewUpdate.data)
+    assert.deepEqual(encodedPendingReview.$set.summary, pendingReviewPatch.summary)
+    assert.equal(Object.keys(encodedPendingReview.$set).some((key) => key.startsWith('summary.')), false)
+    assert.deepEqual(queryCalls.filter((entry) => entry.type === 'doc.get' && entry.transaction).map((entry) => entry.id), ['child'])
+    const pendingReviewDocUpdates = queryCalls.filter((entry) => entry.type === 'doc.update')
+    assert.equal(pendingReviewDocUpdates.length, 1)
+    assert.equal(pendingReviewDocUpdates[0].id, 'child')
+    assert.deepEqual(Object.keys(pendingReviewDocUpdates[0].data).sort(), Object.keys(pendingReviewPatch).sort())
+    assert.equal(queryCalls.some((entry) => entry.type === 'update' || (entry.type === 'where' && entry.transaction)), false)
+
+    // The pinned SDK may retry a transaction callback before one final commit.
+    records.child = {
+      _id: 'child', _openid: 'server-owner', status: 'processing', version: 2,
+      processing: { leaseId: 'lease-retry', startedAt: new Date('2026-08-09T00:00:00.000Z') },
+    }
+    const retryConditions = { ...processingConditions, version: 2, 'processing.leaseId': 'lease-retry' }
+    const retryPatch = { status: 'pending_review', version: 3, processing: { leaseId: null, startedAt: null } }
+    transactionRetryAttempts = 2
+    const retriedPendingReview = await realShapeRepository.updateProcessing('child', retryConditions, retryPatch)
+    transactionRetryAttempts = 1
+    assert.equal(retriedPendingReview.status, 'pending_review')
+
+    // A commit failure occurs only after a successful callback and must preserve the original record.
+    records.child = {
+      _id: 'child', _openid: 'server-owner', status: 'processing', version: 9,
+      processing: { leaseId: 'lease-commit', startedAt: new Date('2026-08-09T00:00:00.000Z') },
+    }
+    const commitFailureConditions = { ...processingConditions, version: 9, 'processing.leaseId': 'lease-commit' }
+    const beforeCommitFailure = structuredClone(records)
+    failTransactionCommit = true
+    await assert.rejects(
+      () => realShapeRepository.updateProcessing('child', commitFailureConditions, pendingReviewPatch),
+      /transaction commit failed/,
+    )
+    failTransactionCommit = false
+    assert.deepEqual(records, beforeCommitFailure)
+
+    // Initialization can fail before the SDK invokes the transaction callback.
+    records.child = {
+      _id: 'child', _openid: 'server-owner', status: 'processing', version: 10,
+      processing: { leaseId: 'lease-init', startedAt: new Date('2026-08-09T00:00:00.000Z') },
+    }
+    const initFailureConditions = { ...processingConditions, version: 10, 'processing.leaseId': 'lease-init' }
+    const beforeInitFailure = structuredClone(records)
+    failTransactionInit = true
+    await assert.rejects(
+      () => realShapeRepository.updateProcessing('child', initFailureConditions, pendingReviewPatch),
+      /transaction init failed/,
+    )
+    failTransactionInit = false
+    assert.deepEqual(records, beforeInitFailure)
+
+    // The default handler must use the CloudBase transaction repository for finalize.
+    const handlerRecord = {
+      _id: 'handler-child', _openid: 'server-owner', beginAttemptId: 'handler-attempt', status: 'awaiting_upload', version: 1,
+      originalFilename: 'walk.gpx', format: 'gpx', declaredSizeBytes: gpx().length,
+      cloudPath: 'track-submissions/handler-child/upload.gpx', creatorFileId: null,
+      uploadExpiresAt: new Date('2026-08-09T00:20:00.000Z'), reviewCloudPath: 'track-reviews/handler-child/review.gpx',
+      reviewFileId: null, actualSizeBytes: null, reviewSnapshotAt: null, rawExpiresAt: null,
+      recordExpiresAt: new Date('2026-08-10T00:00:00.000Z'),
+      input: { title: '处理器路线', region: null, note: null, provenancePlatform: null, provenancePageUrl: null },
+      rights: { basis: 'own_recording', declarationVersion: 'track-rights-v1', licenseName: null, licenseUrl: null },
+      revisesSubmissionId: null, replacementSubmissionId: null, summary: null,
+      processing: { leaseId: null, startedAt: null }, rawFileState: { upload: 'reserved', review: 'absent' },
+      review: { attemptId: null, decision: null, note: null, reviewerOpenid: null, reviewedAt: null, resultVersion: null },
+      evidenceExpiresAt: null, createdAt: new Date('2026-08-09T00:00:00.000Z'), updatedAt: new Date('2026-08-09T00:00:00.000Z'),
+    }
+    records['handler-child'] = structuredClone(handlerRecord)
+    const handlerStorage = {
+      getAllowedHost() { return HOST },
+      async readCreator() { return gpx() },
+      async uploadReview() { return `cloud://${HOST}/track-reviews/handler-child/review.gpx` },
+      async deleteObject() { return true },
+    }
+    const defaultRepositoryHandler = createTrackSubmissionHandler({
+      cloudSdk: { getWXContext() { return { OPENID: 'server-owner' } } },
+      db,
+      storage: handlerStorage,
+      clock: () => new Date('2026-08-09T00:00:00.000Z'),
+      idFactory: () => 'handler-lease',
+      parser: parseTrack,
+    })
+    const defaultHandlerResult = await defaultRepositoryHandler({
+      mode: 'finalize', submissionId: 'handler-child',
+      fileID: `cloud://${HOST}/${handlerRecord.cloudPath}`,
+    })
+    assert.equal(defaultHandlerResult.phase, 'mine')
+    assert.equal(defaultHandlerResult.submission.status, 'pending_review')
+
+    records.child = {
+      _id: 'child', _openid: 'server-owner', status: 'processing', version: 3,
+      processing: { leaseId: 'lease-reset', startedAt: new Date('2026-08-09T00:00:00.000Z') },
+    }
+    const resetConditions = { ...processingConditions, version: 3, 'processing.leaseId': 'lease-reset' }
+    const storageResetPatch = {
+      status: 'awaiting_upload', version: 4, processing: { leaseId: null, startedAt: null },
+    }
+    const storageReset = await realShapeRepository.updateProcessing('child', resetConditions, storageResetPatch)
+    assert.equal(storageReset.status, 'awaiting_upload')
+
+    records.child = {
+      _id: 'child', _openid: 'server-owner', status: 'processing', version: 5,
+      processing: { leaseId: 'lease-parser', startedAt: new Date('2026-08-09T00:00:00.000Z') },
+    }
+    const parserResetConditions = { ...processingConditions, version: 5, 'processing.leaseId': 'lease-parser' }
+    const parserInvalidPatch = {
+      status: 'invalid', version: 6, processing: { leaseId: null, startedAt: null },
+      rawFileState: { upload: 'deletion_pending', review: 'deletion_pending' },
+    }
+    const parserInvalid = await realShapeRepository.updateProcessing('child', parserResetConditions, parserInvalidPatch)
+    assert.equal(parserInvalid.status, 'invalid')
+
+    const staleRecordCases = [
+      {
+        label: 'status',
+        current: { _id: 'child', _openid: 'server-owner', status: 'awaiting_upload', version: 5, processing: { leaseId: 'lease-parser' } },
+        conditions: parserResetConditions,
+      },
+      {
+        label: 'version',
+        current: { _id: 'child', _openid: 'server-owner', status: 'processing', version: 6, processing: { leaseId: 'lease-parser' } },
+        conditions: parserResetConditions,
+      },
+      {
+        label: 'lease',
+        current: { _id: 'child', _openid: 'server-owner', status: 'processing', version: 5, processing: { leaseId: 'lease-other' } },
+        conditions: parserResetConditions,
+      },
+    ]
+    for (const staleCase of staleRecordCases) {
+      records.child = staleCase.current
+      const beforeStale = structuredClone(records)
+      queryCalls.length = 0
+      const staleResult = await realShapeRepository.updateProcessing('child', staleCase.conditions, parserInvalidPatch)
+      assert.equal(staleResult, null, `stale ${staleCase.label} record must not transition`)
+      assert.equal(queryCalls.some((entry) => entry.type === 'doc.update'), false, `stale ${staleCase.label} record must not update`)
+      assert.deepEqual(records, beforeStale)
+    }
+
+    const invalidConditionCases = [
+      { ...parserResetConditions, _openid: 'other-owner' },
+      { ...parserResetConditions, status: 'awaiting_upload' },
+      { ...parserResetConditions, version: '5' },
+      (() => { const { ['processing.leaseId']: _lease, ...missingLease } = parserResetConditions; return missingLease })(),
+    ]
+    for (const invalidConditions of invalidConditionCases) {
+      records.child = {
+        _id: 'child', _openid: 'server-owner', status: 'processing', version: 5,
+        processing: { leaseId: 'lease-parser', startedAt: new Date('2026-08-09T00:00:00.000Z') },
+      }
+      const beforeInvalid = structuredClone(records)
+      const invalidResult = await realShapeRepository.updateProcessing('child', invalidConditions, parserInvalidPatch)
+      assert.equal(invalidResult, null)
+      assert.deepEqual(records, beforeInvalid)
+    }
+    records.child = {
+      _id: 'child', _openid: 'server-owner', status: 'processing', version: 5,
+      processing: { startedAt: new Date('2026-08-09T00:00:00.000Z') },
+    }
+    const beforeMissingLease = structuredClone(records)
+    const missingLeaseResult = await realShapeRepository.updateProcessing('child', invalidConditionCases[3], parserInvalidPatch)
+    assert.equal(missingLeaseResult, null)
+    assert.deepEqual(records, beforeMissingLease)
+
+    records.child = {
+      _id: 'child', _openid: 'server-owner', status: 'processing', version: 7,
+      processing: { leaseId: 'lease-fail', startedAt: new Date('2026-08-09T00:00:00.000Z') },
+    }
+    const failedUpdateConditions = { ...processingConditions, version: 7, 'processing.leaseId': 'lease-fail' }
+    const beforeFailedUpdate = structuredClone(records)
+    failTransactionUpdateAt = 1
+    const failedUpdate = await realShapeRepository.updateProcessing('child', failedUpdateConditions, pendingReviewPatch)
+    failTransactionUpdateAt = null
+    assert.equal(failedUpdate, null)
+    assert.deepEqual(records, beforeFailedUpdate)
+
+    records.child = {
+      _id: 'child', _openid: 'server-owner', status: 'processing', version: 8,
+      processing: { leaseId: 'lease-throw', startedAt: new Date('2026-08-09T00:00:00.000Z') },
+    }
+    const thrownUpdateConditions = { ...processingConditions, version: 8, 'processing.leaseId': 'lease-throw' }
+    const beforeThrownUpdate = structuredClone(records)
+    throwTransactionUpdateAt = 1
+    await assert.rejects(
+      () => realShapeRepository.updateProcessing('child', thrownUpdateConditions, pendingReviewPatch),
+      /staged doc.update failed/,
+    )
+    throwTransactionUpdateAt = null
+    assert.deepEqual(records, beforeThrownUpdate)
     queryCalls.length = 0
     await cloudRepository.findByAttempt('server-owner', 'attempt-lookup')
     const attemptWhere = queryCalls.find((entry) => entry.type === 'where').condition
@@ -1003,7 +1281,10 @@ async function run() {
     assert.equal(updateWhere._openid, 'server-owner')
     assert.equal(updateWhere.status, 'processing')
     assert.equal(updateWhere.version, 1)
-    records.child.status = 'processing'
+    records.child = {
+      _id: 'child', _openid: 'server-owner', status: 'processing', version: 1,
+      revisesSubmissionId: 'parent', processing: { leaseId: 'lease-1' },
+    }
     queryCalls.length = 0
     const transition = await cloudRepository.transitionRevisionTerminal('child', 'server-owner', {
       _openid: 'server-owner', status: 'processing', version: 1, 'processing.leaseId': 'lease-1',

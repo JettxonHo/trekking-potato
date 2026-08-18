@@ -31,6 +31,20 @@ function matches(record, conditions = {}) {
   })
 }
 
+function validProcessingConditions(conditions = {}) {
+  return conditions && typeof conditions._openid === 'string' && conditions._openid.length > 0
+    && conditions.status === 'processing'
+    && Number.isInteger(conditions.version) && conditions.version >= 1
+    && typeof conditions['processing.leaseId'] === 'string' && conditions['processing.leaseId'].length > 0
+}
+
+function processingPatchForUpdate(patch, commands) {
+  if (!patch || typeof patch !== 'object' || Array.isArray(patch)
+    || !patch.summary || typeof patch.summary !== 'object' || Array.isArray(patch.summary)) return patch
+  if (!commands || typeof commands.set !== 'function') throw new RepositoryError('set command unavailable')
+  return { ...patch, summary: commands.set(patch.summary) }
+}
+
 function applyPatch(record, patch) {
   Object.entries(patch || {}).forEach(([key, value]) => { record[key] = clone(value) })
   return record
@@ -84,6 +98,10 @@ function createMemoryRepository({ records = [] } = {}) {
       const updated = applyPatch(clone(current), patch)
       table.set(id, updated)
       return clone(updated)
+    },
+    async updateProcessing(id, conditions, patch) {
+      if (!validProcessingConditions(conditions)) return null
+      return this.update(id, conditions, patch)
     },
     async approveReview(id, conditions, patch, evidenceRecord, evidenceRepository) {
       const current = table.get(id)
@@ -247,6 +265,29 @@ function createCloudBaseRepository({ db, collectionName = 'track_submissions', c
       const result = await collection.where({ _id: id, ...conditions }).update({ data: patch })
       if (!result || !result.stats || result.stats.updated !== 1) return null
       return this.get(id)
+    },
+    async updateProcessing(id, conditions, patch) {
+      if (!validProcessingConditions(conditions)) return null
+      if (typeof db.runTransaction !== 'function') throw new RepositoryError('transaction unavailable')
+      const expected = Object.freeze({
+        _id: id,
+        _openid: conditions._openid,
+        status: conditions.status,
+        version: conditions.version,
+        'processing.leaseId': conditions['processing.leaseId'],
+      })
+      let transactionResult
+      transactionResult = await db.runTransaction(async (transaction) => {
+        const document = transaction.collection(collectionName).doc(id)
+        const currentResult = await document.get()
+        const current = currentResult && currentResult.data
+        const matched = Boolean(current && matches(current, expected))
+        if (!matched) return null
+        const updateResult = await document.update({ data: processingPatchForUpdate(patch, commands) })
+        if (!updateResult || !updateResult.stats || updateResult.stats.updated !== 1) return null
+        return true
+      })
+      return transactionResult ? this.get(id) : null
     },
     async approveReview(id, conditions, patch, evidenceRecord, _evidenceRepository) {
       if (typeof db.runTransaction !== 'function') throw new RepositoryError('transaction unavailable')

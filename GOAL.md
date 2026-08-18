@@ -57,6 +57,53 @@ lives on a secondary page while preserving TP-D056 Option A. The Goal remains ac
 separately controlled staging upload/review/delete/timer evidence; no deployment, production readiness or Goal
 completion is claimed.
 
+## Staging finalize Bug authorization — 2026-08-12
+
+- The initial human-authorized synthetic staging evidence proved owner reservation and private upload HTTP 204, then
+  `finalize` returned `storage_unavailable`; owner list/detail were not exercised in that first run.
+- Focused Bug #134 may add privacy-safe, stage-enum-only temporary diagnostics, deploy only to the existing staging
+  function, rerun the same synthetic GPX once, and apply a minimal storage-boundary fix only if the captured cause is
+  inside its exact allowlist. OpenID, file IDs, paths, hosts, signed URLs, payloads, bytes, coordinates, secrets and
+  arbitrary provider messages must never be logged or persisted.
+- The single diagnostic rerun was consumed: begin/upload and owner list/detail succeeded, while `finalize` still
+  returned `storage_unavailable` and the detail truthfully showed `awaiting_upload`.
+- After two independent Reviews approved the diagnostic-free fix, it was uploaded to the existing staging function.
+  Human then authorized exactly one post-fix synthetic owner smoke. That run reached a new reservation and private
+  upload, but `finalize` returned the public `store_unavailable` error. The stop condition prevented list/detail or
+  any retry. No temporary diagnostic was restored. That authorization is consumed; any diagnosis or additional
+  staging invocation needs a new controller scope/authorization. S7 remains blocked.
+- Read-only diagnosis localized the new `store_unavailable` to the final processing-state database transition after
+  immutable review upload. The human authorized a bounded transaction-bound document CAS fix for final/reset paths,
+  production-shaped and rollback tests, two fresh independent Reviews, and diagnostic-free staging deployment only.
+  No post-deploy invocation, upload, retry, delete, review, timer or publication is authorized by this increment.
+- The transaction-bound fix and mutation-sensitive stale status/version/lease Review-fix passed two fresh independent
+  Reviews. Sol uploaded the diagnostic-free function to existing staging and verified deployed-source equality by
+  read-only download; it was not invoked afterward. The human now grants standing authorization for the same bounded
+  privacy-safe synthetic owner smoke after reviewed staging changes: one new synthetic attempt per run, stop on the
+  first failure, and no automatic retry. This covers only
+  `begin -> private upload -> finalize -> owner list -> owner detail`; it never covers deletion, administrator review,
+  timers, publication, production or real identity/location data. S7 remains blocked until runtime evidence passes.
+- The first run under this standing authorization reached a fresh reservation and private upload, but `finalize` still
+  returned public `store_unavailable`; the run stopped before owner list/detail and did not retry. The standing
+  authorization remains in force for later reviewed staging changes; this failed attempt does not authorize diagnosis
+  or any broader action.
+- The human now authorizes one bounded transaction-stage diagnosis increment for that failure. It may add only a
+  temporary fixed-enum observation at transaction start, document get, frozen-condition match, document update and
+  commit boundaries; it must never record identity, record/file IDs, paths, payloads, file content, coordinates,
+  secrets, arbitrary provider messages or stacks. The increment requires focused RED/GREEN, full local gates and two
+  independent Reviews before staging deployment. After deployment, the standing authorization permits exactly one
+  fresh synthetic-owner attempt; the observation must then be removed, re-reviewed and replaced by a diagnostic-free
+  fix only if the captured cause remains inside #134's existing allowlist.
+- The fixed-enum capture localized the failure to the transaction document update. Pinned-SDK reproduction then
+  proved that a parsed summary was flattened into `summary.*` beneath an existing `summary: null`; the reviewed
+  diagnostic-free fix replaces the top-level summary with `db.command.set`. After full local gates and two fresh
+  independent Reviews, Sol uploaded that diagnostic-free function to existing staging. One standing-authorized,
+  identity-free/location-free synthetic owner run then passed reservation, private upload, finalization to
+  `pending_review`, owner list and owner detail without retry. This verifies only that bounded owner path; S7 remains
+  blocked pending administrator/rejection/cancel/lease-recovery evidence.
+- No deletion, administrator review, timer, permission/schema/API expansion, production deployment, publication or
+  real-user data is authorized. Temporary diagnostics must be removed after root-cause capture.
+
 ## C07 implementation checkpoint — 2026-08-10
 
 - The bounded frontend moves the owner/admin track orchestration and render into

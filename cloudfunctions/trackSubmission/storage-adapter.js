@@ -108,9 +108,11 @@ function assertTemporaryUrlResult(result, expectedFileID, requestedMaxAge) {
   const items = result && Array.isArray(result.fileList) ? result.fileList : null
   if (!items || items.length !== 1) fail('storage_unavailable', 'temporary URL result is unavailable')
   const item = items[0]
+  const responseMaxAgeValid = item && typeof item === 'object' && (item.maxAge === undefined
+    || (Number.isInteger(item.maxAge) && item.maxAge >= 1 && item.maxAge <= requestedMaxAge))
   if (!item || typeof item !== 'object' || item.fileID !== expectedFileID || item.status !== 0
     || typeof item.errMsg !== 'string' || item.errMsg.trim().length < 1
-    || !Number.isInteger(item.maxAge) || item.maxAge < 1 || item.maxAge > requestedMaxAge
+    || !responseMaxAgeValid
     || typeof item.tempFileURL !== 'string' || item.tempFileURL.trim().length < 1) {
     fail('storage_unavailable', 'temporary URL result is invalid')
   }

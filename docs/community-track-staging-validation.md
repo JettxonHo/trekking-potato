@@ -3,7 +3,7 @@
 - Goal: `TP-COMMUNITY-001`
 - Issue: `#123` (parent `#115`)
 - Branch/base: `codex/123-track-acceptance` from `main@0e534d49` (activation head `a65a357`)
-- Date: `2026-08-10`
+- Date: `2026-08-11`
 - Scope: offline acceptance evidence plus a human-controlled staging checklist
 - Runtime model visibility: `UNVERIFIED_RUNTIME_MODEL`; the configured `luna-worker` is `gpt-5.6-luna/max`, but
   runtime metadata is not exposed and is not inferred from configuration
@@ -22,8 +22,8 @@ separate blocked Issue.
 
 Every row below has exactly one status:
 
-- `VERIFIED` means the listed offline command or deterministic repository audit was actually run and supports the
-  stated claim.
+- `VERIFIED` means the listed offline command, deterministic repository audit or sanitized direct console/runtime
+  observation was actually completed and supports only the stated claim.
 - `BLOCKED` means the row requires the separately authorized human CloudBase/staging action or an explicit product
   decision; no executor pass is implied.
 - `UNVERIFIED_RUNTIME_TOOL` means a local/runtime observation was not available in this execution environment; it is
@@ -49,18 +49,18 @@ No real secrets, OpenIDs, production URLs, CloudBase identifiers or raw paths ar
 
 | ID | Required staging action or observation | Status | Human evidence required before changing status |
 |---|---|---|---|
-| S1 | Create `track_submissions` as private `ADMINONLY` collection | `BLOCKED` | Human console observation and approved staging change record; no executor mutation. |
-| S2 | Create `track_review_evidence` as private `ADMINONLY` collection | `BLOCKED` | Human console observation and approved staging change record; no executor mutation. |
+| S1 | Create `track_submissions` as private `ADMINONLY` collection | `VERIFIED` | Direct console observation on 2026-08-11: the collection exists and its mini-program permission is “所有用户不可读写”; no mutation was performed. |
+| S2 | Create `track_review_evidence` as private `ADMINONLY` collection | `VERIFIED` | Direct console observation on 2026-08-11: the collection exists and its mini-program permission is “所有用户不可读写”; no mutation was performed. |
 | S3a | Verify `track_submissions` index `_openid ASC + recordExpiresAt ASC + updatedAt DESC + _id DESC` (`unique=false`) for owner lists | `BLOCKED` | Human console/query-planner evidence for exact field order and non-unique flag. |
 | S3b | Verify `track_submissions` index `status ASC + recordExpiresAt ASC + updatedAt DESC + _id DESC` (`unique=false`) for filtered admin lists | `BLOCKED` | Human console/query-planner evidence for exact field order and non-unique flag. |
 | S3c | Verify `track_submissions` index `recordExpiresAt ASC + updatedAt DESC + _id DESC` (`unique=false`) for all-status admin/cleanup scans | `BLOCKED` | Human console/query-planner evidence for exact field order and non-unique flag. |
 | S3d | Verify `track_submissions` index `rawExpiresAt ASC + status ASC` (`unique=false`) for raw expiry cleanup | `BLOCKED` | Human console/query-planner evidence for exact field order and non-unique flag. |
 | S3e | Verify `track_submissions` index `_openid ASC + beginAttemptId ASC` (`unique=true`) for owner-attempt deduplication | `BLOCKED` | Human console/query-planner evidence for exact field order and unique constraint. |
 | S3f | Verify `track_review_evidence` index `expiresAt ASC` (`unique=false`) for evidence expiry cleanup | `BLOCKED` | Human console/query-planner evidence for exact field order and non-unique flag. |
-| S4 | Configure and observe the exact server-only storage file-ID host | `BLOCKED` | Human console/config evidence without recording the host value in Git or chat. |
-| S5 | Configure and observe server-only `TRACK_REVIEW_ADMIN_OPENIDS` | `BLOCKED` | Human config evidence without recording an OpenID or allowlist value. |
-| S6 | Configure and observe `trackSubmission` hard timeout `<=240s` (strictly below the 5-minute lease) | `BLOCKED` | Human function configuration/log evidence before stale takeover is enabled. |
-| S7 | Deploy/upload the function and run private owner/admin, rejection, cancel and lease-recovery smoke | `BLOCKED` | Human-authorized staging deployment plus sanitized invocation/log evidence; no production claim. |
+| S4 | Configure and observe the exact server-only storage file-ID host | `VERIFIED` | Direct `trackSubmission` advanced-config observation on 2026-08-11 confirmed the exact environment-variable key and configured staging host; the value is intentionally not recorded. Runtime file-ID binding remains part of S7. |
+| S5 | Configure and observe server-only `TRACK_REVIEW_ADMIN_OPENIDS` | `VERIFIED` | Direct `trackSubmission` advanced-config observation on 2026-08-11 confirmed the exact allowlist key and configured value; no OpenID or value is recorded. Runtime administrator authorization remains part of S7. |
+| S6 | Configure and observe `trackSubmission` hard timeout `<=240s` (strictly below the 5-minute lease) | `VERIFIED` | Direct function configuration observation on 2026-08-11 showed a 60-second timeout and deployed `$LATEST` traffic; no configuration change was performed. |
+| S7 | Deploy/upload the function and run private owner/admin, rejection, cancel and lease-recovery smoke | `BLOCKED` | The initial synthetic run reached reservation/upload but failed finalize. The storage diagnostic rerun localized `creator_temp_url/provider`; owner list/detail remained private. Later maxAge and transaction-CAS attempts reached fresh private uploads but `finalize` returned public `store_unavailable`. The fixed-enum transaction capture then proved `doc_get/found`, frozen tuple `matched`, and `doc_update/failed` before commit. Pinned-SDK reproduction identified the initial `summary: null` versus flattened `summary.*` update conflict. After the diagnostic-free top-level summary replacement passed full gates and two Reviews, it was uploaded to staging; one fresh synthetic run completed reservation, private upload, finalization to `pending_review`, owner list and owner detail without retry. Administrator, rejection, cancel and lease recovery remain unattempted, so this bundled row stays blocked. |
 | S8 | Record daily timer timezone and schedule | `BLOCKED` | Human console screenshot or export with no secrets/identifiers. |
 | S9 | Observe server-owned `TRIGGER_SRC=timer` with empty server OpenID | `BLOCKED` | Human timer invocation/log evidence; event body alone is not authority. |
 | S10 | Reject normal-client and forged-event attempts to invoke internal cleanup | `BLOCKED` | Human staging calls/logs showing non-timer and forged branches fail closed. |
@@ -70,7 +70,7 @@ No real secrets, OpenIDs, production URLs, CloudBase identifiers or raw paths ar
 | S14 | Verify rollback procedure and orphan/residue scan | `BLOCKED` | Human rollback rehearsal and storage/database residue evidence. |
 | S15 | Enable destructive cleanup only after dry-run and rollback rows pass | `BLOCKED` | Separate human authorization; executor must not enable or delete. |
 | S16 | Option-A normal client smoke: summary/preview-only review and zero raw presentation/export | `UNVERIFIED_RUNTIME_TOOL` | Real WeChat runtime observation; the CLI build and poisoned-model test are not a device claim. |
-| S17 | Import the normal fixture-free `taro-app/dist` in WeChat DevTools | `UNVERIFIED_RUNTIME_TOOL` | DevTools import/render observation; build success is recorded separately. |
+| S17 | Import the normal fixture-free `taro-app/dist` in WeChat DevTools | `VERIFIED` | Direct DevTools observation on 2026-08-11: the project uses `dist/` as `miniprogramRoot`, rendered the homepage and secondary community-track page, and initialized CloudBase; existing non-blocking tool warnings are not treated as staging smoke evidence. |
 | S18 | Real-device owner/admin private smoke and closed-beta boundary | `UNVERIFIED_RUNTIME_TOOL` | Human device evidence and explicit cohort authorization; no real-user invitation is implied here. |
 | S19 | Secret/static/residue audit of changed files and generated normal build | `VERIFIED` | `rg`/source inspection plus `git diff --check`; no real secret/identity/production URL is present, and synthetic fixture values stay test-only. |
 | S20 | Production/public release, route catalog promotion and public UGC publication | `BLOCKED` | Outside #123; requires a separate controller/human Issue and review. |
@@ -105,8 +105,77 @@ fail when reserved-path binding, forged identity, DTO
 privacy, raw action/request, review version/attempt, retention arithmetic, timer authority, max-20 pagination or
 catalog facts are weakened. No production defect was discovered; any future defect must be a separate Bug Issue.
 
+## #134 staging finalize diagnosis / final-fix checkpoint — 2026-08-12
+
+The authorized synthetic owner smoke reached reservation and private upload (HTTP 204), then `finalize` returned the
+public `storage_unavailable` response and reset the record to `awaiting_upload`. The temporary capture recorded only
+the fixed shape `{event, stage, code, category}` with values `track_submission_storage_failure`, `creator_temp_url`,
+`storage_unavailable` and `provider`; it contained no identifiers, paths, hosts, URLs, payloads, bytes or provider
+messages. Review of the pinned runtime chain found that the underlying `@cloudbase/node-sdk` success item has no
+`maxAge`, while `wx-server-sdk` 4.0.2 forwards that possibly missing value despite its public declaration requiring a
+number; the adapter incorrectly rejected that observed shape. The local fix keeps request `maxAge` strict at
+1–300 and validates the exact file ID, status, non-empty `errMsg` and temporary URL; response `maxAge` may be omitted,
+but any returned value must be an integer no greater than requested. Temporary diagnostics and their tests are removed
+from the final code. The diagnostic-free fix passed two independent Reviews and was uploaded to the existing staging
+function. Human then authorized one post-fix synthetic owner smoke: a new reservation and private upload succeeded,
+but `finalize` returned public `store_unavailable`. The run stopped without list/detail, retry, deletion, review,
+timer or publication, and diagnostics remained absent. That authorization is consumed. S7 remains `BLOCKED`; any
+diagnosis or additional staging invocation requires a new controller scope/authorization.
+
+The subsequently authorized transaction-bound CAS increment recorded a focused RED before implementation, then GREEN
+with transaction-only `doc.get`/exact owner-status-version-processing-lease validation/`doc.update` for finalization and
+storage/parser resets. Production-shaped tests cover stale conditions, zero-update results, thrown second steps and
+absence of partial commits. Two fresh independent Reviews approved the result with no P0–P3. The diagnostic-free
+function was then uploaded through WeChat DevTools with cloud-side dependency installation, and a read-only download
+proved the deployed owner/repository/storage/entry source equals the reviewed local source. No function invocation or
+file upload followed deployment. The human now grants standing authorization for the same privacy-safe synthetic owner
+smoke without per-run reconfirmation: one new attempt, the exact five owner stages, stop on first failure and no retry.
+Deletion, administrator review, timers, publication, production and real identity/location data remain excluded. S7
+remains `BLOCKED` until direct runtime evidence passes.
+
+The first run under this standing authorization used a fresh synthetic attempt and reached reservation/private upload,
+then `finalize` returned public `store_unavailable`. It stopped before owner list/detail and did not retry. The service
+port was disabled afterward; no diagnostic, deletion, administrator review, timer, publication or production action
+occurred. The standing authorization remains available only for one attempt after a later reviewed staging change.
+
+The newly authorized transaction-stage observation increment recorded a focused RED before implementation because the
+production-shaped repository emitted no event. GREEN now emits only `{event, stage, result, code}` for the fixed event
+`track_submission_transaction_observation`; `start/started` is emitted inside each initialized callback attempt, while
+callback-null and rejected-update paths end `commit/committed`, callback/init failures end `commit/not_attempted`, and
+only a post-callback commit failure ends `commit/failed`. A real fake commit failure preserves the original records;
+default-handler wiring, custom repository/service bypass and throwing-observer isolation are executable tests. Stage
+mislabel and extra-key leakage mutations produced RED and were restored. No staging upload or invocation occurred; two
+fresh independent Reviews remain required and S7 remains `BLOCKED`.
+
+Two fresh independent Reviews subsequently approved that observation increment. The reviewed repository and entry
+files were incrementally uploaded to the existing staging function and the function returned to `Active`; no
+deployed-source-equality claim is made because the local DevTools whole-function upload/download helpers did not
+complete successfully. The one standing-authorized smoke stopped at `begin` with public `invalid_input` because the
+DevTools automation input dropped the non-ASCII synthetic title and submitted an empty title. No private file upload,
+`finalize`, owner list/detail, transaction observation, deletion, administrator action, timer, publication or
+production action occurred. The service port was disabled and the run was not retried. This is not evidence for or
+against the staged transaction/storage behavior; S7 stays `BLOCKED`, and the temporary fixed-enum observation remains
+pending a later explicitly initiated run.
+
+A later standing-authorized ASCII-only synthetic run reached reservation and private upload, then stopped when
+`finalize` returned public `store_unavailable`. The fixed-enum transaction sequence was `start/started`,
+`doc_get/found`, `condition_match/matched`, `doc_update/failed`, `commit/not_attempted`. This proves the transaction
+started, read the document and matched the frozen tuple, but its document update failed before commit. No identifier,
+path, payload, private input, provider message or secret was retained, and the DevTools service port was disabled.
+Pinned-SDK local diagnosis then reproduced the cause: the initial `summary: null` conflicts with the SDK's flattened
+`summary.*` update shape. The diagnostic-free candidate uses `db.command.set` only for the non-null parsed summary so
+the transaction replaces the top-level value. A pinned serializer regression was RED before the fix and GREEN after;
+the ordinary-patch mutation is RED. All temporary observation code/tests are removed. The complete local gates and two
+fresh independent Reviews then passed, and Sol uploaded only the diagnostic-free function to existing staging through
+WeChat DevTools. A single fresh, standing-authorized synthetic run completed `begin/upload/finalize/list/detail`:
+finalize and detail reported `pending_review`, while the owner list returned normally. The run used no real identity or
+location, did not retry, and performed no delete, administrator, timer, publication or production action. This closes
+the owner-only finalize/list/detail portion but not administrator, rejection, cancel or lease recovery; S7 therefore
+stays `BLOCKED`.
+
 ## Release conclusion
 
-`CODE_READY_FOR_CONTROLLER_REVIEW`; staging rows S1–S15 (including S3a–S3f) and S20 remain human-blocked, S16–S18 remain
-`UNVERIFIED_RUNTIME_TOOL`, and only offline rows O1–O8 plus local quality gates are verified. This record does not
-authorize deployment, cleanup enablement, publication or a closed-beta invitation.
+`CODE_READY_FOR_CONTROLLER_REVIEW`; sanitized direct observation verifies S1, S2, S4, S5, S6 and S17 in addition to
+offline rows O1–O8 and local quality gates. S3a–S3f, S7–S15 and S20 remain `BLOCKED`; S16 and S18 remain
+`UNVERIFIED_RUNTIME_TOOL`. This record authorizes only the bounded synthetic owner smoke described above; it does not
+authorize cleanup, administrator review, timers, publication, production or a closed-beta invitation.

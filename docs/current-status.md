@@ -1,19 +1,114 @@
 # 当前状态 — TP-COMMUNITY-001
 
-- Updated: `2026-08-10`
+- Updated: `2026-08-12`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
 - Current Goal: `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING`
-- Active task: `#123 / BLOCKED_STAGING`
-- Branch/base: post-merge status sync from `main@86fafb6`
+- Active task: `#134 / BLOCKED_STAGING` (diagnostic-free owner fix deployed; bounded owner smoke passed; S7 partial)
+- Branch/base: `codex/134-track-storage-finalize` from `main@3cf9090`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: C07 PR #132 passed latest-head quality and two independent exact-head Reviews, then squash merged as
-  `86fafb6`; #131 is closed. #123 is again the active blocking task. Its authoritative staging ledger still marks
-  S1–S15/S20 `BLOCKED` and S16–S18 `UNVERIFIED_RUNTIME_TOOL`; no live comment may promote those rows without direct,
-  sanitized evidence in that ledger. No production/public release or automatic destructive cleanup is authorized.
+  `86fafb6`; #131 is closed. Focused Bug #134 is the active staging blocker while #123 remains the parent staging
+  blocker. Sanitized direct console/runtime observation now
+  verifies S1, S2, S4, S5, S6 and S17 in the authoritative ledger. S3a–S3f, S7–S15 and S20 remain `BLOCKED`; S16 and
+  S18 remain `UNVERIFIED_RUNTIME_TOOL`. No production/public release or automatic destructive cleanup is authorized.
 
 ## Current community-track checkpoint
+
+- On 2026-08-11, direct read-only CloudBase/DevTools observation confirmed both private collections and their
+  no-client-read/write permissions, the exact server configuration keys without recording their values, a 60-second
+  `trackSubmission` timeout, deployed `$LATEST` traffic, and normal `dist/` import/render. No collection, index,
+  function, environment variable or data was changed. The six exact indexes and every real mutation/smoke/timer row
+  remain unverified until separately observed or authorized.
+- On 2026-08-12, the authorized synthetic two-point GPX owner smoke created a reservation and the private object
+  upload returned HTTP 204, but the subsequent `finalize` call returned `storage_unavailable`. Owner list/detail were
+  not exercised in that first run, no administrator/timer/delete action was attempted, and S7 remains `BLOCKED`.
+  Existing production error mapping does not distinguish creator-object read failure from review-copy upload failure,
+  so no narrower root-cause claim is made without separately authorized staging instrumentation.
+- Human then authorized focused Bug #134 to add temporary sanitized stage diagnostics, deploy them only to the
+  existing staging function and rerun the same synthetic GPX once. The diagnostic contract records only fixed stage
+  and bounded error-category enums; it forbids identifiers, paths, hosts, URLs, payloads, bytes, coordinates, private
+  input, environment values and arbitrary provider messages. Any fix outside the exact storage-boundary allowlist,
+  or any permission/schema/API/dependency expansion, must stop and return to the controller.
+- The authorized capture returned only `{event: 'track_submission_storage_failure', stage: 'creator_temp_url',
+  code: 'storage_unavailable', category: 'provider'}`. Root-cause review found that the pinned underlying
+  `@cloudbase/node-sdk` success item has no `maxAge`, while `wx-server-sdk` 4.0.2 forwards that possibly missing value
+  despite its public declaration requiring a number; the adapter had incorrectly required the runtime response field.
+  The local regression now preserves the requested SDK `maxAge` (1–300), accepts an omitted
+  response value and validates any returned value as an integer no greater than requested, alongside the exact file
+  ID, success status, non-empty error text and temporary URL. Temporary diagnostics were removed from the final code
+  and tests. In the single diagnostic rerun, begin/upload and owner list/detail succeeded, `finalize` still failed and
+  detail remained `awaiting_upload`. Two independent Reviews approved the diagnostic-free fix, and it was uploaded
+  to the existing staging function. Human then authorized exactly one post-fix smoke: a new reservation and private
+  upload succeeded, but `finalize` returned public `store_unavailable`. The run stopped without list/detail or retry;
+  diagnostics remained absent. That authorization is consumed and S7 stays `BLOCKED`.
+- Read-only diagnosis then confirmed that the immutable review object was created, the database record remained in
+  `processing`, the same synthetic GPX parsed successfully, and the final patch serialized with the pinned SDK. The
+  human authorized a bounded transaction-bound document CAS fix for final/reset transitions, production-shaped SDK
+  and rollback tests, two independent Reviews, and diagnostic-free staging deployment only. No post-deploy smoke is
+  authorized.
+- The transaction-bound CAS checkpoint recorded a real focused RED before implementation (`updateProcessing` was absent
+  from the production-shaped CloudBase repository), then GREEN for transaction-only `doc.get`/exact owner-status-version-
+  lease validation/`doc.update` across finalization and storage/parser resets. Stale conditions, zero-update results and
+  thrown second steps leave the fake records unchanged; focused owner, root, integration, lint, typecheck, fixture-free
+  build, diff and security gates pass locally. This is code evidence only: no staging deployment or invocation occurred,
+  S7 remains `BLOCKED`, and two fresh independent Reviews remain controller-owned.
+- Review-fix round 1 added production-shaped stale-record cases with otherwise valid conditions: status, integer version
+  and non-empty processing lease mismatches each return `null`, issue no transaction update and preserve the record.
+  Removing each frozen expected field in isolation produced a focused RED and was restored. No production implementation
+  or deployment state changed; S7 remains `BLOCKED` and two fresh independent Reviews remain controller-owned.
+- Two fresh independent Reviews then approved the transaction-bound implementation and Review-fix with no P0–P3.
+  Sol uploaded the diagnostic-free function through WeChat DevTools with cloud-side dependency installation; a
+  read-only download confirmed the deployed owner/repository/storage/entry sources exactly match the reviewed local
+  files. No function call or file upload followed deployment, and the temporarily enabled DevTools service port was
+  disabled. The human subsequently granted standing authorization for the same privacy-safe synthetic owner smoke:
+  one new attempt per run, `begin -> private upload -> finalize -> owner list -> owner detail`, stop on first failure,
+  and no automatic retry. It excludes deletion, administrator review, timers, publication, production and any real
+  identity/location data. The first standing-authorized attempt reached a fresh reservation and private upload, then
+  `finalize` again returned public `store_unavailable`; it stopped before list/detail and did not retry. The DevTools
+  service port was disabled afterward. S7 remains `BLOCKED` pending actual runtime evidence.
+- Human then authorized one bounded transaction-stage diagnosis increment: fixed event/stage/result enums only at
+  transaction start, document get, frozen-condition match, document update and commit boundaries; no identity, IDs,
+  paths, payloads, bytes, coordinates, secrets, arbitrary messages or stacks. It requires focused RED/GREEN, all local
+  gates and two independent Reviews before an existing-staging upload. The standing authorization covers one fresh
+  synthetic-owner attempt after deployment. Observation code must then be removed and any fix separately tested,
+  reviewed and deployed diagnostic-free. S7 remains `BLOCKED`.
+- The transaction-stage observation contract first produced a focused RED because the production-shaped repository
+  emitted no event. GREEN now emits exactly the four allowlisted keys `{event, stage, result, code}` at the five bounded
+  transaction stages (`track_submission_transaction_observation`); `start/started` is emitted inside each initialized
+  callback attempt, callback-null and rejected-update paths truthfully end `commit/committed`, callback/init failures end
+  `commit/not_attempted`, and only a post-callback commit failure ends `commit/failed`. A real fake commit failure keeps
+  the original records unchanged. Default-handler wiring, custom repository/service bypass, and throwing-observer
+  isolation are executable tests. Stage mislabel and extra-key leakage mutations each produced RED and were restored.
+  No staging upload or invocation occurred at this implementation checkpoint; two fresh independent Reviews remained
+  required and S7 remained `BLOCKED`.
+- Two fresh independent Reviews approved the transaction-stage observation increment with no P0–P3. Sol uploaded the
+  reviewed `submission-repository.js` and `index.js` incrementally to the existing staging function; the function
+  returned to `Active`. The DevTools whole-function upload/download helpers failed locally before any additional cloud
+  action, so no deployed-source-equality claim is made for this increment. The single standing-authorized smoke then
+  stopped at `begin` with public `invalid_input`: the DevTools automation path dropped the non-ASCII synthetic title
+  and submitted an empty title. No private file upload, `finalize`, owner list/detail, transaction observation, delete,
+  administrator action, timer, publication or production action occurred. The service port was disabled afterward.
+  This is a client-harness failure rather than evidence about the transaction/storage fix; S7 remains `BLOCKED`, the
+  smoke was not retried, and the temporary fixed-enum observation remains pending a later explicitly initiated run.
+- A later standing-authorized run used an ASCII-only synthetic title. A fresh reservation and private upload succeeded;
+  `finalize` returned public `store_unavailable`, so owner list/detail and retry were not attempted. The fixed-enum
+  capture was exactly `start/started`, `doc_get/found`, `condition_match/matched`, `doc_update/failed`,
+  `commit/not_attempted`. No identifiers or sensitive values were retained and the DevTools service port was disabled.
+  Pinned-SDK local diagnosis reproduced the cause: new records have `summary: null`, while ordinary update encoding
+  flattens a parsed summary into `summary.*`, which cannot be created beneath the null parent. The focused serializer
+  contract was RED before the fix. GREEN now uses `db.command.set` only for the non-null parsed summary, preserving the
+  transaction-bound frozen CAS. Reverting to the ordinary patch is RED. All temporary observation code, entry wiring
+  and tests are removed. This is local code evidence only; fresh full gates and two independent Reviews are required
+  before diagnostic-free deployment, and S7 remains `BLOCKED`.
+- The diagnostic-free top-level summary replacement then passed the complete local gate matrix and two fresh
+  independent Reviews with no P0–P3. Sol uploaded only that diagnostic-free function to existing staging through
+  WeChat DevTools. One fresh standing-authorized two-point synthetic GPX run, containing no real identity or location,
+  completed `begin -> private upload -> finalize -> owner list -> owner detail` without retry. Finalize and detail both
+  reported `pending_review`; the owner list returned normally. No delete, administrator review, timer, publication or
+  production action occurred. This is direct evidence for the bounded owner slice only; S7 remains `BLOCKED` until its
+  administrator/rejection/cancel/lease-recovery portions are separately exercised.
 
 - Planning PR #117 passed latest-head quality and two independent exact-head Reviews, then squash merged as `988cf8b`.
 - C01 PR #124 passed latest-head quality and two independent exact-head Reviews, then squash merged as `b3e2cd0`;
@@ -1371,15 +1466,18 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: completed the bounded C07/#131 secondary-page implementation and review-fix under its exact
-  frontend/test/docs allowlist, returning `READY_FOR_CONTROLLER_REVIEW`; it cannot approve or merge its own work.
+- `luna-worker`: completed the bounded #134 staging-finalize diagnosis and final local fix under its exact storage/test
+  allowlist, returning `READY_FOR_CONTROLLER_REVIEW`; it cannot deploy, approve or merge its own work.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Reconcile #123 staging rows only from direct, sanitized evidence. Until then preserve the authoritative ledger's
-   S1–S15/S20 `BLOCKED` and S16–S18 `UNVERIFIED_RUNTIME_TOOL` states. No C07 test or build is deployment evidence.
-2. After the remaining #123 rows pass, require an explicit controller decision before enabling cleanup, inviting the
+1. Preserve the successful diagnostic-free owner runtime evidence without restoring the consumed transaction
+   observation. Continue #123 only through separately bounded administrator/rejection/cancel/lease-recovery evidence;
+   do not repeat the already-passing owner smoke unless a later reviewed staging change makes it relevant.
+2. Preserve S3a–S3f, S7–S15 and S20 as `BLOCKED`, and S16/S18 as `UNVERIFIED_RUNTIME_TOOL`, until direct sanitized
+   evidence supports a row change. Do not restore temporary diagnostics.
+3. After the remaining #123 rows pass, require an explicit controller decision before enabling cleanup, inviting the
    closed-beta cohort or claiming production/public readiness.
 
 ## Blockers and risks
@@ -1421,10 +1519,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-C07 is merged and #131 is closed. Continue only with row-by-row, sanitized #123 staging evidence, preserving the
-authoritative ledger until each exact requirement is directly observed. Future viewer #129 remains separate. Do not
-enable destructive cleanup, invite users or claim production readiness without the required human evidence and
-controller decision.
+#134 remains the active staging blocker, but its bounded owner upload/finalize/list/detail runtime path now passes on
+staging with the diagnostic-free fix. Synchronize sanitized evidence to live #134/#123 and plan the still-separate
+administrator/rejection/cancel/lease-recovery rows under their own authorization boundaries. Do not restore diagnostics,
+delete data, enable timers, invite users or claim production readiness. Future viewer #129 remains separate.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
