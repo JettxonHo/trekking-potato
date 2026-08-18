@@ -429,7 +429,7 @@ function createOwnerService({ repository, storage, clock = defaultClock, idFacto
       }
       let resetResult
       try {
-        resetResult = await repository.update(submissionId, {
+        resetResult = await repository.updateProcessing(submissionId, {
           _openid: openid, status: 'processing', version: processing.version, 'processing.leaseId': leaseId,
         }, reset)
       } catch (_error) {
@@ -467,7 +467,7 @@ function createOwnerService({ repository, storage, clock = defaultClock, idFacto
           const transitioned = await repository.transitionRevisionTerminal(submissionId, openid, conditions, patch, now)
           terminal = transitioned && transitioned.child
         } else {
-          terminal = await repository.update(submissionId, conditions, patch)
+          terminal = await repository.updateProcessing(submissionId, conditions, patch)
         }
       } catch (transitionError) {
         return errorResponse(transitionError && transitionError.code === 'version_conflict' ? 'version_conflict' : 'store_unavailable')
@@ -497,7 +497,7 @@ function createOwnerService({ repository, storage, clock = defaultClock, idFacto
     }
     let updated
     try {
-      updated = await repository.update(submissionId, {
+      updated = await repository.updateProcessing(submissionId, {
         _openid: openid, status: 'processing', version: processing.version, 'processing.leaseId': processing.processing.leaseId,
       }, finalPatch)
     } catch (error) {
