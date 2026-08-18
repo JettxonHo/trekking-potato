@@ -52,10 +52,11 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
 through PR #128 (`0e534d49`), the C06 offline acceptance package through PR #130 (`59ef3c2`), and C07 through
-PR #132 (`86fafb6`). Issues #118–#122 and #131 are closed. The complete community-track owner/admin workflow now
-lives on a secondary page while preserving TP-D056 Option A. The Goal remains active only because #123 still requires
-separately controlled staging upload/review/delete/timer evidence; no deployment, production readiness or Goal
-completion is claimed.
+PR #132 (`86fafb6`). Issues #118–#122, #131 and #134 are closed. The complete community-track owner/admin workflow now
+lives on a secondary page while preserving TP-D056 Option A. Sanitized staging evidence now verifies the required
+collections/configuration, all six exact indexes and the bundled private owner/admin/rejection/cancel/lease-recovery
+smoke. The Goal remains active because #123 still requires the separately controlled timer/retention rows and runtime-
+tool evidence; no production readiness or Goal completion is claimed.
 
 ## Staging finalize Bug authorization — 2026-08-12
 
@@ -101,8 +102,17 @@ completion is claimed.
   identity-free/location-free synthetic owner run then passed reservation, private upload, finalization to
   `pending_review`, owner list and owner detail without retry. This verifies only that bounded owner path; S7 remains
   blocked pending administrator/rejection/cancel/lease-recovery evidence.
-- No deletion, administrator review, timer, permission/schema/API expansion, production deployment, publication or
-  real-user data is authorized. Temporary diagnostics must be removed after root-cause capture.
+- On 2026-08-19, the remaining S7 runtime slices passed with anonymous synthetic data: administrator list/detail,
+  one exact rejection with owner synchronization, one exact cancellation with owner synchronization, and recovery of
+  one stale processing lease through the authenticated owner finalize path. Finalization returned `pending_review`;
+  owner list/detail and a read-only database check agreed, the processing lease was cleared and the normalized summary
+  remained 2 points / 1 segment. The same read-only console session verified all six required indexes with exact field
+  order/direction and uniqueness. S3a–S3f and S7 are now `VERIFIED`; #134 is closed. No timer, production/public release,
+  real identity or real location was involved. Only the two exact synthetic cleanup actions previously authorized by
+  the human were performed.
+- No additional deletion or administrator mutation is authorized by this checkpoint beyond the two exact synthetic
+  actions recorded above. Timer, permission/schema/API expansion, production deployment, publication and real-user
+  data remain unauthorized. Temporary diagnostics must stay removed.
 
 ## C07 implementation checkpoint — 2026-08-10
 
