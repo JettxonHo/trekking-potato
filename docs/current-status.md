@@ -1,18 +1,18 @@
 # 当前状态 — TP-COMMUNITY-001
 
-- Updated: `2026-08-12`
+- Updated: `2026-08-19`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
 - Current Goal: `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING`
-- Active task: `#134 / BLOCKED_STAGING` (diagnostic-free owner fix deployed; bounded owner smoke passed; S7 partial)
-- Branch/base: `codex/134-track-storage-finalize` from `main@3cf9090`
+- Active task: `#123 / BLOCKED_STAGING` (S3a–S3f and S7 verified; timer/retention and runtime-tool rows remain)
+- Branch/base: `codex/123-s7-staging-evidence` from `main@ac600e5`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: C07 PR #132 passed latest-head quality and two independent exact-head Reviews, then squash merged as
-  `86fafb6`; #131 is closed. Focused Bug #134 is the active staging blocker while #123 remains the parent staging
-  blocker. Sanitized direct console/runtime observation now
-  verifies S1, S2, S4, S5, S6 and S17 in the authoritative ledger. S3a–S3f, S7–S15 and S20 remain `BLOCKED`; S16 and
-  S18 remain `UNVERIFIED_RUNTIME_TOOL`. No production/public release or automatic destructive cleanup is authorized.
+- Current work: PR #135 merged the diagnostic-free finalize/CAS fix as `ac600e5`; focused Bug #134 is closed after its
+  anonymous synthetic runtime blocker passed. Sanitized direct console/runtime observation now verifies S1–S7 and S17
+  in the authoritative ledger. S8–S15 and S20 remain `BLOCKED`; S16 and S18 remain
+  `UNVERIFIED_RUNTIME_TOOL`. #123 is the only active community-track task. No production/public release or automatic
+  destructive cleanup is authorized.
 
 ## Current community-track checkpoint
 
@@ -109,6 +109,15 @@
   reported `pending_review`; the owner list returned normally. No delete, administrator review, timer, publication or
   production action occurred. This is direct evidence for the bounded owner slice only; S7 remains `BLOCKED` until its
   administrator/rejection/cancel/lease-recovery portions are separately exercised.
+- On 2026-08-19, the remaining S7 slices passed with anonymous synthetic data. Administrator list/detail succeeded;
+  one exact pending-review record was rejected and synchronized to the owner, one exact awaiting-upload record was
+  cancelled and synchronized to the owner, and one record with a lease stale beyond five minutes was recovered through
+  one authenticated owner finalize invocation. The call returned `pending_review` without a public error. Owner
+  list/detail and a read-only database check agreed, the processing lease was absent and the normalized summary remained
+  2 points / 1 segment. The same read-only session verified all six required indexes with exact field order/direction
+  and unique/non-unique property; no index was created or edited. Sanitized evidence was written to live #123/#134 and
+  #134 was closed. S3a–S3f and S7 are `VERIFIED`. No timer, production/public release, real identity or real location
+  was involved; only the two exact synthetic cleanup actions previously authorized by the human were performed.
 
 - Planning PR #117 passed latest-head quality and two independent exact-head Reviews, then squash merged as `988cf8b`.
 - C01 PR #124 passed latest-head quality and two independent exact-head Reviews, then squash merged as `b3e2cd0`;
@@ -1467,16 +1476,17 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
 - `luna-worker`: completed the bounded #134 staging-finalize diagnosis and final local fix under its exact storage/test
-  allowlist, returning `READY_FOR_CONTROLLER_REVIEW`; it cannot deploy, approve or merge its own work.
+  allowlist; #134 is now closed. The current #123 increment is a four-document evidence reconciliation and is
+  `READY_FOR_CONTROLLER_REVIEW`; no active implementation subagent remains.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Preserve the successful diagnostic-free owner runtime evidence without restoring the consumed transaction
-   observation. Continue #123 only through separately bounded administrator/rejection/cancel/lease-recovery evidence;
-   do not repeat the already-passing owner smoke unless a later reviewed staging change makes it relevant.
-2. Preserve S3a–S3f, S7–S15 and S20 as `BLOCKED`, and S16/S18 as `UNVERIFIED_RUNTIME_TOOL`, until direct sanitized
-   evidence supports a row change. Do not restore temporary diagnostics.
+1. Preserve S3a–S3f and S7 as `VERIFIED`; do not repeat the already-passing owner/admin/rejection/cancel/lease-recovery
+   smoke unless a later reviewed staging change makes it relevant. Never restore temporary diagnostics.
+2. Continue #123 serially through S8–S14. Read-only timer/index/config inspection may proceed, but timer invocation,
+   retention deletion and cleanup enablement remain separate controlled actions. Preserve S15/S20 as `BLOCKED` and
+   S16/S18 as `UNVERIFIED_RUNTIME_TOOL` until direct evidence and required human gates support a change.
 3. After the remaining #123 rows pass, require an explicit controller decision before enabling cleanup, inviting the
    closed-beta cohort or claiming production/public readiness.
 
@@ -1519,10 +1529,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-#134 remains the active staging blocker, but its bounded owner upload/finalize/list/detail runtime path now passes on
-staging with the diagnostic-free fix. Synchronize sanitized evidence to live #134/#123 and plan the still-separate
-administrator/rejection/cancel/lease-recovery rows under their own authorization boundaries. Do not restore diagnostics,
-delete data, enable timers, invite users or claim production readiness. Future viewer #129 remains separate.
+#134 is closed and S3a–S3f/S7 are now verified by sanitized direct evidence. Publish the four-file #123 documentation
+reconciliation for independent Review, then continue only the remaining S8–S14 timer/retention rows serially. Do not
+restore diagnostics, enable destructive cleanup, invite users or claim production readiness. S15/S20 remain separately
+gated, S16/S18 remain runtime-tool evidence gaps, and future viewer #129 remains separate.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

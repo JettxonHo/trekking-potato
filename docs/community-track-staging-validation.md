@@ -51,16 +51,16 @@ No real secrets, OpenIDs, production URLs, CloudBase identifiers or raw paths ar
 |---|---|---|---|
 | S1 | Create `track_submissions` as private `ADMINONLY` collection | `VERIFIED` | Direct console observation on 2026-08-11: the collection exists and its mini-program permission is “所有用户不可读写”; no mutation was performed. |
 | S2 | Create `track_review_evidence` as private `ADMINONLY` collection | `VERIFIED` | Direct console observation on 2026-08-11: the collection exists and its mini-program permission is “所有用户不可读写”; no mutation was performed. |
-| S3a | Verify `track_submissions` index `_openid ASC + recordExpiresAt ASC + updatedAt DESC + _id DESC` (`unique=false`) for owner lists | `BLOCKED` | Human console/query-planner evidence for exact field order and non-unique flag. |
-| S3b | Verify `track_submissions` index `status ASC + recordExpiresAt ASC + updatedAt DESC + _id DESC` (`unique=false`) for filtered admin lists | `BLOCKED` | Human console/query-planner evidence for exact field order and non-unique flag. |
-| S3c | Verify `track_submissions` index `recordExpiresAt ASC + updatedAt DESC + _id DESC` (`unique=false`) for all-status admin/cleanup scans | `BLOCKED` | Human console/query-planner evidence for exact field order and non-unique flag. |
-| S3d | Verify `track_submissions` index `rawExpiresAt ASC + status ASC` (`unique=false`) for raw expiry cleanup | `BLOCKED` | Human console/query-planner evidence for exact field order and non-unique flag. |
-| S3e | Verify `track_submissions` index `_openid ASC + beginAttemptId ASC` (`unique=true`) for owner-attempt deduplication | `BLOCKED` | Human console/query-planner evidence for exact field order and unique constraint. |
-| S3f | Verify `track_review_evidence` index `expiresAt ASC` (`unique=false`) for evidence expiry cleanup | `BLOCKED` | Human console/query-planner evidence for exact field order and non-unique flag. |
+| S3a | Verify `track_submissions` index `_openid ASC + recordExpiresAt ASC + updatedAt DESC + _id DESC` (`unique=false`) for owner lists | `VERIFIED` | Direct read-only index-manager observation on 2026-08-19 confirmed the exact field order/directions and non-unique property. |
+| S3b | Verify `track_submissions` index `status ASC + recordExpiresAt ASC + updatedAt DESC + _id DESC` (`unique=false`) for filtered admin lists | `VERIFIED` | Direct read-only index-manager observation on 2026-08-19 confirmed the exact field order/directions and non-unique property. |
+| S3c | Verify `track_submissions` index `recordExpiresAt ASC + updatedAt DESC + _id DESC` (`unique=false`) for all-status admin/cleanup scans | `VERIFIED` | Direct read-only index-manager observation on 2026-08-19 confirmed the exact field order/directions and non-unique property. |
+| S3d | Verify `track_submissions` index `rawExpiresAt ASC + status ASC` (`unique=false`) for raw expiry cleanup | `VERIFIED` | Direct read-only index-manager observation on 2026-08-19 confirmed the exact field order/directions and non-unique property. |
+| S3e | Verify `track_submissions` index `_openid ASC + beginAttemptId ASC` (`unique=true`) for owner-attempt deduplication | `VERIFIED` | Direct read-only index-manager observation on 2026-08-19 confirmed the exact field order/directions and unique property. |
+| S3f | Verify `track_review_evidence` index `expiresAt ASC` (`unique=false`) for evidence expiry cleanup | `VERIFIED` | Direct read-only index-manager observation on 2026-08-19 confirmed the exact field order/direction and non-unique property. |
 | S4 | Configure and observe the exact server-only storage file-ID host | `VERIFIED` | Direct `trackSubmission` advanced-config observation on 2026-08-11 confirmed the exact environment-variable key and configured staging host; the value is intentionally not recorded. Runtime file-ID binding remains part of S7. |
 | S5 | Configure and observe server-only `TRACK_REVIEW_ADMIN_OPENIDS` | `VERIFIED` | Direct `trackSubmission` advanced-config observation on 2026-08-11 confirmed the exact allowlist key and configured value; no OpenID or value is recorded. Runtime administrator authorization remains part of S7. |
 | S6 | Configure and observe `trackSubmission` hard timeout `<=240s` (strictly below the 5-minute lease) | `VERIFIED` | Direct function configuration observation on 2026-08-11 showed a 60-second timeout and deployed `$LATEST` traffic; no configuration change was performed. |
-| S7 | Deploy/upload the function and run private owner/admin, rejection, cancel and lease-recovery smoke | `BLOCKED` | The initial synthetic run reached reservation/upload but failed finalize. The storage diagnostic rerun localized `creator_temp_url/provider`; owner list/detail remained private. Later maxAge and transaction-CAS attempts reached fresh private uploads but `finalize` returned public `store_unavailable`. The fixed-enum transaction capture then proved `doc_get/found`, frozen tuple `matched`, and `doc_update/failed` before commit. Pinned-SDK reproduction identified the initial `summary: null` versus flattened `summary.*` update conflict. After the diagnostic-free top-level summary replacement passed full gates and two Reviews, it was uploaded to staging; one fresh synthetic run completed reservation, private upload, finalization to `pending_review`, owner list and owner detail without retry. Administrator, rejection, cancel and lease recovery remain unattempted, so this bundled row stays blocked. |
+| S7 | Deploy/upload the function and run private owner/admin, rejection, cancel and lease-recovery smoke | `VERIFIED` | The reviewed diagnostic-free function completed anonymous synthetic owner begin/upload/finalize/list/detail to `pending_review`. On 2026-08-19, direct runtime evidence also verified admin list/detail, one exact synthetic rejection and owner synchronization, one exact synthetic cancellation and owner synchronization, plus recovery of a lease stale beyond five minutes. The single real recovery invocation returned `pending_review`; owner list/detail and a read-only database check agreed, the processing lease was absent, and the normalized summary remained 2 points / 1 segment. No real identity/location, timer, public/production release or broad cleanup was involved. |
 | S8 | Record daily timer timezone and schedule | `BLOCKED` | Human console screenshot or export with no secrets/identifiers. |
 | S9 | Observe server-owned `TRIGGER_SRC=timer` with empty server OpenID | `BLOCKED` | Human timer invocation/log evidence; event body alone is not authority. |
 | S10 | Reject normal-client and forged-event attempts to invoke internal cleanup | `BLOCKED` | Human staging calls/logs showing non-timer and forged branches fail closed. |
@@ -173,9 +173,27 @@ location, did not retry, and performed no delete, administrator, timer, publicat
 the owner-only finalize/list/detail portion but not administrator, rejection, cancel or lease recovery; S7 therefore
 stays `BLOCKED`.
 
+## S3/S7 direct staging closure checkpoint — 2026-08-19
+
+The remaining S7 slices were exercised only against anonymous synthetic records. Administrator list/detail succeeded;
+one exact `pending_review` record was rejected and synchronized to the owner, and one exact `awaiting_upload` record
+was cancelled and synchronized to the owner. A separate synthetic record with a processing lease stale beyond five
+minutes was then finalized once through the authenticated Mini Program owner path. The call returned `pending_review`
+with no public error. Owner list/detail and a read-only database check agreed; the processing lease was absent and the
+normalized summary remained 2 points / 1 segment. The initial local harness attempt did not reach CloudBase because a
+browser-scoped clipboard was not the macOS system clipboard; the corrected system-clipboard channel was verified with
+a non-sensitive sentinel before the single real function invocation. No retry was issued to CloudBase.
+
+The same read-only console session verified all six required indexes with their exact field order, direction and
+unique/non-unique property. No index was created or edited. Sanitized evidence is recorded in live #123 and #134;
+#134 was closed only after the runtime blocker passed. S3a–S3f and S7 are now `VERIFIED`. S8–S15 remain `BLOCKED`,
+S16/S18 remain `UNVERIFIED_RUNTIME_TOOL`, and S20 remains `BLOCKED`. No timer, production/public release, real identity
+or real location was involved; only the two exact synthetic cleanup actions previously authorized by the human were
+performed.
+
 ## Release conclusion
 
-`CODE_READY_FOR_CONTROLLER_REVIEW`; sanitized direct observation verifies S1, S2, S4, S5, S6 and S17 in addition to
-offline rows O1–O8 and local quality gates. S3a–S3f, S7–S15 and S20 remain `BLOCKED`; S16 and S18 remain
-`UNVERIFIED_RUNTIME_TOOL`. This record authorizes only the bounded synthetic owner smoke described above; it does not
-authorize cleanup, administrator review, timers, publication, production or a closed-beta invitation.
+`CODE_READY_FOR_CONTROLLER_REVIEW`; sanitized direct observation verifies S1–S7 and S17 in addition to offline rows
+O1–O8 and local quality gates. S8–S15 and S20 remain `BLOCKED`; S16 and S18 remain
+`UNVERIFIED_RUNTIME_TOOL`. The S7 evidence does not authorize timer activation, destructive retention cleanup,
+publication, production or a closed-beta invitation.
