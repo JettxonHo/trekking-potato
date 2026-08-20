@@ -8,6 +8,8 @@ const {
 } = require('./submission-lifecycle')
 
 const TIMER_SOURCE = 'timer'
+const RETENTION_MODE_DELETE = 'delete'
+const RETENTION_MODE_DRY_RUN = 'dry_run'
 
 function nowFrom(clock) {
   const value = typeof clock === 'function' ? clock() : new Date()
@@ -17,7 +19,13 @@ function nowFrom(clock) {
 }
 
 function timerAuthorized(env = process.env, openid = null) {
-  return Boolean(env && env.TRIGGER_SRC === TIMER_SOURCE && (openid === null || openid === undefined || openid === ''))
+  return Boolean(env && env.TRIGGER_SRC === TIMER_SOURCE && openid === '')
+}
+
+function retentionMode(env = process.env) {
+  return env && env.TRACK_RETENTION_MODE === RETENTION_MODE_DELETE
+    ? RETENTION_MODE_DELETE
+    : RETENTION_MODE_DRY_RUN
 }
 
 function encodeCursor(cursor) {
@@ -201,7 +209,7 @@ function createRetentionService({
     return { processed, nextCursor: next }
   }
 
-  async function run(event = {}) {
+  async function runDelete(event = {}) {
     const cursor = decodeCursor(event && event.cursor)
     if (cursor === undefined) return errorResponse('invalid_cursor')
     const evidenceCursor = evidenceCursorDecode(event && event.evidenceCursor)
@@ -243,6 +251,80 @@ function createRetentionService({
     }
   }
 
+  async function runDryRun(event = {}) {
+    const cursor = decodeCursor(event && event.cursor)
+    if (cursor === undefined) return errorResponse('invalid_cursor')
+    const evidenceCursor = evidenceCursorDecode(event && event.evidenceCursor)
+    if (evidenceCursor === undefined) return errorResponse('invalid_cursor')
+    const evidenceCursorValue = evidenceCursor === null ? null : event.evidenceCursor
+    const now = nowFrom(clock)
+    let submissionRows
+    try {
+      submissionRows = await repository.listRetentionDue(now, { cursor, limit: RETENTION_BATCH_SIZE })
+    } catch (_error) {
+      return errorResponse('store_unavailable')
+    }
+    const safeSubmissions = Array.isArray(submissionRows) ? submissionRows : []
+    const submissionPage = safeSubmissions.slice(0, RETENTION_BATCH_SIZE)
+    const remaining = RETENTION_BATCH_SIZE - submissionPage.length
+    const submissionHasMore = safeSubmissions.length > RETENTION_BATCH_SIZE
+    const submissionCursor = submissionPage.length
+      ? encodeCursor({
+        recordExpiresAt: new Date(submissionPage[submissionPage.length - 1].recordExpiresAt).toISOString(),
+        submissionId: submissionPage[submissionPage.length - 1]._id,
+      })
+      : null
+    let nextCursor = submissionCursor
+    let evidencePage = []
+    let evidenceNextCursor = evidenceCursorValue
+    let evidenceHasMore = false
+    if (remaining > 0) {
+      let evidenceRows
+      try {
+        evidenceRows = await evidenceRepository.listDue(now, { cursor: evidenceCursor, limit: remaining })
+      } catch (_error) {
+        return errorResponse('store_unavailable')
+      }
+      const safeEvidence = Array.isArray(evidenceRows) ? evidenceRows : []
+      evidencePage = safeEvidence.slice(0, remaining)
+      evidenceHasMore = safeEvidence.length > remaining
+      evidenceNextCursor = evidenceHasMore && evidencePage.length
+        ? evidenceCursorEncode({
+          expiresAt: new Date(evidencePage[evidencePage.length - 1].expiresAt).toISOString(),
+          evidenceKey: evidencePage[evidencePage.length - 1]._id,
+        })
+        : null
+    } else if (!submissionHasMore && submissionPage.length === RETENTION_BATCH_SIZE) {
+      // The repository contract uses limit+1 lookahead. When submissions fill
+      // the preview budget exactly, spend one read-only evidence lookahead so a
+      // due evidence row remains reachable through the submission cursor.
+      let evidenceRows
+      try {
+        evidenceRows = await evidenceRepository.listDue(now, { cursor: evidenceCursor, limit: 0 })
+      } catch (_error) {
+        return errorResponse('store_unavailable')
+      }
+      evidenceHasMore = Array.isArray(evidenceRows) && evidenceRows.length > 0
+      evidenceNextCursor = evidenceHasMore ? evidenceCursorValue : null
+    }
+    if (!submissionHasMore && !evidenceHasMore && !evidenceNextCursor) nextCursor = null
+    const submissions = submissionPage.length
+    const evidence = evidencePage.length
+    return {
+      ok: true,
+      mode: RETENTION_MODE_DRY_RUN,
+      count: { submissions, evidence, total: submissions + evidence },
+      hasMore: Boolean(submissionHasMore || evidenceHasMore || evidenceNextCursor),
+      nextCursor,
+      evidenceNextCursor,
+      now: now.toISOString(),
+    }
+  }
+
+  async function run(event = {}) {
+    return retentionMode(env) === RETENTION_MODE_DELETE ? runDelete(event) : runDryRun(event)
+  }
+
   async function handle(event, openid) {
     if (!timerAuthorized(env, openid)) return errorResponse('invalid_mode')
     return run(event)
@@ -252,6 +334,7 @@ function createRetentionService({
     run,
     handle,
     timerAuthorized: (openid) => timerAuthorized(env, openid),
+    retentionMode: () => retentionMode(env),
     encodeCursor,
     decodeCursor,
   }
@@ -259,8 +342,11 @@ function createRetentionService({
 
 module.exports = {
   TIMER_SOURCE,
+  RETENTION_MODE_DELETE,
+  RETENTION_MODE_DRY_RUN,
   RETENTION_BATCH_SIZE,
   timerAuthorized,
+  retentionMode,
   encodeCursor,
   decodeCursor,
   createRetentionService,

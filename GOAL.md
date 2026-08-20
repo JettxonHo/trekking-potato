@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — BLOCKED_STAGING`
+- Status: `ACTIVE — C08 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -49,6 +49,7 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C5 Admin UX | C05 | admin-only queue/detail/review works without exposing identity or secrets |
 | C6 Acceptance | C06 | cross-layer gates, docs and human staging checklist are complete |
 | C7 Focused UX | C07 | community-track owner/admin workflow moves to a secondary page and the route-query homepage is simplified |
+| C8 Retention dry-run | #137 | fail-closed, zero-write retention preview passes Review before any timer or destructive cleanup gate |
 
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
 through PR #128 (`0e534d49`), the C06 offline acceptance package through PR #130 (`59ef3c2`), and C07 through
@@ -56,7 +57,9 @@ PR #132 (`86fafb6`). Issues #118–#122, #131 and #134 are closed. The complete 
 lives on a secondary page while preserving TP-D056 Option A. Sanitized staging evidence now verifies the required
 collections/configuration, all six exact indexes and the bundled private owner/admin/rejection/cancel/lease-recovery
 smoke. The Goal remains active because #123 still requires the separately controlled timer/retention rows and runtime-
-tool evidence; no production readiness or Goal completion is claimed.
+tool evidence; no production readiness or Goal completion is claimed. Issue #137 is the only active Review slice;
+its fail-closed retention dry-run passed the final human-authorized local fix and two fresh independent Reviews, but
+still requires commit/push, draft PR, latest-head CI and exact-head actual-diff Review before merge.
 
 ## Staging finalize Bug authorization — 2026-08-12
 

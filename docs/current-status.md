@@ -1,18 +1,64 @@
 # 当前状态 — TP-COMMUNITY-001
 
-- Updated: `2026-08-19`
+- Updated: `2026-08-20`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING`
-- Active task: `#123 / BLOCKED_STAGING` (S3a–S3f and S7 verified; timer/retention and runtime-tool rows remain)
-- Branch/base: `codex/123-s7-staging-evidence` from `main@ac600e5`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C08 REVIEW_ACTIVE`
+- Active task: `#137 / READY_FOR_CONTROLLER_REVIEW` (fail-closed retention dry-run; parent #123/#115 remain open)
+- Branch/base: `codex/137-retention-dry-run` from `main@0db92b0`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: PR #135 merged the diagnostic-free finalize/CAS fix as `ac600e5`; focused Bug #134 is closed after its
   anonymous synthetic runtime blocker passed. Sanitized direct console/runtime observation now verifies S1–S7 and S17
   in the authoritative ledger. S8–S15 and S20 remain `BLOCKED`; S16 and S18 remain
-  `UNVERIFIED_RUNTIME_TOOL`. #123 is the only active community-track task. No production/public release or automatic
-  destructive cleanup is authorized.
+  `UNVERIFIED_RUNTIME_TOOL`. PR #136 merged the S3/S7 ledger reconciliation as `0db92b0`; #137 is now the only active
+  Review task. Its final local fix and two fresh independent Reviews passed; commit/push, draft PR, latest-head CI and
+  exact-head Reviews remain. No timer creation/invocation, production/public release or destructive cleanup is authorized.
+
+## C08 retention dry-run activation — 2026-08-20
+
+- A read-only WeChat DevTools CLI query confirmed staging `trackSubmission` is `Active`, timeout 60 seconds and runtime
+  Node.js 16.13. The official CLI did not expose trigger configuration, so timer schedule/timezone/status remain
+  unverified. The temporarily enabled CLI service port was disabled immediately after the query.
+- Repository inspection confirmed the existing retention service has only its real cleanup path and no repository timer
+  configuration. The human approved #137 to add a server-only fail-closed dry-run before any timer or deletion gate.
+- Only exact `TRACK_RETENTION_MODE=delete` may select the existing destructive path. Missing, empty or any other value
+  must preview/return at most 20 due rows and return bounded statistics/cursors with zero database writes/removes,
+  evidence removes or storage deletes. Existing due-list pagination may inspect one read-only continuation sentinel
+  (including a `limit:0` evidence peek when exactly 20 submissions fill the preview budget); that row is excluded from
+  counts/preview data. Timer authority stays exact `TRIGGER_SRC=timer` plus empty server OpenID.
+- #137 changes only its exact Cloud Function/test/contract/status allowlist. It does not deploy or invoke a function,
+  create/enable a timer, change CloudBase configuration, delete data, or claim staging/production readiness.
+- Controller scope correction: the existing C06 acceptance fixture intentionally exercises the destructive regression
+  but omitted the new server mode. Its single test-only env object may add exact `TRACK_RETENTION_MODE=delete`; no
+  acceptance behavior, production special case or additional file is authorized.
+
+## C08 retention dry-run implementation checkpoint — 2026-08-20
+
+- The focused contract produced a real RED when the default timer-authorized path had no dry-run mode, then GREEN after
+  the minimal service dispatcher and bounded read-only DTO were added. Exact `TRACK_RETENTION_MODE=delete` retains the
+  existing destructive response and behavior; missing, empty, typo and other values return only the approved `dry_run`
+  DTO. The C06 acceptance fixture now injects exact delete mode explicitly and no production compatibility branch was
+  added.
+- Review-fix round 1 first produced a focused RED for exact-20 submissions plus one due evidence row, then GREEN after
+  the retention service added the approved `limit:0` evidence lookahead. The first preview keeps a usable submission
+  cursor with `hasMore=true` and no evidence cursor; exact-20 with no evidence returns `hasMore=false` and both cursors
+  `null`, while the next submission-cursor invocation previews the evidence row.
+- Review-fix round 3 first produced a focused RED when a carried evidence cursor became a decoded object while a later
+  submission page had its own lookahead. GREEN now initializes the unconsumed cursor from the validated raw opaque token;
+  the natural three-page regression proves exact token preservation, no identifier/evidence-key leakage, complete
+  duplicate-free continuation and zero writes/deletes.
+- Focused coverage is GREEN for before/equal expiry, pending cleanup, evidence expiry, exact-20 submission pages with
+  one-row evidence lookahead and exhausted cursor, 21-row submission/evidence backlogs, mixed submission/evidence budget
+  and opaque cursors, zero mutation/delete seams, forged/non-timer authority, handler routing, unknown-OpenID gate
+  rejection before due-list reads and the production-shaped CloudBase due-list seam. Mutation probes for default-to-delete,
+  dry-run write/delete leakage, max-20 bypass, authority bypass and lookahead removal/mislabeling were restored after
+  each RED result.
+- Local gates are code-only: focused retention, root tests, integration, lint (0 errors/9 existing warnings), typecheck,
+  fixture-free WeChat build, diff/secret/privacy/allowlist scans and npmjs root audit pass. The configured mirror audit
+  endpoint returned `404 NOT_IMPLEMENTED`; the npmjs registry rerun found 0 vulnerabilities. No timer was created or
+  invoked, no CloudBase function was deployed or called, no staging configuration changed and no data was deleted.
+  S8–S15 remain `BLOCKED`; this checkpoint is `READY_FOR_CONTROLLER_REVIEW` only.
 
 ## Current community-track checkpoint
 
@@ -1475,19 +1521,20 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: completed the bounded #134 staging-finalize diagnosis and final local fix under its exact storage/test
-  allowlist; #134 is now closed. The current #123 increment is a four-document evidence reconciliation and is
-  `READY_FOR_CONTROLLER_REVIEW`; no active implementation subagent remains.
+- `luna-worker`: assigned to the bounded #137 fail-closed retention dry-run implementation on
+  `codex/137-retention-dry-run`; it must return `READY_FOR_CONTROLLER_REVIEW` and cannot approve, merge, deploy or
+  mutate staging. Completed subagents are closed immediately after handoff.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Preserve S3a–S3f and S7 as `VERIFIED`; do not repeat the already-passing owner/admin/rejection/cancel/lease-recovery
-   smoke unless a later reviewed staging change makes it relevant. Never restore temporary diagnostics.
-2. Continue #123 serially through S8–S14. Read-only timer/index/config inspection may proceed, but timer invocation,
-   retention deletion and cleanup enablement remain separate controlled actions. Preserve S15/S20 as `BLOCKED` and
-   S16/S18 as `UNVERIFIED_RUNTIME_TOOL` until direct evidence and required human gates support a change.
-3. After the remaining #123 rows pass, require an explicit controller decision before enabling cleanup, inviting the
+1. Publish #137 as a focused draft PR, require latest-head CI and two exact-head actual-diff Reviews, then merge only
+   if all gates remain green. The dry-run must remain zero-write and default fail-closed.
+2. After #137 merges, deploy only the reviewed dry-run-capable function under a separate staging step; do not create,
+   enable or invoke a timer and do not select delete mode without the later human gate.
+3. Continue #123 serially through S8–S14, preserving S15/S20 as `BLOCKED` and S16/S18 as
+   `UNVERIFIED_RUNTIME_TOOL` until direct evidence and required human gates support a change.
+4. After the remaining #123 rows pass, require an explicit controller decision before enabling cleanup, inviting the
    closed-beta cohort or claiming production/public readiness.
 
 ## Blockers and risks
@@ -1529,10 +1576,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-#134 is closed and S3a–S3f/S7 are now verified by sanitized direct evidence. Publish the four-file #123 documentation
-reconciliation for independent Review, then continue only the remaining S8–S14 timer/retention rows serially. Do not
-restore diagnostics, enable destructive cleanup, invite users or claim production readiness. S15/S20 remain separately
-gated, S16/S18 remain runtime-tool evidence gaps, and future viewer #129 remains separate.
+Controller commits and pushes the reviewed #137 increment, opens a draft PR, waits for latest-head CI and requests two
+exact-head actual-diff Reviews. Do not deploy, create/enable/invoke a timer, select delete mode, delete data, invite
+users or claim production readiness. S15/S20 remain separately gated, S16/S18 remain runtime-tool evidence gaps, and
+future viewer #129 remains separate.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

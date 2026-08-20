@@ -1,85 +1,96 @@
-# ACTIVE TASK — #123 community-track staging completion
+# ACTIVE TASK — #137 fail-closed retention dry-run
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING`
-- Milestone: `TP-COMMUNITY-001 Community track evidence` (#8)
-- GitHub Issue: `#123` (parent `#115` remains open; focused Bug #134 is closed)
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / DOCUMENTATION_RECONCILIATION`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C08 REVIEW_ACTIVE`
+- Milestone: `C08 Retention dry-run` under community-track staging evidence (#123/#115)
+- GitHub Issue: `#137`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW`
 - Controller: Sol XHigh + human operator
-- Branch/base: `codex/123-s7-staging-evidence` from `main@ac600e5`
-- Runtime model: configuration is `luna-worker` / `gpt-5.6-luna` / `max`; runtime identity remains
-  `UNVERIFIED_RUNTIME_MODEL`
+- Branch/base: `codex/137-retention-dry-run` from `main@0db92b0`
+- Executor: exact custom `luna-worker`, configured `gpt-5.6-luna` / `max`; runtime identity must be reported separately
 
 ## 1. Objective and current truth
 
-Synchronize the authoritative staging ledger after direct sanitized evidence closed the #134 finalize blocker and
-completed the remaining S3/S7 runtime rows. This is a documentation-only reconciliation. It must not modify application
-or Cloud Function code, dependencies, CloudBase data/configuration, indexes, timers or deployment state.
+Add a server-only, fail-closed retention dry-run before any timer creation or destructive cleanup gate. Existing
+retention code performs real cleanup when its timer authority is satisfied; the repository has no timer configuration
+and the official read-only DevTools CLI query does not expose trigger details. Staging `trackSubmission` is `Active`
+with a 60-second timeout and Node.js 16.13, but timer schedule/timezone/status remain unverified.
 
-PR #135 merged the reviewed diagnostic-free finalization/CAS fix to `main@ac600e5`. On 2026-08-19, anonymous synthetic
-staging evidence then verified:
+Only exact `TRACK_RETENTION_MODE=delete` may select the existing destructive path. Missing, empty, malformed or any
+other value selects dry-run. This Issue is local code/test/docs work only; S8–S15 remain `BLOCKED` until separately
+reviewed staging evidence and the required human gates exist.
 
-- private administrator list/detail;
-- one exact `pending_review -> rejected` transition and owner synchronization;
-- one exact `awaiting_upload -> cancelled` transition and owner synchronization;
-- recovery of one processing lease stale beyond five minutes through one authenticated owner finalize invocation;
-- resulting owner list/detail and database agreement on `pending_review`, no processing lease and a 2-point / 1-segment
-  normalized summary;
-- all six required indexes with exact field order, direction and unique/non-unique property.
+## 2. Exact allowlist
 
-No real identity/location, timer, public/production release or broad cleanup was involved. Only the two exact synthetic
-cleanup actions previously authorized by the human were performed. Sanitized evidence is recorded in live #123/#134;
-#134 is closed. S3a–S3f and S7 are `VERIFIED`.
-
-## 2. Exact documentation allowlist
-
-- `GOAL.md`
+- `cloudfunctions/trackSubmission/retention.js`
+- `scripts/track-retention-contract-test.js`
+- `scripts/fixtures/track-acceptance.js` (test-only: add exact `TRACK_RETENTION_MODE=delete` to preserve the existing destructive C06 regression)
+- `docs/community-track-workflow.md`
+- `docs/testing-strategy.md`
 - `docs/community-track-staging-validation.md`
 - `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
+- `GOAL.md` (controller lifecycle/status only)
 
-No production code, test, dependency, lockfile, CloudBase configuration or other document may change in this increment.
+No other production/test/doc/dependency/config file may change. Escalate before widening.
 
-## 3. Frozen evidence and privacy contract
+## 3. Frozen behavior and privacy contract
 
-- Record only statuses, bounded counts, field names/order/direction/uniqueness and sanitized workflow outcomes.
-- Never record OpenID, submission/attempt/file IDs, storage paths/hosts, signed URLs, request IDs, credentials, private
-  inputs, raw bytes, coordinates or provider messages.
-- Preserve the distinction between merged code, staging deployment, direct runtime evidence, real-device evidence,
-  timer/cleanup authorization and production/public release.
-- Do not rewrite historical failed checkpoints; add the latest closure checkpoint and update only current pointers.
-- Do not mark a row `VERIFIED` without direct evidence supporting the whole stated row.
+- Timer authority remains exact server-owned `TRIGGER_SRC=timer` plus empty server OpenID. Event-body values never
+  grant authority.
+- Only exact server env `TRACK_RETENTION_MODE=delete` can perform the existing cleanup path.
+- All other/missing values perform a bounded dry-run preview/return with at most 20 total submission/evidence rows.
+  Existing repository pagination may inspect one read-only continuation sentinel (including a `limit:0` evidence peek
+  when exactly 20 submissions fill the budget); that extra row is excluded from counts/preview data and is never mutated.
+- Dry-run may execute due-list reads only. Submission update/remove, evidence remove and storage delete calls are zero.
+- Dry-run returns only fixed success/mode, bounded counts, has-more/current-time and existing opaque cursor fields.
+  It never returns records, identifiers, file/path/URL values, coordinates, private inputs, env values, secrets or
+  provider messages. Sanitized staging evidence must not record cursor token values.
+- Exact delete mode preserves the already-tested 30/180-day behavior; this Issue does not enable or invoke it.
 
-## 4. Remaining staging rows
+## 4. Pre-agreed TDD seams and acceptance
 
-- `S8–S15`: `BLOCKED`. These cover timer schedule/authority, forged-client rejection, retention dry-run, duplicate
-  delivery, max-20 backlog, rollback/residue checks and destructive cleanup enablement.
-- `S16` and `S18`: `UNVERIFIED_RUNTIME_TOOL`. A build or DevTools simulator is not a real-device claim.
-- `S20`: `BLOCKED` and outside #123. Production/public release and catalog/public-UGC promotion require a separate
-  controller/human Issue.
+Test through:
 
-Read-only inspection may proceed without mutating external state. Any timer creation/enablement, destructive cleanup,
-data deletion beyond an already exact authorized synthetic action, real-user invitation or production/public release
-must stop at its separate human gate.
+1. `createRetentionService.handle/run` with injected repository, evidence repository, storage and clock boundaries;
+2. `createTrackSubmissionHandler` internal timer routing and forged-client rejection;
+3. existing production-shaped CloudBase due-list/query seams only where needed to prove read-only scanning.
 
-## 5. Execution order for this increment
+Required behavior evidence:
 
-1. Preserve the clean merged base and create the docs-only #123 evidence branch.
-2. Reconcile S3a–S3f and S7 to `VERIFIED` with sanitized direct evidence.
-3. Update Goal/current-status/active-task pointers so #123, not closed #134, is the only active community-track task.
-4. Run Markdown/diff/privacy/allowlist checks.
-5. Commit, push and publish a draft PR for Sol XHigh Review. Passing checks do not authorize merge.
-6. After merge, continue remaining staging rows serially. Read-only timer configuration inspection may be planned next;
-   timer invocation, retention deletion and cleanup enablement remain separate controlled actions.
+- Real focused RED before production edits, then minimal GREEN in vertical slices.
+- Missing/empty/typo mode dry-run; exact delete mode retains existing behavior.
+- Before/at expiry, pending cleanup, evidence expiry and a 21-row backlog report truthful bounded counts/has-more/
+  cursors while issuing zero writes/removes/deletes.
+- An exact-20 submission page performs only the approved one-row evidence lookahead: 20+1 returns `hasMore=true` with a
+  usable submission cursor and no evidence cursor, while 20+0 returns `hasMore=false` with both cursors `null`.
+- Forged OpenID/event and non-timer environment remain fail-closed.
+- Mutations that default to delete, leak a dry-run write/delete, bypass max 20/authority, or remove/mislabel the approved
+  evidence lookahead must turn the focused contract RED and be restored.
+- Focused retention, root tests, integration, lint, typecheck, fixture-free WeChat build, diff-check, secret/privacy
+  scan and root dependency audit pass.
 
-## 6. Non-scope and stop conditions
+## 5. Non-scope and stop conditions
 
-No code or test change; no function deployment/invocation; no collection/index/rule/env mutation; no timer enablement;
-no retention cleanup; no production/public release; no route catalog mutation; no raw viewer/export; no real-user data.
-Stop on any need to widen beyond the four documentation paths or to claim runtime/device evidence not directly observed.
+No CloudBase function deployment/invocation, timer creation/enablement, destructive cleanup, environment mutation,
+collection/index/rule/schema/API/dependency change, broad residue scan, public/production release, real user/identity/
+location data, or viewer work. Stop on any contract conflict, required scope widening or need for a new external gate.
 
-## 7. Deliverable
+## 6. Deliverable
 
-Return `READY_FOR_CONTROLLER_REVIEW` with the exact four-file diff, sanitized runtime evidence, documentation/diff/
-privacy/allowlist checks and the remaining blocked rows. Sol XHigh owns independent Review, mergeability and the next
-runtime authorization boundary. The Goal and #123/#115 remain open.
+Return `READY_FOR_CONTROLLER_REVIEW` with RED/GREEN/mutation evidence, exact files and full gates. The executor cannot
+approve or merge. Sol requires two fresh independent Reviews and latest-head CI before merge. Deployment and any
+staging dry-run invocation remain separate controller actions; delete mode and timer enablement retain later human gates.
+
+## 7. Final Review checkpoint — 2026-08-20
+
+- The human-authorized final round fixed the remaining carried-evidence-cursor branch: an unconsumed continuation now
+  returns the exact validated opaque input token rather than the decoded cursor object.
+- The natural regression `5 submissions + 15/21 evidence -> 20 submissions -> 1 submission + 6 evidence` proves exact
+  token preservation, complete duplicate-free continuation, no evidence-key/identifier leakage and zero writes/deletes.
+  Reverting to the decoded object produced a focused RED and was restored.
+- Focused/root/integration, lint, typecheck, fixture-free build, diff/allowlist/privacy/secret scans and npmjs audit pass.
+  Two fresh independent Reviews returned `APPROVED` with no P0–P3.
+- Current status is `READY_FOR_CONTROLLER_REVIEW`. The next action is controller commit/push and a draft PR, followed
+  by latest-head CI and two exact-head actual-diff Reviews. No deployment, timer action, CloudBase invocation, delete
+  mode or data mutation is authorized.
