@@ -497,10 +497,22 @@ awaiting_upload → cancelled
   DTO above and receives no approved-evidence object. The key is never returned, logged or
   persisted beside `_openid`; the evidence record is geometry-only and cannot retain/rejoin owner/raw provenance.
 - A CloudBase timer invokes an **internal**, non-public retention event once per day. It processes at most 20 due
-  records per invocation with a stable cursor and exact version CAS. The handler enters this branch only when the
-  server-owned environment value is exactly `TRIGGER_SRC='timer'` **and** server context has no OpenID; the event body
-  alone never grants timer authority. SDK/client calls can use only the eight public modes, and any client attempt to
-  send the internal event is rejected as `invalid_mode`.
+  records per invocation with a stable cursor and exact version CAS. Retention authorization succeeds only when the
+  server-owned environment value is exactly `TRIGGER_SRC='timer'` **and** server context has the empty OpenID (`OPENID === ''`);
+  an unknown identity may reach the existing internal gate but is rejected as `invalid_mode` before any due-list read or
+  mutation. The event body alone never grants timer authority. SDK/client calls can use only the eight public modes,
+  and any client attempt to send the internal event is rejected as `invalid_mode`.
+- Before a timer or destructive cleanup gate is enabled, retention defaults to a server-only dry-run. Only the exact
+  server environment value `TRACK_RETENTION_MODE='delete'` selects the existing cleanup path; missing, empty, malformed
+  or any other value selects `dry_run`. The dry-run performs due-list reads only and previews/returns at most 20
+  submission/evidence rows in one bounded result. Existing repository pagination may inspect one read-only lookahead row
+  solely to determine continuation (including a `limit:0` evidence peek when exactly 20 submissions fill the budget); that
+  row is excluded from counts/preview data and is never mutated or deleted. It returns exactly
+  `{ok:true, mode:'dry_run', count:{submissions,evidence,total}, hasMore, nextCursor, evidenceNextCursor, now}`;
+  `total` equals the two bounded counts and is never greater than 20. The cursor fields remain opaque server cursors,
+  while records, identifiers, paths, URLs, coordinates, private inputs, environment values, secrets and provider
+  messages are never returned or logged. Submission updates/removes, evidence removes and storage deletes are zero in
+  this mode. Exact `delete` mode retains the already-tested 30/180-day cleanup behavior and is not selected by default.
   Timer delivery may repeat, so delete and transition operations are idempotent and never depend on exactly-once
   execution.
 - At `rawExpiresAt`, owner/admin projections immediately become unavailable and cleanup removes creator and immutable

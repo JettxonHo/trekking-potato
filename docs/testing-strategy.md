@@ -594,6 +594,19 @@ lint、typecheck、fixture-free WeChat build 与 diff check。测试输出与部
   但 evidence 保留、evidence 到期、terminal 立即删除、重复 timer 幂等、21 条 backlog 多轮耗尽、每批
   最多 20、CAS/游标、`TRIGGER_SRC=timer` + empty OpenID、伪造 event/普通 client 无法调用内部清理以及
   deletion-pending 恢复；
+- C08 在同一 focused contract 中额外锁定 retention mode：只有 server `TRACK_RETENTION_MODE='delete'`
+  进入上述 destructive regression，missing/empty/typo/other 值全部进入 `dry_run`。Dry-run 通过注入式
+  repository/evidence/storage/clock seam 只执行 due-list reads，单次 preview/return 的 submission/evidence 合计最多
+  20 行；现有 repository 的 limit+1 continuation lookahead（含 exact-20 submission 时的 `limit:0` evidence
+  peek）允许额外读一行，但该只读 sentinel 不计入 count/preview，也不执行任何删除或写入。以 literal DTO
+  `{ok:true,mode:'dry_run',count:{submissions,evidence,total},hasMore,nextCursor,evidenceNextCursor,now}` 返回
+  bounded count/cursor；测试断言 `total<=20`、before/equal expiry、pending、evidence expiry、exact-20+1 evidence
+  lookahead、exact-20+0 exhausted cursor、21-row submission/evidence backlog 与 mixed budget 的 truthful pagination，
+  以及 submission update/remove、evidence remove、storage delete 全为零。响应不得包含记录/标识符/路径/URL/坐标/
+  私有输入/env/secret/provider message；
+  production-shaped CloudBase due-list seam 只验证 where/order/limit read path。`createTrackSubmissionHandler`
+  的 retention authorization 继续要求 server `TRIGGER_SRC='timer'` + `OPENID===''`；unknown OpenID 即使经过现有
+  internal gate 也必须在 due-list 读取前返回 `invalid_mode`，event-body forged values 与普通 client 同样维持该错误。
 - `test:track-ui`：exact rights/privacy copy、local precheck、upload/finalize recovery、八状态 action matrix、
   error/retry、pagination、revision/cancel/cleanup retry、admin separation，以及 C05 对 `view_raw`/`rawAccess`
   fail-closed：不渲染、不请求 `includeRawLink`、不打开/下载/保存/分享/复制原始文件；

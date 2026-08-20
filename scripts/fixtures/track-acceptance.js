@@ -51,6 +51,7 @@ function createAcceptanceHarness({ initialNow = BASE_NOW } = {}) {
   const env = {
     TRACK_STORAGE_FILEID_HOST: STORAGE_HOST,
     TRACK_REVIEW_ADMIN_OPENIDS: ` ${ADMIN_OPENID} `,
+    TRACK_RETENTION_MODE: 'delete',
   }
   const storage = {
     getAllowedHost() { return STORAGE_HOST },

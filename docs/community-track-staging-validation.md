@@ -197,3 +197,18 @@ performed.
 O1–O8 and local quality gates. S8–S15 and S20 remain `BLOCKED`; S16 and S18 remain
 `UNVERIFIED_RUNTIME_TOOL`. The S7 evidence does not authorize timer activation, destructive retention cleanup,
 publication, production or a closed-beta invitation.
+
+## C08 retention dry-run implementation checkpoint — 2026-08-20
+
+The local #137 contract now selects the existing destructive path only for exact server
+`TRACK_RETENTION_MODE='delete'`; the C06 offline fixture sets that value explicitly so its 30/180-day delete regression
+remains intentional. Missing, empty, typo and other values select the fail-closed `dry_run` path. Focused evidence
+covers before/equal expiry, pending cleanup, evidence expiry, exact-20 submission/evidence lookahead and exhausted
+cursor, 21-row submission and evidence backlogs, mixed bounded pagination, forged/non-timer authority and a
+production-shaped due-list seam. Dry-run returns only the fixed mode/count/has-more/current-time/opaque-cursor DTO, with
+a combined preview count no greater than 20. Existing repository pagination may issue one read-only continuation
+lookahead row (including a `limit:0` evidence peek when 20 submissions fill the budget); it is excluded from counts and
+preview data and is never mutated or deleted. Submission update/remove, evidence remove and storage delete remain zero.
+This is offline code evidence only: no CloudBase function was invoked, no timer was created/enabled, no staging
+configuration changed and no data was deleted. S8–S15 remain `BLOCKED` until the separate human-controlled timer,
+dry-run, rollback and cleanup rows are directly observed.
