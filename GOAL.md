@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C08 REVIEW_ACTIVE`
+- Status: `ACTIVE — C09 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -50,6 +50,7 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C6 Acceptance | C06 | cross-layer gates, docs and human staging checklist are complete |
 | C7 Focused UX | C07 | community-track owner/admin workflow moves to a secondary page and the route-query homepage is simplified |
 | C8 Retention dry-run | #137 | fail-closed, zero-write retention preview passes Review before any timer or destructive cleanup gate |
+| C9 Search contribution UX | #139 | candidate and no-result states provide an honest private GPX/KML contribution path |
 
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
 through PR #128 (`0e534d49`), the C06 offline acceptance package through PR #130 (`59ef3c2`), and C07 through
@@ -57,9 +58,24 @@ PR #132 (`86fafb6`). Issues #118–#122, #131 and #134 are closed. The complete 
 lives on a secondary page while preserving TP-D056 Option A. Sanitized staging evidence now verifies the required
 collections/configuration, all six exact indexes and the bundled private owner/admin/rejection/cancel/lease-recovery
 smoke. The Goal remains active because #123 still requires the separately controlled timer/retention rows and runtime-
-tool evidence; no production readiness or Goal completion is claimed. Issue #137 is the only active Review slice;
-its fail-closed retention dry-run passed the final human-authorized local fix and two fresh independent Reviews, but
-still requires commit/push, draft PR, latest-head CI and exact-head actual-diff Review before merge.
+tool evidence; no production readiness or Goal completion is claimed. C08 merged through PR #138 as `b582d2c` and
+#137 is closed without deployment, timer activation or deletion. Issue #139 is the only active Review-fix slice;
+it adds the approved search-to-private-submission UX without automatic catalog promotion.
+
+## C09 Review-fix round 3 checkpoint — 2026-08-20
+
+- The focused UI contract now mutates the exact no-result `location_failed`/`route_not_found` upload branch, asserts
+  that the place-only branch remains, and checks exact fallback or single `draftTitle` navigation URLs across line
+  breaks. A multiline `manualLat` query-leak mutation also produces the expected base-oracle RED.
+- The corrected mutation harness is nonrecursive and preserves the Unicode/control/title privacy probes. No production
+  JSX/CSS behavior changed in this round; runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`.
+- Focused, root, integration `55/0`, lint, typecheck, fixture-free WeChat build, diff, allowlist/privacy/secret scans
+  and official npmjs audit all pass. Draft PR #140 is published; its implementation head `f932857` passed GitHub
+  quality before this docs-only lifecycle correction. No deployment or CloudBase mutation occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+- Open work / Next action: commit/push this docs-only correction to existing draft PR #140, then require fresh
+  latest-head CI and two exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge
+  is claimed.
 
 ## Staging finalize Bug authorization — 2026-08-12
 

@@ -53,6 +53,18 @@ const TRACK_ADMIN_REVIEW_DECISIONS = Object.freeze({
   approve_evidence: 'approved_evidence',
 })
 
+function decodeCommunityTrackDraftTitle(params) {
+  const raw = params && params.draftTitle
+  if (typeof raw !== 'string' || raw.length === 0 || raw.length > 1024) return ''
+  let decoded = raw
+  try { decoded = decodeURIComponent(raw) } catch (_error) { return '' }
+  if (typeof decoded !== 'string' || /[\u0000-\u001f\u007f-\u009f]/.test(decoded)) return ''
+  decoded = decoded.trim()
+  const codePointLength = Array.from(decoded).length
+  if (codePointLength < 2 || codePointLength > 80) return ''
+  return decoded
+}
+
 
 export default class CommunityTrack extends Component {
   state = {
@@ -66,6 +78,7 @@ export default class CommunityTrack extends Component {
 
   componentDidMount() {
     this._unmounted = false
+    this._applyDraftTitle()
     this.onTrackRefresh(false)
   }
 
@@ -76,6 +89,16 @@ export default class CommunityTrack extends Component {
   }
 
   onCommunityTrackBack = () => Taro.navigateBack({ delta: 1 })
+
+  _applyDraftTitle = () => {
+    const current = typeof Taro.getCurrentInstance === 'function' ? Taro.getCurrentInstance() : null
+    const params = (current && current.router && current.router.params) || (this.$router && this.$router.params)
+    const draftTitle = decodeCommunityTrackDraftTitle(params)
+    if (!draftTitle) return
+    this._trackUiState = reduceTrackUi(this._trackUiState, { type: 'FORM_PATCH', patch: { title: draftTitle } })
+    if (this._unmounted) return
+    this.setState({ trackUi: selectTrackUiView(this._trackUiState) })
+  }
 
   onTrackDisclosureToggle = () => {
     this.setState((state) => ({ trackDisclosureOpen: !state.trackDisclosureOpen }))
@@ -442,6 +465,7 @@ export default class CommunityTrack extends Component {
           <Text className="card-title">提交私有轨迹</Text>
           <View className="track-policy-intro">
             <Text className="track-policy-intro-copy">仅供私下审核，不会自动公开</Text>
+            <Text className="track-policy-intro-copy">提交后不会立即生成完整路线建议，也不会自动发布为可搜索路线</Text>
           </View>
           <Text className="track-field-label">轨迹标题</Text>
           <Input disabled={trackUi.uploadBusy || trackUi.mutation.loading} className="track-input" placeholder="例如：武功山东江村记录" value={trackUi.form.title} onInput={(event) => this.onTrackFieldInput('title', event)} />
