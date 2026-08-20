@@ -78,4 +78,6 @@ identity/location data. Stop on any scope expansion or contract conflict.
 Return `READY_FOR_CONTROLLER_REVIEW` with RED/GREEN/mutation evidence, exact files and full gates. Round 3 is complete:
 the exact no-result mutation preserves the place-only branch, exact fallback/single-`draftTitle` URL forms reject
 multiline coordinate leakage, and all required local gates pass. The executor cannot approve or merge. The controller's
-next action is commit/push/draft PR, then latest-head CI and two fresh exact-head independent Reviews before merge.
+draft PR #140 already exists and implementation head `f932857` passed quality. The next action is to commit/push this
+docs-only lifecycle correction to that PR, then require fresh latest-head CI and two fresh exact-head independent
+Reviews before merge.

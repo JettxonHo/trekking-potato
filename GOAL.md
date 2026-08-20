@@ -70,10 +70,12 @@ it adds the approved search-to-private-submission UX without automatic catalog p
 - The corrected mutation harness is nonrecursive and preserves the Unicode/control/title privacy probes. No production
   JSX/CSS behavior changed in this round; runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`.
 - Focused, root, integration `55/0`, lint, typecheck, fixture-free WeChat build, diff, allowlist/privacy/secret scans
-  and official npmjs audit all pass. No deployment, CloudBase mutation, commit, push or PR action occurred.
+  and official npmjs audit all pass. Draft PR #140 is published; its implementation head `f932857` passed GitHub
+  quality before this docs-only lifecycle correction. No deployment or CloudBase mutation occurred.
 - Executor status: `READY_FOR_CONTROLLER_REVIEW`.
-- Open work / Next action: controller commits/pushes the reviewed head and opens a draft PR, then waits for latest-head
-  CI and two exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge is claimed.
+- Open work / Next action: commit/push this docs-only correction to existing draft PR #140, then require fresh
+  latest-head CI and two exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge
+  is claimed.
 
 ## Staging finalize Bug authorization — 2026-08-12
 

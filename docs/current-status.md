@@ -40,12 +40,13 @@
 - Direct node repeated runs and the Corepack npm focused wrapper pass. Confirmation, trip-flow, track acceptance, root
   tests, integration `55/0`, lint (`0 errors / 9 existing warnings`), typecheck, `CI=1` WeChat build, `git diff --check`,
   exact allowlist/privacy/secret scans and official npmjs audit (`0 vulnerabilities`) pass.
-- This is local code evidence only. No JSX/CSS behavior changed in round 3; no server/API/schema/dependency/config,
-  deployment, CloudBase mutation, timer, deletion, commit, push or PR action occurred. Runtime model identity remains
-  `UNVERIFIED_RUNTIME_MODEL`; controller configuration is exact `luna-worker` (`gpt-5.6-luna/max`).
+- No JSX/CSS behavior changed in round 3; no server/API/schema/dependency/config, deployment, CloudBase mutation,
+  timer or deletion occurred. Draft PR #140 is published, and GitHub quality passed on implementation head `f932857`
+  before this docs-only lifecycle correction. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`; controller
+  configuration is exact `luna-worker` (`gpt-5.6-luna/max`).
 - Executor status: `READY_FOR_CONTROLLER_REVIEW`.
-- Open work / Next action: controller commit/push/draft PR, then latest-head CI and two exact-head independent Reviews;
-  Sol XHigh owns mergeability and Issue/status decisions.
+- Open work / Next action: commit/push this docs-only correction to existing draft PR #140, then require fresh
+  latest-head CI and two exact-head independent Reviews; Sol XHigh owns mergeability and Issue/status decisions.
 
 ## C08 retention dry-run activation — 2026-08-20
 
@@ -1608,9 +1609,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Controller commits/pushes the reviewed #139 head and opens a focused draft PR, then waits for latest-head CI and two
-exact-head independent Reviews before Sol XHigh decides mergeability. Do not change server/API/schema/storage/retention,
-deploy, mutate CloudBase, publish a route automatically or claim production readiness.
+Controller commits/pushes the docs-only lifecycle correction to existing draft PR #140, then waits for fresh
+latest-head CI and two exact-head independent Reviews before Sol XHigh decides mergeability. Do not change
+server/API/schema/storage/retention, deploy, mutate CloudBase, publish a route automatically or claim production
+readiness.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
