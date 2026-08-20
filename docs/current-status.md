@@ -3,17 +3,49 @@
 - Updated: `2026-08-20`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C08 REVIEW_ACTIVE`
-- Active task: `#137 / READY_FOR_CONTROLLER_REVIEW` (fail-closed retention dry-run; parent #123/#115 remain open)
-- Branch/base: `codex/137-retention-dry-run` from `main@0db92b0`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C09 REVIEW_ACTIVE`
+- Active task: `#139 / READY_FOR_CONTROLLER_REVIEW` (route-search contribution fallback; parent #123/#115 remain open)
+- Branch/base: `codex/139-route-upload-fallback` from `main@b582d2c`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: PR #135 merged the diagnostic-free finalize/CAS fix as `ac600e5`; focused Bug #134 is closed after its
   anonymous synthetic runtime blocker passed. Sanitized direct console/runtime observation now verifies S1–S7 and S17
   in the authoritative ledger. S8–S15 and S20 remain `BLOCKED`; S16 and S18 remain
-  `UNVERIFIED_RUNTIME_TOOL`. PR #136 merged the S3/S7 ledger reconciliation as `0db92b0`; #137 is now the only active
-  Review task. Its final local fix and two fresh independent Reviews passed; commit/push, draft PR, latest-head CI and
-  exact-head Reviews remain. No timer creation/invocation, production/public release or destructive cleanup is authorized.
+  `UNVERIFIED_RUNTIME_TOOL`. PR #138 merged the fail-closed retention dry-run as `b582d2c`; #137 is closed without
+  deployment, timer activation or deletion. #139 is now the only active Review-fix task and is limited to the
+  approved search-to-private-submission UX. No production/public release or automatic catalog promotion is authorized.
+
+## C09 route-search contribution activation — 2026-08-20
+
+- The human approved an honest contribution fallback for search ambiguity and failure. Multiple trusted candidates
+  remain selectable, with an additional `都不是，上传我的轨迹` action; place-only/no-result states also expose private
+  GPX/KML submission while preserving modify-query and manual-coordinate choices.
+- Navigation may carry only a bounded editable draft title to `pages/community-track/index`. It must not carry or infer
+  coordinates, file paths/IDs, consent, identity, admin state or publication authority.
+- Submission remains private review evidence. It does not immediately produce full advice and never automatically
+  creates or publishes a searchable Place/Route/RouteVariant.
+- #139 owns the exact frontend/test/docs allowlist recorded in ACTIVE_TASK. No server/API/schema/storage/retention,
+  deployment, CloudBase, timer, deletion or production/public action is authorized.
+
+## C09 Review-fix round 3 checkpoint — 2026-08-20
+
+- TDD RED was recorded with the corrected exact mutation: removing only the
+  `!routeTypeRequest && ['location_failed', 'route_not_found']` upload button makes the base oracle fail while the
+  `routeTypeRequest` place-only upload branch remains. No production RED was needed or fabricated because production
+  already satisfied the corrected contract.
+- GREEN keeps the base oracle nonrecursive and strengthens `onCommunityTrackEntry` to exact fallback or single
+  `draftTitle` URL forms, robust to line breaks. A multiline `&manualLat=${this.state.manualLat}` leakage mutation and
+  exact no-result removal both produce RED and are restored; candidate misrouting, candidate-entry removal and privacy
+  wording mutations remain RED and restored.
+- Direct node repeated runs and the Corepack npm focused wrapper pass. Confirmation, trip-flow, track acceptance, root
+  tests, integration `55/0`, lint (`0 errors / 9 existing warnings`), typecheck, `CI=1` WeChat build, `git diff --check`,
+  exact allowlist/privacy/secret scans and official npmjs audit (`0 vulnerabilities`) pass.
+- This is local code evidence only. No JSX/CSS behavior changed in round 3; no server/API/schema/dependency/config,
+  deployment, CloudBase mutation, timer, deletion, commit, push or PR action occurred. Runtime model identity remains
+  `UNVERIFIED_RUNTIME_MODEL`; controller configuration is exact `luna-worker` (`gpt-5.6-luna/max`).
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+- Open work / Next action: controller commit/push/draft PR, then latest-head CI and two exact-head independent Reviews;
+  Sol XHigh owns mergeability and Issue/status decisions.
 
 ## C08 retention dry-run activation — 2026-08-20
 
@@ -1521,16 +1553,16 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: assigned to the bounded #137 fail-closed retention dry-run implementation on
-  `codex/137-retention-dry-run`; it must return `READY_FOR_CONTROLLER_REVIEW` and cannot approve, merge, deploy or
-  mutate staging. Completed subagents are closed immediately after handoff.
+- `luna-worker`: assigned to bounded #139 route-search contribution UX on `codex/139-route-upload-fallback`; it must
+  return `READY_FOR_CONTROLLER_REVIEW` and cannot approve, merge, deploy or mutate staging. Completed subagents are
+  closed immediately after handoff.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Publish #137 as a focused draft PR, require latest-head CI and two exact-head actual-diff Reviews, then merge only
-   if all gates remain green. The dry-run must remain zero-write and default fail-closed.
-2. After #137 merges, deploy only the reviewed dry-run-capable function under a separate staging step; do not create,
+1. Complete #139 through focused TDD, full local gates, two independent Reviews, latest-head CI and merge without
+   changing server contracts or automatic catalog promotion.
+2. Deploy the reviewed dry-run-capable function only under a separate staging step; do not create,
    enable or invoke a timer and do not select delete mode without the later human gate.
 3. Continue #123 serially through S8–S14, preserving S15/S20 as `BLOCKED` and S16/S18 as
    `UNVERIFIED_RUNTIME_TOOL` until direct evidence and required human gates support a change.
@@ -1576,10 +1608,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Controller commits and pushes the reviewed #137 increment, opens a draft PR, waits for latest-head CI and requests two
-exact-head actual-diff Reviews. Do not deploy, create/enable/invoke a timer, select delete mode, delete data, invite
-users or claim production readiness. S15/S20 remain separately gated, S16/S18 remain runtime-tool evidence gaps, and
-future viewer #129 remains separate.
+Controller commits/pushes the reviewed #139 head and opens a focused draft PR, then waits for latest-head CI and two
+exact-head independent Reviews before Sol XHigh decides mergeability. Do not change server/API/schema/storage/retention,
+deploy, mutate CloudBase, publish a route automatically or claim production readiness.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

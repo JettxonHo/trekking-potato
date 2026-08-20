@@ -975,9 +975,9 @@ function secondaryCommunityPageContract() {
   assert.match(config, /pages\/community-track\/index/)
   assert.match(homepage, /Taro\.navigateTo\(\s*\{\s*url:\s*['"]\/pages\/community-track\/index['"]\s*\}\s*\)/)
   assert.match(homepage, /<Button[^>]+className="community-track-entry-btn"[^>]*>社区轨迹<\/Button>/)
-  assert.match(homepage, /<Button[^>]+className="community-track-fallback-btn"[^>]*>提交轨迹供审核<\/Button>/)
+  assert.match(homepage, /<Button[^>]+className="community-track-fallback-btn"[^>]*>上传 GPX\/KML，补充完整路线<\/Button>/)
   assert.match(homepage, /<Button[^>]*className="community-track-entry-btn"[^>]*onClick=\{this\.onCommunityTrackEntry\}[^>]*>社区轨迹<\/Button>/)
-  assert.match(homepage, /<Button[^>]*className="community-track-fallback-btn"[^>]*onClick=\{this\.onCommunityTrackEntry\}[^>]*>提交轨迹供审核<\/Button>/)
+  assert.match(homepage, /<Button[^>]*className="community-track-fallback-btn"[^>]*onClick=\{this\.onCommunityTrackUpload\}[^>]*>上传 GPX\/KML，补充完整路线<\/Button>/)
   assert.doesNotMatch(homepageRender, /<View className="track-owner-card card">/)
   assert.doesNotMatch(homepageRender, /<View className="track-admin-card card">/)
   assert.doesNotMatch(homepageRender, /CLIMB SUPPORT|攀登支持|climbSupportLabels|onClimbSupportChange/)
@@ -1057,6 +1057,173 @@ function secondaryCommunityPageContract() {
   assert.match(pageCss, /track-rights-disclosure/)
 }
 
+function extractNamedFunctionSource(source, name) {
+  const marker = `function ${name}`
+  const start = source.indexOf(marker)
+  if (start < 0) return ''
+  const braceStart = source.indexOf('{', start)
+  if (braceStart < 0) return ''
+  let depth = 0
+  for (let index = braceStart; index < source.length; index += 1) {
+    if (source[index] === '{') depth += 1
+    else if (source[index] === '}') {
+      depth -= 1
+      if (depth === 0) return source.slice(start, index + 1)
+    }
+  }
+  return ''
+}
+
+function assertRouteContributionWiring(homepage, page) {
+  assert.match(homepage, /function normalizeCommunityTrackDraftTitle\(value\)/)
+  assert.match(homepage, /encodeURIComponent\(title\)/)
+  assert.match(homepage, /onCommunityTrackUpload = \(\) =>/)
+  assert.doesNotMatch(homepage, /draftTitle=[^\n]*(?:manualLat|manualLon|manualElev|fileID|cloudPath|openid|consent|admin|publish)/i)
+
+  const entryStart = homepage.indexOf('  onCommunityTrackEntry = (searchText) => {')
+  const entryEnd = homepage.indexOf('\n  onCommunityTrackUpload', entryStart)
+  const entryBody = homepage.slice(entryStart, entryEnd)
+  assert.ok(entryStart >= 0 && entryEnd > entryStart, 'community-track navigation seam must be bounded')
+  assert.match(entryBody, /Taro\.navigateTo\(\s*\{\s*url:\s*['"]\/pages\/community-track\/index['"]\s*\}\s*\)/)
+  assert.match(entryBody, /Taro\.navigateTo\(\s*\{\s*url:\s*`\/pages\/community-track\/index\?draftTitle=\$\{encodedTitle\}`\s*\}\s*\)/)
+  assert.doesNotMatch(entryBody, /&(?:manualLat|manualLon|manualElev|fileID|cloudPath|openid|consent|admin|publish)\s*=/i)
+
+  const candidateStart = homepage.indexOf('<Popup visible={showCandidatePopup}')
+  const candidateEnd = homepage.indexOf('\n        </Popup>', candidateStart)
+  const candidatePopup = homepage.slice(candidateStart, candidateEnd)
+  assert.match(candidatePopup, /onClick=\{\(\) => this\.onCandidateSelect\(candidate\.candidateId\)\}/)
+  assert.match(candidatePopup, /<Button[^>]+className="candidate-upload-btn"[^>]+onClick=\{this\.onCommunityTrackUpload\}[^>]*>都不是，上传我的轨迹<\/Button>/)
+  assert.doesNotMatch(candidatePopup, /candidate-upload-btn[^\n]*onClick=\{this\.onCandidateSelect/)
+
+  const manualStart = homepage.indexOf('<Popup visible={showManualCoords}')
+  const manualEnd = homepage.indexOf('\n        </Popup>', manualStart)
+  const manualPopup = homepage.slice(manualStart, manualEnd)
+  assert.match(manualPopup, /resolutionKind === 'catalog_place'/)
+  assert.match(manualPopup, /上传 GPX\/KML，补充完整路线/)
+  assert.match(manualPopup, /\{routeTypeRequest && <Button block className="community-track-fallback-btn" onClick=\{this\.onCommunityTrackUpload\}>上传 GPX\/KML，补充完整路线<\/Button>\}/)
+  assert.match(manualPopup, /\{!routeTypeRequest && tripFlow\.error && \['location_failed', 'route_not_found'\]\.indexOf\(tripFlow\.error\.code\) >= 0 && <Button block className="community-track-fallback-btn" onClick=\{this\.onCommunityTrackUpload\}>上传 GPX\/KML，补充完整路线<\/Button>\}/)
+  assert.match(manualPopup, /className="community-track-fallback-btn"[^>]+onClick=\{this\.onCommunityTrackUpload\}[^>]*>上传 GPX\/KML，补充完整路线<\/Button>/)
+  assert.match(manualPopup, /className="manual-submit-btn"[^>]+onClick=\{this\.onManualSubmit\}/)
+  assert.match(manualPopup, /className="manual-modify-btn"[^>]+onClick=\{this\.onManualClose\}[^>]*>修改搜索<\/Button>/)
+
+  assert.match(page, /componentDidMount\(\)[\s\S]*decodeCommunityTrackDraftTitle[\s\S]*FORM_PATCH/)
+  const prefillStart = page.indexOf('  _applyDraftTitle = () => {')
+  const prefillEnd = page.indexOf('\n  onTrackDisclosureToggle', prefillStart)
+  const prefillBody = page.slice(prefillStart, prefillEnd)
+  assert.ok(prefillStart >= 0 && prefillEnd > prefillStart, 'draft-title prefill seam must be bounded')
+  assert.match(prefillBody, /Taro\.getCurrentInstance\(\)/)
+  assert.match(prefillBody, /patch: \{ title: draftTitle \}/)
+  assert.doesNotMatch(prefillBody, /rightsAccepted|file:|session|admin|consent|cloudPath|fileID|manualLat|manualLon|publish/i)
+  assert.match(page, /仅供私下审核，不会自动公开/)
+  assert.match(page, /不会立即生成完整路线建议/)
+  assert.match(page, /不会自动发布为可搜索路线/)
+}
+
+function assertDraftTitleContract(homepage, page) {
+  const normalizeSource = extractNamedFunctionSource(homepage, 'normalizeCommunityTrackDraftTitle')
+  assert.ok(normalizeSource, 'homepage must have a bounded draft-title producer')
+  assert.match(normalizeSource, /Array\.from\(text\)\.length/)
+  const normalizeDraftTitle = new Function(`return ${normalizeSource}`)()
+  const decodeSource = extractNamedFunctionSource(page, 'decodeCommunityTrackDraftTitle')
+  assert.ok(decodeSource, 'community page must have a bounded draft-title decoder')
+  assert.match(decodeSource, /raw\.length > 1024/)
+  assert.match(decodeSource, /Array\.from\(decoded\)\.length/)
+  const decodeDraftTitle = new Function(`return ${decodeSource}`)()
+
+  const cjk2 = '中文'
+  const cjk80 = '字'.repeat(80)
+  const emoji41 = '😀'.repeat(41)
+  const emoji80 = '😀'.repeat(80)
+  assert.equal(normalizeDraftTitle(` ${cjk2} `), cjk2, 'two CJK code points pass after trimming')
+  assert.equal(normalizeDraftTitle(cjk80), cjk80, '80 CJK code points pass')
+  assert.equal(normalizeDraftTitle(emoji41), emoji41, '41 emoji code points pass')
+  assert.equal(normalizeDraftTitle(emoji80), emoji80, '80 emoji code points pass')
+  assert.equal(normalizeDraftTitle('字'), '', 'one code point is rejected')
+  assert.equal(normalizeDraftTitle('字'.repeat(81)), '', '81 code points are rejected')
+  assert.equal(normalizeDraftTitle(`a\u0001b`), '', 'C0 U+0001 is rejected by the producer')
+  assert.equal(normalizeDraftTitle(`a\u007fb`), '', 'DEL is rejected by the producer')
+  assert.equal(normalizeDraftTitle(`a\u0085b`), '', 'C1 U+0085 is rejected by the producer')
+
+  assert.equal(decodeDraftTitle({ draftTitle: encodeURIComponent(cjk2) }), cjk2, 'two CJK code points decode')
+  assert.equal(decodeDraftTitle({ draftTitle: encodeURIComponent(cjk80) }), cjk80, '80 CJK code points decode')
+  assert.equal(decodeDraftTitle({ draftTitle: encodeURIComponent(emoji41) }), emoji41, '41 emoji code points decode')
+  const encodedEmoji80 = encodeURIComponent(emoji80)
+  assert.equal(encodedEmoji80.length, 960, '80 four-byte code points use 960 encoded characters')
+  assert.ok(encodedEmoji80.length <= 1024, 'valid 80-code-point title fits receiver raw cap')
+  const producedEmoji80 = normalizeDraftTitle(emoji80)
+  assert.equal(decodeDraftTitle({ draftTitle: encodeURIComponent(producedEmoji80) }), producedEmoji80, 'producer/receiver round-trip exactly')
+  assert.equal(decodeDraftTitle({ draftTitle: encodedEmoji80 }), emoji80, '80 emoji title round-trips exactly')
+  assert.equal(decodeDraftTitle({ draftTitle: encodeURIComponent('字') }), '', 'one code point is rejected by decoder')
+  assert.equal(decodeDraftTitle({ draftTitle: encodeURIComponent('字'.repeat(81)) }), '', '81 code points are rejected by decoder')
+  assert.equal(decodeDraftTitle({ draftTitle: '%' }), '', 'malformed percent encoding fails closed')
+  assert.equal(decodeDraftTitle({ draftTitle: encodeURIComponent(`a\u0085b`) }), '', 'C1 U+0085 is rejected by the decoder')
+  assert.equal(decodeDraftTitle({ draftTitle: encodeURIComponent('a\u007fb') }), '', 'DEL is rejected by the decoder')
+  assert.equal(decodeDraftTitle({ draftTitle: 'a'.repeat(1025) }), '', 'raw encoded input above 1024 is rejected')
+}
+
+function runRouteContributionMutations(homepage, page) {
+  const identity = (source) => source
+  const routeSearchMutations = [
+    {
+      label: 'candidate upload entry removed',
+      mutateHomepage: (source) => source.replace(/\s*<Button[^>]+className="candidate-upload-btn"[\s\S]*?<\/Button>/, ''),
+      mutatePage: identity,
+      target: 'homepage',
+    },
+    {
+      label: 'no-result upload entry removed',
+      mutateHomepage: (source) => source.replace(/\{!routeTypeRequest && tripFlow\.error && \['location_failed', 'route_not_found'\]\.indexOf\(tripFlow\.error\.code\) >= 0 && <Button block className="community-track-fallback-btn" onClick=\{this\.onCommunityTrackUpload\}>上传 GPX\/KML，补充完整路线<\/Button>\}/, ''),
+      mutatePage: identity,
+      target: 'homepage',
+    },
+    {
+      label: 'candidate selection misrouted',
+      mutateHomepage: (source) => source.replace('onClick={() => this.onCandidateSelect(candidate.candidateId)}', 'onClick={this.onCommunityTrackUpload}'),
+      mutatePage: identity,
+      target: 'homepage',
+    },
+    {
+      label: 'privacy wording removed',
+      mutateHomepage: identity,
+      mutatePage: (source) => source.replace('不会自动发布为可搜索路线', ''),
+      target: 'page',
+    },
+    {
+      label: 'draft-title coordinate query leakage',
+      mutateHomepage: (source) => source.replace(
+        'return Taro.navigateTo({ url: `/pages/community-track/index?draftTitle=${encodedTitle}` })',
+        'return Taro.navigateTo({\n      url: `/pages/community-track/index?draftTitle=${encodedTitle}` +\n        `&manualLat=${this.state.manualLat}`,\n    })',
+      ),
+      mutatePage: identity,
+      target: 'homepage',
+    },
+  ]
+  routeSearchMutations.forEach(({ label, mutateHomepage, mutatePage, target }) => {
+    const mutatedHomepage = mutateHomepage(homepage)
+    const mutatedPage = mutatePage(page)
+    if (target === 'homepage') {
+      assert.notEqual(mutatedHomepage, homepage, `${label} must change homepage source`)
+      assert.equal(mutatedPage, page, `${label} must not change community page source`)
+    } else {
+      assert.equal(mutatedHomepage, homepage, `${label} must not change homepage source`)
+      assert.notEqual(mutatedPage, page, `${label} must change community page source`)
+    }
+    if (label === 'no-result upload entry removed') {
+      assert.match(mutatedHomepage, /\{routeTypeRequest && <Button block className="community-track-fallback-btn" onClick=\{this\.onCommunityTrackUpload\}>上传 GPX\/KML，补充完整路线<\/Button>\}/, 'place-only upload branch must remain')
+    }
+    assert.throws(() => assertRouteContributionWiring(mutatedHomepage, mutatedPage), undefined, label)
+  })
+}
+
+function routeSearchContributionContract() {
+  const root = path.join(__dirname, '../taro-app/src')
+  const homepage = fs.readFileSync(path.join(root, 'pages/index/index.jsx'), 'utf8')
+  const page = fs.readFileSync(path.join(root, 'pages/community-track/index.jsx'), 'utf8')
+  assertRouteContributionWiring(homepage, page)
+  assertDraftTitleContract(homepage, page)
+  runRouteContributionMutations(homepage, page)
+}
+
 Promise.resolve()
   .then(serviceContract)
   .then(modelContract)
@@ -1071,6 +1238,7 @@ Promise.resolve()
   .then(sourceWiringContract)
   .then(adminSourceWiringContract)
   .then(secondaryCommunityPageContract)
+  .then(routeSearchContributionContract)
   .then(() => console.log('PASS: C04/C05/C07 track-submission UI contract'))
   .catch((error) => {
     console.error(error.stack || error)

@@ -65,6 +65,14 @@ const DETERMINISTIC_RISK_ADVICE = '本风险由海拔/季节规则判定，请�
 const AI_UNAVAILABLE_NOTE = 'AI 说明暂不可用，当前仅展示确定性规则结果。'
 const HISTORY_SAVE_ERROR = '历史未保存，不影响本次结果'
 
+function normalizeCommunityTrackDraftTitle(value) {
+  if (typeof value !== 'string' || /[\u0000-\u001f\u007f-\u009f]/.test(value)) return ''
+  const text = value.trim()
+  const codePointLength = Array.from(text).length
+  if (codePointLength < 2 || codePointLength > 80) return ''
+  return text
+}
+
 function parseManualElevation(value) {
   const text = value === undefined || value === null ? '' : String(value).trim()
   if (text === '') return { provided: false, value: undefined, valid: true }
@@ -245,7 +253,18 @@ export default class Index extends Component {
   }
   onDateChange = (e) => this.setState({ date: e.detail.value })
   onStartTimeChange = (e) => this.setState({ startTimeLocal: e.detail.value || '08:00' })
-  onCommunityTrackEntry = () => Taro.navigateTo({ url: '/pages/community-track/index' })
+  onCommunityTrackEntry = (searchText) => {
+    const title = normalizeCommunityTrackDraftTitle(searchText === undefined ? this.state.route : searchText)
+    if (!title) return Taro.navigateTo({ url: '/pages/community-track/index' })
+    let encodedTitle = ''
+    try { encodedTitle = encodeURIComponent(title) } catch (_error) { return Taro.navigateTo({ url: '/pages/community-track/index' }) }
+    return Taro.navigateTo({ url: `/pages/community-track/index?draftTitle=${encodedTitle}` })
+  }
+  onCommunityTrackUpload = () => {
+    const searchText = this.state.route
+    this.onCandidateClose()
+    return this.onCommunityTrackEntry(searchText)
+  }
   // 安全构造日期（规避 iOS Safari new Date('YYYY-MM-DD') 返回 NaN）
   // 输出格式：MM.DD 周几
   formatWeatherDate(dateStr) {
@@ -1218,6 +1237,7 @@ export default class Index extends Component {
                 <Text className="candidate-type">{candidate.capability === 'place_only' ? '地点级参考' : `${ROUTE_TYPE_TEXT[candidate.routeType]} · 固定${candidate.fixedDays}天（只读）`}</Text>
               </View>
             ))}
+            <Button block className="candidate-upload-btn" onClick={this.onCommunityTrackUpload}>都不是，上传我的轨迹</Button>
             <Button block className="candidate-cancel-btn" onClick={this.onCandidateClose}>取消</Button>
           </View>
         </Popup>
@@ -1225,7 +1245,7 @@ export default class Index extends Component {
         <Popup visible={showManualCoords} position="bottom" round onClose={this.onManualClose} className="manual-popup">
           <View className="manual-popup-content">
             <Text className="manual-popup-title">{routeTypeRequest ? (routeTypeRequest.resolutionKind === 'catalog_place' ? '请选择地点类型' : '已定位到外部位置，请确认路线类型') : '搜不到路线？输入起点坐标'}</Text>
-            <Text className="manual-hint">{routeTypeRequest ? '请明确选择后继续；系统不会默认成徒步' : '在高德地图长按路线起点即可复制坐标'}</Text>
+            <Text className="manual-hint">{routeTypeRequest ? (routeTypeRequest.resolutionKind === 'manual_place' ? '请明确选择后继续；系统不会默认成徒步' : '当前只有地点级参考；可选择类型继续，或上传完整轨迹') : '在高德地图长按路线起点即可复制坐标'}</Text>
             {(!routeTypeRequest || routeTypeRequest.resolutionKind === 'manual_place') && <View className="coord-row">
               <Input className="coord-input" type="digit" placeholder="纬度 如 27.45" placeholderClass="placeholder" value={manualLat} onInput={(e) => this.setState({ manualLat: e.detail.value })} />
               <Input className="coord-input" type="digit" placeholder="经度 如 114.17" placeholderClass="placeholder" value={manualLon} onInput={(e) => this.setState({ manualLon: e.detail.value })} />
@@ -1237,7 +1257,9 @@ export default class Index extends Component {
                 <Text className={manualRouteType ? '' : 'field-placeholder'}>路线类型：{manualRouteType ? ROUTE_TYPE_TEXT[manualRouteType] : '必选（徒步 / 攀登 / 游览）'}</Text>
               </View>
             </Picker>
-            {!routeTypeRequest && tripFlow.error && ['location_failed', 'route_not_found'].indexOf(tripFlow.error.code) >= 0 && <Button block className="community-track-fallback-btn" onClick={this.onCommunityTrackEntry}>提交轨迹供审核</Button>}
+            {routeTypeRequest && <Button block className="community-track-fallback-btn" onClick={this.onCommunityTrackUpload}>上传 GPX/KML，补充完整路线</Button>}
+            {!routeTypeRequest && tripFlow.error && ['location_failed', 'route_not_found'].indexOf(tripFlow.error.code) >= 0 && <Button block className="community-track-fallback-btn" onClick={this.onCommunityTrackUpload}>上传 GPX/KML，补充完整路线</Button>}
+            <Button block className="manual-modify-btn" onClick={this.onManualClose}>修改搜索</Button>
           <Button block type="primary" className="manual-submit-btn" onClick={this.onManualSubmit}>{routeTypeRequest && routeTypeRequest.resolutionKind !== 'manual_place' ? '确认类型并继续' : '用手动坐标查询'}</Button>
           </View>
         </Popup>
