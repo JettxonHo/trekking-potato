@@ -93,9 +93,9 @@ limited to the human-annotated homepage/result presentation cleanup.
 - Local WeChat DevTools rebuilt and rendered the iPhone 12/13 simulator homepage; source-tree accessibility order is
   query before community before history. No fixture, CloudBase call, deployment or production action occurred;
   result-page runtime visual evidence remains unclaimed. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`.
-- Executor status: `READY_FOR_CONTROLLER_REVIEW`. Implementation commit `a375a45` is pushed to draft PR #142 and its
-  quality run `32449897693` passed. This docs-only lifecycle sync still requires latest-head CI and two fresh
-  exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge is claimed.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; draft PR #142 is published. GitHub is authoritative for the current
+  head and quality result. Sol XHigh may decide mergeability only when that current head has successful quality and two
+  fresh exact-head independent Reviews; any head change repeats those gates. No approval or merge is claimed.
 
 ## Staging finalize Bug authorization — 2026-08-12
 

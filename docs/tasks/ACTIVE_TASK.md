@@ -72,6 +72,6 @@ The executor cannot approve, merge, deploy or publish. Two fresh independent Rev
   local gate matrix.
 - Visual boundary: local WeChat DevTools rebuilt and rendered the iPhone 12/13 homepage action hierarchy; no fixture,
   CloudBase call, deployment or result-page runtime claim was made.
-- Implementation commit `a375a45` is pushed to draft PR #142 and quality run `32449897693` passed. Controller next
-  action: push this docs-only lifecycle sync, then obtain latest-head CI and two fresh exact-head independent Reviews
-  before Sol XHigh decides mergeability; approval and merge remain controller-owned.
+- Draft PR #142 is published. GitHub is authoritative for the current head and quality result. Controller next action:
+  complete two fresh exact-head independent Reviews; Sol XHigh may decide mergeability only if that current head also
+  has successful quality, and any head change repeats both gates. Approval and merge remain controller-owned.

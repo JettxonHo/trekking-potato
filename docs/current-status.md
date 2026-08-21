@@ -37,9 +37,9 @@
 - WeChat DevTools opened the existing local `taro-app`, rebuilt it and visually rendered the iPhone 12/13 homepage;
   accessibility order is query → community → history. No fixture or CloudBase/runtime query was used, so result-page
   runtime visual evidence is not claimed. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`.
-- Executor status: `READY_FOR_CONTROLLER_REVIEW`. Implementation commit `a375a45` is pushed to draft PR #142 and its
-  quality run `32449897693` passed. This docs-only lifecycle sync still requires latest-head CI and two fresh
-  exact-head independent Reviews before Sol XHigh decides mergeability; approval and merge remain controller-owned.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; draft PR #142 is published. GitHub is authoritative for the current
+  head and quality result. Sol XHigh may decide mergeability only when that current head has successful quality and two
+  fresh exact-head independent Reviews; any head change repeats those gates. Approval and merge remain controller-owned.
 
 ## C09 route-search contribution activation — 2026-08-20
 
@@ -1635,9 +1635,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Controller pushes this docs-only lifecycle sync to draft PR #142, then requires latest-head CI and two fresh exact-head
-independent Reviews before Sol XHigh decides mergeability. Do not change server/data contracts, deploy, mutate
-CloudBase or claim release.
+Complete the two fresh exact-head independent Reviews for draft PR #142. Sol XHigh may decide mergeability only if the
+GitHub current head also has successful quality; any head change repeats both gates. Do not change server/data
+contracts, deploy, mutate CloudBase or claim release.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
