@@ -102,7 +102,7 @@
   width: 100% !important; height: 96rpx !important; line-height: 96rpx !important;
   background: #1a1a1a !important; color: #fff !important; border: none !important;
   border-radius: 16rpx !important; font-size: 32rpx !important; font-weight: 700 !important;
-  letter-spacing: 2rpx !important; margin-top: 48rpx !important;
+  letter-spacing: 2rpx !important; margin-top: 0rpx !important;
   transition: all 0.5s cubic-bezier(0.68, -0.6, 0.32, 1.6) !important;
 }
 .submit-btn::after { border: none !important; }
@@ -127,8 +127,10 @@
   width: 100% !important; height: 88rpx !important; line-height: 88rpx !important;
   background: #f5f5f7 !important; color: #1d1d1f !important; border: none !important;
   border-radius: 16rpx !important; font-size: 28rpx !important; font-weight: 600 !important;
-  margin-top: 20rpx !important;
 }
+.form-action-stack { display: flex; flex-direction: column; width: 100%; gap: 20rpx; margin-top: 48rpx; }
+.community-track-entry-btn { margin-top: 0rpx !important; }
+.community-track-fallback-btn { margin-top: 20rpx !important; }
 .community-track-entry-btn::after, .community-track-fallback-btn::after { border: none !important; }
 .community-track-entry-btn:active, .community-track-fallback-btn:active { transform: scale(0.97); }
 
@@ -243,7 +245,11 @@
 .hourly-day-heading { display: flex; flex-direction: column; gap: 6rpx; }
 .day-window { font-size: 20rpx; color: #aeaeb2; }
 .weather-sample { margin-top: 18rpx; padding: 18rpx; background: #ffffff; border-radius: 16rpx; }
+.weather-sample-toggle { display: flex; flex-direction: column; justify-content: center; gap: 6rpx; min-height: 88rpx; padding: 8rpx 0; box-sizing: border-box; }
 .sample-heading { display: block; font-size: 24rpx; color: #1d1d1f; font-weight: 700; }
+.sample-disclosure-row { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.sample-disclosure-meta { flex: 1; font-size: 20rpx; color: #86868b; line-height: 1.4; }
+.sample-disclosure-affordance { flex-shrink: 0; font-size: 22rpx; color: #1d1d1f; font-weight: 600; }
 .weather-hour { padding: 16rpx 0; border-bottom: 1rpx solid rgba(0,0,0,0.04); }
 .weather-hour:last-child { border-bottom: none; }
 .hour-time, .hour-condition, .hour-measure { display: block; font-size: 22rpx; line-height: 1.5; }
@@ -519,7 +525,7 @@
 .field-caption { display: block; font-size: 22rpx; color: #aeaeb2; margin-top: 16rpx; letter-spacing: 0.5rpx; line-height: 1.5; }
 
 /* ---- 底部薯仔彩蛋 ---- */
-.potato-easter-egg { position: absolute; bottom: 48rpx; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
+.potato-easter-egg { position: static; display: flex; flex-direction: column; align-items: center; gap: 8rpx; margin-top: 48rpx; }
 
 /* 历史记录入口 + 弹窗 */
 .history-entry {

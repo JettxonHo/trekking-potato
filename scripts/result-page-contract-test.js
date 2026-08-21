@@ -1,5 +1,7 @@
 /** I22b structured result-page behavior contract. */
 const assert = require('assert')
+const fs = require('node:fs')
+const path = require('node:path')
 
 const {
   RESULT_CACHE_KEY,
@@ -341,10 +343,168 @@ function assertWmoGroups() {
   assert.equal(conditionForWeatherCode(999), '天气现象待确认')
 }
 
+function extractFunctionSource(source, name) {
+  const marker = `function ${name}`
+  const start = source.indexOf(marker)
+  if (start < 0) return ''
+  const braceStart = source.indexOf('{', start)
+  if (braceStart < 0) return ''
+  let depth = 0
+  for (let index = braceStart; index < source.length; index += 1) {
+    if (source[index] === '{') depth += 1
+    if (source[index] === '}') {
+      depth -= 1
+      if (depth === 0) return source.slice(start, index + 1)
+    }
+  }
+  return ''
+}
+
+function extractMethodSource(source, marker) {
+  const start = source.indexOf(marker)
+  if (start < 0) return ''
+  const braceStart = source.indexOf('{', start)
+  if (braceStart < 0) return ''
+  let depth = 0
+  for (let index = braceStart; index < source.length; index += 1) {
+    if (source[index] === '{') depth += 1
+    if (source[index] === '}') {
+      depth -= 1
+      if (depth === 0) return source.slice(start, index + 1)
+    }
+  }
+  return ''
+}
+
+function evaluateFunction(source, name) {
+  const functionSource = extractFunctionSource(source, name)
+  assert.ok(functionSource, `${name} must be executable from the page source`)
+  return new Function(`return (${functionSource})`)()
+}
+
+function evaluateFunctionWithArgs(source, name, args) {
+  const functionSource = extractFunctionSource(source, name)
+  assert.ok(functionSource, `${name} must be executable from the page source`)
+  return new Function(...Object.keys(args), `return (${functionSource})`)(...Object.values(args))
+}
+
+function assertAiDisplayProjection(page) {
+  const stripAiDisplayPrefix = evaluateFunction(page, 'stripAiDisplayPrefix')
+  const cases = [
+    ['item', 'AI 补充（非最低要求）：防风层', '防风层'],
+    ['reason', 'AI 说明：低温时保暖层更重要', '低温时保暖层更重要'],
+    ['risk', 'AI 说明：雷暴风险解释', '雷暴风险解释'],
+    ['note', 'AI 说明：建议出发前复核', '建议出发前复核'],
+    ['disclaimer', 'AI 补充（非最低要求）：仅供参考', '仅供参考'],
+  ]
+  cases.forEach(([kind, prefixed, substantive]) => {
+    assert.equal(stripAiDisplayPrefix(prefixed), substantive, `${kind} prefix must be removed`)
+    assert.equal(stripAiDisplayPrefix(substantive), substantive, `${kind} substantive content must remain unchanged`)
+  })
+  const emptyMutation = page.replace(/  return text\.replace\([^\n]+/, "  return ''")
+  assert.notEqual(emptyMutation, page, 'empty prefix mutation must change source')
+  assert.throws(() => assertAiDisplayProjection(emptyMutation), undefined, 'empty prefix mutation must turn the focused oracle RED')
+}
+
+function assertWeatherDisclosureProjection(page) {
+  const formatWeatherHourLabel = evaluateFunction(page, 'formatWeatherHourLabel')
+  const buildWeatherSampleDisclosure = (sample) => evaluateFunctionWithArgs(page, 'buildWeatherSampleDisclosure', { formatWeatherHourLabel })(sample)
+  const disclosure = buildWeatherSampleDisclosure({
+    hours: [
+      { localTime: '2026-08-09T08:00', endLocal: '2026-08-09T09:00' },
+      { localTime: '2026-08-09T09:00', endLocal: '2026-08-09T10:00' },
+    ],
+  })
+  assert.deepEqual(disclosure, { firstHour: '08:00', lastHour: '10:00', hourCount: 2 })
+  assert.equal(`${disclosure.firstHour}—${disclosure.lastHour}·${disclosure.hourCount}小时`, '08:00—10:00·2小时')
+  const lastHourMutation = page.replace(/const lastHour =[^\n]*/, "const lastHour = ''")
+  assert.notEqual(lastHourMutation, page, 'lastHour mutation must change source')
+  assert.throws(() => assertWeatherDisclosureProjection(lastHourMutation), undefined, 'lastHour empty mutation must turn the header oracle RED')
+}
+
+function assertToggleIsolation(page) {
+  const toggle = extractMethodSource(page, '  onWeatherSampleToggle = (sampleKey) => {')
+  assert.ok(toggle, 'weather toggle method must remain present')
+  assert.doesNotMatch(toggle, /_saveCache|tripFlow|result|CACHE_KEY|Taro\./, 'weather toggle must stay page-local and data-inert')
+  const cacheMutation = page.replace(
+    '  onWeatherSampleToggle = (sampleKey) => {',
+    '  onWeatherSampleToggle = (sampleKey) => {\n    this._saveCache()\n',
+  )
+  assert.notEqual(cacheMutation, page, 'toggle cache mutation must change source')
+  assert.throws(() => assertToggleIsolation(cacheMutation), undefined, 'toggle cache mutation must turn the focused contract RED')
+}
+
+function assertDisclosureResetSeams(page) {
+  const clearResult = extractMethodSource(page, '  _clearResultLocalState() {')
+  const showBase = extractMethodSource(page, '  _showBaseAndFetchAdvice(base, queryId, params, generation) {')
+  assert.match(clearResult, /this\.setState\(\{ weatherDisclosure: \{\} \}\)/, 'return-to-search must reset disclosure state')
+  assert.match(showBase, /this\.setState\(\{ weatherDisclosure: \{\} \}\)/, 'new base result must reset disclosure state')
+  const clearMutation = page.replace('    this.setState({ weatherDisclosure: {} })', '    // disclosure reset removed')
+  assert.notEqual(clearMutation, page, 'clear-result reset mutation must change source')
+  assert.throws(() => assertDisclosureResetSeams(clearMutation), undefined, 'clear-result reset removal must turn the focused contract RED')
+  const showBaseNeedle = '    this.setState({ historySaveError: null })\n    this.setState({ weatherDisclosure: {} })'
+  const showBaseMutation = page.replace(showBaseNeedle, '    this.setState({ historySaveError: null })')
+  assert.notEqual(showBaseMutation, page, 'new-base reset mutation must change source')
+  assert.throws(() => assertDisclosureResetSeams(showBaseMutation), undefined, 'new-base reset removal must turn the focused contract RED')
+}
+
+function resultPresentationContractForSources(page, css) {
+  assert.match(page, /weatherDisclosure:\s*\{\}/, 'hourly disclosure state must start empty/default-collapsed')
+  assert.match(page, /onWeatherSampleToggle = \(sampleKey\) => \{[\s\S]*weatherDisclosure:\s*\{[\s\S]*\.\.\.previous\.weatherDisclosure[\s\S]*\[sampleKey\]: !previous\.weatherDisclosure\[sampleKey\]/, 'weather disclosure toggling must be keyed per sample')
+  assert.match(page, /function stripAiDisplayPrefix\(value\)/, 'AI display cleanup must be a page presentation helper')
+
+  const resultStart = page.indexOf('    if (showResult && result)')
+  assert.ok(resultStart >= 0, 'structured result render must remain present')
+  const resultRender = page.slice(resultStart)
+  assert.match(resultRender, /stripAiDisplayPrefix\(item\.label\)/, 'AI addition labels must not repeat the section prefix')
+  assert.match(resultRender, /stripAiDisplayPrefix\(risk\.(?:risk|message)/, 'AI risk lines must use display-prefix cleanup')
+  assert.match(resultRender, /aiModel\.notes\.map\([\s\S]*stripAiDisplayPrefix\(note\)/, 'AI notes must use display-prefix cleanup')
+  assert.match(resultRender, /stripAiDisplayPrefix\(aiModel\.disclaimer\)/, 'AI disclaimer must preserve content without a repeated prefix')
+  assert.doesNotMatch(resultRender, /\{item\.label\}：/, 'raw repeated AI addition label must not render directly')
+
+  assert.match(resultRender, /const sampleKey = `\$\{day\.day\}-\$\{sample\.samplePointId\}`/, 'each weather sample needs a stable page-local key')
+  assert.match(resultRender, /const expanded = weatherDisclosure\[sampleKey\] === true/, 'weather samples must be collapsed unless explicitly opened')
+  assert.match(resultRender, /<View className="weather-sample-toggle" role="button" aria-expanded=\{expanded\} onClick=\{\(\) => this\.onWeatherSampleToggle\(sampleKey\)\}>/, 'weather header must expose expanded state and its own toggle')
+  assert.match(resultRender, /(?:sample\.hours\.length|hourCount)/, 'weather header must show the existing hour count')
+  assert.match(resultRender, /firstHour[\s\S]*lastHour/, 'weather header must show the existing hour range')
+  assert.match(resultRender, /expanded && sample\.hours\.map/, 'hourly rows must only render for the expanded sample')
+  assert.match(resultRender, /sample-disclosure-affordance/, 'weather header must include a clear expand/collapse affordance')
+  assert.match(css, /\.weather-sample-toggle\s*\{[^}]*min-height:\s*88rpx/, 'weather toggle target must be at least 88rpx tall')
+  assert.match(css, /\.weather-sample-toggle\s*\{[^}]*display:\s*flex/, 'weather toggle target must have an explicit layout')
+  assertAiDisplayProjection(page)
+  assertWeatherDisclosureProjection(page)
+  assertToggleIsolation(page)
+  assertDisclosureResetSeams(page)
+
+  const prefixMutation = page.replaceAll('stripAiDisplayPrefix(item.label)', 'item.label')
+  assert.notEqual(prefixMutation, page, 'prefix restoration mutation must change page source')
+  assert.throws(() => resultPresentationContractForSources(prefixMutation, css), undefined, 'prefix restoration must turn the focused contract RED')
+
+  const defaultOpenMutation = page.replace('weatherDisclosure[sampleKey] === true', 'weatherDisclosure[sampleKey] !== false')
+  assert.notEqual(defaultOpenMutation, page, 'default-open mutation must change page source')
+  assert.throws(() => resultPresentationContractForSources(defaultOpenMutation, css), undefined, 'default-open mutation must turn the focused contract RED')
+
+  const sharedToggleMutation = page.replace('this.onWeatherSampleToggle(sampleKey)', "this.onWeatherSampleToggle('weather')")
+  assert.notEqual(sharedToggleMutation, page, 'shared-toggle mutation must change page source')
+  assert.throws(() => resultPresentationContractForSources(sharedToggleMutation, css), undefined, 'shared-toggle mutation must turn the focused contract RED')
+
+  const missingHandlerMutation = page.replace('onClick={() => this.onWeatherSampleToggle(sampleKey)}', 'onClick={() => {}}')
+  assert.notEqual(missingHandlerMutation, page, 'missing-toggle-handler mutation must change page source')
+  assert.throws(() => resultPresentationContractForSources(missingHandlerMutation, css), undefined, 'missing-toggle-handler must turn the focused contract RED')
+}
+
+function resultPresentationContract() {
+  const root = path.join(__dirname, '../taro-app/src/pages/index')
+  const page = fs.readFileSync(path.join(root, 'index.jsx'), 'utf8')
+  const css = fs.readFileSync(path.join(root, 'index.css'), 'utf8')
+  resultPresentationContractForSources(page, css)
+}
+
 assertVerdictAndFullWeather()
 assertBoundariesAndDataIssues()
 assertAdviceIsolationAndLifecycle()
 assertCacheChecklistAndHistory()
 assertLifecycleAndHistoryOrchestration()
 assertWmoGroups()
+resultPresentationContract()
 console.log('PASS: I22b structured result-page contract')

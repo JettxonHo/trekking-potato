@@ -1057,6 +1057,64 @@ function secondaryCommunityPageContract() {
   assert.match(pageCss, /track-rights-disclosure/)
 }
 
+function homepagePresentationContract() {
+  const root = path.join(__dirname, '../taro-app/src/pages/index')
+  const homepage = fs.readFileSync(path.join(root, 'index.jsx'), 'utf8')
+  const css = fs.readFileSync(path.join(root, 'index.css'), 'utf8')
+  const renderStart = homepage.indexOf('  render() {')
+  const homepageRender = homepage.slice(renderStart)
+  const queryButton = '<Button block type="primary" className="submit-btn quirky-active" onClick={this.onSubmit}>叽里咕噜地看看带点啥</Button>'
+  const communityButton = '<Button block className="community-track-entry-btn" onClick={this.onCommunityTrackEntry}>社区轨迹</Button>'
+  const historyEntry = '<Text className="history-entry quirky-active" onClick={this.onHistoryTap}>历史查询</Text>'
+  const queryIndex = homepageRender.indexOf(queryButton)
+  const communityIndex = homepageRender.indexOf(communityButton)
+  const historyIndex = homepageRender.indexOf(historyEntry)
+  assert.ok(queryIndex >= 0, 'homepage query button must remain present')
+  assert.ok(communityIndex >= 0, 'homepage community entry must remain present')
+  assert.ok(historyIndex >= 0, 'homepage history entry must remain present')
+  assert.ok(queryIndex < communityIndex && communityIndex < historyIndex, 'homepage order must be query, community, history')
+  assert.match(homepageRender, /<View className="form-action-stack">[\s\S]*submit-btn[\s\S]*community-track-entry-btn[\s\S]*history-entry/)
+  assert.match(css, /\.form-action-stack\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*20rpx/)
+  assert.match(css, /\.submit-btn\s*\{[^}]*margin-top:\s*0rpx\s*!important/)
+  assert.match(css, /\.community-track-entry-btn\s*\{[^}]*margin-top:\s*0rpx\s*!important/)
+  assert.match(css, /\.potato-easter-egg\s*\{[^}]*position:\s*static/)
+
+  const reorderMutation = homepage.replace(
+    `${queryButton}\n          ${communityButton}`,
+    `${communityButton}\n          ${queryButton}`,
+  )
+  assert.notEqual(reorderMutation, homepage, 'homepage reorder mutation must change source')
+  assert.throws(() => homepagePresentationContractForSources(reorderMutation, css), undefined, 'reordered actions must turn the focused contract RED')
+
+  const missingHandlerMutation = homepage.replace('onClick={this.onSubmit}', 'onClick={this.onCommunityTrackEntry}')
+  assert.notEqual(missingHandlerMutation, homepage, 'homepage handler mutation must change source')
+  assert.throws(() => homepagePresentationContractForSources(missingHandlerMutation, css), undefined, 'query handler mutation must turn the focused contract RED')
+
+  const overlapMutation = css.replace('.potato-easter-egg { position: static;', '.potato-easter-egg { position: absolute;')
+  assert.notEqual(overlapMutation, css, 'decorative overlap mutation must change stylesheet')
+  assert.throws(() => homepagePresentationContractForSources(homepage, overlapMutation), undefined, 'decorative overlap mutation must turn the focused contract RED')
+}
+
+function homepagePresentationContractForSources(homepage, css) {
+  const renderStart = homepage.indexOf('  render() {')
+  const homepageRender = homepage.slice(renderStart)
+  const queryButton = '<Button block type="primary" className="submit-btn quirky-active" onClick={this.onSubmit}>叽里咕噜地看看带点啥</Button>'
+  const communityButton = '<Button block className="community-track-entry-btn" onClick={this.onCommunityTrackEntry}>社区轨迹</Button>'
+  const historyEntry = '<Text className="history-entry quirky-active" onClick={this.onHistoryTap}>历史查询</Text>'
+  const queryIndex = homepageRender.indexOf(queryButton)
+  const communityIndex = homepageRender.indexOf(communityButton)
+  const historyIndex = homepageRender.indexOf(historyEntry)
+  assert.ok(queryIndex >= 0, 'homepage query button must remain present')
+  assert.ok(communityIndex >= 0, 'homepage community entry must remain present')
+  assert.ok(historyIndex >= 0, 'homepage history entry must remain present')
+  assert.ok(queryIndex < communityIndex && communityIndex < historyIndex, 'homepage order must be query, community, history')
+  assert.match(homepageRender, /<View className="form-action-stack">[\s\S]*submit-btn[\s\S]*community-track-entry-btn[\s\S]*history-entry/)
+  assert.match(css, /\.form-action-stack\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*20rpx/)
+  assert.match(css, /\.submit-btn\s*\{[^}]*margin-top:\s*0rpx\s*!important/)
+  assert.match(css, /\.community-track-entry-btn\s*\{[^}]*margin-top:\s*0rpx\s*!important/)
+  assert.match(css, /\.potato-easter-egg\s*\{[^}]*position:\s*static/)
+}
+
 function extractNamedFunctionSource(source, name) {
   const marker = `function ${name}`
   const start = source.indexOf(marker)
@@ -1238,6 +1296,7 @@ Promise.resolve()
   .then(sourceWiringContract)
   .then(adminSourceWiringContract)
   .then(secondaryCommunityPageContract)
+  .then(homepagePresentationContract)
   .then(routeSearchContributionContract)
   .then(() => console.log('PASS: C04/C05/C07 track-submission UI contract'))
   .catch((error) => {
