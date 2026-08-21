@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C09 REVIEW_ACTIVE`
+- Status: `ACTIVE — C10 REVIEW_FIX`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -51,6 +51,7 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C7 Focused UX | C07 | community-track owner/admin workflow moves to a secondary page and the route-query homepage is simplified |
 | C8 Retention dry-run | #137 | fail-closed, zero-write retention preview passes Review before any timer or destructive cleanup gate |
 | C9 Search contribution UX | #139 | candidate and no-result states provide an honest private GPX/KML contribution path |
+| C10 Presentation cleanup | #141 | homepage actions, AI copy and hourly weather disclosure match the approved mobile hierarchy |
 
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
 through PR #128 (`0e534d49`), the C06 offline acceptance package through PR #130 (`59ef3c2`), and C07 through
@@ -59,8 +60,9 @@ lives on a secondary page while preserving TP-D056 Option A. Sanitized staging e
 collections/configuration, all six exact indexes and the bundled private owner/admin/rejection/cancel/lease-recovery
 smoke. The Goal remains active because #123 still requires the separately controlled timer/retention rows and runtime-
 tool evidence; no production readiness or Goal completion is claimed. C08 merged through PR #138 as `b582d2c` and
-#137 is closed without deployment, timer activation or deletion. Issue #139 is the only active Review-fix slice;
-it adds the approved search-to-private-submission UX without automatic catalog promotion.
+#137 is closed without deployment, timer activation or deletion. C09 merged through PR #140 as `7a07757`; #139 is
+closed without deployment or automatic catalog promotion. Issue #141 is the only active Review-fix slice and is
+limited to the human-annotated homepage/result presentation cleanup.
 
 ## C09 Review-fix round 3 checkpoint — 2026-08-20
 
@@ -76,6 +78,24 @@ it adds the approved search-to-private-submission UX without automatic catalog p
 - Open work / Next action: commit/push this docs-only correction to existing draft PR #140, then require fresh
   latest-head CI and two exact-head independent Reviews before Sol XHigh decides mergeability. No approval or merge
   is claimed.
+
+## C10 Review-fix checkpoint — 2026-08-21
+
+- Focused TDD RED was captured before production edits: the homepage order oracle failed on the pre-C10
+  community-before-query source, and the result oracle failed on the missing default-collapsed weather state.
+- GREEN is limited to the approved frontend/test allowlist. The homepage now renders query → community → history in a
+  flex action stack with the decorative copy in normal flow; AI lines strip only the repeated display prefixes while
+  retaining item/reason/risk/note/disclaimer/unavailable content; hourly samples use page-local keyed disclosure with
+  existing name/elevation/time/count facts, an 88rpx accessible header and unchanged hourly rows.
+- Focused mutation probes for reorder, handler removal, prefix restoration, default-open, shared-toggle and decorative
+  overlap all return RED when isolated and the restored worktree is GREEN. Root tests, integration `55/0`, lint
+  (0 errors/9 existing warnings), typecheck, fixture-free WeChat build, diff/allowlist/secret scans all pass.
+- Local WeChat DevTools rebuilt and rendered the iPhone 12/13 simulator homepage; source-tree accessibility order is
+  query before community before history. No fixture, CloudBase call, deployment or production action occurred;
+  result-page runtime visual evidence remains unclaimed. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`. Controller next action: commit/push the bounded Review-fix, then
+  require latest-head CI and two fresh exact-head independent Reviews before Sol XHigh decides mergeability. No
+  approval or merge is claimed.
 
 ## Staging finalize Bug authorization — 2026-08-12
 

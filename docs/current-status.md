@@ -1,19 +1,45 @@
 # 当前状态 — TP-COMMUNITY-001
 
-- Updated: `2026-08-20`
+- Updated: `2026-08-21`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C09 REVIEW_ACTIVE`
-- Active task: `#139 / READY_FOR_CONTROLLER_REVIEW` (route-search contribution fallback; parent #123/#115 remain open)
-- Branch/base: `codex/139-route-upload-fallback` from `main@b582d2c`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C10 REVIEW_FIX`
+- Active task: `#141 / READY_FOR_CONTROLLER_REVIEW` (mobile presentation cleanup; parent #123/#115 remain open)
+- Branch/base: `codex/141-ui-hierarchy` from `main@7a07757`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: PR #135 merged the diagnostic-free finalize/CAS fix as `ac600e5`; focused Bug #134 is closed after its
   anonymous synthetic runtime blocker passed. Sanitized direct console/runtime observation now verifies S1–S7 and S17
   in the authoritative ledger. S8–S15 and S20 remain `BLOCKED`; S16 and S18 remain
   `UNVERIFIED_RUNTIME_TOOL`. PR #138 merged the fail-closed retention dry-run as `b582d2c`; #137 is closed without
-  deployment, timer activation or deletion. #139 is now the only active Review-fix task and is limited to the
-  approved search-to-private-submission UX. No production/public release or automatic catalog promotion is authorized.
+  deployment, timer activation or deletion. PR #140 merged the search contribution UX as `7a07757`; #139 is closed.
+  #141 is now the only active Review-fix task. No production/public release, server change or automatic catalog
+  promotion is authorized.
+
+## C10 presentation cleanup activation — 2026-08-21
+
+- The human supplied three annotated mobile screenshots and approved a bounded hierarchy cleanup: query before the
+  secondary community entry without overlap; one AI section heading without repeated line prefixes; and independently
+  collapsible, default-closed hourly weather locations.
+- Collapsed weather headers show only existing location/elevation/time-range/count facts. They do not compute a new
+  weather or safety summary, and the underlying trusted weather/result models remain unchanged.
+- #141 owns the exact frontend/test/status allowlist in ACTIVE_TASK. No Cloud Function, model/service contract,
+  dependency, deployment, CloudBase mutation, timer, deletion or publication action is authorized.
+
+## C10 Review-fix checkpoint — 2026-08-21
+
+- The focused contracts recorded real RED before production edits, then GREEN after the minimal homepage order,
+  display-prefix and hourly disclosure changes. Reorder, missing-handler, prefix-restoration, default-open,
+  shared-toggle and decorative-overlap mutations each turn the focused contracts RED and were restored.
+- `node scripts/track-ui-contract-test.js`, `node scripts/result-page-contract-test.js`, root `npm test`, offline
+  integration `55/0`, lint (0 errors/9 existing warnings), typecheck, fixture-free `CI=1 build:weapp`,
+  `git diff --check`, exact allowlist and secret scans pass. No model/service/server/API/config/dependency file changed.
+- WeChat DevTools opened the existing local `taro-app`, rebuilt it and visually rendered the iPhone 12/13 homepage;
+  accessibility order is query → community → history. No fixture or CloudBase/runtime query was used, so result-page
+  runtime visual evidence is not claimed. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`. Controller next action: commit/push the bounded Review-fix, then
+  require latest-head CI and two fresh exact-head independent Reviews before Sol XHigh decides mergeability; approval
+  and merge remain controller-owned.
 
 ## C09 route-search contribution activation — 2026-08-20
 
@@ -1554,15 +1580,15 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: assigned to bounded #139 route-search contribution UX on `codex/139-route-upload-fallback`; it must
+- `luna-worker`: assigned to bounded #141 presentation cleanup on `codex/141-ui-hierarchy`; it must
   return `READY_FOR_CONTROLLER_REVIEW` and cannot approve, merge, deploy or mutate staging. Completed subagents are
   closed immediately after handoff.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Complete #139 through focused TDD, full local gates, two independent Reviews, latest-head CI and merge without
-   changing server contracts or automatic catalog promotion.
+1. Complete #141 through focused TDD, local visual verification, full gates, two independent Reviews and latest-head
+   CI without changing trusted route/weather/verdict/advice or community-track contracts.
 2. Deploy the reviewed dry-run-capable function only under a separate staging step; do not create,
    enable or invoke a timer and do not select delete mode without the later human gate.
 3. Continue #123 serially through S8–S14, preserving S15/S20 as `BLOCKED` and S16/S18 as
@@ -1609,10 +1635,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Controller commits/pushes the docs-only lifecycle correction to existing draft PR #140, then waits for fresh
-latest-head CI and two exact-head independent Reviews before Sol XHigh decides mergeability. Do not change
-server/API/schema/storage/retention, deploy, mutate CloudBase, publish a route automatically or claim production
-readiness.
+Controller commits and pushes the bounded #141 Review-fix, then requires latest-head CI and two fresh exact-head
+independent Reviews before Sol XHigh decides mergeability. Do not change server/data contracts, deploy, mutate
+CloudBase or claim release.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

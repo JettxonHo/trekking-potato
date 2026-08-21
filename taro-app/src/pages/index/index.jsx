@@ -65,6 +65,28 @@ const DETERMINISTIC_RISK_ADVICE = '本风险由海拔/季节规则判定，请�
 const AI_UNAVAILABLE_NOTE = 'AI 说明暂不可用，当前仅展示确定性规则结果。'
 const HISTORY_SAVE_ERROR = '历史未保存，不影响本次结果'
 
+function stripAiDisplayPrefix(value) {
+  if (value === null || value === undefined) return ''
+  const text = String(value)
+  return text.replace(/^\s*(?:AI 补充（非最低要求）|AI 说明)\s*[:：]?\s*/, '').trim()
+}
+
+function formatWeatherHourLabel(value) {
+  if (value === null || value === undefined) return ''
+  const text = String(value)
+  const match = text.match(/(?:T|\s)(\d{2}:\d{2})/)
+  return match ? match[1] : text
+}
+
+function buildWeatherSampleDisclosure(sample) {
+  const hours = sample && Array.isArray(sample.hours) ? sample.hours : []
+  const first = hours[0] || {}
+  const last = hours[hours.length - 1] || {}
+  const firstHour = formatWeatherHourLabel(first.localTime)
+  const lastHour = formatWeatherHourLabel(last.endLocal || last.localTime)
+  return { firstHour, lastHour, hourCount: hours.length }
+}
+
 function normalizeCommunityTrackDraftTitle(value) {
   if (typeof value !== 'string' || /[\u0000-\u001f\u007f-\u009f]/.test(value)) return ''
   const text = value.trim()
@@ -135,6 +157,7 @@ export default class Index extends Component {
     historySaveError: null,
     historyPrefillNotice: '',
     gearChecked: {},
+    weatherDisclosure: {},
   }
 
   // Page-local checklist projection; trip-flow remains the only query state machine.
@@ -209,6 +232,7 @@ export default class Index extends Component {
     this._clearRecoverySlots()
     this._invalidateHistorySaveIntent()
     this._applyChecklistLifecycle({ type: 'return_to_search' }, true)
+    this.setState({ weatherDisclosure: {} })
   }
 
   _clearRecoverySlots() {
@@ -541,6 +565,7 @@ export default class Index extends Component {
         ai: { status: 'loading' },
     }
     this.setState({ historySaveError: null })
+    this.setState({ weatherDisclosure: {} })
     this._updateTripFlow({ type: 'BASE_RECEIVED', token: generation, result: baseResult, queryId }, null, (flow) => {
       if (this._unmounted || flow.token !== generation || flow.status !== 'base_ready') return
       this._saveCache(generation)
@@ -768,6 +793,15 @@ export default class Index extends Component {
     })
   }
 
+  onWeatherSampleToggle = (sampleKey) => {
+    this.setState((previous) => ({
+      weatherDisclosure: {
+        ...previous.weatherDisclosure,
+        [sampleKey]: !previous.weatherDisclosure[sampleKey],
+      },
+    }))
+  }
+
   // ===== 结果缓存 =====
   _saveCache() {
     const token = arguments[0]
@@ -978,7 +1012,7 @@ export default class Index extends Component {
   }
 
   render() {
-    const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, showHistory, historyList, historyLoading, historyError, historySaveError, historyPrefillNotice, gearChecked } = this.state
+    const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, showHistory, historyList, historyLoading, historyError, historySaveError, historyPrefillNotice, gearChecked, weatherDisclosure } = this.state
     const { loading, refreshing, showResult, showCandidatePopup, showManualCoords, errorMessage } = selectTripFlowView(tripFlow)
     const { result, candidates, routeTypeRequest } = tripFlow
     const recoveryActions = selectRecoveryActions(tripFlow, this._recoverySlots)
@@ -1058,20 +1092,31 @@ export default class Index extends Component {
             {weatherModel.kind === 'hourly' && weatherModel.days.map((day) => (
               <View key={`${day.day}-${day.date}`} className="hourly-day">
                 <View className="hourly-day-heading"><Text className="day-date">第{day.day}天 · {this.formatWeatherDate(day.date)}</Text><Text className="day-window">{day.startLocal}—{day.endLocalExclusive}</Text></View>
-                {day.samples.map((sample) => (
-                  <View key={`${day.day}-${sample.samplePointId}`} className="weather-sample">
-                    <Text className="sample-heading">{sample.name || '采样点'} · {sample.elevationM === null ? '海拔待确认' : `${sample.elevationM}m`}</Text>
-                    {sample.hours.map((hour, index) => (
-                      <View key={`${sample.samplePointId}-${hour.localTime || index}`} className="weather-hour">
-                        <Text className="hour-time">{hour.localTime || '时间待确认'}</Text>
-                        <Text className="hour-condition">{hour.condition}</Text>
-                        <Text className="hour-measure">温度 {hour.temperatureC}°C / 体感 {hour.apparentTemperatureC}°C</Text>
-                        <Text className="hour-measure">降水 {hour.precipitationProbabilityPct}% · {hour.precipitationMm}mm · 雪 {hour.snowfallCm}cm</Text>
-                        <Text className="hour-measure">平均风 {hour.averageWindMs}m/s · 阵风 {hour.windGustMs}m/s · 能见度 {hour.visibilityM}m</Text>
+                {day.samples.map((sample) => {
+                  const sampleKey = `${day.day}-${sample.samplePointId}`
+                  const expanded = weatherDisclosure[sampleKey] === true
+                  const { firstHour, lastHour, hourCount } = buildWeatherSampleDisclosure(sample)
+                  return (
+                    <View key={sampleKey} className="weather-sample">
+                      <View className="weather-sample-toggle" role="button" aria-expanded={expanded} onClick={() => this.onWeatherSampleToggle(sampleKey)}>
+                        <Text className="sample-heading">{sample.name || '采样点'} · {sample.elevationM === null ? '海拔待确认' : `${sample.elevationM}m`}</Text>
+                        <View className="sample-disclosure-row">
+                          <Text className="sample-disclosure-meta">时段 {firstHour || '时间待确认'}—{lastHour || '时间待确认'} · {hourCount}小时</Text>
+                          <Text className="sample-disclosure-affordance">{expanded ? '收起详情 ↑' : '展开详情 ↓'}</Text>
+                        </View>
                       </View>
-                    ))}
-                  </View>
-                ))}
+                      {expanded && sample.hours.map((hour, index) => (
+                        <View key={`${sample.samplePointId}-${hour.localTime || index}`} className="weather-hour">
+                          <Text className="hour-time">{hour.localTime || '时间待确认'}</Text>
+                          <Text className="hour-condition">{hour.condition}</Text>
+                          <Text className="hour-measure">温度 {hour.temperatureC}°C / 体感 {hour.apparentTemperatureC}°C</Text>
+                          <Text className="hour-measure">降水 {hour.precipitationProbabilityPct}% · {hour.precipitationMm}mm · 雪 {hour.snowfallCm}cm</Text>
+                          <Text className="hour-measure">平均风 {hour.averageWindMs}m/s · 阵风 {hour.windGustMs}m/s · 能见度 {hour.visibilityM}m</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )
+                })}
               </View>
             ))}
             {weatherModel.kind === 'reference' && weatherModel.days.map((day, index) => (
@@ -1132,10 +1177,10 @@ export default class Index extends Component {
             {aiModel.status === 'context_expired' && <Text className="ai-status ai-degraded">本次 AI 上下文已失效，确定性结果仍然有效。</Text>}
             {aiModel.status === 'context_expired' && <Button size="small" className="inline-retry-btn" onClick={this.onContextRetry}>重新准备行程</Button>}
             {aiModel.status === 'ready' && aiModel.additions.length === 0 && aiModel.risks.length === 0 && aiModel.notes.length === 0 && !aiModel.disclaimer && <Text className="empty-hint">暂无 AI 补充</Text>}
-            {aiModel.additions.length > 0 && <View className="ai-additions">{aiModel.additions.map((item, index) => <Text key={`${item.item}-${index}`} className="ai-addition">{item.label}：{item.item}{item.reason ? ` · ${item.reason}` : ''}</Text>)}</View>}
-            {aiModel.risks.map((risk, index) => <Text key={`ai-risk-${index}`} className="note-item">{risk.risk || risk.message || String(risk)}</Text>)}
-            {aiModel.notes.map((note, index) => <Text key={`ai-note-${index}`} className="note-item">{note}</Text>)}
-            {aiModel.disclaimer && <View className="disclaimer-box"><Text className="disclaimer-text">{aiModel.disclaimer}</Text></View>}
+            {aiModel.additions.length > 0 && <View className="ai-additions">{aiModel.additions.map((item, index) => <Text key={`${item.item}-${index}`} className="ai-addition">{stripAiDisplayPrefix(item.label) ? `${stripAiDisplayPrefix(item.label)}：` : ''}{item.item}{item.reason ? ` · ${item.reason}` : ''}</Text>)}</View>}
+            {aiModel.risks.map((risk, index) => <Text key={`ai-risk-${index}`} className="note-item">{stripAiDisplayPrefix(risk.risk || risk.message || String(risk))}</Text>)}
+            {aiModel.notes.map((note, index) => <Text key={`ai-note-${index}`} className="note-item">{stripAiDisplayPrefix(note)}</Text>)}
+            {aiModel.disclaimer && <View className="disclaimer-box"><Text className="disclaimer-text">{stripAiDisplayPrefix(aiModel.disclaimer)}</Text></View>}
           </View>
 
           <Button block className="retry-btn" onClick={this.onBack}>返回重新查询</Button>
@@ -1211,10 +1256,11 @@ export default class Index extends Component {
 
         </View>
 
-        <Button block className="community-track-entry-btn" onClick={this.onCommunityTrackEntry}>社区轨迹</Button>
-        <Button block type="primary" className="submit-btn quirky-active" onClick={this.onSubmit}>叽里咕噜地看看带点啥</Button>
-
-        <Text className="history-entry quirky-active" onClick={this.onHistoryTap}>历史查询</Text>
+        <View className="form-action-stack">
+          <Button block type="primary" className="submit-btn quirky-active" onClick={this.onSubmit}>叽里咕噜地看看带点啥</Button>
+          <Button block className="community-track-entry-btn" onClick={this.onCommunityTrackEntry}>社区轨迹</Button>
+          <Text className="history-entry quirky-active" onClick={this.onHistoryTap}>历史查询</Text>
+        </View>
 
         {historyPrefillNotice && <View className="history-prefill-notice"><Text>{historyPrefillNotice}</Text></View>}
         {error && <View className="error-box"><Text>{error}</Text></View>}
