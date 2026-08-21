@@ -65,6 +65,21 @@ const DETERMINISTIC_RISK_ADVICE = '本风险由海拔/季节规则判定，请�
 const AI_UNAVAILABLE_NOTE = 'AI 说明暂不可用，当前仅展示确定性规则结果。'
 const HISTORY_SAVE_ERROR = '历史未保存，不影响本次结果'
 
+function formatReasonSeverityLabel(severity) {
+  switch (severity) {
+    case 'no_go':
+      return '暂不建议'
+    case 'caution':
+      return '谨慎出发'
+    case null:
+    case undefined:
+    case '':
+      return '提示'
+    default:
+      return severity || '提示'
+  }
+}
+
 function stripAiDisplayPrefix(value) {
   if (value === null || value === undefined) return ''
   const text = String(value)
@@ -1073,7 +1088,7 @@ export default class Index extends Component {
             <Text className="card-title">确定性判断</Text>
             {pageModel.reasons.length > 0 ? pageModel.reasons.map((reason, index) => (
               <View key={`${reason.code || 'reason'}-${index}`} className="reason-item">
-                <Text className={`reason-severity reason-${reason.severity || 'info'}`}>{reason.severity || '提示'}</Text>
+                <Text className={`reason-severity reason-${reason.severity || 'info'}`}>{formatReasonSeverityLabel(reason.severity)}</Text>
                 <Text className="reason-message">{reason.message || '确定性规则提示'}</Text>
               </View>
             )) : <Text className="empty-hint">暂无确定性风险提示</Text>}
