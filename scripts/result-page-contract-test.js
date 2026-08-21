@@ -406,6 +406,36 @@ function assertAiDisplayProjection(page) {
   assert.throws(() => assertAiDisplayProjection(emptyMutation), undefined, 'empty prefix mutation must turn the focused oracle RED')
 }
 
+function assertReasonSeverityDisplayProjection(page) {
+  const formatReasonSeverityLabel = evaluateFunction(page, 'formatReasonSeverityLabel')
+  assert.equal(formatReasonSeverityLabel('no_go'), '暂不建议', 'no_go certainty must use the established business label')
+  assert.equal(formatReasonSeverityLabel('caution'), '谨慎出发', 'caution certainty must use the established business label')
+  assert.equal(formatReasonSeverityLabel('info'), 'info', 'unknown severity must remain unchanged')
+  assert.equal(formatReasonSeverityLabel('unknown'), 'unknown', 'unknown severity text must remain unchanged')
+  assert.equal(formatReasonSeverityLabel('constructor'), 'constructor', 'constructor severity text must remain unchanged')
+  assert.equal(formatReasonSeverityLabel('__proto__'), '__proto__', '__proto__ severity text must remain unchanged')
+  assert.equal(formatReasonSeverityLabel('toString'), 'toString', 'toString severity text must remain unchanged')
+  assert.equal(formatReasonSeverityLabel(null), '提示', 'null severity must use the existing prompt fallback')
+  assert.equal(formatReasonSeverityLabel(undefined), '提示', 'undefined severity must use the existing prompt fallback')
+  assert.equal(formatReasonSeverityLabel(''), '提示', 'missing severity must retain the existing prompt fallback')
+
+  const resultStart = page.indexOf('    if (showResult && result)')
+  assert.ok(resultStart >= 0, 'structured result render must remain present')
+  const resultRender = page.slice(resultStart)
+  assert.match(resultRender, /reason\.severity \|\| 'info'/, 'reason color class must remain bound to the machine severity')
+  assert.match(resultRender, /formatReasonSeverityLabel\(reason\.severity\)/, 'reason text must use the display-only certainty mapping')
+  assert.match(resultRender, /reason\.message \|\| '确定性规则提示'/, 'reason messages must remain visible in the result list')
+  assert.match(resultRender, /pageModel\.reasons\.map\(\(reason, index\)/, 'reason order must remain the page-model order')
+
+  const noGoMappingMutation = page.replace("    case 'no_go':\n      return '暂不建议'", '')
+  assert.notEqual(noGoMappingMutation, page, 'no_go mapping deletion mutation must change page source')
+  assert.throws(() => assertReasonSeverityDisplayProjection(noGoMappingMutation), undefined, 'no_go mapping deletion must turn the focused oracle RED')
+
+  const cautionMappingMutation = page.replace("    case 'caution':\n      return '谨慎出发'", '')
+  assert.notEqual(cautionMappingMutation, page, 'caution mapping deletion mutation must change page source')
+  assert.throws(() => assertReasonSeverityDisplayProjection(cautionMappingMutation), undefined, 'caution mapping deletion must turn the focused oracle RED')
+}
+
 function assertWeatherDisclosureProjection(page) {
   const formatWeatherHourLabel = evaluateFunction(page, 'formatWeatherHourLabel')
   const buildWeatherSampleDisclosure = (sample) => evaluateFunctionWithArgs(page, 'buildWeatherSampleDisclosure', { formatWeatherHourLabel })(sample)
@@ -472,6 +502,7 @@ function resultPresentationContractForSources(page, css) {
   assert.match(css, /\.weather-sample-toggle\s*\{[^}]*min-height:\s*88rpx/, 'weather toggle target must be at least 88rpx tall')
   assert.match(css, /\.weather-sample-toggle\s*\{[^}]*display:\s*flex/, 'weather toggle target must have an explicit layout')
   assertAiDisplayProjection(page)
+  assertReasonSeverityDisplayProjection(page)
   assertWeatherDisclosureProjection(page)
   assertToggleIsolation(page)
   assertDisclosureResetSeams(page)

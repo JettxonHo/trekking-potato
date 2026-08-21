@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C10 REVIEW_FIX`
+- Status: `ACTIVE — C11 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -52,6 +52,7 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C8 Retention dry-run | #137 | fail-closed, zero-write retention preview passes Review before any timer or destructive cleanup gate |
 | C9 Search contribution UX | #139 | candidate and no-result states provide an honest private GPX/KML contribution path |
 | C10 Presentation cleanup | #141 | homepage actions, AI copy and hourly weather disclosure match the approved mobile hierarchy |
+| C11 Verdict labels | #143 | internal certainty severities render as established business Chinese labels without changing rules |
 
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
 through PR #128 (`0e534d49`), the C06 offline acceptance package through PR #130 (`59ef3c2`), and C07 through
@@ -61,8 +62,8 @@ collections/configuration, all six exact indexes and the bundled private owner/a
 smoke. The Goal remains active because #123 still requires the separately controlled timer/retention rows and runtime-
 tool evidence; no production readiness or Goal completion is claimed. C08 merged through PR #138 as `b582d2c` and
 #137 is closed without deployment, timer activation or deletion. C09 merged through PR #140 as `7a07757`; #139 is
-closed without deployment or automatic catalog promotion. Issue #141 is the only active Review-fix slice and is
-limited to the human-annotated homepage/result presentation cleanup.
+closed without deployment or automatic catalog promotion. C10 merged through PR #142 as `e417ab8`; #141 is closed.
+Issue #143 is the only active review-fix slice and is limited to the human-annotated certainty-label cleanup.
 
 ## C09 Review-fix round 3 checkpoint — 2026-08-20
 

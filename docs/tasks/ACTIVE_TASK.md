@@ -1,77 +1,80 @@
-# ACTIVE TASK — #141 mobile presentation cleanup
+# ACTIVE TASK — #143 certainty labels
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C10 REVIEW_FIX`
-- Milestone: `C10 Presentation cleanup` under community-track evidence (#115)
-- GitHub Issue: `#141`
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / REVIEW_FIX`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C11 REVIEW_ACTIVE`
+- Milestone: `C11 Verdict labels` under community-track evidence (#115)
+- GitHub Issue: `#143`
+- Status/Mode: `REVIEW_ACTIVE / REVIEW_FIX`
 - Controller: Sol XHigh + human operator
-- Branch/base: `codex/141-ui-hierarchy` from `main@7a07757`
+- Branch/base: `codex/143-verdict-labels` from `main@e417ab8`
 - Executor: exact custom `luna-worker`, configured `gpt-5.6-luna` / `max`; runtime identity is separate evidence
 
 ## 1. Objective and approved design
 
-Apply the human-annotated mobile hierarchy fixes without changing trusted data or workflow contracts:
+Replace visible internal certainty severities with the established business Chinese labels:
 
-1. homepage primary query button before secondary `社区轨迹`, with `历史查询` below both and no text overlap;
-2. one `AI 补充说明` section heading, with repeated per-line AI prefixes removed while substantive content remains;
-3. each hourly weather location independently toggles, is collapsed by default, and shows an existing-fact header
-   (location, elevation, hour range/count) before its unchanged hourly rows.
+- `no_go` renders as `暂不建议`;
+- `caution` renders as `谨慎出发`.
+
+This is display-only. Existing reason messages, order, severity codes, color semantics, overall verdict and deterministic
+safety decisions remain unchanged.
 
 ## 2. Exact allowlist
 
 - `taro-app/src/pages/index/index.jsx`
-- `taro-app/src/pages/index/index.css`
 - `scripts/result-page-contract-test.js`
-- `scripts/track-ui-contract-test.js`
 - `GOAL.md` lifecycle/status only
 - `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
-- `docs/product-requirements.md`, `docs/testing-strategy.md`, `docs/decision-log.md` only if a durable contract needs sync
+- `docs/product-requirements.md` only if durable wording needs clarification
 
-No result-page model, service, Cloud Function, API, schema, weather/verdict/advice generator, dependency or config file
-may change. Escalate before widening.
+No CSS, result model, service, Cloud Function, API, schema, route/weather/verdict/advice generator, dependency or config
+file may change. Escalate before widening.
 
 ## 3. Frozen behavior and safety boundary
 
-- Query, community and history handlers keep their existing meanings; only order/spacing changes.
-- Deterministic verdict, minimum gear, weather data, sources and AI/deterministic ownership remain unchanged.
-- Prefix cleanup is display-only and cannot discard item, reason, risk, note, disclaimer or unavailable-state content.
-- Weather disclosure is page-local presentation state; it never mutates cached/result weather data and computes no new
-  weather or safety summary.
-- Each disclosure target is at least 88rpx tall, exposes expanded state, and toggles only its own sample.
+- The machine-readable `severity` values remain `no_go` / `caution`; only their rendered labels change.
+- Every existing reason message remains visible and in the same order.
+- The existing red/orange severity styling remains bound to the original severity code.
+- No rules, thresholds, weather facts, route facts, cache/history payloads or public contracts change.
 
 ## 4. Pre-agreed TDD seams and acceptance
 
-Test through:
-
-1. `scripts/track-ui-contract-test.js` for exact homepage element order, handlers and spacing contract;
-2. `scripts/result-page-contract-test.js` for display-prefix cleanup and independent disclosure behavior;
-3. the existing page render and result model as the only production seams.
+Test through `scripts/result-page-contract-test.js` and the existing result-page render seam in
+`taro-app/src/pages/index/index.jsx`.
 
 Required evidence:
 
 - real focused RED before production edits, then minimal GREEN;
-- representative reorder, prefix restoration, default-open/shared-toggle and missing-handler mutations turn tests RED;
-- focused UI/result, root tests, integration, lint, typecheck, fixture-free WeChat build and diff-check pass;
-- local WeChat project is opened/run for visual inspection; inability to inspect is reported, not fabricated.
+- exact visible labels `暂不建议` and `谨慎出发`, with reason content retained;
+- removing either label mapping turns the focused test RED;
+- focused result test, root tests, lint, typecheck, fixture-free WeChat build and diff-check pass;
+- local WeChat simulator is opened for visual inspection; inability to produce the target state is reported.
 
 ## 5. Non-scope and stop conditions
 
-No server/API/schema/storage/community workflow/route/weather/verdict/advice-generation change, dependency, CloudBase
-mutation, deployment, timer, deletion, publication or production release. Stop on scope expansion or contract conflict.
+No server/API/schema/storage/community workflow/route/weather/verdict/advice-generation change, CSS redesign,
+dependency, CloudBase mutation, deployment, timer, deletion, publication or production release. Stop on scope expansion
+or contract conflict.
 
 ## 6. Deliverable
 
-Return `READY_FOR_CONTROLLER_REVIEW` with RED/GREEN/mutation evidence, exact files, local visual evidence and full gates.
+Return `READY_FOR_CONTROLLER_REVIEW` with RED/GREEN/mutation evidence, exact files, local visual evidence and gates.
 The executor cannot approve, merge, deploy or publish. Two fresh independent Reviews and latest-head CI remain required.
 
 ## 7. Executor checkpoint — 2026-08-21
 
-- Status: `READY_FOR_CONTROLLER_REVIEW` after focused RED/GREEN, mutation-sensitive UI/result contracts and the full
-  local gate matrix.
-- Visual boundary: local WeChat DevTools rebuilt and rendered the iPhone 12/13 homepage action hierarchy; no fixture,
-  CloudBase call, deployment or result-page runtime claim was made.
-- Draft PR #142 is published. GitHub is authoritative for the current head and quality result. Controller next action:
-  complete two fresh exact-head independent Reviews; Sol XHigh may decide mergeability only if that current head also
-  has successful quality, and any head change repeats both gates. Approval and merge remain controller-owned.
+- Focused TDD RED preceded the JSX edit; GREEN now verifies exact `no_go`/`caution` business labels, preserved reason
+  content/order and original severity styling. Deleting either mapping independently makes the focused contract RED.
+- Focused/root tests, lint, typecheck, fixture-free WeChat build and diff-check pass. Local WeChat DevTools rendered the
+  result page on the iPhone 12/13 simulator with both labels visible. No deployment, CloudBase call or production action.
+- Status: `READY_FOR_CONTROLLER_REVIEW`; latest-head CI, two exact-head independent Reviews and controller approval remain
+  required.
+
+## 8. Review-fix round 1 — 2026-08-21
+
+- P2-1 focused RED covered `constructor`, `__proto__`, `toString`, other unknown strings and null/undefined/empty
+  fallbacks. GREEN uses one `switch`; the frozen no_go/caution mapping mutations remain independently RED-sensitive.
+- Review-fix remains the active #143 slice. The controller owns commit/push and draft-PR publication, followed by
+  latest-head CI and two fresh exact-head independent Reviews; no approval, merge, deployment or CloudBase action is
+  claimed.

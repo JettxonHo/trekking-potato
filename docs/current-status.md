@@ -3,9 +3,9 @@
 - Updated: `2026-08-21`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C10 REVIEW_FIX`
-- Active task: `#141 / READY_FOR_CONTROLLER_REVIEW` (mobile presentation cleanup; parent #123/#115 remain open)
-- Branch/base: `codex/141-ui-hierarchy` from `main@7a07757`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C11 REVIEW_ACTIVE`
+- Active task: `#143 / REVIEW_ACTIVE` (certainty-label review-fix slice; parent #123/#115 remain open)
+- Branch/base: `codex/143-verdict-labels` from `main@e417ab8`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: PR #135 merged the diagnostic-free finalize/CAS fix as `ac600e5`; focused Bug #134 is closed after its
@@ -13,8 +13,39 @@
   in the authoritative ledger. S8–S15 and S20 remain `BLOCKED`; S16 and S18 remain
   `UNVERIFIED_RUNTIME_TOOL`. PR #138 merged the fail-closed retention dry-run as `b582d2c`; #137 is closed without
   deployment, timer activation or deletion. PR #140 merged the search contribution UX as `7a07757`; #139 is closed.
-  #141 is now the only active Review-fix task. No production/public release, server change or automatic catalog
-  promotion is authorized.
+  PR #142 merged the C10 presentation cleanup as `e417ab8`; #141 is closed. #143 is now the only active review slice.
+  No production/public release, server change or automatic catalog promotion is authorized.
+
+## C11 certainty-label activation — 2026-08-21
+
+- The human annotated the result-page certainty list because visible `no_go` / `caution` codes are implementation
+  vocabulary rather than user-facing guidance.
+- The display-only mapping is frozen to the existing product contract: `no_go -> 暂不建议` and
+  `caution -> 谨慎出发`. Reason messages, ordering, severity codes, colors, overall verdict and deterministic rules
+  remain unchanged.
+- #143 owns the exact frontend/test/status allowlist recorded in ACTIVE_TASK. No Cloud Function, API, route, weather,
+  verdict-generation, data, dependency, deployment, CloudBase, timer, deletion or publication action is authorized.
+
+## C11 implementation checkpoint — 2026-08-21
+
+- The focused result contract recorded a real RED before the JSX edit, then GREEN after the minimal display-only
+  `no_go -> 暂不建议` / `caution -> 谨慎出发` mapping. Independent deletion mutations for either mapping turn the
+  focused contract RED; the original severity class, reason messages and order remain asserted.
+- `npm run test:result-page`, root `npm test`, lint (0 errors/9 existing warnings), typecheck, fixture-free `CI=1`
+  WeChat build and `git diff --check` pass. Local WeChat DevTools rendered the result page on the iPhone 12/13
+  simulator with both business labels and their reason content visible. No fixture, CloudBase call, deployment or
+  production action occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; controller-owned latest-head CI, two fresh exact-head independent
+  Reviews, approval and merge remain required.
+
+## C11 Review-fix round 1 checkpoint — 2026-08-21
+
+- P2-1 focused RED was captured against the inherited-object lookup (`constructor` returned a function); GREEN now uses
+  one display-only `switch` so `no_go`/`caution` map exactly, every unknown string remains unchanged, and null,
+  undefined or empty severity uses `提示`. Separate deletion of either mapping still turns the focused contract RED.
+- `#143` remains the active review slice. Controller next action is to commit/push this current worktree and publish or
+  update its draft PR, then require latest-head CI and two fresh exact-head independent Reviews. No deployment,
+  CloudBase call, production action, approval or merge is claimed.
 
 ## C10 presentation cleanup activation — 2026-08-21
 
@@ -1635,9 +1666,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Complete the two fresh exact-head independent Reviews for draft PR #142. Sol XHigh may decide mergeability only if the
-GitHub current head also has successful quality; any head change repeats both gates. Do not change server/data
-contracts, deploy, mutate CloudBase or claim release.
+For the #143 current worktree, the controller must commit/push and publish or update the draft PR, then require
+latest-head CI and two fresh exact-head independent Reviews. Sol XHigh may decide mergeability only after those gates;
+do not change server/data contracts, deploy, mutate CloudBase or claim release.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
