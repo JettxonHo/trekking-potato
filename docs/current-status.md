@@ -3,9 +3,9 @@
 - Updated: `2026-08-21`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C11 REVIEW_ACTIVE`
-- Active task: `#143 / REVIEW_ACTIVE` (certainty-label review-fix slice; parent #123/#115 remain open)
-- Branch/base: `codex/143-verdict-labels` from `main@e417ab8`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C12 IMPLEMENTATION_ACTIVE`
+- Active task: `#145 / IMPLEMENTATION_ACTIVE` (B-lite reviewed route-map preview; parent #123/#115 remain open)
+- Branch/base: `codex/145-route-map-preview` from `main@93a86d8`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: PR #135 merged the diagnostic-free finalize/CAS fix as `ac600e5`; focused Bug #134 is closed after its
@@ -13,8 +13,22 @@
   in the authoritative ledger. S8–S15 and S20 remain `BLOCKED`; S16 and S18 remain
   `UNVERIFIED_RUNTIME_TOOL`. PR #138 merged the fail-closed retention dry-run as `b582d2c`; #137 is closed without
   deployment, timer activation or deletion. PR #140 merged the search contribution UX as `7a07757`; #139 is closed.
-  PR #142 merged the C10 presentation cleanup as `e417ab8`; #141 is closed. #143 is now the only active review slice.
+  PR #142 merged the C10 presentation cleanup as `e417ab8`; #141 is closed. PR #144 merged C11 as `93a86d8` and
+  #143 is closed. #145 is now the only active implementation slice.
   No production/public release, server change or automatic catalog promotion is authorized.
+
+## C12 B-lite route-map preview activation — 2026-08-21
+
+- The human approved B-lite after reviewing the throwaway A/B/C prototype: a noninteractive map thumbnail inside the
+  result summary card, fitted to the full reviewed GPX/KML-derived route, with day lines and start/end indicators.
+- The additive `routePreview` projection is globally bounded to 500 points and seven ordered segments. It contains
+  only coordinate system, bounds, day and latitude/longitude points; it excludes raw XML, timestamps, elevation,
+  identity, submission/evidence/file identifiers, storage references, URLs, provenance and notes.
+- Only a controller-curated catalog projection may populate the field. Weather sample points are not full geometry.
+  Missing, invalid or unreviewed geometry produces no placeholder; map errors use a neutral local route-outline
+  fallback from the same safe projection. A future interactive viewer remains separate.
+- Live #145 is the authority for the exact allowlist and pre-agreed TDD seams. No dependency, map key, private evidence
+  lookup, deployment, CloudBase mutation, timer, deletion, catalog auto-promotion or public release is authorized.
 
 ## C11 certainty-label activation — 2026-08-21
 
@@ -1666,9 +1680,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-For the #143 current worktree, the controller must commit/push and publish or update the draft PR, then require
-latest-head CI and two fresh exact-head independent Reviews. Sol XHigh may decide mergeability only after those gates;
-do not change server/data contracts, deploy, mutate CloudBase or claim release.
+Dispatch exact `luna-worker` for #145 after the mandatory handshake. The executor must start with the agreed public
+catalog/BaseData/result-page seams, record a real RED before production edits, and stop if no truthful reviewed
+geometry source exists for a production pilot. Controller-owned commit/push, draft PR, latest-head CI and two fresh
+exact-head independent Reviews follow implementation. No deployment or production action is authorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

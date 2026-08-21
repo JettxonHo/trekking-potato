@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C11 REVIEW_ACTIVE`
+- Status: `ACTIVE — C12 IMPLEMENTATION_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -53,6 +53,7 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C9 Search contribution UX | #139 | candidate and no-result states provide an honest private GPX/KML contribution path |
 | C10 Presentation cleanup | #141 | homepage actions, AI copy and hourly weather disclosure match the approved mobile hierarchy |
 | C11 Verdict labels | #143 | internal certainty severities render as established business Chinese labels without changing rules |
+| C12 Route map preview | #145 | reviewed full routes render a fail-closed read-only map thumbnail with a geometry-only fallback |
 
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
 through PR #128 (`0e534d49`), the C06 offline acceptance package through PR #130 (`59ef3c2`), and C07 through
@@ -63,7 +64,21 @@ smoke. The Goal remains active because #123 still requires the separately contro
 tool evidence; no production readiness or Goal completion is claimed. C08 merged through PR #138 as `b582d2c` and
 #137 is closed without deployment, timer activation or deletion. C09 merged through PR #140 as `7a07757`; #139 is
 closed without deployment or automatic catalog promotion. C10 merged through PR #142 as `e417ab8`; #141 is closed.
-Issue #143 is the only active review-fix slice and is limited to the human-annotated certainty-label cleanup.
+C11 merged through PR #144 as `93a86d8`; #143 is closed. Issue #145 is the only active implementation slice and is
+limited to the human-approved B-lite route-map preview for reviewed full-route geometry.
+
+## C12 B-lite route-map preview activation — 2026-08-21
+
+- The human selected B-lite after reviewing A/B/C prototypes: one read-only map thumbnail in the result summary card,
+  auto-fit to the complete reviewed route, with route-day lines and start/end indicators. Drag, zoom, rotate,
+  overlooking and current-location display remain disabled; no click-through viewer is included.
+- The public interface is additive and optional. Only a bounded controller-curated reviewed geometry projection may
+  populate `routePreview`; weather sample points must never be presented as the complete route, and raw GPX/KML,
+  timestamps, identity, file/evidence identifiers, paths, URLs and provenance remain absent.
+- Invalid/absent/unreviewed geometry renders no empty placeholder. A map failure falls back to a neutral client-drawn
+  route outline using the same safe points. No production geometry may be fabricated; synthetic geometry is test-only.
+- #145 owns the exact implementation/test/docs allowlist in ACTIVE_TASK. No dependency, new map key, storage/query,
+  CloudBase mutation, deployment, timer, deletion, publication or production release is authorized.
 
 ## C09 Review-fix round 3 checkpoint — 2026-08-20
 
