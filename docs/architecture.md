@@ -1,7 +1,7 @@
 # 徒步薯架构
 
-- Architecture scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 ACTIVE — C07 IMPLEMENTATION_ACTIVE`
-- Status: `COMMUNITY TRACK C07 CODE-READY REVIEW`
+- Architecture scope: `TP-BETA-001 COMPLETE` + `TP-COMMUNITY-001 ACTIVE — C14 REVIEW_ACTIVE`
+- Status: `COMMUNITY TRACK C14 CODE-READY REVIEW`
 - Updated: `2026-08-10`
 
 ## 1. 系统边界
@@ -1005,8 +1005,10 @@ I23b 保持 I20 的十状态和字段，只新增具体恢复动作：
   用户显式重试；AI retry 不为同一 BaseData 产生第二个 history intent。save callback 以当前
   BaseData/saveAttemptId 而不是 trip-flow token 判定：同一 base 的 AI retry 不使其失效，新 BaseData、
   reset/return 或 unmount 才使其失效；同一 payload 同时最多一个请求。
-- history list 重试使用独立单调 token；新请求、关闭 panel 和 unmount 使旧 callback 失效。delete/clear
-  继续使用现有显式动作，不扩成后台重试系统。
+- history list 重试使用独立单调 token；新请求、关闭 panel 和 unmount 使旧 callback 失效。第一页替换已有行，
+  显式 `加载更多` 使用 owner-bound、`createdAt desc, _id desc` 的 bounded keyset cursor 追加去重行；追加失败
+  保留已有行和游标，`nextCursor=null` 停止继续读取。成功 delete 保留稳定 seek cursor 并使在途 list
+  callback 失效；成功 clear 清空行与 cursor 并使在途 callback 失效，不扩成后台重试系统。
 - history item 选择先推进/reset flow、checklist 并清除 result cache，再预填现有私人 DTO 字段并关闭
   panel，零网络调用；用户确认后才重新查询。
   现有 history 不新增 `startTimeLocal/climbSupport`，因此这不是精确回放，表单保留当前可见值/默认值。
@@ -1021,7 +1023,10 @@ history 仅保存当前 openid 的私人查询摘要，支持保存、读取、�
 
 公共请求为 `save | list | delete | clear`。I23a 后 `save` 可加不超过 80 字符的非空
 `saveAttemptId`；相同 openid/ID 的顺序重试返回同一记录 id，缺失 ID 保持 legacy add。
-`list` 固定按 openid 查询最多 20 条，只返回
+`list` 按 openid 查询，默认/最大页大小为 20，使用 `createdAt desc, _id desc` 稳定 keyset 顺序并只做一次
+`limit + 1` lookahead。可选 `cursor` 是只含版本和 seek tuple 的 bounded opaque 字符串；缺失、畸形、超长或
+多余字段在数据库访问前返回不可重试的 `invalid_cursor`。成功响应只在既有 DTO 顶层加 `nextCursor`，为
+字符串或 `null`。每页只返回
 `id, route, date, days, level, elevation, location, summary, degraded, coords, routeType,
 routeTypeSource`，不得透传 `_id`、`_openid` 或未知数据库字段。`delete` 用
 `where({_id:id, _openid:openid}).remove()` 一次条件删除；只有 `result.stats.removed === 1` 才
@@ -1053,6 +1058,6 @@ history 数据保留，不迁移、不删除。
 - 天气：`out_of_range`、`weather_unavailable`、`weather_data_invalid` 放在 BaseData weather 状态中，`verdict=null`，允许重新 prepare。
 - 未分类服务端失败：`internal_error`，默认不可在原请求上无限重试。
 - 历史 save/list/delete/clear 存储失败统一为可重试 `history_unavailable`，使用通用消息且不
-  暴露原始数据库错误；`history_not_found`、`ugc_disabled` 和输入错误不可重试。任何历史失败
+  暴露原始数据库错误；`invalid_cursor`、`history_not_found`、`ugc_disabled` 和输入错误不可重试。任何历史失败
   都不使 getAdvice 的确定性结果失败。
 - error 的 `retryable` 只表示同一操作稍后重试可能成功；需要修改输入或重新 prepare 时为 false。

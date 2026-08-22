@@ -24,11 +24,13 @@ const {
   toggleChecklist,
 } = require('./result-page-model')
 const {
+  beginHistoryListAppend,
   beginHistoryListRequest,
   canStartHistorySave,
   capturePendingBaseRequest,
   clearRequestSlots,
   closeHistoryList,
+  clearHistoryListItems,
   createHistoryListLifecycle,
   createHistorySaveIntent,
   createRecoverySlots,
@@ -38,6 +40,8 @@ const {
   isWeatherRecoveryEligible,
   promoteBaseRequest,
   resolveHistoryList,
+  resolveHistoryListAppend,
+  removeHistoryListItem,
   sameHistorySaveIdentity,
   selectRecoveryActions,
   startHistorySave,
@@ -200,6 +204,8 @@ export default class Index extends Component {
     showHistory: false,
     historyList: [],
     historyLoading: false,
+    historyLoadingMore: false,
+    historyNextCursor: null,
     historyError: null,
     historySaveError: null,
     historyPrefillNotice: '',
@@ -951,7 +957,7 @@ export default class Index extends Component {
   onHistoryTap = () => {
     this._historyListLifecycle = beginHistoryListRequest(this._historyListLifecycle)
     const requestToken = this._historyListLifecycle.token
-    this.setState({ showHistory: true, historyLoading: true, historyError: null })
+    this.setState({ showHistory: true, historyLoading: true, historyLoadingMore: false, historyError: null })
     Taro.cloud.callFunction({
       name: 'history',
       data: { mode: 'list', limit: 20 },
@@ -959,22 +965,70 @@ export default class Index extends Component {
         if (this._unmounted) return
         this._historyListLifecycle = resolveHistoryList(this._historyListLifecycle, requestToken, res.result)
         if (!this._historyListLifecycle.open || this._historyListLifecycle.token !== requestToken) return
-        this.setState({ historyLoading: this._historyListLifecycle.loading, historyList: this._historyListLifecycle.items, historyError: this._historyListLifecycle.error })
+        this.setState({
+          historyLoading: this._historyListLifecycle.loading,
+          historyLoadingMore: this._historyListLifecycle.loadingMore,
+          historyList: this._historyListLifecycle.items,
+          historyNextCursor: this._historyListLifecycle.nextCursor,
+          historyError: this._historyListLifecycle.error,
+        })
       },
       fail: () => {
         if (this._unmounted) return
         this._historyListLifecycle = resolveHistoryList(this._historyListLifecycle, requestToken, { ok: false, message: '历史暂时无法读取，请重试' })
         if (!this._historyListLifecycle.open || this._historyListLifecycle.token !== requestToken) return
-        this.setState({ historyLoading: this._historyListLifecycle.loading, historyList: this._historyListLifecycle.items, historyError: this._historyListLifecycle.error })
+        this.setState({
+          historyLoading: this._historyListLifecycle.loading,
+          historyLoadingMore: this._historyListLifecycle.loadingMore,
+          historyList: this._historyListLifecycle.items,
+          historyNextCursor: this._historyListLifecycle.nextCursor,
+          historyError: this._historyListLifecycle.error,
+        })
       }
     })
   }
 
   onHistoryRetry = () => this.onHistoryTap()
 
+  onHistoryLoadMore = (cursorOverride) => {
+    const current = this._historyListLifecycle
+    const cursor = typeof cursorOverride === 'string' ? cursorOverride : current.nextCursor
+    if (!current.open || cursor !== current.nextCursor) return
+    this._historyListLifecycle = beginHistoryListAppend(current)
+    if (this._historyListLifecycle === current) return
+    const requestToken = this._historyListLifecycle.token
+    this.setState({ historyLoadingMore: true, historyError: null })
+    Taro.cloud.callFunction({
+      name: 'history',
+      data: { mode: 'list', limit: 20, cursor },
+      success: (res) => {
+        if (this._unmounted) return
+        this._historyListLifecycle = resolveHistoryListAppend(this._historyListLifecycle, requestToken, cursor, res.result)
+        if (!this._historyListLifecycle.open || this._historyListLifecycle.token !== requestToken) return
+        this.setState({
+          historyLoadingMore: this._historyListLifecycle.loadingMore,
+          historyList: this._historyListLifecycle.items,
+          historyNextCursor: this._historyListLifecycle.nextCursor,
+          historyError: this._historyListLifecycle.error,
+        })
+      },
+      fail: () => {
+        if (this._unmounted) return
+        this._historyListLifecycle = resolveHistoryListAppend(this._historyListLifecycle, requestToken, cursor, { ok: false, message: '历史暂时无法读取，请重试' })
+        if (!this._historyListLifecycle.open || this._historyListLifecycle.token !== requestToken) return
+        this.setState({
+          historyLoadingMore: this._historyListLifecycle.loadingMore,
+          historyList: this._historyListLifecycle.items,
+          historyNextCursor: this._historyListLifecycle.nextCursor,
+          historyError: this._historyListLifecycle.error,
+        })
+      },
+    })
+  }
+
   onHistoryClose = () => {
     this._historyListLifecycle = closeHistoryList(this._historyListLifecycle)
-    this.setState({ showHistory: false, historyLoading: false })
+    this.setState({ showHistory: false, historyLoading: false, historyLoadingMore: false, historyNextCursor: this._historyListLifecycle.nextCursor })
   }
 
   onDeleteHistory = (id, event) => {
@@ -985,10 +1039,8 @@ export default class Index extends Component {
       success: (res) => {
         const result = res.result
         if (result && result.ok) {
-          this.setState((prev) => ({
-            historyList: prev.historyList.filter((item) => item.id !== id),
-            historyError: null,
-          }))
+          this._historyListLifecycle = removeHistoryListItem(this._historyListLifecycle, id)
+          this.setState({ historyList: this._historyListLifecycle.items, historyLoading: false, historyLoadingMore: false, historyNextCursor: this._historyListLifecycle.nextCursor, historyError: null })
           return
         }
         this.setState({ historyError: (result && result.message) || '历史删除失败，请重试' })
@@ -1009,7 +1061,8 @@ export default class Index extends Component {
           success: (res) => {
             const result = res.result
             if (result && result.ok) {
-              this.setState({ historyList: [], historyError: null })
+              this._historyListLifecycle = clearHistoryListItems(this._historyListLifecycle)
+              this.setState({ historyList: this._historyListLifecycle.items, historyLoading: false, historyLoadingMore: false, historyNextCursor: this._historyListLifecycle.nextCursor, historyError: null })
               return
             }
             this.setState({ historyError: (result && result.message) || '历史清空失败，请重试' })
@@ -1047,6 +1100,8 @@ export default class Index extends Component {
       level: record.level || '中级',
       levelIndex: ['小白', '中级', '老手'].indexOf(record.level || '中级'),
       showHistory: false,
+      historyLoadingMore: false,
+      historyNextCursor: this._historyListLifecycle.nextCursor,
       historyPrefillNotice: '已预填历史字段；请确认出发日期和每日出发时间后再提交。',
       manualContextActive: isManualRecord,
       manualRouteType: isManualRecord ? record.routeType : '',
@@ -1066,7 +1121,7 @@ export default class Index extends Component {
   }
 
   render() {
-    const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, showHistory, historyList, historyLoading, historyError, historySaveError, historyPrefillNotice, gearChecked, weatherDisclosure, routePreviewFallback } = this.state
+    const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, showHistory, historyList, historyLoading, historyLoadingMore, historyNextCursor, historyError, historySaveError, historyPrefillNotice, gearChecked, weatherDisclosure, routePreviewFallback } = this.state
     const { loading, refreshing, showResult, showCandidatePopup, showManualCoords, errorMessage } = selectTripFlowView(tripFlow)
     const { result, candidates, routeTypeRequest } = tripFlow
     const recoveryActions = selectRecoveryActions(tripFlow, this._recoverySlots)
@@ -1450,6 +1505,9 @@ export default class Index extends Component {
                         </View>
                       </View>
                     ))}
+                    {historyLoadingMore && <Text className="history-meta history-loading-more">正在加载更多…</Text>}
+                    {!historyLoading && !historyLoadingMore && historyNextCursor && <Button size="small" className="history-load-more" onClick={() => this.onHistoryLoadMore(historyNextCursor)}>加载更多</Button>}
+                    {!historyLoading && !historyLoadingMore && historyList.length > 0 && historyNextCursor === null && <Text className="history-meta history-no-more">没有更多历史了</Text>}
                   </View>
                 )}
               </ScrollView>

@@ -1,10 +1,10 @@
 # ACTIVE TASK — #150 private history cursor pagination
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C14 IMPLEMENTATION_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C14 REVIEW_ACTIVE`
 - Milestone: C14 History pagination
 - GitHub Issue: `#150`
-- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
+- Status/Mode: `REVIEW_ACTIVE / REVIEW`
 - Controller: Sol XHigh + human controller
 - Branch/base: `codex/150-history-pagination` from exact `main@9de9013`
 - Executor: exact custom `luna-worker`, configured `gpt-5.6-luna/max`; runtime identity is separate evidence
@@ -65,3 +65,14 @@ publication or production release. Stop for any required out-of-allowlist path o
 
 Executor delivers `READY_FOR_CONTROLLER_REVIEW`. Sol XHigh inspects the actual diff and obtains two fresh independent
 Reviews before any commit/push/PR/merge decision. No executor may approve or merge its own work.
+
+## Executor checkpoint — 2026-08-22
+
+- Real TDD REDs were captured before backend/frontend production edits. Focused `test:history` and `test:recovery`
+  now pass owner/order/cursor/DTO/privacy, append/dedupe/failure, stale/closed, delete/clear and page-handler mutation
+  gates.
+- The current worktree contains only the six implementation/test paths plus this exact documentation allowlist. Root
+  `corepack npm@10.9.2 test`, integration `55/0`, lint (`0 errors / 9 existing warnings`), typecheck, fixture-free
+  WeChat build, diff check, exact allowlist and privacy/secret scans also pass. Independent Reviews remain controller
+  work. Root npm audit is clean; the pinned history `wx-server-sdk` audit has pre-existing transitive findings requiring
+  an out-of-allowlist breaking upgrade. No commit, push, PR, CloudBase/data, deployment or release action was taken.

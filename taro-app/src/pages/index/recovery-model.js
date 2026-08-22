@@ -184,40 +184,165 @@ function succeedHistorySave(intent) {
 }
 
 function createHistoryListLifecycle(items = []) {
-  return { token: 0, open: false, loading: false, items: Array.isArray(items) ? items.slice() : [], error: null }
+  return {
+    token: 0,
+    open: false,
+    loading: false,
+    loadingMore: false,
+    requestKind: null,
+    requestCursor: null,
+    items: Array.isArray(items) ? items.slice() : [],
+    nextCursor: null,
+    error: null,
+  }
 }
 
 function beginHistoryListRequest(state) {
   const current = isRecord(state) ? state : createHistoryListLifecycle()
-  return { ...current, token: current.token + 1, open: true, loading: true, error: null }
+  return {
+    ...current,
+    token: current.token + 1,
+    open: true,
+    loading: true,
+    loadingMore: false,
+    requestKind: 'replace',
+    requestCursor: null,
+    error: null,
+  }
+}
+
+function beginHistoryListAppend(state) {
+  const current = isRecord(state) ? state : createHistoryListLifecycle()
+  if (!current.open || current.loading || current.loadingMore || typeof current.nextCursor !== 'string' || current.nextCursor.length === 0) return current
+  return {
+    ...current,
+    token: current.token + 1,
+    loading: false,
+    loadingMore: true,
+    requestKind: 'append',
+    requestCursor: current.nextCursor,
+    error: null,
+  }
 }
 
 function closeHistoryList(state) {
   const current = isRecord(state) ? state : createHistoryListLifecycle()
-  return { ...current, token: current.token + 1, open: false, loading: false, error: null }
+  return {
+    ...current,
+    token: current.token + 1,
+    open: false,
+    loading: false,
+    loadingMore: false,
+    requestKind: null,
+    requestCursor: null,
+    error: null,
+  }
+}
+
+function nextHistoryCursor(response) {
+  if (response && (response.nextCursor === null || typeof response.nextCursor === 'string')) return response.nextCursor
+  return null
 }
 
 function resolveHistoryList(state, token, response) {
   const current = isRecord(state) ? state : createHistoryListLifecycle()
-  if (!current.open || token !== current.token) return current
+  if (!current.open || token !== current.token || current.requestKind !== 'replace') return current
   if (response && response.ok === true) {
-    return { ...current, loading: false, error: null, items: Array.isArray(response.data) ? response.data.slice() : [] }
+    return {
+      ...current,
+      loading: false,
+      loadingMore: false,
+      requestKind: null,
+      requestCursor: null,
+      error: null,
+      items: Array.isArray(response.data) ? response.data.slice() : [],
+      nextCursor: nextHistoryCursor(response),
+    }
   }
   return {
     ...current,
     loading: false,
+    loadingMore: false,
+    requestKind: null,
+    requestCursor: null,
     error: response && response.message ? response.message : '历史暂时无法读取，请重试',
+  }
+}
+
+function mergeHistoryItems(existing, incoming) {
+  const items = Array.isArray(existing) ? existing.slice() : []
+  const ids = new Set(items.filter((item) => item && typeof item.id === 'string').map((item) => item.id))
+  if (!Array.isArray(incoming)) return items
+  incoming.forEach((item) => {
+    if (!item || typeof item.id !== 'string' || ids.has(item.id)) return
+    ids.add(item.id)
+    items.push(item)
+  })
+  return items
+}
+
+function resolveHistoryListAppend(state, token, cursor, response) {
+  const current = isRecord(state) ? state : createHistoryListLifecycle()
+  if (!current.open || token !== current.token || current.requestKind !== 'append' || current.requestCursor !== cursor) return current
+  if (response && response.ok === true) {
+    return {
+      ...current,
+      loadingMore: false,
+      requestKind: null,
+      requestCursor: null,
+      error: null,
+      items: mergeHistoryItems(current.items, response.data),
+      nextCursor: nextHistoryCursor(response),
+    }
+  }
+  return {
+    ...current,
+    loadingMore: false,
+    requestKind: null,
+    requestCursor: null,
+    error: response && response.message ? response.message : '历史暂时无法读取，请重试',
+  }
+}
+
+function removeHistoryListItem(state, id) {
+  const current = isRecord(state) ? state : createHistoryListLifecycle()
+  const items = Array.isArray(current.items) ? current.items : []
+  return {
+    ...current,
+    token: current.token + 1,
+    loading: false,
+    loadingMore: false,
+    requestKind: null,
+    requestCursor: null,
+    items: items.filter((item) => !item || item.id !== id),
+  }
+}
+
+function clearHistoryListItems(state) {
+  const current = isRecord(state) ? state : createHistoryListLifecycle()
+  return {
+    ...current,
+    token: current.token + 1,
+    loading: false,
+    loadingMore: false,
+    requestKind: null,
+    requestCursor: null,
+    items: [],
+    nextCursor: null,
+    error: null,
   }
 }
 
 module.exports = {
   REQUEST_FIELDS,
   REQUEST_OPERATIONS,
+  beginHistoryListAppend,
   beginHistoryListRequest,
   canStartHistorySave,
   capturePendingBaseRequest,
   clearRequestSlots,
   closeHistoryList,
+  clearHistoryListItems,
   createHistoryListLifecycle,
   createHistorySaveIntent,
   createRecoverySlots,
@@ -231,6 +356,8 @@ module.exports = {
   normalizeRequest,
   promoteBaseRequest,
   resolveHistoryList,
+  resolveHistoryListAppend,
+  removeHistoryListItem,
   retryableWeatherIssue,
   selectRecoveryActions,
   sameHistorySaveIdentity,

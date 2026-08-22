@@ -3,8 +3,8 @@
 - Updated: `2026-08-22`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C14 IMPLEMENTATION_ACTIVE`
-- Active task: `#150 / IMPLEMENTATION_ACTIVE` (private history cursor pagination; #123 remains the staging blocker)
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C14 REVIEW_ACTIVE`
+- Active task: `#150 / REVIEW_ACTIVE` (private history cursor pagination; #123 remains the staging blocker)
 - Branch/base: `codex/150-history-pagination` from exact `main@9de9013`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
@@ -30,6 +30,23 @@
 - Exact custom executor is `luna-worker` from `~/.codex/agents/luna-worker.toml` (`gpt-5.6-luna/max` configuration;
   runtime identity separately unverified). No deployment, CloudBase index/config mutation, real data access or delete/
   clear invocation is authorized.
+
+## C14 implementation checkpoint — 2026-08-22
+
+- TDD captured real REDs before production edits for 21-row owner pagination/tie-break/cursor rejection and frontend
+  replace-versus-append lifecycle behavior. GREEN now covers server OpenID filtering, `createdAt desc, _id desc`
+  keyset pages with one-row lookahead, versioned opaque cursors, unchanged HistoryItem fields and zero reads for
+  malformed/oversized/extra-field cursors.
+- The page-one history path replaces; explicit `加载更多` appends unique rows, preserves rows/cursor on append failure,
+  stops at `nextCursor=null` and rejects stale/closed callbacks. Delete/clear invalidate in-flight continuations and
+  synchronize local rows/cursor; history prefill remains zero-I/O.
+- Focused `test:history` and `test:recovery`, root `corepack npm@10.9.2 test`, integration `55/0`, lint (`0 errors / 9
+  existing warnings`), typecheck, fixture-free WeChat build, diff check, exact allowlist and privacy/secret scans pass;
+  independent Reviews remain controller-owned. Root npm audit reports 0 vulnerabilities; the pinned history
+  `wx-server-sdk` audit reports pre-existing transitive findings whose breaking upgrade is outside this allowlist.
+  No commit, push, PR, deployment, CloudBase/data action or release occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh owns exact diff review, full gates, independent Reviews and
+  any commit/merge decision.
 
 ## C13 approved B result-summary activation — 2026-08-22
 
@@ -1842,11 +1859,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Dispatch exact `luna-worker` for C14/#150 after the recorded clean baseline and require real focused RED before any
-history production/page edit. The executor stops at `READY_FOR_CONTROLLER_REVIEW`; Sol then inspects the actual diff,
-runs latest-head quality and obtains two fresh exact-head independent Reviews before any merge decision. #123 staging
-rows remain unchanged. No CloudBase index/config mutation, deployment, real history access, delete/clear invocation,
-timer, destructive cleanup, real-user cohort or public release is authorized.
+Controller commits/pushes the reviewed C14 worktree and opens a Draft PR for #150, then requires successful latest-head
+quality plus two fresh exact-head independent Reviews before deciding mergeability. Any head change repeats both gates.
+#123 staging rows remain unchanged. No CloudBase index/config mutation, deployment, real history access, delete/clear
+invocation, timer, destructive cleanup, real-user cohort or public release is authorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

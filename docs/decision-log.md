@@ -1029,3 +1029,23 @@
 - Evidence: The duplicate injection is source-changing and Babel-parseable; the pre-fix oracle control was GREEN and the
   new mutation-sensitive gate is RED for that injected source while the valid source is GREEN. Draft PR #149 is open;
   live GitHub metadata is authoritative for its current head, which requires same-head CI and two independent Reviews.
+
+## 2026-08-22 — TP-D067 C14 private history keyset pagination
+
+- Status: Prepared for controller review; no deployment, CloudBase mutation or real history access
+- Context: The private history sheet previously read only the newest 20 owner rows and had no continuation path. Offset
+  paging would drift when new saves arrive and would not define equal-timestamp behavior.
+- Decision: Keep server OpenID as the sole owner boundary. Query a maximum 20-row page with one read-only lookahead in
+  stable `createdAt desc, _id desc` order. Continue with a bounded versioned opaque cursor containing only the seek
+  tuple; malformed, oversized, non-string or extra-field cursors fail closed before storage access. Preserve the public
+  HistoryItem DTO and add only `nextCursor: string|null` on success. The client refreshes page one, explicitly appends
+  unique IDs on `加载更多`, keeps rows/cursor on append failure, and invalidates stale/closed/delete/clear callbacks.
+- Alternatives: offset/skip pagination, automatic infinite scroll, exposing database fields, or signing cursors with a
+  new secret. These add instability, interaction cost, privacy surface or unnecessary key management; the bounded
+  owner/keyset contract is sufficient for this private list.
+- Evidence: Focused TDD RED/GREEN covers 21-row owner pagination, equal-timestamp tie-break, one-row lookahead,
+  malformed-cursor zero reads, append/dedupe/failure, stale/closed and page-handler mutations. Root tests, integration
+  `55/0`, lint, typecheck, fixture-free WeChat build, diff/allowlist/privacy scans and root npm audit pass locally;
+  independent Reviews remain controller-owned. The pinned history `wx-server-sdk` audit has pre-existing transitive
+  findings whose breaking upgrade is outside this slice. This executor performed no commit, push, PR, deployment or
+  data action.

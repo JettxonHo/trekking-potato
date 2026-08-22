@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C14 IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — C14 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -82,6 +82,22 @@ cohort or production release is implied.
   failure and rejects stale/closed callbacks. It is an explicit control, not auto infinite scroll.
 - #150 and ACTIVE_TASK own the exact code/test/docs allowlist. No CloudBase index/config change, deployment, real
   history access, delete/clear invocation, public UGC, dependency or production release is authorized.
+
+## C14 implementation checkpoint — 2026-08-22
+
+- TDD first recorded a real backend RED for the missing keyset/tie-break pagination and a frontend RED for the missing
+  continuation cursor. GREEN now proves owner-only 21-row paging with equal-timestamp `_id` tie-break, one-row
+  lookahead, opaque versioned cursor validation, DTO privacy and zero reads for malformed cursors.
+- The history sheet now replaces page one, exposes an explicit `加载更多` control, appends/deduplicates rows, preserves
+  loaded rows and cursor on append failure, and rejects stale/closed callbacks. Delete/clear invalidate in-flight list
+  callbacks and keep the local cursor/rows consistent; history prefill remains zero-I/O.
+- Focused `test:history` and `test:recovery`, root `corepack npm@10.9.2 test`, integration `55/0`, lint (`0 errors / 9
+  existing warnings`), typecheck, fixture-free WeChat build, diff check, exact allowlist and privacy/secret scans pass;
+  independent Reviews remain controller-owned. Root npm audit reports 0 vulnerabilities; the pinned history
+  `wx-server-sdk` audit reports pre-existing transitive findings whose breaking upgrade is outside this allowlist.
+  No commit, push, PR, deployment, CloudBase/data action or release occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh must inspect the exact diff and complete all required gates and
+  two fresh exact-head independent Reviews before deciding mergeability.
 
 ## C13 approved B result-summary activation — 2026-08-22
 
