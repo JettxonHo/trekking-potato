@@ -7,11 +7,14 @@ const {
   RESULT_CACHE_KEY,
   RESULT_CACHE_VERSION,
   applyChecklistLifecycleEvent,
+  buildRoutePreviewMapGeometry,
   buildHistorySavePayload,
   buildResultPageModel,
   captureHistoryContext,
+  classifyRoutePreviewRegion,
   checklistKey,
   conditionForWeatherCode,
+  convertRoutePreviewPointForMap,
   createChecklistLifecycle,
   isStructuredResult,
   historyResultForAdviceOutcome,
@@ -107,6 +110,198 @@ function blockedResult() {
     deterministicSafety: { fatalRisks: ['官方禁行'], ruleNotes: ['该路线存在官方禁行记录'] },
     sourceMetadata: { routeSourceIds: ['restriction-a'], routeSources: [source('restriction-a', 'A', null)], routeTypeSource: 'builtin', weatherSource: null, checkedAt: '2026-08-06T00:00:00.000Z' },
   }
+}
+
+function routePreview() {
+  return {
+    coordinateSystem: 'WGS84',
+    bounds: { minLat: 30, maxLat: 30.1, minLon: 100, maxLon: 100.2 },
+    segments: [{
+      day: 1,
+      points: [{ lat: 30, lon: 100 }, { lat: 30.1, lon: 100.2 }],
+    }],
+  }
+}
+
+function assertRoutePreviewProjection() {
+  const preview = routePreview()
+  const result = fullResult({
+    routeSnapshot: { ...fullResult().routeSnapshot, routePreview: preview },
+  })
+  const model = buildResultPageModel({ result, flowStatus: 'complete' })
+  assert.deepEqual(model.route.routePreview, preview, 'full route preview must project the exact safe shape')
+
+  const weatherOnly = fullResult()
+  weatherOnly.weatherSnapshot.evaluatedWindows[0].samples[0].requestCoordinate = { lat: 30, lon: 100 }
+  const weatherModel = buildResultPageModel({ result: weatherOnly, flowStatus: 'complete' })
+  assert.equal(weatherModel.route.routePreview, null, 'weather sample points must never become route preview geometry')
+
+  const poisoned = fullResult({
+    routeSnapshot: {
+      ...fullResult().routeSnapshot,
+      routePreview: {
+        ...preview,
+        segments: [{ ...preview.segments[0], points: [{ lat: 30, lon: 100, elevation: 2200 }, { lat: 30.1, lon: 100.2 }] }],
+      },
+    },
+  })
+  const poisonedModel = buildResultPageModel({ result: poisoned, flowStatus: 'complete' })
+  assert.equal(poisonedModel.route.routePreview, null, 'preview projection must fail closed on leaky geometry')
+
+  const placeWithPreview = placeResult({ status: 'available', scope: 'reference_point', source: 'Open-Meteo', data: { days: [] } })
+  placeWithPreview.routeSnapshot.routePreview = preview
+  const placeModel = buildResultPageModel({ result: placeWithPreview, flowStatus: 'complete' })
+  assert.equal(placeModel.route.routePreview, null, 'place-only result must omit route preview')
+}
+
+function assertRoutePreviewCoordinateProjection() {
+  const regionClassificationCases = [
+    ['四川省', 'mainland'],
+    ['四川省甘孜藏族自治州', 'mainland'],
+    ['中国大陆·四川', 'mainland'],
+    ['香港', 'non_mainland'],
+    ['香港·广东', 'unknown'],
+    ['尼泊尔·西藏边境', 'unknown'],
+    ['hong kong', 'non_mainland'],
+    ['HONG KONG', 'non_mainland'],
+    ['日本山西县', 'unknown'],
+    ['法国四川餐厅', 'unknown'],
+    ['Sichuan Province', 'unknown'],
+    ['川西', 'unknown'],
+    ['', 'unknown'],
+    [null, 'unknown'],
+  ]
+  regionClassificationCases.forEach(([region, expected]) => {
+    assert.equal(classifyRoutePreviewRegion(region), expected, `${String(region)} must classify as ${expected}`)
+  })
+  const insideChinaWgs84 = convertRoutePreviewPointForMap({ lat: 30, lon: 100 }, 'WGS84', '四川省')
+  assert.ok(insideChinaWgs84, 'inside-China WGS84 point must project to Map coordinates')
+  assert.ok(Math.abs(insideChinaWgs84.latitude - 29.997260753139518) < 1e-12, 'mainland WGS84 latitude must use the bounded deterministic GCJ-02 offset')
+  assert.ok(Math.abs(insideChinaWgs84.longitude - 100.00120973751072) < 1e-12, 'mainland WGS84 longitude must use the bounded deterministic GCJ-02 offset')
+
+  const existingGcj02 = convertRoutePreviewPointForMap({ lat: 30, lon: 100 }, 'GCJ-02', '四川省')
+  assert.deepEqual(existingGcj02, { latitude: 30, longitude: 100 }, 'GCJ-02 source geometry must remain unchanged')
+  assert.equal(convertRoutePreviewPointForMap({ lat: 30, lon: 100 }, 'GCJ-02'), null, 'unknown region must fail closed even when source is already GCJ-02')
+
+  const outsideMainland = [
+    [{ lat: 27.7172, lon: 85.3240 }, '尼泊尔'],
+    [{ lat: 47.8864, lon: 106.9057 }, '蒙古国'],
+    [{ lat: 22.3193, lon: 114.1694 }, '香港特别行政区'],
+  ]
+  outsideMainland.forEach(([point, region]) => {
+    assert.deepEqual(convertRoutePreviewPointForMap(point, 'WGS84', region), { latitude: point.lat, longitude: point.lon }, `${region} WGS84 coordinates must remain stable`)
+  })
+  assert.equal(buildRoutePreviewMapGeometry(routePreview()), null, 'WGS84 preview without a trusted mainland region must fail closed')
+  assert.equal(buildRoutePreviewMapGeometry(routePreview(), '法国四川餐厅'), null, 'unknown route region must not produce Map geometry')
+  for (const region of ['香港·广东', '尼泊尔·西藏边境']) {
+    assert.equal(buildRoutePreviewMapGeometry(routePreview(), region), null, `${region} collision must not produce Map geometry`)
+  }
+
+  const mainlandEnd = { latitude: 30.097306205700363, longitude: 100.20125724049596 }
+  const geometry = buildRoutePreviewMapGeometry(routePreview(), '四川省')
+  assert.deepEqual(geometry.points[0], { latitude: 29.997260753139518, longitude: 100.00120973751072 }, 'every includePoints entry must use the converted mainland coordinate')
+  assert.deepEqual(geometry.points[1], mainlandEnd, 'every includePoints entry must use the converted mainland end coordinate')
+  assert.deepEqual(geometry.polylines[0].points[0], { latitude: 29.997260753139518, longitude: 100.00120973751072 }, 'every polyline point must use the converted mainland coordinate')
+  assert.ok(Math.abs(geometry.center.latitude - 30.04728347941994) < 1e-12, 'map center latitude must use converted points')
+  assert.ok(Math.abs(geometry.center.longitude - 100.10123348900333) < 1e-12, 'map center longitude must use converted points')
+  assert.deepEqual(geometry.indicators[0], {
+    latitude: 29.997260753139518,
+    longitude: 100.00120973751072,
+    radius: 36,
+    color: '#1d1d1f',
+    fillColor: '#1d1d1f66',
+    strokeWidth: 3,
+  }, 'start indicator must use the converted coordinate')
+  assert.deepEqual(geometry.indicators[1], {
+    latitude: mainlandEnd.latitude,
+    longitude: mainlandEnd.longitude,
+    radius: 36,
+    color: '#34c759',
+    fillColor: '#34c75966',
+    strokeWidth: 3,
+  }, 'end indicator must use the converted coordinate')
+
+  const modelSource = fs.readFileSync(path.join(__dirname, '../taro-app/src/pages/index/result-page-model.js'), 'utf8')
+  const loadModel = (source) => {
+    const module = { exports: {} }
+    new Function('module', 'exports', 'require', source)(module, module.exports, require)
+    return module.exports
+  }
+  const assertMainlandOffsetOracle = (model) => {
+    assert.deepEqual(model.convertRoutePreviewPointForMap({ lat: 30, lon: 100 }, 'WGS84', '四川省'), {
+      latitude: 29.997260753139518,
+      longitude: 100.00120973751072,
+    }, 'mainland WGS84 conversion oracle must remain offset')
+  }
+  const assertOutsideMainlandStability = (model) => {
+    outsideMainland.forEach(([point, region]) => {
+      assert.deepEqual(model.convertRoutePreviewPointForMap(point, 'WGS84', region), { latitude: point.lat, longitude: point.lon }, `${region} stability oracle must remain unchanged`)
+    })
+  }
+  assertMainlandOffsetOracle(loadModel(modelSource))
+  assertOutsideMainlandStability(loadModel(modelSource))
+  const regionMutationSource = modelSource.replace(
+    'const regionClass = classifyRoutePreviewRegion(routeRegion)',
+    'const regionClass = ROUTE_PREVIEW_REGION_MAINLAND',
+  )
+  assert.notEqual(regionMutationSource, modelSource, 'region applicability mutation must change model source')
+  assert.throws(() => assertOutsideMainlandStability(loadModel(regionMutationSource)), undefined, 'region applicability mutation must turn the focused oracle RED')
+  const rawMappingMutationSource = modelSource.replace(
+    'const regionClass = classifyRoutePreviewRegion(routeRegion)',
+    'const regionClass = ROUTE_PREVIEW_REGION_NON_MAINLAND',
+  )
+  assert.notEqual(rawMappingMutationSource, modelSource, 'raw WGS84 mapping mutation must change model source')
+  assert.throws(() => assertMainlandOffsetOracle(loadModel(rawMappingMutationSource)), undefined, 'raw WGS84 mapping mutation must turn the focused oracle RED')
+  const unknownRegionMutationSource = modelSource.replaceAll("return ROUTE_PREVIEW_REGION_UNKNOWN", "return ROUTE_PREVIEW_REGION_MAINLAND")
+  assert.notEqual(unknownRegionMutationSource, modelSource, 'unknown-region mutation must change model source')
+  assert.throws(() => {
+    const model = loadModel(unknownRegionMutationSource)
+    assert.equal(model.classifyRoutePreviewRegion('法国四川餐厅'), 'unknown', 'unknown region must remain fail-closed')
+    assert.equal(model.convertRoutePreviewPointForMap({ lat: 30, lon: 100 }, 'WGS84', '法国四川餐厅'), null, 'unknown region must not produce Map coordinates')
+  }, undefined, 'unknown-region mutation must turn the focused oracle RED')
+  const collisionGuardMutationSource = modelSource.replace(
+    'if (mainlandMatch && nonMainlandMatch) return ROUTE_PREVIEW_REGION_UNKNOWN',
+    'if (false) return ROUTE_PREVIEW_REGION_UNKNOWN',
+  )
+  assert.notEqual(collisionGuardMutationSource, modelSource, 'collision guard mutation must change model source')
+  assert.throws(() => {
+    const model = loadModel(collisionGuardMutationSource)
+    assert.equal(model.classifyRoutePreviewRegion('香港·广东'), 'unknown', 'collision guard must keep mainland/non-mainland conflicts unknown')
+    assert.equal(model.buildRoutePreviewMapGeometry(routePreview(), '香港·广东'), null, 'collision guard removal must not produce Map geometry')
+  }, undefined, 'collision guard removal must turn the focused oracle RED')
+  const nonMainlandExclusionMutationSource = modelSource.replace("  '香港', 'hongkong',", "  'hongkong',")
+  assert.notEqual(nonMainlandExclusionMutationSource, modelSource, 'non-mainland exclusion mutation must change model source')
+  assert.throws(() => {
+    const model = loadModel(nonMainlandExclusionMutationSource)
+    assert.equal(model.classifyRoutePreviewRegion('香港'), 'non_mainland', 'non-mainland exclusion must remain effective')
+  }, undefined, 'non-mainland exclusion removal must turn the focused oracle RED')
+  const assertCenterAndEndOracles = (model) => {
+    const candidate = model.buildRoutePreviewMapGeometry(routePreview(), '四川省')
+    assert.ok(candidate, 'mainland route preview geometry must be available')
+    assert.ok(Math.abs(candidate.center.latitude - 30.04728347941994) < 1e-12, 'center oracle must remain converted')
+    assert.ok(Math.abs(candidate.center.longitude - 100.10123348900333) < 1e-12, 'center oracle must remain converted')
+    assert.deepEqual(candidate.indicators[1], {
+      latitude: 30.097306205700363,
+      longitude: 100.20125724049596,
+      radius: 36,
+      color: '#34c759',
+      fillColor: '#34c75966',
+      strokeWidth: 3,
+    }, 'end indicator oracle must remain converted')
+  }
+  assertCenterAndEndOracles(loadModel(modelSource))
+  const centerMutationSource = modelSource.replace(
+    'latitude: points.reduce((sum, point) => sum + point.latitude, 0) / points.length,',
+    'latitude: start.latitude,',
+  )
+  assert.notEqual(centerMutationSource, modelSource, 'center mapping mutation must change model source')
+  assert.throws(() => assertCenterAndEndOracles(loadModel(centerMutationSource)), undefined, 'center mapping mutation must turn the focused oracle RED')
+  const endMutationSource = modelSource.replace(
+    "{ latitude: end.latitude, longitude: end.longitude, radius: 36, color: '#34c759',",
+    "{ latitude: start.latitude, longitude: start.longitude, radius: 36, color: '#34c759',",
+  )
+  assert.notEqual(endMutationSource, modelSource, 'end-indicator mapping mutation must change model source')
+  assert.throws(() => assertCenterAndEndOracles(loadModel(endMutationSource)), undefined, 'end-indicator mapping mutation must turn the focused oracle RED')
 }
 
 function assertVerdictAndFullWeather() {
@@ -469,6 +664,8 @@ function assertDisclosureResetSeams(page) {
   const showBase = extractMethodSource(page, '  _showBaseAndFetchAdvice(base, queryId, params, generation) {')
   assert.match(clearResult, /this\.setState\(\{ weatherDisclosure: \{\} \}\)/, 'return-to-search must reset disclosure state')
   assert.match(showBase, /this\.setState\(\{ weatherDisclosure: \{\} \}\)/, 'new base result must reset disclosure state')
+  assert.match(clearResult, /this\.setState\(\{ routePreviewFallback: false \}\)/, 'return-to-search must reset map fallback state')
+  assert.match(showBase, /this\.setState\(\{ routePreviewFallback: false \}\)/, 'new base result must reset map fallback state')
   const clearMutation = page.replace('    this.setState({ weatherDisclosure: {} })', '    // disclosure reset removed')
   assert.notEqual(clearMutation, page, 'clear-result reset mutation must change source')
   assert.throws(() => assertDisclosureResetSeams(clearMutation), undefined, 'clear-result reset removal must turn the focused contract RED')
@@ -476,6 +673,29 @@ function assertDisclosureResetSeams(page) {
   const showBaseMutation = page.replace(showBaseNeedle, '    this.setState({ historySaveError: null })')
   assert.notEqual(showBaseMutation, page, 'new-base reset mutation must change source')
   assert.throws(() => assertDisclosureResetSeams(showBaseMutation), undefined, 'new-base reset removal must turn the focused contract RED')
+  const clearFallbackMutation = page.replace('    this.setState({ routePreviewFallback: false })', '    // fallback reset removed')
+  assert.notEqual(clearFallbackMutation, page, 'clear-result fallback reset mutation must change source')
+  assert.throws(() => assertDisclosureResetSeams(clearFallbackMutation), undefined, 'clear-result fallback reset removal must turn the focused contract RED')
+  const showBaseFallbackNeedle = '    this.setState({ weatherDisclosure: {} })\n    this.setState({ routePreviewFallback: false })\n    this._updateTripFlow({ type: \'BASE_RECEIVED\''
+  const showBaseFallbackMutation = page.replace(showBaseFallbackNeedle, '    this.setState({ weatherDisclosure: {} })\n    this._updateTripFlow({ type: \'BASE_RECEIVED\'')
+  assert.notEqual(showBaseFallbackMutation, page, 'new-base fallback reset mutation must change source')
+  assert.throws(() => assertDisclosureResetSeams(showBaseFallbackMutation), undefined, 'new-base fallback reset removal must turn the focused contract RED')
+}
+
+function assertRoutePreviewFallbackState(page) {
+  const stateStart = page.indexOf('state = {')
+  assert.ok(stateStart >= 0, 'page state must remain present')
+  const stateEnd = page.indexOf('\n  }', stateStart)
+  const stateSource = page.slice(stateStart, stateEnd)
+  assert.match(stateSource, /routePreviewFallback: false/, 'route preview fallback must start disabled')
+  const onError = extractMethodSource(page, '  onRoutePreviewError = () => {')
+  assert.match(onError, /this\.setState\(\{ routePreviewFallback: true \}\)/, 'map error must enable the route preview fallback')
+  const initialMutation = page.replace('    routePreviewFallback: false,', '    routePreviewFallback: true,')
+  assert.notEqual(initialMutation, page, 'initial fallback mutation must change page source')
+  assert.throws(() => assertRoutePreviewFallbackState(initialMutation), undefined, 'initial fallback mutation must turn the focused oracle RED')
+  const errorMutation = page.replace('this.setState({ routePreviewFallback: true })', 'this.setState({ routePreviewFallback: false })')
+  assert.notEqual(errorMutation, page, 'map error fallback mutation must change page source')
+  assert.throws(() => assertRoutePreviewFallbackState(errorMutation), undefined, 'map error fallback mutation must turn the focused oracle RED')
 }
 
 function resultPresentationContractForSources(page, css) {
@@ -503,9 +723,11 @@ function resultPresentationContractForSources(page, css) {
   assert.match(css, /\.weather-sample-toggle\s*\{[^}]*display:\s*flex/, 'weather toggle target must have an explicit layout')
   assertAiDisplayProjection(page)
   assertReasonSeverityDisplayProjection(page)
+  assertMapPreviewWiring(page, css)
   assertWeatherDisclosureProjection(page)
   assertToggleIsolation(page)
   assertDisclosureResetSeams(page)
+  assertRoutePreviewFallbackState(page)
 
   const prefixMutation = page.replaceAll('stripAiDisplayPrefix(item.label)', 'item.label')
   assert.notEqual(prefixMutation, page, 'prefix restoration mutation must change page source')
@@ -524,6 +746,64 @@ function resultPresentationContractForSources(page, css) {
   assert.throws(() => resultPresentationContractForSources(missingHandlerMutation, css), undefined, 'missing-toggle-handler must turn the focused contract RED')
 }
 
+function assertMapPreviewWiring(page, css) {
+  assert.match(page, /import \{[^}]*Map[^}]*\} from '@tarojs\/components'/, 'result page must use the pinned Taro Map component')
+  const resultStart = page.indexOf('    if (showResult && result)')
+  const resultRender = page.slice(resultStart)
+  assert.match(resultRender, /routeModel\.routePreview &&/, 'map must render only for a validated route preview')
+  assert.match(resultRender, /buildRoutePreviewMapGeometry\(routePreview, routeModel\.region\)/, 'Map-native coordinates must come from the region-gated coordinate-system-aware geometry projection')
+  assert.match(resultRender, /<Map[\s\S]*polyline=\{routePreviewPolylines\}/, 'map must receive route-day polylines')
+  assert.match(resultRender, /includePoints=\{routePreviewPoints\}/, 'map must auto-fit the complete preview point set')
+  assert.match(resultRender, /latitude=\{routePreviewCenter\.latitude\}/, 'map center latitude must come from converted geometry')
+  assert.match(resultRender, /longitude=\{routePreviewCenter\.longitude\}/, 'map center longitude must come from converted geometry')
+  assert.match(resultRender, /circles=\{routePreviewIndicators\}/, 'map start/end indicators must come from converted geometry')
+  for (const prop of ['enableZoom', 'enableScroll', 'enableRotate', 'enableOverlooking', 'showLocation', 'enablePoi']) {
+    assert.match(resultRender, new RegExp(`${prop}=\\{false\\}`), `${prop} must remain disabled for B-lite preview`)
+  }
+  assert.match(resultRender, /onError=\{this\.onRoutePreviewError\}/, 'map error must trigger the same-point fallback')
+  assert.match(resultRender, /routePreviewFallback &&/, 'map failure must switch to the neutral outline fallback')
+  assert.match(resultRender, /route-preview-start|route-preview-end/, 'map/fallback must expose start and end indicators')
+  assert.match(css, /\.route-preview(?:-|\s)/, 'route preview needs bounded thumbnail styling')
+
+  const summaryStart = resultRender.indexOf('className={`result-summary-card result-verdict-card')
+  const previewStart = resultRender.indexOf('{routeModel.routePreview && routePreviewMap && (')
+  const summaryClose = resultRender.indexOf('          </View>\n\n          <View className="card result-reasons-card">', summaryStart)
+  assert.ok(summaryStart >= 0, 'top result summary card must be explicit')
+  assert.ok(previewStart > summaryStart && previewStart < summaryClose, 'map preview must be nested inside the top result summary card')
+  assert.doesNotMatch(resultRender.slice(summaryStart, previewStart), /\n {10}<\/View>\n\n/, 'top result summary card must remain open until the preview')
+
+  const missingMapMutation = page.replace(/\{routeModel\.routePreview &&[\s\S]*?route-preview-end[^}]*\}/, '')
+  assert.notEqual(missingMapMutation, page, 'map removal mutation must change page source')
+  assert.throws(() => assertMapPreviewWiring(missingMapMutation, css), undefined, 'map removal must turn the focused oracle RED')
+  const interactiveMutation = page.replace('enableZoom={false}', 'enableZoom={true}')
+  assert.notEqual(interactiveMutation, page, 'interactive flag mutation must change page source')
+  assert.throws(() => assertMapPreviewWiring(interactiveMutation, css), undefined, 'interactive map mutation must turn the focused oracle RED')
+  const poiMutation = page.replace('enablePoi={false}', 'enablePoi={true}')
+  assert.notEqual(poiMutation, page, 'POI flag mutation must change page source')
+  assert.throws(() => assertMapPreviewWiring(poiMutation, css), undefined, 'POI map mutation must turn the focused contract RED')
+  const fallbackMutation = page.replace('onError={this.onRoutePreviewError}', 'onError={() => {}}')
+  assert.notEqual(fallbackMutation, page, 'fallback binding mutation must change page source')
+  assert.throws(() => assertMapPreviewWiring(fallbackMutation, css), undefined, 'fallback binding mutation must turn the focused oracle RED')
+  const rawCoordinateMutation = page.replace('buildRoutePreviewMapGeometry(routePreview, routeModel.region)', 'routePreviewSourcePoints')
+  assert.notEqual(rawCoordinateMutation, page, 'raw coordinate mapping mutation must change source')
+  assert.throws(() => assertMapPreviewWiring(rawCoordinateMutation, css), undefined, 'raw coordinate mapping must turn the focused contract RED')
+  const offsetCoordinateMutation = page.replace('buildRoutePreviewMapGeometry(routePreview, routeModel.region)', "buildRoutePreviewMapGeometry({ ...routePreview, coordinateSystem: 'GCJ-02' }, routeModel.region)")
+  assert.notEqual(offsetCoordinateMutation, page, 'coordinate-system mapping mutation must change source')
+  assert.throws(() => assertMapPreviewWiring(offsetCoordinateMutation, css), undefined, 'coordinate-system mapping mutation must turn the focused contract RED')
+  const centerPropMutation = page.replace('latitude={routePreviewCenter.latitude}', 'latitude={routePreviewStart.latitude}')
+  assert.notEqual(centerPropMutation, page, 'center prop mapping mutation must change source')
+  assert.throws(() => assertMapPreviewWiring(centerPropMutation, css), undefined, 'center prop mapping mutation must turn the focused oracle RED')
+  const indicatorPropMutation = page.replace('circles={routePreviewIndicators}', 'circles={[]}')
+  assert.notEqual(indicatorPropMutation, page, 'indicator prop mapping mutation must change source')
+  assert.throws(() => assertMapPreviewWiring(indicatorPropMutation, css), undefined, 'indicator prop mapping mutation must turn the focused oracle RED')
+  const siblingPreviewMutation = page.replace(
+    '            {routeModel.routePreview && routePreviewMap && (',
+    '          </View>\n\n          {routeModel.routePreview && routePreviewMap && (',
+  )
+  assert.notEqual(siblingPreviewMutation, page, 'preview nesting mutation must change source')
+  assert.throws(() => assertMapPreviewWiring(siblingPreviewMutation, css), undefined, 'sibling preview mutation must turn the focused contract RED')
+}
+
 function resultPresentationContract() {
   const root = path.join(__dirname, '../taro-app/src/pages/index')
   const page = fs.readFileSync(path.join(root, 'index.jsx'), 'utf8')
@@ -533,6 +813,8 @@ function resultPresentationContract() {
 
 assertVerdictAndFullWeather()
 assertBoundariesAndDataIssues()
+assertRoutePreviewProjection()
+assertRoutePreviewCoordinateProjection()
 assertAdviceIsolationAndLifecycle()
 assertCacheChecklistAndHistory()
 assertLifecycleAndHistoryOrchestration()

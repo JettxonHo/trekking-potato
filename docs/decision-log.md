@@ -922,3 +922,53 @@
 - Implementation checkpoint: C07 now registers and renders the independent secondary page, removes the owner/admin
   workflow from the homepage, preserves both bounded entry paths and passes the focused mutation-sensitive UI contract.
   This is local code-ready evidence only; it does not verify runtime model identity, CloudBase behavior or staging.
+
+## 2026-08-21 — TP-D060 C12 B-lite 只读路线预览与坐标边界
+
+- Status: Prepared on C12/#145 Review-fix; ready for controller review, no deployment or CloudBase mutation
+- Context: The human-approved B-lite result-page slice needs a small, noninteractive route thumbnail without turning
+  weather sample points or private submission files into route geometry. WeChat Map accepts GCJ-02 coordinates, while
+  the bounded reviewed projection may declare either WGS84 or GCJ-02.
+- Decision: Carry only the optional, fail-closed `routePreview` shape for trusted full variants with reviewed-track
+  evidence. Convert WGS84 points deterministically to GCJ-02 before every Map-native coordinate prop, leave existing
+  GCJ-02 and outside-China coordinates stable, disable all map interaction/location/POI flags, and keep a neutral
+  client-drawn fallback from the normalized source points. Invalid, absent, blocked/place-only or unreviewed previews
+  render no placeholder; no production pilot geometry is added until a controller-approved projection exists.
+- Alternatives: pass raw WGS84 into Map; derive a line from weather samples; fetch a map service/key; expose the raw
+  GPX/KML or an interactive viewer. These would misrepresent coordinate systems, route completeness, privacy or the
+  approved B-lite scope.
+- Why: deterministic conversion and separate source/fallback boundaries preserve visual correctness without adding a
+  service dependency, while the explicit data gate keeps local synthetic tests distinct from production route truth.
+
+## 2026-08-21 — TP-D061 C12 WGS84 转换按可信路线地区限定
+
+- Status: Prepared on C12/#145 Review-fix round 2; ready for controller review, no deployment or CloudBase mutation
+- Context: A rectangle-only mainland test would also classify Kathmandu, Ulaanbaatar and Hong Kong as GCJ-02
+  territory. The trusted full route already carries a curated region label; the preview must not guess country
+  boundaries from coordinates alone.
+- Decision: Apply deterministic WGS84→GCJ-02 conversion only when the trusted route region matches an explicit
+  mainland province/region vocabulary. Keep WGS84 coordinates unchanged for explicit non-mainland regions and other
+  supplied labels; fail closed when a WGS84 preview has no region. GCJ-02 input remains unchanged. This is a bounded
+  product applicability rule, not a claim of globally exact mainland borders.
+- Alternatives: keep the broad rectangle; add a hand-maintained country polygon; call a geocoding/map service; or
+  convert every WGS84 point. The first misclassifies non-mainland locations, the second creates fragile border data,
+  the third adds an unauthorized dependency/key, and the fourth misplaces outside-mainland geometry.
+- Why: trusted region provenance gives an explainable applicability gate without coordinate-only country guessing or
+  new infrastructure, while fail-closed absence preserves the data truth boundary.
+
+## 2026-08-21 — TP-D062 C12 路线地区三态分类与冲突优先级
+
+- Status: Superseded by C12/#145 Review-fix round 4; no deployment or CloudBase mutation
+- Context: A mainland-only vocabulary must not treat text containing a province name as proof of mainland geography.
+  Collision labels such as `香港·广东` and `尼泊尔·西藏边境` match both region classes and must remain unknown, while
+  unknown or missing labels must not produce Map-native coordinates.
+- Decision: Classify the trusted route region as `mainland`, `non_mainland` or `unknown`. Only canonical/anchored
+  mainland province/region forms receive deterministic WGS84→GCJ-02 conversion. Explicit non-mainland-only forms
+  remain raw WGS84; when mainland and non-mainland matches both exist, classify as unknown and render no preview.
+  Unknown, missing and unrecognized aliases also fail closed. This bounded vocabulary intentionally rejects false
+  positives and makes no global country-boundary claim.
+- Alternatives: classify by substring, accept every English/abbreviated alias, infer from coordinates, or let unknown
+  labels render raw. These options admit false positives, misplace Map coordinates or turn missing provenance into
+  apparent route evidence.
+- Why: anchored trusted labels and explicit three-state conflict handling provide an explainable, deterministic
+  applicability gate without a geocoder, border polygon, external service/key or fabricated production geometry.

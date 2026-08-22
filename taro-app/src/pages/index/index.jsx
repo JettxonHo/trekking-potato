@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { View, Text, Input, Picker, Image, ScrollView, PageContainer } from '@tarojs/components'
+import { View, Text, Input, Picker, Image, ScrollView, PageContainer, Map } from '@tarojs/components'
 import LogoIcon from '../../assets/new_logo.png'
 import { Button, Cell, CellGroup, Tag, Skeleton, Popup } from '@nutui/nutui-react-taro'
 import Taro from '@tarojs/taro'
@@ -13,6 +13,7 @@ const {
   RESULT_CACHE_VERSION,
   applyChecklistLifecycleEvent,
   buildHistorySavePayload,
+  buildRoutePreviewMapGeometry,
   buildResultPageModel,
   captureHistoryContext,
   checklistKey,
@@ -138,6 +139,52 @@ function buildBaseSafetyResult(gearRules) {
   return { gear, risks }
 }
 
+const ROUTE_PREVIEW_LINE_COLORS = ['#1d1d1f', '#5e5ce6', '#34c759', '#ff9500', '#ff375f', '#64d2ff', '#af52de']
+
+function routePreviewPointStyle(point, bounds) {
+  const lonSpan = Math.max(bounds.maxLon - bounds.minLon, 1e-9)
+  const latSpan = Math.max(bounds.maxLat - bounds.minLat, 1e-9)
+  const left = ((point.lon - bounds.minLon) / lonSpan) * 100
+  const top = (1 - ((point.lat - bounds.minLat) / latSpan)) * 100
+  return { left: `${Math.max(0, Math.min(100, left))}%`, top: `${Math.max(0, Math.min(100, top))}%` }
+}
+
+function routePreviewAllPoints(preview) {
+  return preview.segments.reduce((points, segment) => points.concat(segment.points), [])
+}
+
+function routePreviewFallbackLines(preview) {
+  const bounds = preview.bounds
+  return preview.segments.reduce((lines, segment, segmentIndex) => lines.concat(segment.points.slice(1).map((point, pointIndex) => {
+    const start = segment.points[pointIndex]
+    const startStyle = routePreviewPointStyle(start, bounds)
+    const endStyle = routePreviewPointStyle(point, bounds)
+    const startLeft = parseFloat(startStyle.left)
+    const startTop = parseFloat(startStyle.top)
+    const endLeft = parseFloat(endStyle.left)
+    const endTop = parseFloat(endStyle.top)
+    const dx = endLeft - startLeft
+    const dy = endTop - startTop
+    return {
+      key: `route-preview-line-${segmentIndex}-${pointIndex}`,
+      style: {
+        left: startStyle.left,
+        top: startStyle.top,
+        width: `${Math.max(Math.sqrt((dx * dx) + (dy * dy)), 0.5)}%`,
+        backgroundColor: ROUTE_PREVIEW_LINE_COLORS[segmentIndex % ROUTE_PREVIEW_LINE_COLORS.length],
+        transform: `rotate(${Math.atan2(dy, dx)}rad)`,
+      },
+    }
+  })), [])
+}
+
+function routePreviewEndpoint(preview, last = false) {
+  const segments = preview.segments || []
+  const segment = last ? segments[segments.length - 1] : segments[0]
+  const points = segment && segment.points ? segment.points : []
+  return points[last ? points.length - 1 : 0] || null
+}
+
 export default class Index extends Component {
   state = {
     route: '',
@@ -173,6 +220,7 @@ export default class Index extends Component {
     historyPrefillNotice: '',
     gearChecked: {},
     weatherDisclosure: {},
+    routePreviewFallback: false,
   }
 
   // Page-local checklist projection; trip-flow remains the only query state machine.
@@ -248,6 +296,7 @@ export default class Index extends Component {
     this._invalidateHistorySaveIntent()
     this._applyChecklistLifecycle({ type: 'return_to_search' }, true)
     this.setState({ weatherDisclosure: {} })
+    this.setState({ routePreviewFallback: false })
   }
 
   _clearRecoverySlots() {
@@ -581,6 +630,7 @@ export default class Index extends Component {
     }
     this.setState({ historySaveError: null })
     this.setState({ weatherDisclosure: {} })
+    this.setState({ routePreviewFallback: false })
     this._updateTripFlow({ type: 'BASE_RECEIVED', token: generation, result: baseResult, queryId }, null, (flow) => {
       if (this._unmounted || flow.token !== generation || flow.status !== 'base_ready') return
       this._saveCache(generation)
@@ -817,6 +867,10 @@ export default class Index extends Component {
     }))
   }
 
+  onRoutePreviewError = () => {
+    this.setState({ routePreviewFallback: true })
+  }
+
   // ===== 结果缓存 =====
   _saveCache() {
     const token = arguments[0]
@@ -1027,7 +1081,7 @@ export default class Index extends Component {
   }
 
   render() {
-    const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, showHistory, historyList, historyLoading, historyError, historySaveError, historyPrefillNotice, gearChecked, weatherDisclosure } = this.state
+    const { route, date, startTimeLocal, days, levels, levelIndex, minDate, loadingStage, tripFlow, manualLat, manualLon, manualElev, manualRouteType, routeTypeLabels, routeTypeOptions, showHistory, historyList, historyLoading, historyError, historySaveError, historyPrefillNotice, gearChecked, weatherDisclosure, routePreviewFallback } = this.state
     const { loading, refreshing, showResult, showCandidatePopup, showManualCoords, errorMessage } = selectTripFlowView(tripFlow)
     const { result, candidates, routeTypeRequest } = tripFlow
     const recoveryActions = selectRecoveryActions(tripFlow, this._recoverySlots)
@@ -1062,6 +1116,17 @@ export default class Index extends Component {
         ['recommended', '推荐', 'gear-tag-recommended'],
         ['optional', '可选', 'gear-tag-optional'],
       ]
+      const routePreview = routeModel.routePreview
+      const routePreviewSourcePoints = routePreview ? routePreviewAllPoints(routePreview) : []
+      const routePreviewMap = routePreview ? buildRoutePreviewMapGeometry(routePreview, routeModel.region) : null
+      const routePreviewPoints = routePreviewMap ? routePreviewMap.points : []
+      const routePreviewPolylines = routePreviewMap ? routePreviewMap.polylines : []
+      const routePreviewStart = routePreview ? routePreviewEndpoint(routePreview) : null
+      const routePreviewEnd = routePreview ? routePreviewEndpoint(routePreview, true) : null
+      const routePreviewCenter = routePreviewMap ? routePreviewMap.center : { latitude: 0, longitude: 0 }
+      const routePreviewIndicators = routePreviewMap ? routePreviewMap.indicators : []
+      const routePreviewStartStyle = routePreview && routePreviewStart ? routePreviewPointStyle(routePreviewStart, routePreview.bounds) : {}
+      const routePreviewEndStyle = routePreview && routePreviewEnd ? routePreviewPointStyle(routePreviewEnd, routePreview.bounds) : {}
 
       return (
         <View className="container result-page" style="padding-top:40rpx;padding-bottom:120rpx;">
@@ -1071,7 +1136,7 @@ export default class Index extends Component {
           {tripFlow.status === 'error' && tripFlow.error && tripFlow.error.retryable === true && tripFlow.error.code !== 'query_context_unavailable' && <Button className="retry-btn" onClick={this.onQueryRetry}>重试查询</Button>}
           {tripFlow.status === 'error' && tripFlow.error && tripFlow.error.code === 'query_context_unavailable' && <Button className="retry-btn" onClick={this.onContextRetry}>重新准备行程</Button>}
 
-          <View className={`result-verdict-card verdict-${verdict.tone}`}>
+          <View className={`result-summary-card result-verdict-card verdict-${verdict.tone}`}>
             <Text className="result-verdict-label">{verdict.label}</Text>
             <Text className="result-route-name">{routeModel.name || '路线待确认'}</Text>
             <Text className="result-route-scope">{routeModel.region || '地区待确认'} · {routeModel.scope}</Text>
@@ -1082,6 +1147,47 @@ export default class Index extends Component {
               {routeModel.operationalStatusLabel && <Text className="result-fact">{routeModel.operationalStatusLabel}</Text>}
             </View>
             {routeModel.restriction && <Text className="restriction-copy">{routeModel.restriction.reason || '存在官方限制'}</Text>}
+            {routeModel.routePreview && routePreviewMap && (
+              <View className="route-preview-card">
+                <Text className="card-title">完整路线预览</Text>
+                <Text className="route-preview-note">仅展示已核验路线几何，不代表开放状态或安全结论</Text>
+                <View className="route-preview-stage">
+                  {!routePreviewFallback && (
+                    <Map
+                      className="route-preview-map"
+                      latitude={routePreviewCenter.latitude}
+                      longitude={routePreviewCenter.longitude}
+                      scale={12}
+                      polyline={routePreviewPolylines}
+                      includePoints={routePreviewPoints}
+                      circles={routePreviewIndicators}
+                      enableZoom={false}
+                      enableScroll={false}
+                      enableRotate={false}
+                      enableOverlooking={false}
+                      showLocation={false}
+                      enablePoi={false}
+                      onError={this.onRoutePreviewError}
+                    />
+                  )}
+                  {routePreviewFallback && (
+                    <View className="route-preview-fallback" aria-label="路线轮廓备用预览">
+                      {routePreviewFallbackLines(routePreview).map((line) => <View key={line.key} className="route-preview-fallback-line" style={line.style} />)}
+                      {routePreviewSourcePoints.map((point, index) => <View key={`route-preview-point-${index}`} className="route-preview-fallback-point" style={routePreviewPointStyle(point, routePreview.bounds)} />)}
+                      <Text className="route-preview-start" style={routePreviewStartStyle}>起点</Text>
+                      <Text className="route-preview-end" style={routePreviewEndStyle}>终点</Text>
+                    </View>
+                  )}
+                  {!routePreviewFallback && (
+                    <View className="route-preview-map-labels">
+                      <Text className="route-preview-start" style={routePreviewStartStyle}>起点</Text>
+                      <Text className="route-preview-end" style={routePreviewEndStyle}>终点</Text>
+                    </View>
+                  )}
+                </View>
+                <Text className="route-preview-legend">起点 / 终点 · {routePreview.segments.length} 段路线</Text>
+              </View>
+            )}
           </View>
 
           <View className="card result-reasons-card">
