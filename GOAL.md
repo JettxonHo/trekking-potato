@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C14 REVIEW_ACTIVE`
+- Status: `ACTIVE — BLOCKED_STAGING`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -67,9 +67,10 @@ tool evidence; no production readiness or Goal completion is claimed. C08 merged
 #137 is closed without deployment, timer activation or deletion. C09 merged through PR #140 as `7a07757`; #139 is
 closed without deployment or automatic catalog promotion. C10 merged through PR #142 as `e417ab8`; #141 is closed.
 C11 merged through PR #144 as `93a86d8`; #143 is closed. C12 merged through PR #146 as `ae86b0b`; #145 implementation
-is complete. C13 merged through PR #149 as `9de9013` and #148 is closed. Human-approved C14/#150 is now the only
-active implementation slice; #123 remains the separate staging blocker. No timer, destructive cleanup, real-user
-cohort or production release is implied.
+is complete. C13 merged through PR #149 as `9de9013` and #148 is closed. C14 merged through PR #151 as `131e616` after
+exact-head quality and two independent Reviews; #150 may close after this documentation reconciliation. The only
+active work returns to the human-controlled #123 staging blocker. No timer, destructive cleanup, real-user cohort or
+production release is implied.
 
 ## C14 private-history pagination activation — 2026-08-22
 
@@ -95,15 +96,14 @@ cohort or production release is implied.
   existing warnings`), typecheck, fixture-free WeChat build, diff check, exact allowlist and privacy/secret scans pass;
   independent Reviews remain controller-owned. Root npm audit reports 0 vulnerabilities; the pinned history
   `wx-server-sdk` audit reports pre-existing transitive findings whose breaking upgrade is outside this allowlist.
-- Historical implementation head `0f6b2bf` is published as PR #151 (`OPEN`/`DRAFT`); its exact-head quality run
-  `32569602179` succeeded. The review-fix round keeps production behavior unchanged and hardens `test:recovery` by
+- Historical implementation head `0f6b2bf` was published in PR #151; its exact-head quality run `32569602179`
+  succeeded. The review-fix round kept production behavior unchanged and hardened `test:recovery` by
   feeding the first append page only new rows, moving duplicate-ID coverage to a separate case, and proving a
   `response.data.slice()` append mutation turns the focused recovery contract RED.
-- The review-fix increment is test/docs-only and published in Draft PR #151. Live GitHub metadata is authoritative;
-  the same current head requires successful quality CI plus two fresh exact-head independent Reviews, and any head
-  change repeats both gates. No deployment, CloudBase/data action or release is authorized.
-- Executor status: `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh must inspect the exact diff and complete all required gates and
-  two fresh exact-head independent Reviews before deciding mergeability.
+- Final PR #151 head `79866a8` passed quality run `32570414955` and two fresh exact-head independent Reviews with no
+  P0–P3 finding, then squash merged as `131e616`. This completes the C14 code slice; it does not prove deployment or
+  live history access, and no CloudBase index/config/data action or release occurred.
+- Current status: `BLOCKED_STAGING`; #123 again owns the remaining human runtime-validation rows.
 
 ## C13 approved B result-summary activation — 2026-08-22
 

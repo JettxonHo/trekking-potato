@@ -3,9 +3,9 @@
 - Updated: `2026-08-22`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C14 REVIEW_ACTIVE`
-- Active task: `#150 / REVIEW_ACTIVE` (private history cursor pagination; #123 remains the staging blocker)
-- Branch/base: `codex/150-history-pagination` from exact `main@9de9013`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING`
+- Active task: `#123 / BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`
+- Branch/base: C14 merged to exact `main@131e616`; this branch is documentation-only closeout
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: PR #135 merged the diagnostic-free finalize/CAS fix as `ac600e5`; focused Bug #134 is closed after its
@@ -15,9 +15,9 @@
   deployment, timer activation or deletion. PR #140 merged the search contribution UX as `7a07757`; #139 is closed.
   PR #142 merged the C10 presentation cleanup as `e417ab8`; #141 is closed. PR #144 merged C11 as `93a86d8` and
   #143 is closed. PR #146 merged C12 as `ae86b0b`; #145 implementation is complete. PR #149 merged the approved B
-  result hierarchy as `9de9013` and #148 is closed. Human-approved C14/#150 is the only active implementation slice;
-  #123 remains the staging blocker. No production/public release, CloudBase config/deploy action or automatic catalog
-  promotion is authorized.
+  result hierarchy as `9de9013` and #148 is closed. PR #151 merged C14 history pagination as `131e616`; #150 may close
+  after this documentation reconciliation. #123 is again the only active staging blocker. No production/public
+  release, CloudBase config/deploy action or automatic catalog promotion is authorized.
 
 ## C14 private-history pagination activation — 2026-08-22
 
@@ -44,15 +44,13 @@
   existing warnings`), typecheck, fixture-free WeChat build, diff check, exact allowlist and privacy/secret scans pass;
   independent Reviews remain controller-owned. Root npm audit reports 0 vulnerabilities; the pinned history
   `wx-server-sdk` audit reports pre-existing transitive findings whose breaking upgrade is outside this allowlist.
-- Historical implementation head `0f6b2bf` is published as PR #151 (`OPEN`/`DRAFT`); exact-head quality run
-  `32569602179` succeeded. Review-fix round 1 is test/docs-only: the first append fixture contains only new rows, a
+- Historical implementation head `0f6b2bf` was published in PR #151; exact-head quality run `32569602179` succeeded.
+  Review-fix round 1 was test/docs-only: the first append fixture contains only new rows, a
   separate fixture covers duplicate IDs, and a `response.data.slice()` mutation is asserted to make focused recovery
   RED while the unmutated model remains GREEN.
-- The review-fix increment is published in Draft PR #151. Live GitHub metadata is authoritative; the same current head
-  must pass quality CI plus two fresh exact-head independent Reviews, and any head change repeats both gates. No
-  CloudBase/data action, deployment or release is authorized.
-- Executor status: `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh owns exact diff review, full gates, independent Reviews and
-  any commit/merge decision.
+- Final PR #151 head `79866a8` passed quality run `32570414955` and two fresh exact-head independent Reviews with no
+  P0–P3 finding, then squash merged as `131e616`. C14 code is complete; no CloudBase/data action, deployment or release
+  occurred. Remaining execution is the human-controlled #123 staging ledger only.
 
 ## C13 approved B result-summary activation — 2026-08-22
 
@@ -1865,10 +1863,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Draft PR #151 is open for C14/#150. Live GitHub metadata is authoritative; Sol waits for successful quality CI and two
-fresh independent Reviews on the same current head before deciding mergeability. Any head change repeats both gates.
-#123 staging rows remain unchanged. No CloudBase index/config mutation, deployment, real history access, delete/clear
-invocation, timer, destructive cleanup, real-user cohort or public release is authorized.
+Reconcile and merge this documentation-only closeout, then close #150. Continue only through #123's human-controlled
+runtime-validation ledger: S8–S15/S20 remain `BLOCKED`, and S16/S18 remain `UNVERIFIED_RUNTIME_TOOL`. No CloudBase
+index/config mutation, deployment, real history access, delete/clear invocation, timer, destructive cleanup,
+real-user cohort or public release is authorized by this closeout.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
