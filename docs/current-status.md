@@ -69,8 +69,19 @@
 - After the fixture-free build, `RESULT_PAGE_ARTIFACT=1 node scripts/result-page-contract-test.js` checks the generated
   `dist/pages/index/index.js` reason subtree for the class/message seam and `dist/base.wxml` for no aria-label reliance.
   No model/service/DTO/history/CloudBase behavior changed; no deployment or runtime data action occurred.
-- Executor status: `READY_FOR_CONTROLLER_REVIEW`. This review-fix is uncommitted in the shared worktree; the controller
-  owns commit/push/PR lifecycle and must repeat exact-head CI plus two fresh independent Reviews.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`. The controller has committed/published this review-fix at exact head
+  `33d1469` on PR #149. Live GitHub metadata is authoritative; that same current head still requires successful CI
+  plus two fresh independent Reviews before Sol decides mergeability.
+
+## C13 round-two exact-preview injection checkpoint — 2026-08-22
+
+- The second independent Review found that a self-closing `<View className="route-preview-card" />` injected after the
+  route name could coexist with the valid conditional branch while the focused gate stayed GREEN.
+- The focused oracle now counts regular and self-closing preview-card instances and requires exactly one instance under
+  the exact `routeModel.routePreview && routePreviewMap` condition. The duplicate injection is source-changing,
+  Babel-parseable and independently RED; the unmutated valid branch remains GREEN.
+- This bounded test/docs-only repair leaves production JSX/CSS unchanged. Exact controller-published head `33d1469` on
+  PR #149 remains the live review head; same-head CI plus two fresh independent Reviews remain the merge gate.
 
 ## C12 B-lite route-map preview activation — 2026-08-21
 

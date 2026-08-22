@@ -93,5 +93,15 @@ Reviews before any merge decision. No executor may approve or merge its own work
 - `RESULT_PAGE_ARTIFACT=1 node scripts/result-page-contract-test.js` is the executable build-artifact gate; it inspects
   generated `dist/pages/index/index.js` for the reason class/message seam and `dist/base.wxml` for no aria-label reliance.
   No model, service, DTO, geometry, history, dependency, CloudBase or deployment path changed.
-- Status: `READY_FOR_CONTROLLER_REVIEW`; this executor has not committed, pushed, opened/updated a PR or deployed. The
-  controller owns the next lifecycle step and exact-head re-review.
+- Status: `READY_FOR_CONTROLLER_REVIEW`; the controller committed/published this review-fix at exact head `33d1469`
+  on PR #149. Live GitHub metadata is authoritative; same-head CI and two fresh independent Reviews remain required
+  before Sol decides mergeability. No deployment occurred.
+
+## Round-two exact-preview injection checkpoint — 2026-08-22
+
+- The focused contract now counts every `<View className="route-preview-card">` and self-closing preview-card form,
+  requiring exactly one instance immediately under the safe `routeModel.routePreview && routePreviewMap` condition.
+- A representative self-closing card injected after the route name is source-changing, Babel-parseable and independently
+  RED; the valid unmutated branch remains GREEN. This is a test/docs-only repair; production JSX/CSS is unchanged.
+- Exact controller-published head `33d1469` on PR #149 remains the live head. Same-head CI and two independent Reviews
+  are still required before Sol decides mergeability.

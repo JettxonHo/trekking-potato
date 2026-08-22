@@ -2,6 +2,7 @@
 const assert = require('assert')
 const fs = require('node:fs')
 const path = require('node:path')
+const { parse: parseBabel } = require('../taro-app/node_modules/@babel/parser')
 
 const {
   RESULT_CACHE_KEY,
@@ -811,12 +812,14 @@ function assertC13ResultSummaryHierarchy(page, css) {
   const factsIndex = summary.indexOf('<View className="result-route-facts">')
   const noteIndex = summary.indexOf('className="route-preview-note"')
   const legendIndex = summary.indexOf('className="route-preview-legend"')
+  const previewCardOccurrences = summary.match(/<View className="route-preview-card"\s*\/?\s*>/g) || []
   assert.ok(adviceIndex >= 0, 'overall conclusion must use the compact advice kicker')
   assert.ok(routeNameIndex > adviceIndex, 'route name must follow the compact advice kicker')
   assert.ok(previewIndex > routeNameIndex, 'validated map preview must follow the route name')
   assert.ok(scopeIndex > previewIndex, 'route scope must follow the map preview')
   assert.ok(factsIndex > scopeIndex, 'route facts must follow the route scope')
   assert.ok(noteIndex > factsIndex && legendIndex > noteIndex, 'geometry notice and legend must follow route facts')
+  assert.equal(previewCardOccurrences.length, 1, 'result summary must contain exactly one route preview card')
   assert.match(
     summary,
     /\{routeModel\.routePreview && routePreviewMap && \(\s*<View className="route-preview-card">/,
@@ -886,6 +889,13 @@ function assertC13ResultSummaryHierarchy(page, css) {
   )
   assert.notEqual(noPreviewMutation, page, 'no-preview mutation must change source')
   assert.throws(() => assertC13ResultSummaryHierarchy(noPreviewMutation, css), undefined, 'unconditional preview card must turn the C13 gate RED')
+  const duplicatePreviewInjection = page.replace(
+    '<Text className="result-route-name">{routeModel.name || \'路线待确认\'}</Text>',
+    '<Text className="result-route-name">{routeModel.name || \'路线待确认\'}</Text>\n              <View className="route-preview-card" />',
+  )
+  assert.notEqual(duplicatePreviewInjection, page, 'unconditional preview injection must change source')
+  assert.doesNotThrow(() => parseBabel(duplicatePreviewInjection, { sourceType: 'module', plugins: ['jsx'] }), 'unconditional preview injection must remain Babel-parseable')
+  assert.throws(() => assertC13ResultSummaryHierarchy(duplicatePreviewInjection, css), undefined, 'unconditional preview injection must turn the C13 gate RED')
   const accessibleMessageMutation = page.replace(
     "{reason.message || '确定性规则提示'}",
     'reason.severity',
