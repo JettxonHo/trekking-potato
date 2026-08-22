@@ -1049,7 +1049,8 @@
   first append fixture to new rows, adds a separate duplicate-ID case, and dynamically proves that replacing the merge
   helper with `response.data.slice()` makes focused recovery RED. Root tests, integration `55/0`, lint, typecheck,
   fixture-free WeChat build, diff/allowlist/privacy scans and root npm audit pass locally; independent Reviews remain
-  controller-owned. Quality run `32569602179` succeeded on historical PR head `0f6b2bf`; the controller must publish
-  the test/docs head and obtain same-head quality plus two fresh exact-head Reviews. The pinned history `wx-server-sdk`
-  audit has pre-existing transitive findings whose breaking upgrade is outside this slice. No deployment, CloudBase/
-  data action or release is authorized.
+  controller-owned. Quality run `32569602179` succeeded on historical PR head `0f6b2bf`; Draft PR #151 is open and
+  live GitHub metadata is authoritative for the current head. That same head requires successful quality plus two
+  fresh exact-head Reviews, and any head change repeats both gates. The pinned history `wx-server-sdk` audit has
+  pre-existing transitive findings whose breaking upgrade is outside this slice. No deployment, CloudBase/data action
+  or release is authorized.

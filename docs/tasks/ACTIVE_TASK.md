@@ -78,5 +78,6 @@ Reviews before any commit/push/PR/merge decision. No executor may approve or mer
   an out-of-allowlist breaking upgrade. Historical implementation head `0f6b2bf` is PR #151 (`OPEN`/`DRAFT`) with
   successful exact-head quality run `32569602179`. Review-fix round 1 is limited to this test/docs allowlist: append
   inputs now contain only new rows, duplicate-ID coverage is a separate case, and a `response.data.slice()` mutation
-  is required to turn focused recovery RED. The controller publishes the new head and then re-runs same-head quality
-  plus two fresh independent Reviews; no CloudBase/data action, deployment or release is authorized.
+  is required to turn focused recovery RED. Draft PR #151 is open; live GitHub metadata is authoritative, and the same
+  current head must pass quality plus two fresh independent Reviews. Any head change repeats both gates. No CloudBase/
+  data action, deployment or release is authorized.

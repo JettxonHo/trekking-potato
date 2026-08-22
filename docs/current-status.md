@@ -48,9 +48,9 @@
   `32569602179` succeeded. Review-fix round 1 is test/docs-only: the first append fixture contains only new rows, a
   separate fixture covers duplicate IDs, and a `response.data.slice()` mutation is asserted to make focused recovery
   RED while the unmutated model remains GREEN.
-- After the controller publishes this review-fix head, live PR metadata is authoritative and the same current head
-  must pass quality CI plus two fresh exact-head independent Reviews. No CloudBase/data action, deployment or release
-  is authorized.
+- The review-fix increment is published in Draft PR #151. Live GitHub metadata is authoritative; the same current head
+  must pass quality CI plus two fresh exact-head independent Reviews, and any head change repeats both gates. No
+  CloudBase/data action, deployment or release is authorized.
 - Executor status: `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh owns exact diff review, full gates, independent Reviews and
   any commit/merge decision.
 
@@ -1865,8 +1865,8 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Controller commits/pushes the reviewed C14 worktree and opens a Draft PR for #150, then requires successful latest-head
-quality plus two fresh exact-head independent Reviews before deciding mergeability. Any head change repeats both gates.
+Draft PR #151 is open for C14/#150. Live GitHub metadata is authoritative; Sol waits for successful quality CI and two
+fresh independent Reviews on the same current head before deciding mergeability. Any head change repeats both gates.
 #123 staging rows remain unchanged. No CloudBase index/config mutation, deployment, real history access, delete/clear
 invocation, timer, destructive cleanup, real-user cohort or public release is authorized.
 

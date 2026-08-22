@@ -99,9 +99,9 @@ cohort or production release is implied.
   `32569602179` succeeded. The review-fix round keeps production behavior unchanged and hardens `test:recovery` by
   feeding the first append page only new rows, moving duplicate-ID coverage to a separate case, and proving a
   `response.data.slice()` append mutation turns the focused recovery contract RED.
-- The current review-fix worktree is test/docs-only. When the controller publishes its new head, live PR metadata is
-  authoritative and that same head requires successful quality CI plus two fresh exact-head independent Reviews.
-  No deployment, CloudBase/data action or release is authorized.
+- The review-fix increment is test/docs-only and published in Draft PR #151. Live GitHub metadata is authoritative;
+  the same current head requires successful quality CI plus two fresh exact-head independent Reviews, and any head
+  change repeats both gates. No deployment, CloudBase/data action or release is authorized.
 - Executor status: `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh must inspect the exact diff and complete all required gates and
   two fresh exact-head independent Reviews before deciding mergeability.
 
