@@ -56,6 +56,22 @@
   its current head, and that same head requires successful quality CI plus two fresh exact-head independent Reviews.
   No model/service/data/CloudBase/deployment action occurred.
 
+## C13 accessible-name and no-preview review-fix checkpoint — 2026-08-22
+
+- The first independent Review found two bounded P2s: an unconditional `route-preview-card` source mutation was not
+  independently covered, and Taro's WeChat `Text` template drops `aria-label`, making a severity-only label an unsafe
+  accessible-name contract.
+- Focused TDD captured RED before the repair for the conditional preview seam, exact visible reason message/fallback,
+  and representative message-loss mutation. GREEN keeps preview conditional, leaves the reason message/fallback as
+  the reachable text, keeps severity only in the existing non-overriding class, and removes the unsupported aria claim.
+- The C11 overall `verdict.label` mapping remains owned by the result model; only the now-unreferenced reason-list
+  display helper was removed so the message-only card does not introduce a new lint warning.
+- After the fixture-free build, `RESULT_PAGE_ARTIFACT=1 node scripts/result-page-contract-test.js` checks the generated
+  `dist/pages/index/index.js` reason subtree for the class/message seam and `dist/base.wxml` for no aria-label reliance.
+  No model/service/DTO/history/CloudBase behavior changed; no deployment or runtime data action occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`. This review-fix is uncommitted in the shared worktree; the controller
+  owns commit/push/PR lifecycle and must repeat exact-head CI plus two fresh independent Reviews.
+
 ## C12 B-lite route-map preview activation — 2026-08-21
 
 - The human approved B-lite after reviewing the throwaway A/B/C prototype: a noninteractive map thumbnail inside the

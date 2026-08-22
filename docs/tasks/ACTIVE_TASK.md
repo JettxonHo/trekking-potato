@@ -78,3 +78,20 @@ Reviews before any merge decision. No executor may approve or merge its own work
   the B hierarchy from identity/location-free synthetic local state; the temporary injection was removed and the normal
   homepage restored. Draft PR #149 is open; live GitHub metadata is authoritative, and its same current head requires
   successful quality CI plus two fresh independent Reviews before Sol decides mergeability.
+
+## Accessible-name and no-preview review-fix checkpoint — 2026-08-22
+
+- Independent Review identified two P2 contract gaps: unconditional route-preview-card injection was not independently
+  mutation-sensitive, and `aria-label` on Taro `Text` is absent from the generated WeChat template. A severity-only
+  label could therefore override or misstate the concrete reason message.
+- Focused RED was captured first. GREEN now requires the safe `routeModel.routePreview && routePreviewMap` wrapper,
+  keeps `reason.message || '确定性规则提示'` as the visible/reachable Text content, retains severity only in the
+  existing `reason-*` class and makes no unsupported aria claim. The message-loss and unconditional-preview mutations
+  return RED.
+- The C11 overall `verdict.label` mapping remains in the result model; only the unreferenced reason-list display helper
+  was removed, avoiding a new lint warning while preserving the message-only UI.
+- `RESULT_PAGE_ARTIFACT=1 node scripts/result-page-contract-test.js` is the executable build-artifact gate; it inspects
+  generated `dist/pages/index/index.js` for the reason class/message seam and `dist/base.wxml` for no aria-label reliance.
+  No model, service, DTO, geometry, history, dependency, CloudBase or deployment path changed.
+- Status: `READY_FOR_CONTROLLER_REVIEW`; this executor has not committed, pushed, opened/updated a PR or deployed. The
+  controller owns the next lifecycle step and exact-head re-review.

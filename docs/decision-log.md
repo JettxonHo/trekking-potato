@@ -1000,3 +1000,19 @@
   selector or alter route/map/model behavior.
 - Evidence: focused TDD RED forbids the universal selector and requires wrapper containment; GREEN passes focused/root
   tests, typecheck, fixture-free WeChat build and diff-check. DevTools recompilation and screenshot remain controller-owned.
+
+## 2026-08-22 — TP-D065 C13 reason accessible-name and no-preview review fix
+
+- Status: Prepared on C13/#148 independent Review-fix; ready for controller re-review, no deployment or CloudBase mutation
+- Context: Review found that an unconditional route-preview-card mutation was not explicitly rejected, and the current
+  Taro/WeChat `Text` template does not emit `aria-label` in generated WXML. A severity-only aria label could therefore
+  replace the concrete reason message in environments that honor it while remaining unreachable in the target template.
+- Decision: Keep the preview card behind the existing safe `routeModel.routePreview && routePreviewMap` condition. Use the
+  exact `reason.message || '确定性规则提示'` Text content as the reachable name, retain severity only in the existing
+  `reason-*` class for non-overriding presentation, and make no unsupported aria claim.
+- The C11 overall `verdict.label` mapping remains model-owned; the unreferenced reason-list display helper is removed
+  solely to keep this message-only presentation lint-clean.
+- Evidence: focused TDD RED/GREEN covers the source hierarchy, explicit unconditional-preview and message-loss mutations,
+  plus an opt-in `RESULT_PAGE_ARTIFACT=1` gate that checks generated `dist/pages/index/index.js` for the reason class/
+  message seam and `dist/base.wxml` for no aria-label reliance. No model/service/DTO/history/geometry/dependency/
+  CloudBase/deployment change occurred; executor returns `READY_FOR_CONTROLLER_REVIEW` without commit/push/PR/merge.

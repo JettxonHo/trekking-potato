@@ -110,6 +110,24 @@ blocker. No timer, destructive cleanup, real-user cohort or production release i
   its current head, and the same current head must have successful quality CI plus two fresh independent Reviews
   before Sol decides mergeability. No CloudBase call, deployment or release occurred.
 
+## C13 accessible-name and no-preview review-fix checkpoint — 2026-08-22
+
+- Independent Review identified two bounded P2 contract gaps: an unconditional route-preview-card mutation was not
+  independently rejected, and `Text aria-label` is not emitted by the current Taro/WeChat `Text` template, so a
+  severity-only label could hide the concrete reason message from the reachable name.
+- Focused TDD first captured RED for the exact safe-preview conditional, the visible `reason.message`/fallback seam,
+  and a representative message-loss mutation. GREEN now keeps the preview card conditional, preserves the concrete
+  reason text as the accessible content, retains severity only in its non-overriding class, and makes no aria support
+  claim that the built WXML cannot carry.
+- The C11 overall `verdict.label` mapping remains model-owned; only the unreferenced reason-list display helper was
+  removed to keep the message-only card lint-clean.
+- The optional `RESULT_PAGE_ARTIFACT=1` gate checks the built `dist/pages/index/index.js` reason subtree for the
+  severity class and exact message/fallback, and checks `dist/base.wxml` for the absence of an aria-label dependency.
+  Focused contract, artifact gate and the fixture-free build are local evidence only; no route/model/service/DTO/history/
+  CloudBase behavior changed.
+- No commit, push, PR, deployment or release occurred in this executor turn. Status: `READY_FOR_CONTROLLER_REVIEW`;
+  controller must inspect this allowlisted review-fix and repeat exact-head CI plus both independent Reviews.
+
 ## C12 B-lite route-map preview activation — 2026-08-21
 
 - The human selected B-lite after reviewing A/B/C prototypes: one read-only map thumbnail in the result summary card,
