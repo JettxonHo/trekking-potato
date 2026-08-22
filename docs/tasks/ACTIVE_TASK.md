@@ -1,10 +1,10 @@
 # ACTIVE TASK — #148 approved B result-summary hierarchy
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C13 IMPLEMENTATION_ACTIVE`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C13 REVIEW_ACTIVE`
 - Milestone: C13 Result summary hierarchy
 - GitHub Issue: `#148`
-- Status/Mode: `IMPLEMENTATION_ACTIVE / IMPLEMENTATION`
+- Status/Mode: `REVIEW_ACTIVE / REVIEW_FIX`
 - Controller: Sol XHigh + human controller
 - Branch/base: `codex/148-result-summary-b` from exact `main@b25e521`
 - Executor: exact custom `luna-worker`, configured `gpt-5.6-luna/max`; runtime identity is separate evidence
@@ -57,3 +57,23 @@ Stop for any required out-of-allowlist path, public contract change or data/runt
 
 Executor delivers `READY_FOR_CONTROLLER_REVIEW`. Sol XHigh performs actual-diff review and two fresh independent
 Reviews before any merge decision. No executor may approve or merge its own work.
+
+## Implementation checkpoint — 2026-08-22
+
+- Focused RED was captured before JSX/CSS edits; focused GREEN now proves the approved order, route-name-only title,
+  no prototype/local tag, message-only `判断依据`, neutral gray depth/sharp foreground and fail-closed no-preview path.
+- Mutation probes for advice removal, scope reorder, duplicate verdict, prototype tag, verdict-tinted depth and
+  foreground blur each fail the focused gate. Full local matrix is green: root tests, integration `55/0`, lint
+  (`0 errors / 9 existing warnings`), typecheck, fixture-free WeChat build and `git diff --check`.
+- Actual implementation files are the three code/test paths in the allowlist plus the four lifecycle/decision docs;
+  no model/service/server/public DTO/history/dependency/CloudBase/deployment/private-evidence action occurred.
+- Status: `READY_FOR_CONTROLLER_REVIEW`; local DevTools visual evidence and controller-owned Reviews remain pending.
+
+## Runtime review-fix checkpoint — 2026-08-22
+
+- Controller DevTools found a WXSS compile error from the new universal child selector. Focused RED now forbids
+  `.result-verdict-card > *` and requires the explicit `result-verdict-content` foreground wrapper.
+- GREEN keeps the Map and start/end labels inside that wrapper and moves z-index there. Focused/root tests, typecheck,
+  fixture-free WeChat build and `git diff --check` pass. Controller DevTools now recompiles with zero errors and renders
+  the B hierarchy from identity/location-free synthetic local state; the temporary injection was removed and the normal
+  homepage restored. Controller next action is commit/push, Draft PR, latest-head CI and two fresh exact-head Reviews.

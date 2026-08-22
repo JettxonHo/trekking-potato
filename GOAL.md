@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C13 IMPLEMENTATION_ACTIVE`
+- Status: `ACTIVE — C13 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -66,7 +66,7 @@ tool evidence; no production readiness or Goal completion is claimed. C08 merged
 #137 is closed without deployment, timer activation or deletion. C09 merged through PR #140 as `7a07757`; #139 is
 closed without deployment or automatic catalog promotion. C10 merged through PR #142 as `e417ab8`; #141 is closed.
 C11 merged through PR #144 as `93a86d8`; #143 is closed. C12 merged through PR #146 as `ae86b0b`; #145 implementation
-is complete. Human-approved C13/#148 is now the only active implementation slice; #123 remains the separate staging
+is complete. Human-approved C13/#148 is now the only active review slice; #123 remains the separate staging
 blocker. No timer, destructive cleanup, real-user cohort or production release is implied.
 
 ## C13 approved B result-summary activation — 2026-08-22
@@ -79,6 +79,35 @@ blocker. No timer, destructive cleanup, real-user cohort or production release i
   repeated. Missing preview geometry keeps the merged C12 fail-closed no-placeholder behavior.
 - #148 owns the exact frontend/test/status allowlist in ACTIVE_TASK. History pagination is a separate serial slice;
   no model/service/server/public DTO, catalog, dependency, CloudBase, deployment or release change is authorized.
+
+## C13 implementation checkpoint — 2026-08-22
+
+- TDD captured a real focused RED before the presentation edits: the result-page contract rejected the missing compact
+  advice kicker. GREEN now proves the approved advice → route name → conditional map → scope/facts → geometry notice/
+  legend order, rejects prototype/local-validation tags and duplicated verdict content, and keeps the C12 no-preview
+  conditional intact. Independent mutations for reorder, tag, duplicate verdict, verdict-tinted depth and foreground
+  blur each return RED.
+- The result summary now uses the route name as its only large title, a compact `出发建议 · <结论>` kicker, a neutral
+  gray-on-white top/bottom depth layer with sharp foreground text/Map, and a `判断依据` card whose visible rows are
+  concrete reason messages. No route/model/service/DTO/history or CloudBase behavior changed.
+- Focused/root tests, offline integration `55/0`, lint (`0 errors / 9 existing warnings`), typecheck, fixture-free
+  `CI=1 build:weapp` and `git diff --check` pass. This is local code evidence; DevTools visual evidence remains a
+  separate controller check. No CloudBase call, deployment, production geometry, commit, push, PR or release occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh must inspect the actual diff and obtain two fresh exact-head
+  independent Reviews before deciding mergeability. Runtime model identity remains separately unverified.
+
+## C13 runtime review-fix checkpoint — 2026-08-22
+
+- Controller DevTools found a WXSS compile failure on the fixture-free build. The cause was bounded to the new
+  `.result-verdict-card > *` universal-child selector, which the CLI build did not reject.
+- Review-fix TDD captured RED by forbidding that selector and requiring an explicit `result-verdict-content` wrapper
+  containing the map stage and labels. GREEN replaces it with the explicit wrapper/z-index seam; no route/model/service
+  behavior changed.
+- Focused/root tests, typecheck, fixture-free `CI=1 build:weapp` and `git diff --check` pass. Controller DevTools now
+  recompiles with zero errors and renders the B hierarchy from identity/location-free synthetic local state; the
+  temporary visual injection was removed and the normal homepage restored.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; controller commit/push, Draft PR, latest-head CI and two fresh
+  exact-head independent Reviews remain required. No CloudBase call, deployment or release occurred.
 
 ## C12 B-lite route-map preview activation — 2026-08-21
 

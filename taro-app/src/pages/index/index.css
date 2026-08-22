@@ -216,26 +216,31 @@
 
 .result-page { background: #ffffff; }
 .result-verdict-card {
-  border-radius: 28rpx; padding: 40rpx 36rpx; margin-bottom: 24rpx;
-  box-shadow: 0 8rpx 48rpx rgba(0,0,0,0.04); border: 2rpx solid #1a1a1a;
+  position: relative; overflow: hidden; border-radius: 28rpx; padding: 40rpx 36rpx; margin-bottom: 24rpx;
+  background: #fff; box-shadow: 0 8rpx 48rpx rgba(0,0,0,0.04); border: 1rpx solid rgba(0,0,0,0.06);
 }
-.verdict-positive { background: #f5fff7; border-color: #34c759; }
-.verdict-caution { background: #fffaf0; border-color: #ff9500; }
-.verdict-no-go { background: #fff5f4; border-color: #ff3b30; }
-.verdict-unavailable { background: #f5f5f7; border-color: #86868b; }
-.result-verdict-label { display: block; font-size: 48rpx; font-weight: 800; color: #1d1d1f; letter-spacing: 3rpx; }
-.result-route-name { display: block; margin-top: 20rpx; font-size: 34rpx; font-weight: 700; color: #1d1d1f; line-height: 1.4; }
-.result-route-scope { display: block; margin-top: 8rpx; font-size: 24rpx; color: #86868b; }
+.result-verdict-card::before,
+.result-verdict-card::after { content: ''; position: absolute; left: 12%; right: 12%; height: 112rpx; pointer-events: none; z-index: 0; opacity: 0.42; }
+.result-verdict-card::before { top: -44rpx; filter: blur(30rpx); background: linear-gradient(180deg, rgba(142,142,147,0.16), rgba(255,255,255,0)); }
+.result-verdict-card::after { bottom: -44rpx; filter: blur(30rpx); background: linear-gradient(0deg, rgba(142,142,147,0.14), rgba(255,255,255,0)); }
+.result-verdict-content { position: relative; z-index: 1; }
+.verdict-positive,
+.verdict-caution,
+.verdict-no-go,
+.verdict-unavailable { background: #fff; border-color: rgba(0,0,0,0.06); }
+.result-advice-kicker { display: block; margin-bottom: 14rpx; font-size: 24rpx; font-weight: 600; color: #86868b; letter-spacing: 1rpx; }
+.verdict-positive .result-advice-kicker { color: #248a3d; }
+.verdict-caution .result-advice-kicker { color: #b26a00; }
+.verdict-no-go .result-advice-kicker { color: #c9342b; }
+.verdict-unavailable .result-advice-kicker { color: #6e6e73; }
+.result-route-name { display: block; margin-top: 0; font-size: 40rpx; font-weight: 800; color: #1d1d1f; line-height: 1.35; }
+.result-route-scope { display: block; margin-top: 20rpx; font-size: 24rpx; color: #86868b; }
 .result-route-facts { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 24rpx; }
 .result-fact { background: rgba(0,0,0,0.05); border-radius: 10rpx; padding: 8rpx 14rpx; font-size: 22rpx; color: #3a3a3c; }
 .restriction-copy { display: block; margin-top: 24rpx; color: #ff3b30; font-size: 26rpx; font-weight: 700; }
 .result-reasons-card .card-title { margin-bottom: 12rpx; }
 .reason-item { display: flex; flex-direction: column; gap: 6rpx; padding: 18rpx 0; border-bottom: 1rpx solid rgba(0,0,0,0.04); }
 .reason-item:last-of-type { border-bottom: none; }
-.reason-severity { font-size: 22rpx; font-weight: 700; }
-.reason-no_go { color: #ff3b30; }
-.reason-caution { color: #ff9500; }
-.reason-info { color: #86868b; }
 .reason-message { font-size: 26rpx; color: #1d1d1f; line-height: 1.5; }
 .data-issues { margin-top: 20rpx; padding-top: 20rpx; border-top: 1rpx solid rgba(0,0,0,0.06); }
 .subcard-title { display: block; margin-bottom: 10rpx; font-size: 24rpx; color: #86868b; font-weight: 700; }
@@ -603,8 +608,9 @@
  * 完整路线 B-lite 地图预览（只读、无交互）
  * ============================================ */
 
-.route-preview-card { overflow: hidden; }
-.route-preview-note { display: block; margin: 8rpx 0 20rpx; color: #86868b; font-size: 22rpx; line-height: 1.5; }
+.route-preview-card { overflow: hidden; margin-top: 22rpx; }
+.route-preview-meta { margin-top: 16rpx; }
+.route-preview-note { display: block; margin: 0 0 8rpx; color: #86868b; font-size: 22rpx; line-height: 1.5; }
 .route-preview-stage { position: relative; width: 100%; height: 320rpx; overflow: hidden; border-radius: 20rpx; background: #f5f5f7; }
 .route-preview-map { width: 100%; height: 320rpx; }
 .route-preview-map-labels { position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; }

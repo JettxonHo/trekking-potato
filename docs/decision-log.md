@@ -972,3 +972,31 @@
   apparent route evidence.
 - Why: anchored trusted labels and explicit three-state conflict handling provide an explainable, deterministic
   applicability gate without a geocoder, border polygon, external service/key or fabricated production geometry.
+
+## 2026-08-22 — TP-D063 C13 结果摘要 B 版层级与中性景深
+
+- Status: Accepted by human for C13/#148 implementation; ready for controller review, no deployment or CloudBase mutation
+- Context: The merged C12 map preview was visually subordinate to a large verdict title, repeated the overall conclusion
+  in the following reason card, and the prototype's depth treatment risked blurring or color-tinting foreground content.
+- Decision: Keep the detailed result page's top summary card white. Render a compact `出发建议 · <结论>` kicker, then
+  the route name as the only large bold title; when a safe `routePreview` exists, place the sharp read-only map directly
+  below the name, followed by route scope/facts and the geometry notice/legend. Use neutral gray top/bottom pseudo-element
+  depth only, with direct children above the blur. Rename the next card to `判断依据` and render concrete reason messages
+  without a visible severity/verdict repetition. Preserve C12 conditional no-preview behavior.
+- Alternatives: retain the large verdict heading; tint the card by verdict; blur the whole card; derive or alter route,
+  weather or verdict data. These would weaken hierarchy, couple visual treatment to business severity, blur trusted content
+  or cross the presentation-only boundary.
+- Evidence: focused result-page contract records RED before edits and GREEN plus removal/reorder/tag/duplicate/tint/blur
+  mutations after edits; root tests, offline integration `55/0`, lint, typecheck, fixture-free WeChat build and diff-check
+  pass. Runtime model identity and DevTools visual evidence remain separate/unverified; no public/data/deployment action occurred.
+
+## 2026-08-22 — TP-D064 C13 WXSS universal-selector review fix
+
+- Status: Prepared on controller runtime Review; ready for controller re-review, no deployment or CloudBase mutation
+- Context: WeChat DevTools rejected the new `.result-verdict-card > *` universal-child selector even though the CLI WXSS
+  build passed, leaving the simulator blank. The compile failure was isolated to this C13 selector.
+- Decision: Use an explicit `result-verdict-content` wrapper for all top-card foreground text, Map and labels, and apply
+  `position/z-index` only to that named class. Keep the neutral gray pseudo-element depth behind it; do not broaden the
+  selector or alter route/map/model behavior.
+- Evidence: focused TDD RED forbids the universal selector and requires wrapper containment; GREEN passes focused/root
+  tests, typecheck, fixture-free WeChat build and diff-check. DevTools recompilation and screenshot remain controller-owned.

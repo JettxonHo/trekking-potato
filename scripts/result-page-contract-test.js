@@ -724,6 +724,7 @@ function resultPresentationContractForSources(page, css) {
   assertAiDisplayProjection(page)
   assertReasonSeverityDisplayProjection(page)
   assertMapPreviewWiring(page, css)
+  assertC13ResultSummaryHierarchy(page, css)
   assertWeatherDisclosureProjection(page)
   assertToggleIsolation(page)
   assertDisclosureResetSeams(page)
@@ -797,11 +798,103 @@ function assertMapPreviewWiring(page, css) {
   assert.notEqual(indicatorPropMutation, page, 'indicator prop mapping mutation must change source')
   assert.throws(() => assertMapPreviewWiring(indicatorPropMutation, css), undefined, 'indicator prop mapping mutation must turn the focused oracle RED')
   const siblingPreviewMutation = page.replace(
-    '            {routeModel.routePreview && routePreviewMap && (',
-    '          </View>\n\n          {routeModel.routePreview && routePreviewMap && (',
+    '              {routeModel.routePreview && routePreviewMap && (',
+    '            </View>\n          </View>\n\n          {routeModel.routePreview && routePreviewMap && (',
   )
   assert.notEqual(siblingPreviewMutation, page, 'preview nesting mutation must change source')
   assert.throws(() => assertMapPreviewWiring(siblingPreviewMutation, css), undefined, 'sibling preview mutation must turn the focused contract RED')
+}
+
+function assertC13ResultSummaryHierarchy(page, css) {
+  const resultStart = page.indexOf('    if (showResult && result)')
+  assert.ok(resultStart >= 0, 'structured result render must remain present')
+  const resultRender = page.slice(resultStart)
+  const summaryStart = resultRender.indexOf('className={`result-summary-card result-verdict-card')
+  const reasonsStart = resultRender.indexOf('<View className="card result-reasons-card">', summaryStart)
+  assert.ok(summaryStart >= 0, 'C13 top result summary card must remain explicit')
+  assert.ok(reasonsStart > summaryStart, 'C13 reasons card must follow the top summary card')
+  const summary = resultRender.slice(summaryStart, reasonsStart)
+  const contentStart = summary.indexOf('<View className="result-verdict-content">')
+  const contentEnd = summary.indexOf('\n          </View>', contentStart)
+  assert.ok(contentStart >= 0 && contentEnd > contentStart, 'top-card foreground must use an explicit wrapper')
+  const content = summary.slice(contentStart, contentEnd)
+  assert.match(content, /route-preview-stage/, 'map stage must remain inside the explicit foreground wrapper')
+  assert.match(content, /route-preview-map-labels/, 'map labels must remain inside the explicit foreground wrapper')
+  const adviceIndex = summary.indexOf('<Text className="result-advice-kicker">出发建议 · {verdict.label}</Text>')
+  const routeNameIndex = summary.indexOf('<Text className="result-route-name">{routeModel.name || \'路线待确认\'}</Text>')
+  const previewIndex = summary.indexOf('{routeModel.routePreview && routePreviewMap && (')
+  const scopeIndex = summary.indexOf('<Text className="result-route-scope">')
+  const factsIndex = summary.indexOf('<View className="result-route-facts">')
+  const noteIndex = summary.indexOf('className="route-preview-note"')
+  const legendIndex = summary.indexOf('className="route-preview-legend"')
+  assert.ok(adviceIndex >= 0, 'overall conclusion must use the compact advice kicker')
+  assert.ok(routeNameIndex > adviceIndex, 'route name must follow the compact advice kicker')
+  assert.ok(previewIndex > routeNameIndex, 'validated map preview must follow the route name')
+  assert.ok(scopeIndex > previewIndex, 'route scope must follow the map preview')
+  assert.ok(factsIndex > scopeIndex, 'route facts must follow the route scope')
+  assert.ok(noteIndex > factsIndex && legendIndex > noteIndex, 'geometry notice and legend must follow route facts')
+  assert.doesNotMatch(summary, /本地验收|原型|prototype|local/i, 'real result UI must not expose prototype/local-validation tags')
+  assert.doesNotMatch(summary, /<Text className="card-title">完整路线预览<\/Text>/, 'map preview must not introduce a second large title')
+
+  const reasonsEnd = resultRender.indexOf('\n\n          <View className="card result-weather-card">', reasonsStart)
+  assert.ok(reasonsEnd > reasonsStart, 'reasons card must remain bounded before weather')
+  const reasons = resultRender.slice(reasonsStart, reasonsEnd)
+  assert.match(reasons, /className="card-title">判断依据<\/Text>/, 'reason card must use the business title 判断依据')
+  assert.match(reasons, /pageModel\.reasons\.map\(\(reason, index\)/, 'reason order must remain page-model order')
+  assert.match(reasons, /reason\.message \|\| '确定性规则提示'/, 'reason card must render concrete messages')
+  assert.match(reasons, /formatReasonSeverityLabel\(reason\.severity\)/, 'reason severity may remain an accessibility label')
+  assert.doesNotMatch(reasons, /className="reason-severity"/, 'reason card must not visibly repeat severity labels')
+  assert.doesNotMatch(reasons, /verdict\.label/, 'reason card must not repeat the overall verdict')
+
+  const cardCssStart = css.indexOf('.result-verdict-card {')
+  const cardCssEnd = css.indexOf('\n}', cardCssStart) + 2
+  assert.ok(cardCssStart >= 0 && cardCssEnd > cardCssStart, 'top result card CSS must remain explicit')
+  const cardCss = css.slice(cardCssStart, cardCssEnd)
+  assert.match(cardCss, /background:\s*#fff/, 'top result card surface must remain white')
+  const depthCssStart = css.indexOf('.result-verdict-card::before')
+  const depthCssEnd = css.indexOf('.result-verdict-content', depthCssStart)
+  const depthCss = css.slice(depthCssStart, depthCssEnd)
+  assert.match(depthCss, /rgba\(142,142,147,0\.(?:14|16)\)/, 'background depth must use neutral gray')
+  assert.doesNotMatch(depthCss, /34c759|36,138,61|255,149,0|255,59,48|c9342b|b26a00/, 'background depth must not inherit verdict color')
+  assert.match(css, /\.result-verdict-card::before\s*\{[^}]*filter:\s*blur\(/, 'top background depth must use a blurred pseudo-element')
+  assert.match(css, /\.result-verdict-card::after\s*\{[^}]*filter:\s*blur\(/, 'bottom background depth must use a blurred pseudo-element')
+  assert.match(css, /\.result-verdict-content\s*\{[^}]*position:\s*relative[^}]*z-index:\s*1/, 'foreground text/map must stay above the blurred depth')
+  assert.doesNotMatch(css, /\.result-verdict-card\s*>\s*\*/, 'C13 WXSS must not use an unsupported universal child selector')
+  assert.doesNotMatch(cardCss, /filter:\s*blur\(/, 'the card foreground must not be blurred as a whole')
+
+  const adviceMutation = page.replace('<Text className="result-advice-kicker">出发建议 · {verdict.label}</Text>', '')
+  assert.notEqual(adviceMutation, page, 'advice kicker removal mutation must change page source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(adviceMutation, css), undefined, 'advice kicker removal must turn the C13 gate RED')
+  const orderMutation = page.replace(
+    '            {routeModel.routePreview && routePreviewMap && (',
+    '            <Text className="result-route-scope">{routeModel.region || \'地区待确认\'} · {routeModel.scope}</Text>\n            {routeModel.routePreview && routePreviewMap && (',
+  )
+  assert.notEqual(orderMutation, page, 'route scope reorder mutation must change page source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(orderMutation, css), undefined, 'route scope before map must turn the C13 gate RED')
+  const duplicateMutation = page.replace(
+    '          <View className="card result-reasons-card">\n            <Text className="card-title">判断依据</Text>',
+    '          <View className="card result-reasons-card">\n            <Text className="card-title">判断依据</Text>\n            <Text>{verdict.label}</Text>',
+  )
+  assert.notEqual(duplicateMutation, page, 'duplicate verdict mutation must change page source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(duplicateMutation, css), undefined, 'duplicate verdict mutation must turn the C13 gate RED')
+  const tagMutation = page.replace(
+    '<Text className="result-route-name">{routeModel.name || \'路线待确认\'}</Text>',
+    '<Text className="result-route-name">{routeModel.name || \'路线待确认\'}</Text><Text>本地验收</Text>',
+  )
+  assert.notEqual(tagMutation, page, 'prototype tag mutation must change page source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(tagMutation, css), undefined, 'prototype tag mutation must turn the C13 gate RED')
+  const wrapperMutation = page.replace('<View className="result-verdict-content">', '')
+  assert.notEqual(wrapperMutation, page, 'foreground wrapper removal mutation must change page source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(wrapperMutation, css), undefined, 'foreground wrapper removal must turn the C13 gate RED')
+  const tintedDepthMutation = css.replace('rgba(142,142,147,0.16)', 'rgba(36,138,61,0.18)')
+  assert.notEqual(tintedDepthMutation, css, 'verdict-tinted depth mutation must change CSS source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(page, tintedDepthMutation), undefined, 'verdict-tinted depth mutation must turn the C13 gate RED')
+  const blurMutation = css.replace(
+    '.result-verdict-content { position: relative; z-index: 1; }',
+    '.result-verdict-content { position: relative; z-index: 1; filter: blur(8rpx); }',
+  )
+  assert.notEqual(blurMutation, css, 'foreground blur mutation must change CSS source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(page, blurMutation), undefined, 'foreground blur mutation must turn the C13 gate RED')
 }
 
 function resultPresentationContract() {

@@ -3,8 +3,8 @@
 - Updated: `2026-08-22`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C13 IMPLEMENTATION_ACTIVE`
-- Active task: `#148 / IMPLEMENTATION_ACTIVE` (approved B result-summary hierarchy; #123 remains the staging blocker)
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C13 REVIEW_ACTIVE`
+- Active task: `#148 / REVIEW_ACTIVE` (approved B result-summary hierarchy; #123 remains the staging blocker)
 - Branch/base: `codex/148-result-summary-b` from exact `main@b25e521`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
@@ -15,7 +15,7 @@
   deployment, timer activation or deletion. PR #140 merged the search contribution UX as `7a07757`; #139 is closed.
   PR #142 merged the C10 presentation cleanup as `e417ab8`; #141 is closed. PR #144 merged C11 as `93a86d8` and
   #143 is closed. PR #146 merged C12 as `ae86b0b`; #145 implementation is complete and its live Issue status is
-  authoritative. Human-approved C13/#148 is the only active implementation slice; #123 remains the staging blocker.
+  authoritative. Human-approved C13/#148 is the only active review slice; #123 remains the staging blocker.
   No production/public release, server change or automatic catalog promotion is authorized.
 
 ## C13 approved B result-summary activation — 2026-08-22
@@ -28,6 +28,32 @@
   Existing C12 no-preview fail-closed behavior remains frozen.
 - Exact custom executor is `luna-worker` from `~/.codex/agents/luna-worker.toml` (`gpt-5.6-luna/max` configuration;
   runtime identity separately unverified). No model/service/server/public DTO/history/dependency/deploy action is in scope.
+
+## C13 implementation checkpoint — 2026-08-22
+
+- Focused TDD RED was captured before JSX/CSS edits for the missing compact advice kicker. GREEN now covers the frozen
+  result hierarchy, route-name-only title, no prototype/local tag, no repeated verdict in `判断依据`, neutral gray
+  background depth with sharp foreground, and C12 no-preview behavior; order, tag, duplicate, tinted-depth and
+  foreground-blur mutations all turn the focused contract RED.
+- Changed files are limited to the approved frontend/test allowlist. The top card is white with neutral gray
+  top/bottom depth; `出发建议 · <结论>` is compact above the route name; a safe preview map comes next; scope/facts and
+  geometry notice/legend follow; visible reason rows contain messages only. No public contract or data behavior changed.
+- `test:result-page`, root tests, integration `55/0`, lint (`0 errors / 9 existing warnings`), typecheck,
+  fixture-free WeChat build and `git diff --check` pass. No CloudBase call, deployment, private evidence access,
+  production geometry, timer, deletion or release occurred. DevTools visual evidence remains pending controller review.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; exact-head CI and two fresh independent Reviews remain controller-owned.
+
+## C13 runtime review-fix checkpoint — 2026-08-22
+
+- Controller DevTools reported `Compile .wxss error` and a blank simulator. The only new unsupported construct was the
+  `.result-verdict-card > *` universal-child selector.
+- Review-fix TDD first made the focused gate RED for the missing explicit `result-verdict-content` wrapper and forbidden
+  universal selector. GREEN now places all top-card text, Map and labels inside that wrapper and applies z-index there.
+- Focused/root tests, typecheck, fixture-free WeChat build and `git diff --check` pass. Controller DevTools recompiles
+  with zero errors and renders the approved hierarchy from identity/location-free synthetic local state. The temporary
+  visual injection was removed, its residue scan passed, and the normal homepage was restored.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; controller commit/push, Draft PR, latest-head CI and two fresh
+  exact-head independent Reviews remain required. No model/service/data/CloudBase/deployment action occurred.
 
 ## C12 B-lite route-map preview activation — 2026-08-21
 
@@ -1773,10 +1799,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-C12/#145 is merged through PR #146 as `main@ae86b0b`; close #145 after this ledger reconciliation. The next product
-work remains #123 staging validation: S8–S15/S20 are `BLOCKED`, and S16/S18 are `UNVERIFIED_RUNTIME_TOOL`. No timer,
-destructive cleanup, production geometry/data, private-evidence access, real-user cohort or public release is
-authorized or claimed.
+Controller reviews the latest C13/#148 worktree, commits and pushes the exact allowlist to a Draft PR, then requires
+latest-head CI plus two fresh exact-head independent Reviews before deciding mergeability. History pagination remains
+a separate serial slice after C13; #123 staging rows remain unchanged. No timer, destructive cleanup, production
+geometry/data, private-evidence access, real-user cohort or public release is authorized or claimed.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
