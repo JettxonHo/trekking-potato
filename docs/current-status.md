@@ -100,9 +100,10 @@
   restored. Source residue, changed-path scope and `git diff --check` remain clean. No CloudBase call, deployment,
   production route data, private submission/evidence lookup, upload, timer, deletion or public release occurred.
 - Evidence boundary: this verifies local presentation only. Production pilot geometry remains absent/data-gated and
-  runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`. Draft PR #146 is open at head `d79d5fe`; exact-head
-  quality run `32555101807` succeeded. Remaining gates are two fresh exact-head independent Reviews and the controller
-  mergeability decision.
+  runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`. Draft PR #146 is open; GitHub is authoritative for its
+  current head and latest quality result. The implementation head `d79d5fe` passed quality run `32555101807` before
+  lifecycle-only updates. Successful quality and two fresh independent Reviews must target the same current head;
+  every head change repeats those gates before the controller mergeability decision.
 
 ## C11 certainty-label activation — 2026-08-21
 
@@ -1754,9 +1755,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-C12/#145 is published as open Draft PR #146 at head `d79d5fe`; exact-head quality run `32555101807` succeeded. The
-controller must obtain two fresh exact-head independent Reviews, then decide mergeability and Issue status. No
-deployment, production geometry/data, private-evidence access or public release is authorized or claimed.
+C12/#145 is published as open Draft PR #146. GitHub is authoritative for its current head and latest quality result;
+any head change repeats quality and two fresh independent Reviews. When all three gates target the same current head,
+the controller decides mergeability and Issue status. No deployment, production geometry/data, private-evidence
+access or public release is authorized or claimed.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

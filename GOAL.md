@@ -152,8 +152,10 @@ limited to the human-approved B-lite route-map preview for reviewed full-route g
   the normal homepage was rebuilt and restored, and source residue plus `git diff --check` passed. No CloudBase call,
   deployment, production geometry, private submission/evidence access or public release occurred.
 - This is local presentation evidence only; it does not prove a production pilot route, route openness, safety,
-  deployment or runtime model identity. Draft PR #146 is open at head `d79d5fe`; exact-head quality run `32555101807`
-  succeeded. Remaining gates are two fresh exact-head independent Reviews and the controller mergeability decision.
+  deployment or runtime model identity. Draft PR #146 is open; GitHub is authoritative for its current head and
+  latest quality result. The implementation head `d79d5fe` passed quality run `32555101807` before lifecycle-only
+  updates. Mergeability requires successful quality and two fresh independent Reviews on the same current head;
+  every head change repeats those gates before the controller decision.
 
 ## C09 Review-fix round 3 checkpoint — 2026-08-20
 

@@ -172,9 +172,10 @@ Required latest-worktree gates:
 - The temporary local mount fixture was removed immediately after capture, the normal homepage was rebuilt/restored,
   and no fixture residue remains in source. This is local presentation evidence only—not production geometry,
   deployment, openness, safety, private-data access or release evidence.
-- Status remains `READY_FOR_CONTROLLER_REVIEW`. Draft PR #146 is open at head `d79d5fe` and exact-head quality run
-  `32555101807` succeeded. Remaining gates are two fresh exact-head independent Reviews and the controller
-  mergeability/Issue-status decision.
+- Status remains `READY_FOR_CONTROLLER_REVIEW`. Draft PR #146 is open; GitHub is authoritative for its current head
+  and latest quality result. The implementation head `d79d5fe` passed quality run `32555101807` before lifecycle-only
+  updates. Successful quality and two fresh independent Reviews must target the same current head; every head change
+  repeats those gates before the controller mergeability/Issue-status decision.
 
 ## 7. Stop conditions and deliverable
 
