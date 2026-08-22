@@ -49,6 +49,190 @@ function isRecord(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value)
 }
 
+const ROUTE_PREVIEW_COORDINATE_SYSTEMS = new Set(['GCJ-02', 'WGS84'])
+const ROUTE_PREVIEW_KEYS = new Set(['coordinateSystem', 'bounds', 'segments'])
+const ROUTE_PREVIEW_BOUND_KEYS = new Set(['minLat', 'maxLat', 'minLon', 'maxLon'])
+const ROUTE_PREVIEW_POINT_KEYS = new Set(['lat', 'lon'])
+const GCJ02_AXIS = 6378245.0
+const GCJ02_ECCENTRICITY = 0.00669342162296594323
+const ROUTE_PREVIEW_REGION_MAINLAND = 'mainland'
+const ROUTE_PREVIEW_REGION_NON_MAINLAND = 'non_mainland'
+const ROUTE_PREVIEW_REGION_UNKNOWN = 'unknown'
+const MAINLAND_REGION_CANONICAL_FORMS = Object.freeze([
+  '中国大陆',
+  '北京', '天津', '河北', '山西', '内蒙古', '辽宁', '吉林', '黑龙江',
+  '上海', '江苏', '浙江', '安徽', '福建', '江西', '山东', '河南', '湖北', '湖南',
+  '广东', '广西', '海南', '重庆', '四川', '贵州', '云南', '西藏', '陕西', '甘肃',
+  '青海', '宁夏', '新疆',
+])
+const MAINLAND_REGION_ADMIN_PREFIXES = Object.freeze([
+  '北京市', '天津市', '河北省', '山西省', '内蒙古自治区', '辽宁省', '吉林省', '黑龙江省',
+  '上海市', '江苏省', '浙江省', '安徽省', '福建省', '江西省', '山东省', '河南省', '湖北省', '湖南省',
+  '广东省', '广西壮族自治区', '海南省', '重庆市', '四川省', '贵州省', '云南省', '西藏自治区',
+  '陕西省', '甘肃省', '青海省', '宁夏回族自治区', '新疆维吾尔自治区',
+])
+const NON_MAINLAND_REGION_FORMS = Object.freeze([
+  '香港', 'hongkong', '澳门', 'macau', '台湾', 'taiwan', '尼泊尔', 'nepal',
+  '蒙古国', 'mongolia', '乌兰巴托', 'ulaanbaatar',
+])
+const REGION_COMPONENT_SEPARATORS = Object.freeze(['·', '/', '-', '|'])
+
+function hasOnlyKeys(value, allowed) {
+  return Object.keys(value).every((key) => allowed.has(key))
+}
+
+function isFiniteCoordinate(value, min, max) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max
+}
+
+function normalizeRouteRegion(value) {
+  if (typeof value !== 'string') return ''
+  return value.trim().toLocaleLowerCase().replace(/\s+/g, '')
+}
+
+function classifyRoutePreviewRegion(value) {
+  const region = normalizeRouteRegion(value)
+  if (!region) return ROUTE_PREVIEW_REGION_UNKNOWN
+  const mainlandMatch = MAINLAND_REGION_CANONICAL_FORMS.some((form) => region === form
+    || REGION_COMPONENT_SEPARATORS.some((separator) => region.startsWith(`${form}${separator}`) || region.includes(`${separator}${form}`)))
+    || MAINLAND_REGION_ADMIN_PREFIXES.some((prefix) => region.startsWith(prefix)
+      || REGION_COMPONENT_SEPARATORS.some((separator) => region.includes(`${separator}${prefix}`)))
+  const nonMainlandMatch = NON_MAINLAND_REGION_FORMS.some((form) => region === form
+    || region.startsWith(form)
+    || REGION_COMPONENT_SEPARATORS.some((separator) => region.includes(`${separator}${form}`)))
+  if (mainlandMatch && nonMainlandMatch) return ROUTE_PREVIEW_REGION_UNKNOWN
+  if (mainlandMatch) return ROUTE_PREVIEW_REGION_MAINLAND
+  if (nonMainlandMatch) return ROUTE_PREVIEW_REGION_NON_MAINLAND
+  return ROUTE_PREVIEW_REGION_UNKNOWN
+}
+
+function transformLatitude(x, y) {
+  let value = -100 + 2 * x + 3 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x))
+  value += (20 * Math.sin(6 * x * Math.PI) + 20 * Math.sin(2 * x * Math.PI)) * 2 / 3
+  value += (20 * Math.sin(y * Math.PI) + 40 * Math.sin(y / 3 * Math.PI)) * 2 / 3
+  value += (160 * Math.sin(y / 12 * Math.PI) + 320 * Math.sin(y * Math.PI / 30)) * 2 / 3
+  return value
+}
+
+function transformLongitude(x, y) {
+  let value = 300 + x + 2 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x))
+  value += (20 * Math.sin(6 * x * Math.PI) + 20 * Math.sin(2 * x * Math.PI)) * 2 / 3
+  value += (20 * Math.sin(x * Math.PI) + 40 * Math.sin(x / 3 * Math.PI)) * 2 / 3
+  value += (150 * Math.sin(x / 12 * Math.PI) + 300 * Math.sin(x * Math.PI / 30)) * 2 / 3
+  return value
+}
+
+function convertWgs84ToGcj02(point) {
+  if (!isRecord(point)
+    || !isFiniteCoordinate(point.lat, -90, 90)
+    || !isFiniteCoordinate(point.lon, -180, 180)) return { lat: point && point.lat, lon: point && point.lon }
+  const x = point.lon - 105
+  const y = point.lat - 35
+  const latitudeRadians = point.lat / 180 * Math.PI
+  let magic = Math.sin(latitudeRadians)
+  magic = 1 - GCJ02_ECCENTRICITY * magic * magic
+  const squareRootMagic = Math.sqrt(magic)
+  const deltaLat = transformLatitude(x, y) * 180 / ((GCJ02_AXIS * (1 - GCJ02_ECCENTRICITY)) / (magic * squareRootMagic) * Math.PI)
+  const deltaLon = transformLongitude(x, y) * 180 / (GCJ02_AXIS / squareRootMagic * Math.cos(latitudeRadians) * Math.PI)
+  return { lat: point.lat + deltaLat, lon: point.lon + deltaLon }
+}
+
+function convertRoutePreviewPointForMap(point, coordinateSystem, routeRegion) {
+  if (!isRecord(point)
+    || !ROUTE_PREVIEW_COORDINATE_SYSTEMS.has(coordinateSystem)
+    || !isFiniteCoordinate(point.lat, -90, 90)
+    || !isFiniteCoordinate(point.lon, -180, 180)) return null
+  const regionClass = classifyRoutePreviewRegion(routeRegion)
+  if (regionClass === ROUTE_PREVIEW_REGION_UNKNOWN) return null
+  const converted = coordinateSystem === 'WGS84' && regionClass === ROUTE_PREVIEW_REGION_MAINLAND
+    ? convertWgs84ToGcj02(point)
+    : { lat: point.lat, lon: point.lon }
+  if (!isFiniteCoordinate(converted.lat, -90, 90) || !isFiniteCoordinate(converted.lon, -180, 180)) return null
+  return { latitude: converted.lat, longitude: converted.lon }
+}
+
+function buildRoutePreviewMapGeometry(preview, routeRegion) {
+  if (!isRecord(preview) || !Array.isArray(preview.segments)) return null
+  if (classifyRoutePreviewRegion(routeRegion) === ROUTE_PREVIEW_REGION_UNKNOWN) return null
+  const sourceSegments = preview.segments.map((segment) => Array.isArray(segment.points) ? segment.points : [])
+  const points = sourceSegments.reduce((all, segment) => all.concat(segment.map((point) => convertRoutePreviewPointForMap(point, preview.coordinateSystem, routeRegion))), [])
+  if (points.length === 0 || points.some((point) => !point)) return null
+  const polylines = sourceSegments.map((segment, index) => ({
+    points: segment.map((point) => convertRoutePreviewPointForMap(point, preview.coordinateSystem, routeRegion)),
+    color: ['#1d1d1f', '#5e5ce6', '#34c759', '#ff9500', '#ff375f', '#64d2ff', '#af52de'][index % 7],
+    width: 4,
+    dottedLine: false,
+  }))
+  const start = points[0]
+  const end = points[points.length - 1]
+  return {
+    points,
+    polylines,
+    center: {
+      latitude: points.reduce((sum, point) => sum + point.latitude, 0) / points.length,
+      longitude: points.reduce((sum, point) => sum + point.longitude, 0) / points.length,
+    },
+    indicators: [
+      { latitude: start.latitude, longitude: start.longitude, radius: 36, color: '#1d1d1f', fillColor: '#1d1d1f66', strokeWidth: 3 },
+      { latitude: end.latitude, longitude: end.longitude, radius: 36, color: '#34c759', fillColor: '#34c75966', strokeWidth: 3 },
+    ],
+  }
+}
+
+function projectRoutePreview(value, capability, fixedDays) {
+  if (capability !== 'full' || !isRecord(value) || !hasOnlyKeys(value, ROUTE_PREVIEW_KEYS)) return null
+  if (!ROUTE_PREVIEW_COORDINATE_SYSTEMS.has(value.coordinateSystem)) return null
+  if (!isRecord(value.bounds) || !hasOnlyKeys(value.bounds, ROUTE_PREVIEW_BOUND_KEYS)) return null
+  const bounds = value.bounds
+  if (!isFiniteCoordinate(bounds.minLat, -90, 90)
+    || !isFiniteCoordinate(bounds.maxLat, -90, 90)
+    || !isFiniteCoordinate(bounds.minLon, -180, 180)
+    || !isFiniteCoordinate(bounds.maxLon, -180, 180)
+    || bounds.minLat > bounds.maxLat
+    || bounds.minLon > bounds.maxLon) return null
+  if (!Array.isArray(value.segments) || value.segments.length < 1 || value.segments.length > 7) return null
+
+  const segments = []
+  let pointCount = 0
+  let previousDay = 0
+  let actualBounds = null
+  for (const segment of value.segments) {
+    if (!isRecord(segment) || !hasOnlyKeys(segment, new Set(['day', 'points']))
+      || !Number.isInteger(segment.day) || segment.day <= previousDay
+      || (Number.isInteger(fixedDays) && segment.day > fixedDays)
+      || !Array.isArray(segment.points) || segment.points.length < 2) return null
+    previousDay = segment.day
+    pointCount += segment.points.length
+    if (pointCount > 500) return null
+    const points = []
+    for (const point of segment.points) {
+      if (!isRecord(point) || !hasOnlyKeys(point, ROUTE_PREVIEW_POINT_KEYS)
+        || !isFiniteCoordinate(point.lat, -90, 90)
+        || !isFiniteCoordinate(point.lon, -180, 180)) return null
+      const normalized = { lat: point.lat, lon: point.lon }
+      points.push(normalized)
+      actualBounds = actualBounds || {
+        minLat: normalized.lat, maxLat: normalized.lat, minLon: normalized.lon, maxLon: normalized.lon,
+      }
+      actualBounds.minLat = Math.min(actualBounds.minLat, normalized.lat)
+      actualBounds.maxLat = Math.max(actualBounds.maxLat, normalized.lat)
+      actualBounds.minLon = Math.min(actualBounds.minLon, normalized.lon)
+      actualBounds.maxLon = Math.max(actualBounds.maxLon, normalized.lon)
+    }
+    segments.push({ day: segment.day, points })
+  }
+  if (!actualBounds
+    || bounds.minLat !== actualBounds.minLat
+    || bounds.maxLat !== actualBounds.maxLat
+    || bounds.minLon !== actualBounds.minLon
+    || bounds.maxLon !== actualBounds.maxLon) return null
+  return {
+    coordinateSystem: value.coordinateSystem,
+    bounds: { ...bounds },
+    segments,
+  }
+}
+
 function hasOwn(value, key) {
   return isRecord(value) && Object.prototype.hasOwnProperty.call(value, key)
 }
@@ -325,6 +509,7 @@ function buildRoute(routeSnapshot, requestSummary) {
     sourceCheckedAt: snapshot.sourceCheckedAt || null,
     stages: capability === 'full' && Array.isArray(snapshot.stages) ? clone(snapshot.stages) : [],
     restriction: snapshot.restriction ? clone(snapshot.restriction) : null,
+    routePreview: projectRoutePreview(snapshot.routePreview, capability, snapshot.fixedDays),
     request: clone(requestSummary || {}),
   }
 }
@@ -582,10 +767,12 @@ module.exports = {
   VERDICT_LABELS,
   WMO_GROUPS,
   applyChecklistLifecycleEvent,
+  buildRoutePreviewMapGeometry,
   buildHistorySavePayload,
   buildResultPageModel,
   captureHistoryContext,
   checklistKey,
+  classifyRoutePreviewRegion,
   createChecklistLifecycle,
   conditionForWeatherCode,
   createChecklistState,
@@ -593,5 +780,6 @@ module.exports = {
   isStructuredResult,
   mergeAdviceResult,
   normalizeCachedResult,
+  convertRoutePreviewPointForMap,
   toggleChecklist,
 }

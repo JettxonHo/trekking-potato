@@ -10,6 +10,7 @@ const {
   createRouteCatalog,
   RouteCatalogValidationError,
 } = require('../cloudfunctions/getAdvice/domain/route-catalog')
+const { createTripBaseBuilder } = require('../cloudfunctions/getAdvice/trip-base')
 
 const FULL_EVIDENCE_FIELDS = [
   'canonicalName',
@@ -135,6 +136,17 @@ function makeFixture() {
   }
 }
 
+function makeSafeRoutePreview() {
+  return {
+    coordinateSystem: 'WGS84',
+    bounds: { minLat: 30, maxLat: 30.1, minLon: 100, maxLon: 100.2 },
+    segments: [{
+      day: 1,
+      points: [{ lat: 30, lon: 100 }, { lat: 30.1, lon: 100.2 }],
+    }],
+  }
+}
+
 function expectInvalid(input, expectedIssue) {
   assert.throws(
     () => createRouteCatalog(input),
@@ -194,6 +206,70 @@ function testReviewedTrackSourceKind() {
 
   assert.equal(catalog.sources[0].tier, 'B', 'reviewed_track 必须保留 tier B 证据等级')
   assert.equal(catalog.sources[0].kind, 'reviewed_track', 'reviewed_track 必须作为内部 Source kind 被接受')
+}
+
+function testRoutePreviewProjection() {
+  const input = makeFixture()
+  input.sources[0].tier = 'B'
+  input.sources[0].kind = 'reviewed_track'
+  input.sources[0].supports = [
+    ...input.sources[0].supports.filter((support) => support.entityId === 'variant:fixture-full'),
+    { entityId: 'variant:fixture-full', field: 'routePreview', method: 'derived', note: 'fixture-only reviewed geometry' },
+  ]
+  input.variants = [input.variants[0]]
+  input.variants[0].routePreview = makeSafeRoutePreview()
+
+  const catalog = createRouteCatalog(input)
+  assert.deepEqual(catalog.variants[0].routePreview, makeSafeRoutePreview(), '合法 reviewed preview 必须保留精确安全形状')
+  assert.equal(Object.hasOwn(catalog.variants[0].routePreview.segments[0].points[0], 'elevation'), false, 'preview 点不得带高程')
+
+  input.variants[0].routePreview.segments[0].points[0].lat = 99
+  assert.equal(catalog.variants[0].routePreview.segments[0].points[0].lat, 30, 'catalog 不得共享 preview 点对象')
+}
+
+async function testTripBasePreviewBoundaries() {
+  const preview = makeSafeRoutePreview()
+  const builder = createTripBaseBuilder({
+    fetchRouteWeather: async () => ({ ok: true, source: 'fixture', dataStatus: 'complete', evaluatedWindows: [] }),
+    fetchReferenceWeather: async () => ({ status: 'unavailable', source: 'fixture', error: 'offline' }),
+    evaluateTripVerdict: () => ({ verdict: 'go', dataStatus: 'complete', reasons: [], dataIssues: [] }),
+    getGearRules: () => ({ essential: [], recommended: [], optional: [], fatalRisks: [], ruleNotes: [] }),
+    now: () => new Date('2026-08-08T00:00:00.000Z'),
+  })
+  const route = { id: 'route:fixture-route', routeType: 'trek', sourceIds: [] }
+  const place = { id: 'place:fixture-mountain', region: 'Fixture region' }
+  const variant = {
+    id: 'variant:fixture-preview', canonicalName: 'Fixture preview route', fixedDays: 1,
+    stages: [], routeHighestPointElevationM: 3200, verificationLevel: 'B', operationalStatus: 'unknown',
+    sourceIds: [], weatherSamplePoints: [{ coordinate: { lat: 30, lon: 100 }, elevationM: 2200 }],
+    routePreview: preview,
+  }
+  const request = { date: '2026-08-09', startTimeLocal: '08:00', level: '中级' }
+  const full = await builder.build({ target: { entityKind: 'route_variant', capability: 'full', routeType: 'trek', routeVariant: variant, route, place }, request })
+  assert.equal(full.kind, 'built')
+  assert.deepEqual(full.trustedBaseData.routeSnapshot.routePreview, preview, 'full trusted BaseData must carry the optional preview')
+  assert.notStrictEqual(full.trustedBaseData.routeSnapshot.routePreview, preview, 'full preview must cross the seam by value')
+
+  const absentVariant = { ...variant }
+  delete absentVariant.routePreview
+  const absent = await builder.build({ target: { entityKind: 'route_variant', capability: 'full', routeType: 'trek', routeVariant: absentVariant, route, place }, request })
+  assert.equal(Object.hasOwn(absent.trustedBaseData.routeSnapshot, 'routePreview'), false, 'absent full preview must remain absent')
+
+  const blockedVariant = {
+    ...variant,
+    capability: 'blocked',
+    restriction: { reason: 'fixture restriction', scope: 'all', sourceIds: [] },
+    routePreview: preview,
+  }
+  const blocked = await builder.build({ target: { entityKind: 'route_variant', capability: 'blocked', routeType: 'trek', routeVariant: blockedVariant, route, place }, request })
+  assert.equal(Object.hasOwn(blocked.trustedBaseData.routeSnapshot, 'routePreview'), false, 'blocked route must omit preview even if input carries one')
+
+  const placeTarget = {
+    entityKind: 'place', capability: 'place_only', origin: 'manual', name: 'Fixture place', region: 'Fixture region',
+    referenceCoordinate: { lat: 30, lon: 100, coordinateSystem: 'WGS84' }, routePreview: preview,
+  }
+  const placeResult = await builder.build({ target: placeTarget, request: { ...request, routeType: 'trek', days: 1 } })
+  assert.equal(Object.hasOwn(placeResult.trustedBaseData.routeSnapshot, 'routePreview'), false, 'place-only route must omit preview even if input carries one')
 }
 
 function testLegacyAdapter() {
@@ -321,19 +397,61 @@ function testSensitiveFailures() {
   const blockedWithFullFields = makeFixture()
   blockedWithFullFields.variants[1].fixedDays = 1
   expectInvalid(blockedWithFullFields, { code: 'forbidden_field', path: 'variants[1].fixedDays' })
+
+  const previewWithLeak = makeFixture()
+  previewWithLeak.sources[0].tier = 'B'
+  previewWithLeak.sources[0].kind = 'reviewed_track'
+  previewWithLeak.sources[0].supports = previewWithLeak.sources[0].supports
+    .filter((support) => support.entityId === 'variant:fixture-full')
+  previewWithLeak.sources[0].supports.push({ entityId: 'variant:fixture-full', field: 'routePreview', method: 'derived', note: 'fixture' })
+  previewWithLeak.variants = [previewWithLeak.variants[0]]
+  previewWithLeak.variants[0].routePreview = makeSafeRoutePreview()
+  previewWithLeak.variants[0].routePreview.segments[0].points[0].elevation = 2200
+  expectInvalid(previewWithLeak, { code: 'forbidden_field', path: 'variants[0].routePreview.segments[0].points[0].elevation' })
+
+  const previewTooLarge = makeFixture()
+  previewTooLarge.sources[0].tier = 'B'
+  previewTooLarge.sources[0].kind = 'reviewed_gpx'
+  previewTooLarge.sources[0].supports = previewTooLarge.sources[0].supports
+    .filter((support) => support.entityId === 'variant:fixture-full')
+  previewTooLarge.sources[0].supports.push({ entityId: 'variant:fixture-full', field: 'routePreview', method: 'derived', note: 'fixture' })
+  previewTooLarge.variants = [previewTooLarge.variants[0]]
+  previewTooLarge.variants[0].routePreview = makeSafeRoutePreview()
+  previewTooLarge.variants[0].routePreview.segments[0].points = Array.from({ length: 501 }, (_, index) => ({ lat: 30 + index / 10000, lon: 100 + index / 10000 }))
+  previewTooLarge.variants[0].routePreview.bounds = { minLat: 30, maxLat: 30.0501, minLon: 100, maxLon: 100.0501 }
+  expectInvalid(previewTooLarge, { code: 'invalid_value', path: 'variants[0].routePreview.segments' })
+
+  const previewWrongBounds = makeFixture()
+  previewWrongBounds.sources[0].tier = 'B'
+  previewWrongBounds.sources[0].kind = 'reviewed_track'
+  previewWrongBounds.sources[0].supports = previewWrongBounds.sources[0].supports
+    .filter((support) => support.entityId === 'variant:fixture-full')
+  previewWrongBounds.sources[0].supports.push({ entityId: 'variant:fixture-full', field: 'routePreview', method: 'derived', note: 'fixture' })
+  previewWrongBounds.variants = [previewWrongBounds.variants[0]]
+  previewWrongBounds.variants[0].routePreview = makeSafeRoutePreview()
+  previewWrongBounds.variants[0].routePreview.bounds.minLat = 30.01
+  expectInvalid(previewWrongBounds, { code: 'invalid_value', path: 'variants[0].routePreview.bounds' })
+
+  const previewUnreviewed = makeFixture()
+  previewUnreviewed.sources[0].supports = previewUnreviewed.sources[0].supports
+    .filter((support) => support.entityId === 'variant:fixture-full')
+  previewUnreviewed.sources[0].supports.push({ entityId: 'variant:fixture-full', field: 'routePreview', method: 'derived', note: 'fixture' })
+  previewUnreviewed.variants = [previewUnreviewed.variants[0]]
+  previewUnreviewed.variants[0].routePreview = makeSafeRoutePreview()
+  expectInvalid(previewUnreviewed, { code: 'missing_evidence', path: 'variants[0].evidence.routePreview' })
 }
 
-function main() {
+async function main() {
   testValidBranchesAndCopies()
   testReviewedTrackSourceKind()
+  testRoutePreviewProjection()
+  await testTripBasePreviewBoundaries()
   testLegacyAdapter()
   testSensitiveFailures()
   console.log('PASS: I07 路线领域目录契约')
 }
 
-try {
-  main()
-} catch (error) {
+main().catch((error) => {
   console.error('FAIL: ' + error.message)
   process.exitCode = 1
-}
+})

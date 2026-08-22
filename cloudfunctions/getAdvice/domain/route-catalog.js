@@ -23,6 +23,11 @@ const COORDINATE_SYSTEMS = new Set(['GCJ-02', 'WGS84'])
 const DIRECTIONS = new Set(['loop', 'out_and_back', 'point_to_point'])
 const ACCESS_MODES = new Set(['walk', 'scenic_transport', 'mixed'])
 const FULL_STATUSES = new Set(['open', 'unknown'])
+const ROUTE_PREVIEW_KEYS = new Set(['coordinateSystem', 'bounds', 'segments'])
+const ROUTE_PREVIEW_POINT_KEYS = new Set(['lat', 'lon'])
+const ROUTE_PREVIEW_BOUND_KEYS = new Set(['minLat', 'maxLat', 'minLon', 'maxLon'])
+const MAX_ROUTE_PREVIEW_SEGMENTS = 7
+const MAX_ROUTE_PREVIEW_POINTS = 500
 const FULL_EVIDENCE_FIELDS = [
   'canonicalName',
   'fixedDays',
@@ -48,6 +53,7 @@ const BLOCKED_FORBIDDEN_FIELDS = [
   'nearbyPeakElevationM',
   'weatherSamplePoints',
   'accessMode',
+  'routePreview',
 ]
 
 class RouteCatalogValidationError extends Error {
@@ -182,6 +188,7 @@ function normalizePlace(place, path, issues) {
   if (value.activityTypeHint !== undefined || value.legacyCandidateId !== undefined) {
     addIssue(issues, 'forbidden_field', `${path}.${value.activityTypeHint !== undefined ? 'activityTypeHint' : 'legacyCandidateId'}`)
   }
+  if (value.routePreview !== undefined) addIssue(issues, 'forbidden_field', `${path}.routePreview`)
   return normalized
 }
 
@@ -217,6 +224,7 @@ function normalizeRoute(route, path, issues) {
   const canonicalName = validateText(value.canonicalName, `${path}.canonicalName`, issues)
   const aliases = normalizeAliases(value.aliases, `${path}.aliases`, issues)
   validateAliasesAgainstCanonicalName(aliases, canonicalName, `${path}.aliases`, issues)
+  if (value.routePreview !== undefined) addIssue(issues, 'forbidden_field', `${path}.routePreview`)
   return {
     entityKind: validateExact(value.entityKind, 'route', `${path}.entityKind`, issues),
     id: validateId(value.id, 'route:', `${path}.id`, issues),
@@ -265,6 +273,9 @@ function normalizeFullVariant(value, path, issues) {
     verificationLevel: validateEnum(value.verificationLevel, new Set(['A', 'B']), `${path}.verificationLevel`, issues),
     sourceIds: normalizeIdArray(value.sourceIds, `${path}.sourceIds`, issues),
     sourceCheckedAt: validateDate(value.sourceCheckedAt, `${path}.sourceCheckedAt`, issues),
+    ...(value.routePreview === undefined
+      ? {}
+      : { routePreview: normalizeRoutePreview(value.routePreview, `${path}.routePreview`, issues, value.fixedDays) }),
     _path: path,
   }
 }
@@ -470,6 +481,106 @@ function validateFullVariant(variant, path, sourceById, issues) {
     if (!hasEvidence(variant.id, field, variant.sourceIds, sourceById, new Set(['A', 'B']))) {
       addIssue(issues, 'missing_evidence', `${path}.evidence.${field}`)
     }
+  }
+  if (variant.routePreview && !hasReviewedPreviewEvidence(variant, sourceById)) {
+    addIssue(issues, 'missing_evidence', `${path}.evidence.routePreview`)
+  }
+}
+
+function hasReviewedPreviewEvidence(variant, sourceById) {
+  return variant.sourceIds.some((sourceId) => {
+    const source = sourceById.get(sourceId)
+    return source
+      && source.tier === 'B'
+      && (source.kind === 'reviewed_gpx' || source.kind === 'reviewed_track')
+      && source.supports.some((support) => support.entityId === variant.id && support.field === 'routePreview')
+  })
+}
+
+function normalizeRoutePreview(value, path, issues, expectedDays) {
+  const preview = objectOrEmpty(value, path, issues)
+  rejectUnknownKeys(preview, ROUTE_PREVIEW_KEYS, path, issues)
+  const coordinateSystem = validateEnum(preview.coordinateSystem, COORDINATE_SYSTEMS, `${path}.coordinateSystem`, issues)
+
+  const boundsValue = objectOrEmpty(preview.bounds, `${path}.bounds`, issues)
+  rejectUnknownKeys(boundsValue, ROUTE_PREVIEW_BOUND_KEYS, `${path}.bounds`, issues)
+  const bounds = {
+    minLat: validateCoordinateNumber(boundsValue.minLat, -90, 90, `${path}.bounds.minLat`, issues),
+    maxLat: validateCoordinateNumber(boundsValue.maxLat, -90, 90, `${path}.bounds.maxLat`, issues),
+    minLon: validateCoordinateNumber(boundsValue.minLon, -180, 180, `${path}.bounds.minLon`, issues),
+    maxLon: validateCoordinateNumber(boundsValue.maxLon, -180, 180, `${path}.bounds.maxLon`, issues),
+  }
+  if (Number.isFinite(bounds.minLat) && Number.isFinite(bounds.maxLat) && bounds.minLat > bounds.maxLat) {
+    addIssue(issues, 'invalid_value', `${path}.bounds`)
+  }
+  if (Number.isFinite(bounds.minLon) && Number.isFinite(bounds.maxLon) && bounds.minLon > bounds.maxLon) {
+    addIssue(issues, 'invalid_value', `${path}.bounds`)
+  }
+
+  if (!Array.isArray(preview.segments)) {
+    addIssue(issues, 'invalid_type', `${path}.segments`)
+    return { coordinateSystem, bounds, segments: [] }
+  }
+  if (preview.segments.length === 0 || preview.segments.length > MAX_ROUTE_PREVIEW_SEGMENTS) {
+    addIssue(issues, 'invalid_value', `${path}.segments`)
+  }
+  const segments = []
+  let pointCount = 0
+  let previousDay = 0
+  /** @type {{ minLat: number, maxLat: number, minLon: number, maxLon: number } | null} */
+  let actualBounds = null
+  for (const [segmentIndex, rawSegment] of preview.segments.entries()) {
+    const segmentPath = `${path}.segments[${segmentIndex}]`
+    const segment = objectOrEmpty(rawSegment, segmentPath, issues)
+    rejectUnknownKeys(segment, new Set(['day', 'points']), segmentPath, issues)
+    const day = validatePositiveInteger(segment.day, `${segmentPath}.day`, issues)
+    if (day <= previousDay || (Number.isInteger(expectedDays) && day > expectedDays)) {
+      addIssue(issues, 'invalid_value', `${segmentPath}.day`)
+    }
+    previousDay = day
+    if (!Array.isArray(segment.points)) {
+      addIssue(issues, 'invalid_type', `${segmentPath}.points`)
+      segments.push({ day, points: [] })
+      continue
+    }
+    if (segment.points.length < 2) addIssue(issues, 'invalid_value', `${segmentPath}.points`)
+    pointCount += segment.points.length
+    if (pointCount > MAX_ROUTE_PREVIEW_POINTS) addIssue(issues, 'invalid_value', `${path}.segments`)
+    const points = segment.points.map((rawPoint, pointIndex) => {
+      const pointPath = `${segmentPath}.points[${pointIndex}]`
+      const point = objectOrEmpty(rawPoint, pointPath, issues)
+      rejectUnknownKeys(point, ROUTE_PREVIEW_POINT_KEYS, pointPath, issues)
+      const normalized = {
+        lat: validateCoordinateNumber(point.lat, -90, 90, `${pointPath}.lat`, issues),
+        lon: validateCoordinateNumber(point.lon, -180, 180, `${pointPath}.lon`, issues),
+      }
+      if (Number.isFinite(normalized.lat) && Number.isFinite(normalized.lon)) {
+        actualBounds = actualBounds || {
+          minLat: normalized.lat, maxLat: normalized.lat, minLon: normalized.lon, maxLon: normalized.lon,
+        }
+        actualBounds.minLat = Math.min(actualBounds.minLat, normalized.lat)
+        actualBounds.maxLat = Math.max(actualBounds.maxLat, normalized.lat)
+        actualBounds.minLon = Math.min(actualBounds.minLon, normalized.lon)
+        actualBounds.maxLon = Math.max(actualBounds.maxLon, normalized.lon)
+      }
+      return normalized
+    })
+    segments.push({ day, points })
+  }
+  if (actualBounds && (
+    bounds.minLat !== actualBounds.minLat
+    || bounds.maxLat !== actualBounds.maxLat
+    || bounds.minLon !== actualBounds.minLon
+    || bounds.maxLon !== actualBounds.maxLon
+  )) {
+    addIssue(issues, 'invalid_value', `${path}.bounds`)
+  }
+  return { coordinateSystem, bounds, segments }
+}
+
+function rejectUnknownKeys(value, allowed, path, issues) {
+  for (const key of Object.keys(value)) {
+    if (!allowed.has(key)) addIssue(issues, 'forbidden_field', `${path}.${key}`)
   }
 }
 

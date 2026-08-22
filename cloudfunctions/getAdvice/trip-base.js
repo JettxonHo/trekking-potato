@@ -43,7 +43,7 @@ function routeSnapshotForFull(target, routeType) {
   const variant = target.routeVariant
   const route = target.route
   const place = target.place
-  return {
+  const snapshot = {
     entityKind: 'route_variant',
     capability: 'full',
     placeId: place && place.id ? place.id : null,
@@ -62,6 +62,8 @@ function routeSnapshotForFull(target, routeType) {
     operationalStatus: variant.operationalStatus || null,
     sourceCheckedAt: variant.sourceCheckedAt || null,
   }
+  if (variant.routePreview !== undefined) snapshot.routePreview = copy(variant.routePreview)
+  return snapshot
 }
 
 function routeSnapshotForPlace(target, routeType, elevation) {

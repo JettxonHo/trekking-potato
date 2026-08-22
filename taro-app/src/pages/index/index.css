@@ -598,3 +598,21 @@
   0%, 100% { opacity: 0.4; }
   50% { opacity: 0.82; }
 }
+
+/* ============================================
+ * 完整路线 B-lite 地图预览（只读、无交互）
+ * ============================================ */
+
+.route-preview-card { overflow: hidden; }
+.route-preview-note { display: block; margin: 8rpx 0 20rpx; color: #86868b; font-size: 22rpx; line-height: 1.5; }
+.route-preview-stage { position: relative; width: 100%; height: 320rpx; overflow: hidden; border-radius: 20rpx; background: #f5f5f7; }
+.route-preview-map { width: 100%; height: 320rpx; }
+.route-preview-map-labels { position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; }
+.route-preview-start,
+.route-preview-end { position: absolute; transform: translate(-50%, -100%); min-width: 56rpx; padding: 6rpx 10rpx; border-radius: 10rpx; color: #ffffff; font-size: 20rpx; line-height: 1.2; text-align: center; box-sizing: border-box; }
+.route-preview-start { background: #1d1d1f; }
+.route-preview-end { background: #248a3d; }
+.route-preview-fallback { position: relative; width: 100%; height: 320rpx; overflow: hidden; background: #f5f5f7; }
+.route-preview-fallback-line { position: absolute; height: 6rpx; transform-origin: left center; border-radius: 6rpx; opacity: 0.8; }
+.route-preview-fallback-point { position: absolute; width: 12rpx; height: 12rpx; transform: translate(-50%, -50%); border: 3rpx solid #ffffff; border-radius: 50%; background: #1d1d1f; box-sizing: border-box; }
+.route-preview-legend { display: block; margin-top: 16rpx; color: #86868b; font-size: 22rpx; line-height: 1.4; }

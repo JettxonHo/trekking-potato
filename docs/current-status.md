@@ -3,9 +3,9 @@
 - Updated: `2026-08-21`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C11 REVIEW_ACTIVE`
-- Active task: `#143 / REVIEW_ACTIVE` (certainty-label review-fix slice; parent #123/#115 remain open)
-- Branch/base: `codex/143-verdict-labels` from `main@e417ab8`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C12 REVIEW_FIX`
+- Active task: `#145 / REVIEW_FIX` (B-lite reviewed route-map preview; parent #123/#115 remain open)
+- Branch/base: `codex/145-route-map-preview` from `main@93a86d8`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: PR #135 merged the diagnostic-free finalize/CAS fix as `ac600e5`; focused Bug #134 is closed after its
@@ -13,8 +13,97 @@
   in the authoritative ledger. S8–S15 and S20 remain `BLOCKED`; S16 and S18 remain
   `UNVERIFIED_RUNTIME_TOOL`. PR #138 merged the fail-closed retention dry-run as `b582d2c`; #137 is closed without
   deployment, timer activation or deletion. PR #140 merged the search contribution UX as `7a07757`; #139 is closed.
-  PR #142 merged the C10 presentation cleanup as `e417ab8`; #141 is closed. #143 is now the only active review slice.
+  PR #142 merged the C10 presentation cleanup as `e417ab8`; #141 is closed. PR #144 merged C11 as `93a86d8` and
+  #143 is closed. #145 is now the only active implementation slice.
   No production/public release, server change or automatic catalog promotion is authorized.
+
+## C12 B-lite route-map preview activation — 2026-08-21
+
+- The human approved B-lite after reviewing the throwaway A/B/C prototype: a noninteractive map thumbnail inside the
+  result summary card, fitted to the full reviewed GPX/KML-derived route, with day lines and start/end indicators.
+- The additive `routePreview` projection is globally bounded to 500 points and seven ordered segments. It contains
+  only coordinate system, bounds, day and latitude/longitude points; it excludes raw XML, timestamps, elevation,
+  identity, submission/evidence/file identifiers, storage references, URLs, provenance and notes.
+- Only a controller-curated catalog projection may populate the field. Weather sample points are not full geometry.
+  Missing, invalid or unreviewed geometry produces no placeholder; map errors use a neutral local route-outline
+  fallback from the same safe projection. A future interactive viewer remains separate.
+- Live #145 is the authority for the exact allowlist and pre-agreed TDD seams. No dependency, map key, private evidence
+  lookup, deployment, CloudBase mutation, timer, deletion, catalog auto-promotion or public release is authorized.
+
+## C12 Review-fix round 1 checkpoint — 2026-08-21
+
+- Two fresh independent Reviews returned `CHANGES_REQUESTED` for #145. The repair remains inside the frozen allowlist:
+  WGS84 points now use a deterministic bounded WGS84→GCJ-02 projection before every Map-native coordinate prop,
+  outside-China points remain unchanged, `enablePoi={false}` is asserted, and the preview is proven nested inside the
+  top result-summary card. The neutral fallback still consumes normalized source geometry.
+- Focused tests now cover deterministic inside-China offset and GCJ-02/outside-China stability, raw/offset mapping
+  deletion mutations, full/blocked/place/absent trip-base preview boundaries, both `routePreviewFallback` reset
+  seams, `enablePoi`, and summary-card placement. The page contract is GREEN after the review fixes.
+- No controller-approved production geometry was available, so no pilot catalog file changed and production remains
+  fail-closed. No CloudBase call, deployment, dependency/key, commit, push, PR or public release occurred. Runtime
+  model identity remains `UNVERIFIED_RUNTIME_MODEL`; result-page runtime visual evidence remains unclaimed.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; controller-owned latest-head CI, two fresh exact-head independent
+  Reviews, approval and merge remain required.
+
+## C12 Review-fix round 2 checkpoint — 2026-08-21
+
+- Fresh re-reviews returned `CHANGES_REQUESTED`. The round2 repair remains in the frozen allowlist and gates WGS84
+  conversion on the trusted full route's recognized mainland province/region. Nepal, Mongolia, Hong Kong and other
+  non-mainland region labels remain unchanged; WGS84 with no region fails closed. This bounded region rule does not
+  claim global country-boundary exactness.
+- Focused RED was captured before production edits for Kathmandu/Ulaanbaatar/Hong Kong stability and the missing
+  region-aware Map seam. GREEN now asserts independent converted center and end indicators plus mutations for region,
+  raw/offset mapping, Map center/indicator props, initial fallback state and map-error fallback state.
+- No controller-approved production geometry is available, so production remains fail-closed. No CloudBase call,
+  deployment, dependency/key, commit, push, PR or public release occurred; runtime model identity remains
+  `UNVERIFIED_RUNTIME_MODEL` and result-page runtime visual evidence remains unclaimed.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+- Current next action: controller reviews the round2 head, then obtains latest-head CI and two fresh exact-head
+  independent Reviews before deciding mergeability and Issue status. No approval or merge is claimed here.
+
+## C12 Review-fix round 3 checkpoint — 2026-08-21
+
+- Fresh re-reviews returned `CHANGES_REQUESTED`. The repair keeps the frozen allowlist and makes the region gate
+  tri-state: canonical/anchored mainland province forms convert WGS84 to GCJ-02; explicit non-mainland forms stay
+  raw; unknown, missing or conflicting/collision labels fail closed with no preview. False positives such as
+  `日本山西县`, `法国四川餐厅`, `Sichuan Province` and `川西` remain unknown, while `香港·广东`,
+  `尼泊尔·西藏边境` remain unknown collisions and case-normalized Hong Kong remains explicit non-mainland.
+- Focused RED was captured before the classifier implementation (`classifyRoutePreviewRegion` was absent). GREEN now
+  includes independent unknown-region map absence, converted center/end indicators, non-mainland stability, direct
+  unknown conversion and exclusion-removal mutations. No production pilot geometry is available; the data gate
+  remains fail-closed.
+- No CloudBase call, deployment, dependency/key, commit, push, PR or public release occurred. Runtime model identity
+  remains `UNVERIFIED_RUNTIME_MODEL`; result-page runtime visual evidence remains unclaimed.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`. Current next action: controller inspects this latest worktree/head,
+  obtains latest-head CI and two fresh exact-head independent Reviews, then decides mergeability and Issue status.
+
+## C12 Review-fix round 4 checkpoint — 2026-08-21
+
+- Correctness review identified one contract mismatch: a region matching both mainland and non-mainland forms must be
+  `unknown`, not `non_mainland`. The focused contract first captured RED for `香港·广东` and `尼泊尔·西藏边境`,
+  then GREEN now computes independent mainland/non-mainland matches, applies collision→unknown precedence, and omits
+  Map geometry for collisions.
+- A collision-guard removal mutation and direct collision geometry oracle both return RED when the guard is absent. The
+  bounded canonical/mainland, explicit non-mainland-only and unknown/missing behavior remains unchanged; no production
+  pilot geometry is available and the data gate remains fail-closed.
+- No CloudBase call, deployment, dependency/key, commit, push, PR or public release occurred. Runtime model identity
+  remains `UNVERIFIED_RUNTIME_MODEL`; result-page runtime visual evidence remains unclaimed.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`. Current next action: controller inspects this latest worktree/head,
+  obtains latest-head CI and two fresh exact-head independent Reviews, then decides mergeability and Issue status.
+
+## C12 local visual verification — 2026-08-22
+
+- The current `taro-app` was rebuilt in WeChat DevTools and inspected on the iPhone 12/13 simulator with an
+  identity-free synthetic two-day WGS84 route. The Map stayed inside the top verdict card and visibly contained both
+  route segments, start/end indicators and the geometry-only disclaimer without a blank shell or overlap.
+- The temporary mount fixture was removed immediately after the screenshot; the normal homepage was rebuilt and
+  restored. Source residue, changed-path scope and `git diff --check` remain clean. No CloudBase call, deployment,
+  production route data, private submission/evidence lookup, upload, timer, deletion or public release occurred.
+- Evidence boundary: this verifies local presentation only. Production pilot geometry remains absent/data-gated and
+  runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`. Draft PR #146 is open; GitHub is authoritative for its
+  current head and latest quality result. The implementation head `d79d5fe` passed quality run `32555101807` before
+  lifecycle-only updates. Successful quality and two fresh independent Reviews must target the same current head;
+  every head change repeats those gates before the controller mergeability decision.
 
 ## C11 certainty-label activation — 2026-08-21
 
@@ -1666,9 +1755,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-For the #143 current worktree, the controller must commit/push and publish or update the draft PR, then require
-latest-head CI and two fresh exact-head independent Reviews. Sol XHigh may decide mergeability only after those gates;
-do not change server/data contracts, deploy, mutate CloudBase or claim release.
+C12/#145 is published as open Draft PR #146. GitHub is authoritative for its current head and latest quality result;
+any head change repeats quality and two fresh independent Reviews. When all three gates target the same current head,
+the controller decides mergeability and Issue status. No deployment, production geometry/data, private-evidence
+access or public release is authorized or claimed.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
