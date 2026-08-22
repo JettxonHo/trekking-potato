@@ -1815,13 +1815,11 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Open work
 
-1. Reconcile and close #145 after the merged C12 ledger is durable; no further C12 implementation or deployment is
-   pending.
-2. Deploy the reviewed dry-run-capable function only under a separate staging step; do not create,
+1. Deploy the reviewed dry-run-capable function only under a separate human-authorized staging step; do not create,
    enable or invoke a timer and do not select delete mode without the later human gate.
-3. Continue #123 serially through S8–S14, preserving S15/S20 as `BLOCKED` and S16/S18 as
+2. Continue #123 serially through S8–S14, preserving S15/S20 as `BLOCKED` and S16/S18 as
    `UNVERIFIED_RUNTIME_TOOL` until direct evidence and required human gates support a change.
-4. After the remaining #123 rows pass, require an explicit controller decision before enabling cleanup, inviting the
+3. After the remaining #123 rows pass, require an explicit controller decision before enabling cleanup, inviting the
    closed-beta cohort or claiming production/public readiness.
 
 ## Blockers and risks
