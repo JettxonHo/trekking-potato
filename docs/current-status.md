@@ -44,7 +44,13 @@
   existing warnings`), typecheck, fixture-free WeChat build, diff check, exact allowlist and privacy/secret scans pass;
   independent Reviews remain controller-owned. Root npm audit reports 0 vulnerabilities; the pinned history
   `wx-server-sdk` audit reports pre-existing transitive findings whose breaking upgrade is outside this allowlist.
-  No commit, push, PR, deployment, CloudBase/data action or release occurred.
+- Historical implementation head `0f6b2bf` is published as PR #151 (`OPEN`/`DRAFT`); exact-head quality run
+  `32569602179` succeeded. Review-fix round 1 is test/docs-only: the first append fixture contains only new rows, a
+  separate fixture covers duplicate IDs, and a `response.data.slice()` mutation is asserted to make focused recovery
+  RED while the unmutated model remains GREEN.
+- After the controller publishes this review-fix head, live PR metadata is authoritative and the same current head
+  must pass quality CI plus two fresh exact-head independent Reviews. No CloudBase/data action, deployment or release
+  is authorized.
 - Executor status: `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh owns exact diff review, full gates, independent Reviews and
   any commit/merge decision.
 

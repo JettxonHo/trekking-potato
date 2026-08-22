@@ -471,6 +471,9 @@ I23b 新增 `test:recovery` 并纳入根 `npm test`：
   stop, stale/closed callback guards and delete/clear lifecycle synchronization. The page contract requires the
   rendered `加载更多` control to pass the current cursor through the append handler and rejects mutations that turn
   append into replace or detach the cursor handler.
+- Review-fix round 1 keeps the append-page fixture to only newly returned rows and gives duplicate-ID behavior its own
+  focused case. The recovery contract dynamically mutates `resolveHistoryListAppend` from the merge helper to
+  `response.data.slice()`; that mutation must fail the dedupe case while the unmutated implementation remains GREEN.
 - No real history read, delete/clear invocation, CloudBase index/config mutation, deployment, public UGC or schema
   migration is part of this gate. The focused contracts remain offline seams; the full root/integration/lint/typecheck/
   fixture-free WeChat build and diff checks are separate completion evidence.

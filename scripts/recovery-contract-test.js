@@ -1,8 +1,10 @@
 /** I23b frontend recovery contract (offline behavior and page wiring). */
 const assert = require('assert')
 const fs = require('fs')
+const Module = require('module')
 const path = require('path')
 
+const recoveryModel = require('../taro-app/src/pages/index/recovery-model')
 const {
   beginHistoryListRequest,
   beginHistoryListAppend,
@@ -29,9 +31,20 @@ const {
   selectRecoveryActions,
   startHistorySave,
   succeedHistorySave,
-} = require('../taro-app/src/pages/index/recovery-model')
+} = recoveryModel
 const { createInitialTripFlow, reduceTripFlow, selectTripFlowView } = require('../taro-app/src/pages/index/trip-flow')
 const { buildResultPageModel, buildHistorySavePayload } = require('../taro-app/src/pages/index/result-page-model')
+
+const historyListModel = {
+  beginHistoryListRequest,
+  beginHistoryListAppend,
+  closeHistoryList,
+  clearHistoryListItems,
+  createHistoryListLifecycle,
+  resolveHistoryList,
+  resolveHistoryListAppend,
+  removeHistoryListItem,
+}
 
 function flowWithStatus(status, result, queryId, error) {
   let flow = createInitialTripFlow()
@@ -176,7 +189,17 @@ function assertWeatherAndSaveRecovery() {
   assert.equal(sameHistorySaveIdentity(newIntent, intent), false, 'new BaseData gets a new save identity')
 }
 
-function assertHistoryListRecovery() {
+function assertHistoryListRecovery(model = historyListModel) {
+  const {
+    beginHistoryListRequest,
+    beginHistoryListAppend,
+    closeHistoryList,
+    clearHistoryListItems,
+    createHistoryListLifecycle,
+    resolveHistoryList,
+    resolveHistoryListAppend,
+    removeHistoryListItem,
+  } = model
   let lifecycle = createHistoryListLifecycle([{ id: 'old' }])
   lifecycle = beginHistoryListRequest(lifecycle)
   const firstToken = lifecycle.token
@@ -189,10 +212,10 @@ function assertHistoryListRecovery() {
   const appendToken = appendStarted.token
   lifecycle = resolveHistoryListAppend(appendStarted, appendToken, 'cursor-1', {
     ok: true,
-    data: [{ id: 'new' }, { id: 'older' }],
+    data: [{ id: 'older' }],
     nextCursor: 'cursor-2',
   })
-  assert.deepEqual(lifecycle.items, [{ id: 'new' }, { id: 'older' }], 'load-more must append and deduplicate IDs')
+  assert.deepEqual(lifecycle.items, [{ id: 'new' }, { id: 'older' }], 'load-more must append only new page rows')
   assert.equal(lifecycle.nextCursor, 'cursor-2')
   const appendFailureStart = beginHistoryListAppend(lifecycle)
   const appendFailureToken = appendFailureStart.token
@@ -228,6 +251,56 @@ function assertHistoryListRecovery() {
   const cleared = clearHistoryListItems({ ...removed, nextCursor: 'cursor-3' })
   assert.deepEqual(cleared.items, [], 'clear must remove loaded rows')
   assert.equal(cleared.nextCursor, null, 'clear must reset the pagination cursor')
+}
+
+function assertHistoryListAppendDedupe(model = historyListModel) {
+  const {
+    beginHistoryListRequest,
+    createHistoryListLifecycle,
+    resolveHistoryList,
+    beginHistoryListAppend,
+    resolveHistoryListAppend,
+  } = model
+  let lifecycle = beginHistoryListRequest(createHistoryListLifecycle())
+  const firstToken = lifecycle.token
+  lifecycle = resolveHistoryList(lifecycle, firstToken, {
+    ok: true,
+    data: [{ id: 'new' }, { id: 'older' }],
+    nextCursor: 'cursor-2',
+  })
+  const appendStarted = beginHistoryListAppend(lifecycle)
+  const deduped = resolveHistoryListAppend(appendStarted, appendStarted.token, 'cursor-2', {
+    ok: true,
+    data: [{ id: 'older' }, { id: 'oldest' }],
+    nextCursor: null,
+  })
+  assert.deepEqual(deduped.items, [{ id: 'new' }, { id: 'older' }, { id: 'oldest' }], 'append must deduplicate IDs')
+  assert.equal(deduped.items.filter((item) => item.id === 'older').length, 1, 'append dedupe keeps one existing row')
+}
+
+function loadCommonJsSource(modulePath, source) {
+  const loaded = new Module(modulePath, module.parent)
+  loaded.filename = modulePath
+  loaded.paths = Module._nodeModulePaths(path.dirname(modulePath))
+  loaded._compile(source, modulePath)
+  return loaded.exports
+}
+
+function assertHistoryListMutationSensitive() {
+  const modelPath = path.join(__dirname, '../taro-app/src/pages/index/recovery-model.js')
+  const source = fs.readFileSync(modelPath, 'utf8')
+  const mergeNeedle = 'items: mergeHistoryItems(current.items, response.data),'
+  assert(source.includes(mergeNeedle), 'history append merge seam must remain explicit')
+  const mutated = source.replace(
+    mergeNeedle,
+    'items: Array.isArray(response.data) ? response.data.slice() : [],',
+  )
+  const mutatedModel = loadCommonJsSource(modelPath, mutated)
+  assert.throws(
+    () => assertHistoryListAppendDedupe(mutatedModel),
+    /append must deduplicate IDs/,
+    'replacing append merge with response.data.slice() must turn focused recovery RED',
+  )
 }
 
 function methodRange(source, signature) {
@@ -374,5 +447,7 @@ assertWeatherActionEligibility()
 assertRequestSlots()
 assertWeatherAndSaveRecovery()
 assertHistoryListRecovery()
+assertHistoryListAppendDedupe()
+assertHistoryListMutationSensitive()
 assertMutationSensitivePageWiring()
 console.log('PASS: I23b recovery contract')

@@ -1032,7 +1032,8 @@
 
 ## 2026-08-22 — TP-D067 C14 private history keyset pagination
 
-- Status: Prepared for controller review; no deployment, CloudBase mutation or real history access
+- Status: Historical implementation head `0f6b2bf` is published as PR #151 (`OPEN`/`DRAFT`); no deployment, CloudBase
+  mutation or real history access
 - Context: The private history sheet previously read only the newest 20 owner rows and had no continuation path. Offset
   paging would drift when new saves arrive and would not define equal-timestamp behavior.
 - Decision: Keep server OpenID as the sole owner boundary. Query a maximum 20-row page with one read-only lookahead in
@@ -1044,8 +1045,11 @@
   new secret. These add instability, interaction cost, privacy surface or unnecessary key management; the bounded
   owner/keyset contract is sufficient for this private list.
 - Evidence: Focused TDD RED/GREEN covers 21-row owner pagination, equal-timestamp tie-break, one-row lookahead,
-  malformed-cursor zero reads, append/dedupe/failure, stale/closed and page-handler mutations. Root tests, integration
-  `55/0`, lint, typecheck, fixture-free WeChat build, diff/allowlist/privacy scans and root npm audit pass locally;
-  independent Reviews remain controller-owned. The pinned history `wx-server-sdk` audit has pre-existing transitive
-  findings whose breaking upgrade is outside this slice. This executor performed no commit, push, PR, deployment or
-  data action.
+  malformed-cursor zero reads, append/failure, stale/closed and page-handler mutations. Review-fix round 1 keeps the
+  first append fixture to new rows, adds a separate duplicate-ID case, and dynamically proves that replacing the merge
+  helper with `response.data.slice()` makes focused recovery RED. Root tests, integration `55/0`, lint, typecheck,
+  fixture-free WeChat build, diff/allowlist/privacy scans and root npm audit pass locally; independent Reviews remain
+  controller-owned. Quality run `32569602179` succeeded on historical PR head `0f6b2bf`; the controller must publish
+  the test/docs head and obtain same-head quality plus two fresh exact-head Reviews. The pinned history `wx-server-sdk`
+  audit has pre-existing transitive findings whose breaking upgrade is outside this slice. No deployment, CloudBase/
+  data action or release is authorized.

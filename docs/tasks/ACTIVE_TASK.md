@@ -75,4 +75,8 @@ Reviews before any commit/push/PR/merge decision. No executor may approve or mer
   `corepack npm@10.9.2 test`, integration `55/0`, lint (`0 errors / 9 existing warnings`), typecheck, fixture-free
   WeChat build, diff check, exact allowlist and privacy/secret scans also pass. Independent Reviews remain controller
   work. Root npm audit is clean; the pinned history `wx-server-sdk` audit has pre-existing transitive findings requiring
-  an out-of-allowlist breaking upgrade. No commit, push, PR, CloudBase/data, deployment or release action was taken.
+  an out-of-allowlist breaking upgrade. Historical implementation head `0f6b2bf` is PR #151 (`OPEN`/`DRAFT`) with
+  successful exact-head quality run `32569602179`. Review-fix round 1 is limited to this test/docs allowlist: append
+  inputs now contain only new rows, duplicate-ID coverage is a separate case, and a `response.data.slice()` mutation
+  is required to turn focused recovery RED. The controller publishes the new head and then re-runs same-head quality
+  plus two fresh independent Reviews; no CloudBase/data action, deployment or release is authorized.
