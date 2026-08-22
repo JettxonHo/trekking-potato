@@ -76,4 +76,5 @@ Reviews before any merge decision. No executor may approve or merge its own work
 - GREEN keeps the Map and start/end labels inside that wrapper and moves z-index there. Focused/root tests, typecheck,
   fixture-free WeChat build and `git diff --check` pass. Controller DevTools now recompiles with zero errors and renders
   the B hierarchy from identity/location-free synthetic local state; the temporary injection was removed and the normal
-  homepage restored. Controller next action is commit/push, Draft PR, latest-head CI and two fresh exact-head Reviews.
+  homepage restored. Draft PR #149 is open; live GitHub metadata is authoritative, and its same current head requires
+  successful quality CI plus two fresh independent Reviews before Sol decides mergeability.

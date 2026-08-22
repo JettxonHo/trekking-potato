@@ -52,8 +52,9 @@
 - Focused/root tests, typecheck, fixture-free WeChat build and `git diff --check` pass. Controller DevTools recompiles
   with zero errors and renders the approved hierarchy from identity/location-free synthetic local state. The temporary
   visual injection was removed, its residue scan passed, and the normal homepage was restored.
-- Executor status: `READY_FOR_CONTROLLER_REVIEW`; controller commit/push, Draft PR, latest-head CI and two fresh
-  exact-head independent Reviews remain required. No model/service/data/CloudBase/deployment action occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; Draft PR #149 is open. Live GitHub metadata is authoritative for
+  its current head, and that same head requires successful quality CI plus two fresh exact-head independent Reviews.
+  No model/service/data/CloudBase/deployment action occurred.
 
 ## C12 B-lite route-map preview activation — 2026-08-21
 
@@ -1799,10 +1800,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Controller reviews the latest C13/#148 worktree, commits and pushes the exact allowlist to a Draft PR, then requires
-latest-head CI plus two fresh exact-head independent Reviews before deciding mergeability. History pagination remains
-a separate serial slice after C13; #123 staging rows remain unchanged. No timer, destructive cleanup, production
-geometry/data, private-evidence access, real-user cohort or public release is authorized or claimed.
+Draft PR #149 is open for C13/#148. Live GitHub metadata is authoritative for its current head; Sol waits for successful
+quality CI and two fresh independent Reviews on that same head before deciding mergeability. Any head change repeats
+both gates. History pagination remains a separate serial slice after C13; #123 staging rows remain unchanged. No timer,
+destructive cleanup, production geometry/data, private-evidence access, real-user cohort or public release is authorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

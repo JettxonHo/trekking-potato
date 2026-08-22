@@ -106,8 +106,9 @@ blocker. No timer, destructive cleanup, real-user cohort or production release i
 - Focused/root tests, typecheck, fixture-free `CI=1 build:weapp` and `git diff --check` pass. Controller DevTools now
   recompiles with zero errors and renders the B hierarchy from identity/location-free synthetic local state; the
   temporary visual injection was removed and the normal homepage restored.
-- Executor status: `READY_FOR_CONTROLLER_REVIEW`; controller commit/push, Draft PR, latest-head CI and two fresh
-  exact-head independent Reviews remain required. No CloudBase call, deployment or release occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; Draft PR #149 is open. Live GitHub metadata is authoritative for
+  its current head, and the same current head must have successful quality CI plus two fresh independent Reviews
+  before Sol decides mergeability. No CloudBase call, deployment or release occurred.
 
 ## C12 B-lite route-map preview activation — 2026-08-21
 
