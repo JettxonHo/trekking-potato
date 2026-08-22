@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C13 REVIEW_ACTIVE`
+- Status: `ACTIVE — C14 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -55,6 +55,7 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C11 Verdict labels | #143 | internal certainty severities render as established business Chinese labels without changing rules |
 | C12 Route map preview | #145 | reviewed full routes render a fail-closed read-only map thumbnail with a geometry-only fallback |
 | C13 Result summary hierarchy | #148 | the approved B layout makes the route name primary, keeps map content sharp, and removes repeated verdict content |
+| C14 History pagination | #150 | owner-private history supports bounded stable cursor paging and explicit load-more recovery |
 
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
 through PR #128 (`0e534d49`), the C06 offline acceptance package through PR #130 (`59ef3c2`), and C07 through
@@ -66,8 +67,43 @@ tool evidence; no production readiness or Goal completion is claimed. C08 merged
 #137 is closed without deployment, timer activation or deletion. C09 merged through PR #140 as `7a07757`; #139 is
 closed without deployment or automatic catalog promotion. C10 merged through PR #142 as `e417ab8`; #141 is closed.
 C11 merged through PR #144 as `93a86d8`; #143 is closed. C12 merged through PR #146 as `ae86b0b`; #145 implementation
-is complete. Human-approved C13/#148 is now the only active review slice; #123 remains the separate staging
-blocker. No timer, destructive cleanup, real-user cohort or production release is implied.
+is complete. C13 merged through PR #149 as `9de9013` and #148 is closed. Human-approved C14/#150 is now the only
+active implementation slice; #123 remains the separate staging blocker. No timer, destructive cleanup, real-user
+cohort or production release is implied.
+
+## C14 private-history pagination activation — 2026-08-22
+
+- The current history sheet reads only the newest 20 owner-private items. #150 adds explicit bounded `加载更多`
+  behavior without changing the HistoryItem fields, save/delete/clear semantics or zero-I/O history prefill.
+- The service contract is server-OpenID-bound keyset pagination ordered by `createdAt desc, _id desc`, with a
+  versioned opaque cursor, at most 20 returned items and one read-only lookahead. Invalid cursors fail closed before
+  storage access and never expose OpenID, raw database errors or unknown record fields.
+- The frontend refresh path replaces page one; load-more appends and deduplicates, preserves existing rows/cursor on
+  failure and rejects stale/closed callbacks. It is an explicit control, not auto infinite scroll.
+- #150 and ACTIVE_TASK own the exact code/test/docs allowlist. No CloudBase index/config change, deployment, real
+  history access, delete/clear invocation, public UGC, dependency or production release is authorized.
+
+## C14 implementation checkpoint — 2026-08-22
+
+- TDD first recorded a real backend RED for the missing keyset/tie-break pagination and a frontend RED for the missing
+  continuation cursor. GREEN now proves owner-only 21-row paging with equal-timestamp `_id` tie-break, one-row
+  lookahead, opaque versioned cursor validation, DTO privacy and zero reads for malformed cursors.
+- The history sheet now replaces page one, exposes an explicit `加载更多` control, appends/deduplicates rows, preserves
+  loaded rows and cursor on append failure, and rejects stale/closed callbacks. Delete/clear invalidate in-flight list
+  callbacks and keep the local cursor/rows consistent; history prefill remains zero-I/O.
+- Focused `test:history` and `test:recovery`, root `corepack npm@10.9.2 test`, integration `55/0`, lint (`0 errors / 9
+  existing warnings`), typecheck, fixture-free WeChat build, diff check, exact allowlist and privacy/secret scans pass;
+  independent Reviews remain controller-owned. Root npm audit reports 0 vulnerabilities; the pinned history
+  `wx-server-sdk` audit reports pre-existing transitive findings whose breaking upgrade is outside this allowlist.
+- Historical implementation head `0f6b2bf` is published as PR #151 (`OPEN`/`DRAFT`); its exact-head quality run
+  `32569602179` succeeded. The review-fix round keeps production behavior unchanged and hardens `test:recovery` by
+  feeding the first append page only new rows, moving duplicate-ID coverage to a separate case, and proving a
+  `response.data.slice()` append mutation turns the focused recovery contract RED.
+- The review-fix increment is test/docs-only and published in Draft PR #151. Live GitHub metadata is authoritative;
+  the same current head requires successful quality CI plus two fresh exact-head independent Reviews, and any head
+  change repeats both gates. No deployment, CloudBase/data action or release is authorized.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh must inspect the exact diff and complete all required gates and
+  two fresh exact-head independent Reviews before deciding mergeability.
 
 ## C13 approved B result-summary activation — 2026-08-22
 

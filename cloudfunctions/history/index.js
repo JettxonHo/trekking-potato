@@ -11,6 +11,9 @@ cloud.init(/** @type {any} */ ({ env: cloud.DYNAMIC_CURRENT_ENV }))
 
 const db = cloud.database()
 const MAX_SUMMARY = 120
+const HISTORY_PAGE_SIZE = 20
+const HISTORY_CURSOR_VERSION = 1
+const HISTORY_CURSOR_MAX_LENGTH = 2048
 const VALID_ROUTE_TYPES = ['trek', 'climb', 'tour']
 const VALID_ROUTE_TYPE_SOURCES = ['builtin', 'ugc', 'amap', 'user', 'unknown']
 
@@ -20,6 +23,44 @@ function error(error, message, retryable) {
 
 function historyUnavailable() {
   return error('history_unavailable', '历史服务暂时不可用，请稍后重试', true)
+}
+
+function invalidHistoryCursor() {
+  return error('invalid_cursor', '历史列表游标无效，请刷新后重试', false)
+}
+
+function encodeHistoryCursor(record) {
+  const id = record && record._id
+  const createdAt = record && record.createdAt
+  if (typeof id !== 'string' || id.length < 1 || id.length > 80) throw new Error('invalid history cursor id')
+  const date = new Date(createdAt)
+  if (!Number.isFinite(date.getTime())) throw new Error('invalid history cursor timestamp')
+  const payload = { v: HISTORY_CURSOR_VERSION, createdAt: date.toISOString(), id }
+  return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url')
+}
+
+// null means no cursor was supplied; undefined is a supplied but invalid cursor.
+function decodeHistoryCursor(value) {
+  if (value === undefined || value === null) return null
+  if (typeof value !== 'string' || value.length < 1 || value.length > HISTORY_CURSOR_MAX_LENGTH || !/^[A-Za-z0-9_-]+$/.test(value)) return undefined
+  let payload
+  try {
+    const decoded = Buffer.from(value, 'base64url').toString('utf8')
+    if (Buffer.from(decoded, 'utf8').toString('base64url') !== value) return undefined
+    payload = JSON.parse(decoded)
+  } catch (_exception) {
+    return undefined
+  }
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return undefined
+  if (Object.keys(payload).sort().join(',') !== 'createdAt,id,v' || payload.v !== HISTORY_CURSOR_VERSION) return undefined
+  if (typeof payload.id !== 'string' || payload.id.length < 1 || payload.id.length > 80) return undefined
+  if (typeof payload.createdAt !== 'string' || !Number.isFinite(Date.parse(payload.createdAt))) return undefined
+  try {
+    if (new Date(payload.createdAt).toISOString() !== payload.createdAt) return undefined
+  } catch (_exception) {
+    return undefined
+  }
+  return { id: payload.id, createdAt: payload.createdAt }
 }
 
 function toHistoryItem(record) {
@@ -99,14 +140,32 @@ async function saveRecord(event, openid) {
 }
 
 async function listRecords(event, openid) {
-  const limit = Math.min(20, Math.max(1, parseInt(event.limit, 10) || 20))
+  const limit = Math.min(HISTORY_PAGE_SIZE, Math.max(1, parseInt(event.limit, 10) || HISTORY_PAGE_SIZE))
+  const cursor = decodeHistoryCursor(event.cursor)
+  if (cursor === undefined) return invalidHistoryCursor()
   try {
+    const base = { _openid: openid }
+    let where = /** @type {any} */ (base)
+    if (cursor) {
+      const command = db.command
+      if (!command || typeof command.lt !== 'function' || typeof command.or !== 'function' || typeof command.and !== 'function') {
+        throw new Error('history cursor query unavailable')
+      }
+      where = command.and(base, command.or(
+        { createdAt: command.lt(new Date(cursor.createdAt)) },
+        { createdAt: new Date(cursor.createdAt), _id: command.lt(cursor.id) },
+      ))
+    }
     const result = /** @type {{ data?: any[] }} */ (await db.collection('history')
-      .where({ _openid: openid })
+      .where(where)
       .orderBy('createdAt', 'desc')
-      .limit(limit)
+      .orderBy('_id', 'desc')
+      .limit(limit + 1)
       .get())
-    return { ok: true, data: (result.data || []).map(toHistoryItem) }
+    const records = Array.isArray(result.data) ? result.data : []
+    const page = records.slice(0, limit)
+    const nextCursor = records.length > limit ? encodeHistoryCursor(page[page.length - 1]) : null
+    return { ok: true, data: page.map(toHistoryItem), nextCursor }
   } catch (exception) {
     return historyUnavailable()
   }

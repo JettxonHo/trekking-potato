@@ -1,108 +1,83 @@
-# ACTIVE TASK — #148 approved B result-summary hierarchy
+# ACTIVE TASK — #150 private history cursor pagination
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C13 REVIEW_ACTIVE`
-- Milestone: C13 Result summary hierarchy
-- GitHub Issue: `#148`
-- Status/Mode: `REVIEW_ACTIVE / REVIEW_FIX`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C14 REVIEW_ACTIVE`
+- Milestone: C14 History pagination
+- GitHub Issue: `#150`
+- Status/Mode: `REVIEW_ACTIVE / REVIEW`
 - Controller: Sol XHigh + human controller
-- Branch/base: `codex/148-result-summary-b` from exact `main@b25e521`
+- Branch/base: `codex/150-history-pagination` from exact `main@9de9013`
 - Executor: exact custom `luna-worker`, configured `gpt-5.6-luna/max`; runtime identity is separate evidence
 
-## 1. Objective and frozen design
+## 1. Objective and frozen contract
 
-Implement the human-approved B layout inside the detailed query result page's top summary card:
+Add explicit, bounded cursor pagination to the existing owner-private history sheet:
 
-1. compact `出发建议 · <结论>` above the route name;
-2. route name is the only large bold title;
-3. no local/prototype/validation tag in real UI;
-4. when safe `routePreview` exists: advice → route name → sharp Map → scope/facts → geometry notice/legend;
-5. white card surface with subtle top/bottom background depth; foreground text and Map are unaffected;
-6. following card title is `判断依据`, containing reason messages only and no repeated overall verdict;
-7. no-preview results retain C12 fail-closed behavior with no blank shell.
+1. `list` remains authenticated only by server OpenID and returns the unchanged public HistoryItem DTO;
+2. default/max page size is 20 and storage reads at most `limit + 1` records;
+3. stable keyset order is `createdAt desc, _id desc`;
+4. request accepts an optional bounded/versioned opaque cursor and success adds only `nextCursor: string|null`;
+5. malformed, oversized or extra-field cursors fail closed before database access;
+6. page one replaces the list; explicit `加载更多` appends unique IDs and preserves rows/cursor on failure;
+7. concurrent, stale and closed-panel callbacks cannot overwrite or append;
+8. delete, clear and zero-I/O history prefill retain their existing product behavior.
 
 ## 2. Exact allowlist
 
+- `cloudfunctions/history/index.js`
+- `scripts/security-test.js`
+- `taro-app/src/pages/index/recovery-model.js`
+- `scripts/recovery-contract-test.js`
 - `taro-app/src/pages/index/index.jsx`
 - `taro-app/src/pages/index/index.css`
-- `scripts/result-page-contract-test.js`
 - `GOAL.md`
 - `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
+- `docs/architecture.md`
+- `docs/testing-strategy.md`
 - `docs/decision-log.md`
 
 No other path may change without controller approval.
 
 ## 3. TDD seams
 
-- Use the existing result-page render contract; record real focused RED before production JSX/CSS edits.
-- Assert exact hierarchy/order, compact advice copy, route-name-only large title, no prototype tag, no duplicated overall
-  verdict in `判断依据`, white/depth/sharp-content CSS layering, and C12 no-preview absence.
-- Representative order, duplicate-verdict, tag, foreground-blur and no-preview mutations must make the focused gate RED.
-- Expected values must be independent literals; do not duplicate production algorithms.
+- Record a real focused backend RED before production edits for 21+ owner records, equal-timestamp `_id` tie-break,
+  foreign-record exclusion, bounded next cursor and malformed-cursor zero reads.
+- Record a real focused frontend lifecycle RED before page edits for replace versus append, ID dedupe, preserved rows/
+  cursor on append failure, and stale/closed callback invalidation.
+- Require the rendered `加载更多` control to carry the current cursor through its exact handler; loading more must not
+  replace the list, and `nextCursor:null` must stop additional calls.
+- Representative mutations removing the owner filter, tie-break/second order, cursor rejection, append semantics,
+  stale guard or load-more handler must each turn the appropriate focused gate RED.
 
 ## 4. Non-scope and stop conditions
 
-No verdict/weather/route logic, result model/service/public DTO, geometry generation, catalog data, history pagination,
-dependency/config, CloudBase, deployment, private evidence access, timer, deletion, publication or production release.
-Stop for any required out-of-allowlist path, public contract change or data/runtime action.
+No history schema migration, public UGC, auto infinite scroll, result/route/weather/verdict behavior, community-track
+data, dependency/config, CloudBase index/config mutation, deployment, real history read, delete/clear invocation,
+publication or production release. Stop for any required out-of-allowlist path or runtime/data action.
 
 ## 5. Verification and delivery
 
-- focused `test:result-page`;
-- root `corepack npm@10.9.2 test`;
-- integration `55/0`, lint, typecheck, fixture-free `CI=1 build:weapp`;
-- `git diff --check`, exact allowlist and privacy/secret scans;
-- local WeChat DevTools visual inspection using synthetic/local state only, with a viewable screenshot artifact.
+- focused `test:history` and `test:recovery`;
+- root `corepack npm@10.9.2 test` and integration `55/0`;
+- lint, typecheck and fixture-free `CI=1 build:weapp`;
+- `git diff --check`, exact allowlist and privacy/secret scans.
 
-Executor delivers `READY_FOR_CONTROLLER_REVIEW`. Sol XHigh performs actual-diff review and two fresh independent
-Reviews before any merge decision. No executor may approve or merge its own work.
+Executor delivers `READY_FOR_CONTROLLER_REVIEW`. Sol XHigh inspects the actual diff and obtains two fresh independent
+Reviews before any commit/push/PR/merge decision. No executor may approve or merge its own work.
 
-## Implementation checkpoint — 2026-08-22
+## Executor checkpoint — 2026-08-22
 
-- Focused RED was captured before JSX/CSS edits; focused GREEN now proves the approved order, route-name-only title,
-  no prototype/local tag, message-only `判断依据`, neutral gray depth/sharp foreground and fail-closed no-preview path.
-- Mutation probes for advice removal, scope reorder, duplicate verdict, prototype tag, verdict-tinted depth and
-  foreground blur each fail the focused gate. Full local matrix is green: root tests, integration `55/0`, lint
-  (`0 errors / 9 existing warnings`), typecheck, fixture-free WeChat build and `git diff --check`.
-- Actual implementation files are the three code/test paths in the allowlist plus the four lifecycle/decision docs;
-  no model/service/server/public DTO/history/dependency/CloudBase/deployment/private-evidence action occurred.
-- Status: `READY_FOR_CONTROLLER_REVIEW`; local DevTools visual evidence and controller-owned Reviews remain pending.
-
-## Runtime review-fix checkpoint — 2026-08-22
-
-- Controller DevTools found a WXSS compile error from the new universal child selector. Focused RED now forbids
-  `.result-verdict-card > *` and requires the explicit `result-verdict-content` foreground wrapper.
-- GREEN keeps the Map and start/end labels inside that wrapper and moves z-index there. Focused/root tests, typecheck,
-  fixture-free WeChat build and `git diff --check` pass. Controller DevTools now recompiles with zero errors and renders
-  the B hierarchy from identity/location-free synthetic local state; the temporary injection was removed and the normal
-  homepage restored. Draft PR #149 is open; live GitHub metadata is authoritative, and its same current head requires
-  successful quality CI plus two fresh independent Reviews before Sol decides mergeability.
-
-## Accessible-name and no-preview review-fix checkpoint — 2026-08-22
-
-- Independent Review identified two P2 contract gaps: unconditional route-preview-card injection was not independently
-  mutation-sensitive, and `aria-label` on Taro `Text` is absent from the generated WeChat template. A severity-only
-  label could therefore override or misstate the concrete reason message.
-- Focused RED was captured first. GREEN now requires the safe `routeModel.routePreview && routePreviewMap` wrapper,
-  keeps `reason.message || '确定性规则提示'` as the visible/reachable Text content, retains severity only in the
-  existing `reason-*` class and makes no unsupported aria claim. The message-loss and unconditional-preview mutations
-  return RED.
-- The C11 overall `verdict.label` mapping remains in the result model; only the unreferenced reason-list display helper
-  was removed, avoiding a new lint warning while preserving the message-only UI.
-- `RESULT_PAGE_ARTIFACT=1 node scripts/result-page-contract-test.js` is the executable build-artifact gate; it inspects
-  generated `dist/pages/index/index.js` for the reason class/message seam and `dist/base.wxml` for no aria-label reliance.
-  No model, service, DTO, geometry, history, dependency, CloudBase or deployment path changed.
-- Status: `READY_FOR_CONTROLLER_REVIEW`; the controller committed/published the accessibility repair in PR #149.
-  `33d1469` is its historical implementation head, not a frozen current-head claim. Live GitHub metadata is
-  authoritative; same-head CI and two fresh independent Reviews remain required
-  before Sol decides mergeability. No deployment occurred.
-
-## Round-two exact-preview injection checkpoint — 2026-08-22
-
-- The focused contract now counts every `<View className="route-preview-card">` and self-closing preview-card form,
-  requiring exactly one instance immediately under the safe `routeModel.routePreview && routePreviewMap` condition.
-- A representative self-closing card injected after the route name is source-changing, Babel-parseable and independently
-  RED; the valid unmutated branch remains GREEN. This is a test/docs-only repair; production JSX/CSS is unchanged.
-- Draft PR #149 is open; live GitHub metadata is authoritative for its current head. That same head requires successful
-  CI and two independent Reviews before Sol decides mergeability; any head change repeats both gates.
+- Real TDD REDs were captured before backend/frontend production edits. Focused `test:history` and `test:recovery`
+  now pass owner/order/cursor/DTO/privacy, append/dedupe/failure, stale/closed, delete/clear and page-handler mutation
+  gates.
+- The current worktree contains only the six implementation/test paths plus this exact documentation allowlist. Root
+  `corepack npm@10.9.2 test`, integration `55/0`, lint (`0 errors / 9 existing warnings`), typecheck, fixture-free
+  WeChat build, diff check, exact allowlist and privacy/secret scans also pass. Independent Reviews remain controller
+  work. Root npm audit is clean; the pinned history `wx-server-sdk` audit has pre-existing transitive findings requiring
+  an out-of-allowlist breaking upgrade. Historical implementation head `0f6b2bf` is PR #151 (`OPEN`/`DRAFT`) with
+  successful exact-head quality run `32569602179`. Review-fix round 1 is limited to this test/docs allowlist: append
+  inputs now contain only new rows, duplicate-ID coverage is a separate case, and a `response.data.slice()` mutation
+  is required to turn focused recovery RED. Draft PR #151 is open; live GitHub metadata is authoritative, and the same
+  current head must pass quality plus two fresh independent Reviews. Any head change repeats both gates. No CloudBase/
+  data action, deployment or release is authorized.

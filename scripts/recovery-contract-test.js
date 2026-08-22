@@ -1,14 +1,18 @@
 /** I23b frontend recovery contract (offline behavior and page wiring). */
 const assert = require('assert')
 const fs = require('fs')
+const Module = require('module')
 const path = require('path')
 
+const recoveryModel = require('../taro-app/src/pages/index/recovery-model')
 const {
   beginHistoryListRequest,
+  beginHistoryListAppend,
   canStartHistorySave,
   capturePendingBaseRequest,
   clearRequestSlots,
   closeHistoryList,
+  clearHistoryListItems,
   createHistoryListLifecycle,
   createHistorySaveIntent,
   createRecoverySlots,
@@ -20,14 +24,27 @@ const {
   isReprepareEligible,
   promoteBaseRequest,
   resolveHistoryList,
+  resolveHistoryListAppend,
+  removeHistoryListItem,
   retryableWeatherIssue,
   sameHistorySaveIdentity,
   selectRecoveryActions,
   startHistorySave,
   succeedHistorySave,
-} = require('../taro-app/src/pages/index/recovery-model')
+} = recoveryModel
 const { createInitialTripFlow, reduceTripFlow, selectTripFlowView } = require('../taro-app/src/pages/index/trip-flow')
 const { buildResultPageModel, buildHistorySavePayload } = require('../taro-app/src/pages/index/result-page-model')
+
+const historyListModel = {
+  beginHistoryListRequest,
+  beginHistoryListAppend,
+  closeHistoryList,
+  clearHistoryListItems,
+  createHistoryListLifecycle,
+  resolveHistoryList,
+  resolveHistoryListAppend,
+  removeHistoryListItem,
+}
 
 function flowWithStatus(status, result, queryId, error) {
   let flow = createInitialTripFlow()
@@ -172,24 +189,118 @@ function assertWeatherAndSaveRecovery() {
   assert.equal(sameHistorySaveIdentity(newIntent, intent), false, 'new BaseData gets a new save identity')
 }
 
-function assertHistoryListRecovery() {
+function assertHistoryListRecovery(model = historyListModel) {
+  const {
+    beginHistoryListRequest,
+    beginHistoryListAppend,
+    closeHistoryList,
+    clearHistoryListItems,
+    createHistoryListLifecycle,
+    resolveHistoryList,
+    resolveHistoryListAppend,
+    removeHistoryListItem,
+  } = model
   let lifecycle = createHistoryListLifecycle([{ id: 'old' }])
   lifecycle = beginHistoryListRequest(lifecycle)
   const firstToken = lifecycle.token
-  lifecycle = resolveHistoryList(lifecycle, firstToken, { ok: true, data: [{ id: 'new' }] })
+  lifecycle = resolveHistoryList(lifecycle, firstToken, { ok: true, data: [{ id: 'new' }], nextCursor: 'cursor-1' })
   assert.deepEqual(lifecycle.items, [{ id: 'new' }])
+  assert.equal(lifecycle.nextCursor, 'cursor-1')
+  const appendStarted = beginHistoryListAppend(lifecycle)
+  assert.equal(appendStarted.loadingMore, true)
+  assert.equal(appendStarted.requestCursor, 'cursor-1')
+  const appendToken = appendStarted.token
+  lifecycle = resolveHistoryListAppend(appendStarted, appendToken, 'cursor-1', {
+    ok: true,
+    data: [{ id: 'older' }],
+    nextCursor: 'cursor-2',
+  })
+  assert.deepEqual(lifecycle.items, [{ id: 'new' }, { id: 'older' }], 'load-more must append only new page rows')
+  assert.equal(lifecycle.nextCursor, 'cursor-2')
+  const appendFailureStart = beginHistoryListAppend(lifecycle)
+  const appendFailureToken = appendFailureStart.token
+  const appendFailure = resolveHistoryListAppend(appendFailureStart, appendFailureToken, 'cursor-2', { ok: false, message: '暂时失败' })
+  assert.deepEqual(appendFailure.items, lifecycle.items, 'append failure preserves loaded rows')
+  assert.equal(appendFailure.nextCursor, 'cursor-2', 'append failure preserves the current cursor')
+  assert.equal(appendFailure.error, '暂时失败')
+  const noMore = { ...lifecycle, nextCursor: null }
+  assert.strictEqual(beginHistoryListAppend(noMore), noMore, 'null nextCursor must stop additional loads')
   lifecycle = beginHistoryListRequest(lifecycle)
   const retryToken = lifecycle.token
   lifecycle = resolveHistoryList(lifecycle, retryToken, { ok: false, message: '暂时失败' })
-  assert.deepEqual(lifecycle.items, [{ id: 'new' }], 'list failure preserves existing items')
+  assert.deepEqual(lifecycle.items, [{ id: 'new' }, { id: 'older' }], 'list failure preserves existing items')
   assert.equal(lifecycle.error, '暂时失败')
-  lifecycle = beginHistoryListRequest(lifecycle)
+  const staleAppendStart = beginHistoryListAppend(lifecycle)
+  const staleAppendToken = staleAppendStart.token
+  lifecycle = beginHistoryListRequest(staleAppendStart)
   const newerToken = lifecycle.token
   const stale = resolveHistoryList(lifecycle, retryToken, { ok: true, data: [{ id: 'stale' }] })
-  assert.deepEqual(stale.items, [{ id: 'new' }], 'stale callback cannot replace newer list')
+  assert.deepEqual(stale.items, [{ id: 'new' }, { id: 'older' }], 'stale callback cannot replace newer list')
+  const staleAppend = resolveHistoryListAppend(lifecycle, staleAppendToken, 'cursor-2', { ok: true, data: [{ id: 'stale-append' }], nextCursor: null })
+  assert.deepEqual(staleAppend.items, lifecycle.items, 'stale append callback cannot change the list')
   lifecycle = closeHistoryList(lifecycle)
   assert.equal(lifecycle.open, false)
-  assert.deepEqual(resolveHistoryList(lifecycle, newerToken, { ok: true, data: [{ id: 'closed' }] }).items, [{ id: 'new' }], 'closed panel ignores callback')
+  assert.deepEqual(resolveHistoryList(lifecycle, newerToken, { ok: true, data: [{ id: 'closed' }] }).items, [{ id: 'new' }, { id: 'older' }], 'closed panel ignores callback')
+  assert.deepEqual(resolveHistoryListAppend(lifecycle, newerToken, 'cursor-3', { ok: true, data: [{ id: 'closed' }] }).items, lifecycle.items, 'closed panel ignores append callback')
+  const activeBeforeDelete = beginHistoryListAppend({ ...lifecycle, open: true, nextCursor: 'cursor-delete' })
+  const removedInFlight = removeHistoryListItem(activeBeforeDelete, 'new')
+  assert(removedInFlight.token > activeBeforeDelete.token && removedInFlight.loadingMore === false, 'delete must invalidate an in-flight append')
+  assert.deepEqual(resolveHistoryListAppend(removedInFlight, activeBeforeDelete.token, 'cursor-delete', { ok: true, data: [{ id: 'deleted-again' }] }).items, removedInFlight.items, 'deleted row must not be restored by a stale append')
+  const removed = removeHistoryListItem(lifecycle, 'new')
+  assert.deepEqual(removed.items, [{ id: 'older' }], 'delete must keep lifecycle rows in sync')
+  const cleared = clearHistoryListItems({ ...removed, nextCursor: 'cursor-3' })
+  assert.deepEqual(cleared.items, [], 'clear must remove loaded rows')
+  assert.equal(cleared.nextCursor, null, 'clear must reset the pagination cursor')
+}
+
+function assertHistoryListAppendDedupe(model = historyListModel) {
+  const {
+    beginHistoryListRequest,
+    createHistoryListLifecycle,
+    resolveHistoryList,
+    beginHistoryListAppend,
+    resolveHistoryListAppend,
+  } = model
+  let lifecycle = beginHistoryListRequest(createHistoryListLifecycle())
+  const firstToken = lifecycle.token
+  lifecycle = resolveHistoryList(lifecycle, firstToken, {
+    ok: true,
+    data: [{ id: 'new' }, { id: 'older' }],
+    nextCursor: 'cursor-2',
+  })
+  const appendStarted = beginHistoryListAppend(lifecycle)
+  const deduped = resolveHistoryListAppend(appendStarted, appendStarted.token, 'cursor-2', {
+    ok: true,
+    data: [{ id: 'older' }, { id: 'oldest' }],
+    nextCursor: null,
+  })
+  assert.deepEqual(deduped.items, [{ id: 'new' }, { id: 'older' }, { id: 'oldest' }], 'append must deduplicate IDs')
+  assert.equal(deduped.items.filter((item) => item.id === 'older').length, 1, 'append dedupe keeps one existing row')
+}
+
+function loadCommonJsSource(modulePath, source) {
+  const loaded = new Module(modulePath, module.parent)
+  loaded.filename = modulePath
+  loaded.paths = Module._nodeModulePaths(path.dirname(modulePath))
+  loaded._compile(source, modulePath)
+  return loaded.exports
+}
+
+function assertHistoryListMutationSensitive() {
+  const modelPath = path.join(__dirname, '../taro-app/src/pages/index/recovery-model.js')
+  const source = fs.readFileSync(modelPath, 'utf8')
+  const mergeNeedle = 'items: mergeHistoryItems(current.items, response.data),'
+  assert(source.includes(mergeNeedle), 'history append merge seam must remain explicit')
+  const mutated = source.replace(
+    mergeNeedle,
+    'items: Array.isArray(response.data) ? response.data.slice() : [],',
+  )
+  const mutatedModel = loadCommonJsSource(modelPath, mutated)
+  assert.throws(
+    () => assertHistoryListAppendDedupe(mutatedModel),
+    /append must deduplicate IDs/,
+    'replacing append merge with response.data.slice() must turn focused recovery RED',
+  )
 }
 
 function methodRange(source, signature) {
@@ -277,6 +388,11 @@ function assertPageWiring(source) {
   assert.equal((historyTap.match(/this\._historyListLifecycle\.token !== requestToken/g) || []).length, 2, 'both list callbacks must guard their request token')
   const historyClose = methodBody(source, 'onHistoryClose = () =>')
   assert.match(historyClose, /closeHistoryList\(this\._historyListLifecycle\)/)
+  const historyLoadMore = methodBody(source, 'onHistoryLoadMore = (cursorOverride) =>')
+  assert.match(historyLoadMore, /beginHistoryListAppend\(current\)/)
+  assert(historyLoadMore.includes('resolveHistoryListAppend(this._historyListLifecycle, requestToken, cursor'), 'load-more callbacks must resolve through the append lifecycle')
+  assert(historyLoadMore.includes("data: { mode: 'list', limit: 20, cursor }"), 'load-more must send the current cursor')
+  assert.match(historyLoadMore, /cursor !== current\.nextCursor/)
 
   const historyRestore = methodBody(source, 'onRestoreHistory = (record) =>')
   assert.match(historyRestore, /_clearResultLocalState\(\)/)
@@ -298,6 +414,9 @@ function assertPageWiring(source) {
   assert.match(render, /: !historyLoading && historyList\.length === 0 \?/)
   assert.match(render, /historyLoading && historyList\.length > 0 && <Text className="history-meta">正在刷新历史…<\/Text>/)
   assert.match(render, /historyList\.map\(\(item\)/)
+  assert.match(render, /historyNextCursor/)
+  assert.match(render, /history-load-more/)
+  assert.match(render, /onHistoryLoadMore\(historyNextCursor\)/)
 }
 
 function assertMutationSensitivePageWiring() {
@@ -312,6 +431,8 @@ function assertMutationSensitivePageWiring() {
     ['base snapshot replay', (value) => replaceMethodBody(value, '_beginReprepare(kind', '_replayBaseRequest(snapshot, nextFlow.token)', '_replayBaseRequest(null, nextFlow.token)')],
     ['same-base history intent', (value) => replaceMethodBody(value, '_saveHistory(params, resultData)', '_historySaveIntent.baseRef !== this._baseHistoryIdentity', 'false')],
     ['stale history-list guard', (value) => replaceMethodBody(value, 'onHistoryTap = () =>', 'this._historyListLifecycle.token !== requestToken', 'false')],
+    ['history append handler', (value) => replaceMethodBody(value, 'onHistoryLoadMore = (cursorOverride)', 'beginHistoryListAppend(current)', 'beginHistoryListRequest(current)')],
+    ['history append cursor wiring', (value) => replaceMethodBody(value, 'render()', 'onHistoryLoadMore(historyNextCursor)', 'onHistoryLoadMore()')],
     ['zero-I/O history prefill', (value) => replaceMethodBody(value, 'onRestoreHistory = (record) =>', 'this._clearResultLocalState()', 'this._clearRecoverySlots()')],
   ]
   for (const [label, mutate] of mutations) {
@@ -326,5 +447,7 @@ assertWeatherActionEligibility()
 assertRequestSlots()
 assertWeatherAndSaveRecovery()
 assertHistoryListRecovery()
+assertHistoryListAppendDedupe()
+assertHistoryListMutationSensitive()
 assertMutationSensitivePageWiring()
 console.log('PASS: I23b recovery contract')

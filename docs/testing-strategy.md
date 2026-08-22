@@ -459,6 +459,25 @@ I23b 新增 `test:recovery` 并纳入根 `npm test`：
   DevTools 未运行时如实标记，截图可留给 I24 或另获 Sol 授权，不提交生产 mock。
 - 全部 I18–I22 focused contracts、integration `56/0`、lint、typecheck、WeChat build 与 diff check继续通过。
 
+### C14 / #150 history cursor pagination
+
+- `test:history` first captures the backend RED for 21 same-owner records with equal timestamps, then proves the
+  server OpenID filter, `createdAt desc, _id desc` tie-break, at-most-20 page plus one read-only lookahead, cursor
+  continuation without omissions/duplicates and additive `nextCursor` DTO shape. Foreign rows never enter a page.
+- The cursor contract is versioned and opaque. Malformed, oversized, non-string or extra-field cursors return the
+  non-retryable `invalid_cursor` envelope before the collection is touched; representative mutations removing the
+  owner filter, second order, cursor rejection, lookahead bound or extra-field rejection make the focused gate RED.
+- `test:recovery` proves page-one replace, explicit append/dedupe, append-error row/cursor preservation, null-cursor
+  stop, stale/closed callback guards and delete/clear lifecycle synchronization. The page contract requires the
+  rendered `加载更多` control to pass the current cursor through the append handler and rejects mutations that turn
+  append into replace or detach the cursor handler.
+- Review-fix round 1 keeps the append-page fixture to only newly returned rows and gives duplicate-ID behavior its own
+  focused case. The recovery contract dynamically mutates `resolveHistoryListAppend` from the merge helper to
+  `response.data.slice()`; that mutation must fail the dedupe case while the unmutated implementation remains GREEN.
+- No real history read, delete/clear invocation, CloudBase index/config mutation, deployment, public UGC or schema
+  migration is part of this gate. The focused contracts remain offline seams; the full root/integration/lint/typecheck/
+  fixture-free WeChat build and diff checks are separate completion evidence.
+
 ## 4. 关键矩阵
 
 ### 路线确认
