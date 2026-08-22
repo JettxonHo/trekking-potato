@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — BLOCKED_STAGING`
+- Status: `ACTIVE — C13 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -54,6 +54,7 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C10 Presentation cleanup | #141 | homepage actions, AI copy and hourly weather disclosure match the approved mobile hierarchy |
 | C11 Verdict labels | #143 | internal certainty severities render as established business Chinese labels without changing rules |
 | C12 Route map preview | #145 | reviewed full routes render a fail-closed read-only map thumbnail with a geometry-only fallback |
+| C13 Result summary hierarchy | #148 | the approved B layout makes the route name primary, keeps map content sharp, and removes repeated verdict content |
 
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
 through PR #128 (`0e534d49`), the C06 offline acceptance package through PR #130 (`59ef3c2`), and C07 through
@@ -65,8 +66,80 @@ tool evidence; no production readiness or Goal completion is claimed. C08 merged
 #137 is closed without deployment, timer activation or deletion. C09 merged through PR #140 as `7a07757`; #139 is
 closed without deployment or automatic catalog promotion. C10 merged through PR #142 as `e417ab8`; #141 is closed.
 C11 merged through PR #144 as `93a86d8`; #143 is closed. C12 merged through PR #146 as `ae86b0b`; #145 implementation
-is complete and its live Issue status is authoritative. There is no active implementation slice. The remaining Goal
-blocker is #123 staging validation; no timer, destructive cleanup, real-user cohort or production release is implied.
+is complete. Human-approved C13/#148 is now the only active review slice; #123 remains the separate staging
+blocker. No timer, destructive cleanup, real-user cohort or production release is implied.
+
+## C13 approved B result-summary activation — 2026-08-22
+
+- The detailed result page keeps only the route name as the large bold title. The overall conclusion moves to a compact
+  `出发建议 · <结论>` line above it; no local-validation or prototype tag may appear in real UI.
+- For a safe reviewed `routePreview`, the top card order is advice, route name, sharp map, route scope/facts, geometry
+  disclaimer and legend. The white card surface receives subtle top/bottom background depth without blurring text/map.
+- The following card becomes `判断依据` and lists only concrete reason messages, so the overall conclusion is not
+  repeated. Missing preview geometry keeps the merged C12 fail-closed no-placeholder behavior.
+- #148 owns the exact frontend/test/status allowlist in ACTIVE_TASK. History pagination is a separate serial slice;
+  no model/service/server/public DTO, catalog, dependency, CloudBase, deployment or release change is authorized.
+
+## C13 implementation checkpoint — 2026-08-22
+
+- TDD captured a real focused RED before the presentation edits: the result-page contract rejected the missing compact
+  advice kicker. GREEN now proves the approved advice → route name → conditional map → scope/facts → geometry notice/
+  legend order, rejects prototype/local-validation tags and duplicated verdict content, and keeps the C12 no-preview
+  conditional intact. Independent mutations for reorder, tag, duplicate verdict, verdict-tinted depth and foreground
+  blur each return RED.
+- The result summary now uses the route name as its only large title, a compact `出发建议 · <结论>` kicker, a neutral
+  gray-on-white top/bottom depth layer with sharp foreground text/Map, and a `判断依据` card whose visible rows are
+  concrete reason messages. No route/model/service/DTO/history or CloudBase behavior changed.
+- Focused/root tests, offline integration `55/0`, lint (`0 errors / 9 existing warnings`), typecheck, fixture-free
+  `CI=1 build:weapp` and `git diff --check` pass. This is local code evidence; DevTools visual evidence remains a
+  separate controller check. No CloudBase call, deployment, production geometry, commit, push, PR or release occurred.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; Sol XHigh must inspect the actual diff and obtain two fresh exact-head
+  independent Reviews before deciding mergeability. Runtime model identity remains separately unverified.
+
+## C13 runtime review-fix checkpoint — 2026-08-22
+
+- Controller DevTools found a WXSS compile failure on the fixture-free build. The cause was bounded to the new
+  `.result-verdict-card > *` universal-child selector, which the CLI build did not reject.
+- Review-fix TDD captured RED by forbidding that selector and requiring an explicit `result-verdict-content` wrapper
+  containing the map stage and labels. GREEN replaces it with the explicit wrapper/z-index seam; no route/model/service
+  behavior changed.
+- Focused/root tests, typecheck, fixture-free `CI=1 build:weapp` and `git diff --check` pass. Controller DevTools now
+  recompiles with zero errors and renders the B hierarchy from identity/location-free synthetic local state; the
+  temporary visual injection was removed and the normal homepage restored.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; Draft PR #149 is open. Live GitHub metadata is authoritative for
+  its current head, and the same current head must have successful quality CI plus two fresh independent Reviews
+  before Sol decides mergeability. No CloudBase call, deployment or release occurred.
+
+## C13 accessible-name and no-preview review-fix checkpoint — 2026-08-22
+
+- Independent Review identified two bounded P2 contract gaps: an unconditional route-preview-card mutation was not
+  independently rejected, and `Text aria-label` is not emitted by the current Taro/WeChat `Text` template, so a
+  severity-only label could hide the concrete reason message from the reachable name.
+- Focused TDD first captured RED for the exact safe-preview conditional, the visible `reason.message`/fallback seam,
+  and a representative message-loss mutation. GREEN now keeps the preview card conditional, preserves the concrete
+  reason text as the accessible content, retains severity only in its non-overriding class, and makes no aria support
+  claim that the built WXML cannot carry.
+- The C11 overall `verdict.label` mapping remains model-owned; only the unreferenced reason-list display helper was
+  removed to keep the message-only card lint-clean.
+- The optional `RESULT_PAGE_ARTIFACT=1` gate checks the built `dist/pages/index/index.js` reason subtree for the
+  severity class and exact message/fallback, and checks `dist/base.wxml` for the absence of an aria-label dependency.
+  Focused contract, artifact gate and the fixture-free build are local evidence only; no route/model/service/DTO/history/
+  CloudBase behavior changed.
+- The controller committed/published the accessibility repair in PR #149; `33d1469` is its historical implementation
+  head, not a frozen current-head claim. Live GitHub metadata is authoritative; status remains
+  `READY_FOR_CONTROLLER_REVIEW` pending same-head CI and both independent
+  Reviews before Sol decides mergeability. No deployment or release occurred.
+
+## C13 round-two exact-preview injection checkpoint — 2026-08-22
+
+- The second independent Review found that an extra self-closing `<View className="route-preview-card" />` injected
+  after the route name could coexist with the valid conditional preview branch without turning the focused gate RED.
+- The focused oracle now counts every regular/self-closing preview-card instance and requires exactly one instance under
+  the exact `routeModel.routePreview && routePreviewMap` condition. The representative duplicate injection is source-
+  changing, Babel-parseable and independently RED; the unmutated valid branch remains GREEN.
+- This is a test/docs-only repair inside the #148 allowlist. Draft PR #149 is open; live GitHub metadata is authoritative
+  for its current head, and that same head requires successful CI plus two fresh independent Reviews before Sol decides
+  mergeability. Any head change repeats both gates.
 
 ## C12 B-lite route-map preview activation — 2026-08-21
 

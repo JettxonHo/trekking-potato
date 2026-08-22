@@ -2,6 +2,7 @@
 const assert = require('assert')
 const fs = require('node:fs')
 const path = require('node:path')
+const { parse: parseBabel } = require('../taro-app/node_modules/@babel/parser')
 
 const {
   RESULT_CACHE_KEY,
@@ -602,33 +603,17 @@ function assertAiDisplayProjection(page) {
 }
 
 function assertReasonSeverityDisplayProjection(page) {
-  const formatReasonSeverityLabel = evaluateFunction(page, 'formatReasonSeverityLabel')
-  assert.equal(formatReasonSeverityLabel('no_go'), '暂不建议', 'no_go certainty must use the established business label')
-  assert.equal(formatReasonSeverityLabel('caution'), '谨慎出发', 'caution certainty must use the established business label')
-  assert.equal(formatReasonSeverityLabel('info'), 'info', 'unknown severity must remain unchanged')
-  assert.equal(formatReasonSeverityLabel('unknown'), 'unknown', 'unknown severity text must remain unchanged')
-  assert.equal(formatReasonSeverityLabel('constructor'), 'constructor', 'constructor severity text must remain unchanged')
-  assert.equal(formatReasonSeverityLabel('__proto__'), '__proto__', '__proto__ severity text must remain unchanged')
-  assert.equal(formatReasonSeverityLabel('toString'), 'toString', 'toString severity text must remain unchanged')
-  assert.equal(formatReasonSeverityLabel(null), '提示', 'null severity must use the existing prompt fallback')
-  assert.equal(formatReasonSeverityLabel(undefined), '提示', 'undefined severity must use the existing prompt fallback')
-  assert.equal(formatReasonSeverityLabel(''), '提示', 'missing severity must retain the existing prompt fallback')
-
   const resultStart = page.indexOf('    if (showResult && result)')
   assert.ok(resultStart >= 0, 'structured result render must remain present')
   const resultRender = page.slice(resultStart)
   assert.match(resultRender, /reason\.severity \|\| 'info'/, 'reason color class must remain bound to the machine severity')
-  assert.match(resultRender, /formatReasonSeverityLabel\(reason\.severity\)/, 'reason text must use the display-only certainty mapping')
+  assert.match(resultRender, /reason-\$\{reason\.severity \|\| 'info'\}/, 'no_go/caution severity classes must remain addressable without visible labels')
   assert.match(resultRender, /reason\.message \|\| '确定性规则提示'/, 'reason messages must remain visible in the result list')
   assert.match(resultRender, /pageModel\.reasons\.map\(\(reason, index\)/, 'reason order must remain the page-model order')
 
-  const noGoMappingMutation = page.replace("    case 'no_go':\n      return '暂不建议'", '')
-  assert.notEqual(noGoMappingMutation, page, 'no_go mapping deletion mutation must change page source')
-  assert.throws(() => assertReasonSeverityDisplayProjection(noGoMappingMutation), undefined, 'no_go mapping deletion must turn the focused oracle RED')
-
-  const cautionMappingMutation = page.replace("    case 'caution':\n      return '谨慎出发'", '')
-  assert.notEqual(cautionMappingMutation, page, 'caution mapping deletion mutation must change page source')
-  assert.throws(() => assertReasonSeverityDisplayProjection(cautionMappingMutation), undefined, 'caution mapping deletion must turn the focused oracle RED')
+  const severityClassMutation = page.replace("reason-${reason.severity || 'info'}", 'reason-info')
+  assert.notEqual(severityClassMutation, page, 'severity class collapse mutation must change page source')
+  assert.throws(() => assertReasonSeverityDisplayProjection(severityClassMutation), undefined, 'severity class collapse must turn the focused oracle RED')
 }
 
 function assertWeatherDisclosureProjection(page) {
@@ -724,6 +709,7 @@ function resultPresentationContractForSources(page, css) {
   assertAiDisplayProjection(page)
   assertReasonSeverityDisplayProjection(page)
   assertMapPreviewWiring(page, css)
+  assertC13ResultSummaryHierarchy(page, css)
   assertWeatherDisclosureProjection(page)
   assertToggleIsolation(page)
   assertDisclosureResetSeams(page)
@@ -797,11 +783,151 @@ function assertMapPreviewWiring(page, css) {
   assert.notEqual(indicatorPropMutation, page, 'indicator prop mapping mutation must change source')
   assert.throws(() => assertMapPreviewWiring(indicatorPropMutation, css), undefined, 'indicator prop mapping mutation must turn the focused oracle RED')
   const siblingPreviewMutation = page.replace(
-    '            {routeModel.routePreview && routePreviewMap && (',
-    '          </View>\n\n          {routeModel.routePreview && routePreviewMap && (',
+    '              {routeModel.routePreview && routePreviewMap && (',
+    '            </View>\n          </View>\n\n          {routeModel.routePreview && routePreviewMap && (',
   )
   assert.notEqual(siblingPreviewMutation, page, 'preview nesting mutation must change source')
   assert.throws(() => assertMapPreviewWiring(siblingPreviewMutation, css), undefined, 'sibling preview mutation must turn the focused contract RED')
+}
+
+function assertC13ResultSummaryHierarchy(page, css) {
+  const resultStart = page.indexOf('    if (showResult && result)')
+  assert.ok(resultStart >= 0, 'structured result render must remain present')
+  const resultRender = page.slice(resultStart)
+  const summaryStart = resultRender.indexOf('className={`result-summary-card result-verdict-card')
+  const reasonsStart = resultRender.indexOf('<View className="card result-reasons-card">', summaryStart)
+  assert.ok(summaryStart >= 0, 'C13 top result summary card must remain explicit')
+  assert.ok(reasonsStart > summaryStart, 'C13 reasons card must follow the top summary card')
+  const summary = resultRender.slice(summaryStart, reasonsStart)
+  const contentStart = summary.indexOf('<View className="result-verdict-content">')
+  const contentEnd = summary.indexOf('\n          </View>', contentStart)
+  assert.ok(contentStart >= 0 && contentEnd > contentStart, 'top-card foreground must use an explicit wrapper')
+  const content = summary.slice(contentStart, contentEnd)
+  assert.match(content, /route-preview-stage/, 'map stage must remain inside the explicit foreground wrapper')
+  assert.match(content, /route-preview-map-labels/, 'map labels must remain inside the explicit foreground wrapper')
+  const adviceIndex = summary.indexOf('<Text className="result-advice-kicker">出发建议 · {verdict.label}</Text>')
+  const routeNameIndex = summary.indexOf('<Text className="result-route-name">{routeModel.name || \'路线待确认\'}</Text>')
+  const previewIndex = summary.indexOf('{routeModel.routePreview && routePreviewMap && (')
+  const scopeIndex = summary.indexOf('<Text className="result-route-scope">')
+  const factsIndex = summary.indexOf('<View className="result-route-facts">')
+  const noteIndex = summary.indexOf('className="route-preview-note"')
+  const legendIndex = summary.indexOf('className="route-preview-legend"')
+  const previewCardOccurrences = summary.match(/<View className="route-preview-card"\s*\/?\s*>/g) || []
+  assert.ok(adviceIndex >= 0, 'overall conclusion must use the compact advice kicker')
+  assert.ok(routeNameIndex > adviceIndex, 'route name must follow the compact advice kicker')
+  assert.ok(previewIndex > routeNameIndex, 'validated map preview must follow the route name')
+  assert.ok(scopeIndex > previewIndex, 'route scope must follow the map preview')
+  assert.ok(factsIndex > scopeIndex, 'route facts must follow the route scope')
+  assert.ok(noteIndex > factsIndex && legendIndex > noteIndex, 'geometry notice and legend must follow route facts')
+  assert.equal(previewCardOccurrences.length, 1, 'result summary must contain exactly one route preview card')
+  assert.match(
+    summary,
+    /\{routeModel\.routePreview && routePreviewMap && \(\s*<View className="route-preview-card">/,
+    'route preview card must be conditionally rendered only for a safe route preview',
+  )
+  assert.doesNotMatch(summary, /本地验收|原型|prototype|local/i, 'real result UI must not expose prototype/local-validation tags')
+  assert.doesNotMatch(summary, /<Text className="card-title">完整路线预览<\/Text>/, 'map preview must not introduce a second large title')
+
+  const reasonsEnd = resultRender.indexOf('\n\n          <View className="card result-weather-card">', reasonsStart)
+  assert.ok(reasonsEnd > reasonsStart, 'reasons card must remain bounded before weather')
+  const reasons = resultRender.slice(reasonsStart, reasonsEnd)
+  assert.match(reasons, /className="card-title">判断依据<\/Text>/, 'reason card must use the business title 判断依据')
+  assert.match(reasons, /pageModel\.reasons\.map\(\(reason, index\)/, 'reason order must remain page-model order')
+  assert.match(
+    reasons,
+    /<Text className=\{`reason-message reason-\$\{reason\.severity \|\| 'info'\}`\}>\{reason\.message \|\| '确定性规则提示'\}<\/Text>/,
+    'reason Text reachable content must remain the exact message or fallback',
+  )
+  assert.match(reasons, /reason-\$\{reason\.severity \|\| 'info'\}/, 'reason severity must remain a non-overriding visual class')
+  assert.doesNotMatch(reasons, /aria-label=/, 'reason Text must not claim unsupported aria-label semantics')
+  assert.doesNotMatch(reasons, /className="reason-severity"/, 'reason card must not visibly repeat severity labels')
+  assert.doesNotMatch(reasons, /verdict\.label/, 'reason card must not repeat the overall verdict')
+
+  const cardCssStart = css.indexOf('.result-verdict-card {')
+  const cardCssEnd = css.indexOf('\n}', cardCssStart) + 2
+  assert.ok(cardCssStart >= 0 && cardCssEnd > cardCssStart, 'top result card CSS must remain explicit')
+  const cardCss = css.slice(cardCssStart, cardCssEnd)
+  assert.match(cardCss, /background:\s*#fff/, 'top result card surface must remain white')
+  const depthCssStart = css.indexOf('.result-verdict-card::before')
+  const depthCssEnd = css.indexOf('.result-verdict-content', depthCssStart)
+  const depthCss = css.slice(depthCssStart, depthCssEnd)
+  assert.match(depthCss, /rgba\(142,142,147,0\.(?:14|16)\)/, 'background depth must use neutral gray')
+  assert.doesNotMatch(depthCss, /34c759|36,138,61|255,149,0|255,59,48|c9342b|b26a00/, 'background depth must not inherit verdict color')
+  assert.match(css, /\.result-verdict-card::before\s*\{[^}]*filter:\s*blur\(/, 'top background depth must use a blurred pseudo-element')
+  assert.match(css, /\.result-verdict-card::after\s*\{[^}]*filter:\s*blur\(/, 'bottom background depth must use a blurred pseudo-element')
+  assert.match(css, /\.result-verdict-content\s*\{[^}]*position:\s*relative[^}]*z-index:\s*1/, 'foreground text/map must stay above the blurred depth')
+  assert.doesNotMatch(css, /\.result-verdict-card\s*>\s*\*/, 'C13 WXSS must not use an unsupported universal child selector')
+  assert.doesNotMatch(cardCss, /filter:\s*blur\(/, 'the card foreground must not be blurred as a whole')
+
+  const adviceMutation = page.replace('<Text className="result-advice-kicker">出发建议 · {verdict.label}</Text>', '')
+  assert.notEqual(adviceMutation, page, 'advice kicker removal mutation must change page source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(adviceMutation, css), undefined, 'advice kicker removal must turn the C13 gate RED')
+  const orderMutation = page.replace(
+    '            {routeModel.routePreview && routePreviewMap && (',
+    '            <Text className="result-route-scope">{routeModel.region || \'地区待确认\'} · {routeModel.scope}</Text>\n            {routeModel.routePreview && routePreviewMap && (',
+  )
+  assert.notEqual(orderMutation, page, 'route scope reorder mutation must change page source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(orderMutation, css), undefined, 'route scope before map must turn the C13 gate RED')
+  const duplicateMutation = page.replace(
+    '          <View className="card result-reasons-card">\n            <Text className="card-title">判断依据</Text>',
+    '          <View className="card result-reasons-card">\n            <Text className="card-title">判断依据</Text>\n            <Text>{verdict.label}</Text>',
+  )
+  assert.notEqual(duplicateMutation, page, 'duplicate verdict mutation must change page source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(duplicateMutation, css), undefined, 'duplicate verdict mutation must turn the C13 gate RED')
+  const tagMutation = page.replace(
+    '<Text className="result-route-name">{routeModel.name || \'路线待确认\'}</Text>',
+    '<Text className="result-route-name">{routeModel.name || \'路线待确认\'}</Text><Text>本地验收</Text>',
+  )
+  assert.notEqual(tagMutation, page, 'prototype tag mutation must change page source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(tagMutation, css), undefined, 'prototype tag mutation must turn the C13 gate RED')
+  const wrapperMutation = page.replace('<View className="result-verdict-content">', '')
+  assert.notEqual(wrapperMutation, page, 'foreground wrapper removal mutation must change page source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(wrapperMutation, css), undefined, 'foreground wrapper removal must turn the C13 gate RED')
+  const noPreviewMutation = page.replace(
+    '{routeModel.routePreview && routePreviewMap && (\n                <View className="route-preview-card">',
+    '<View className="route-preview-card">',
+  )
+  assert.notEqual(noPreviewMutation, page, 'no-preview mutation must change source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(noPreviewMutation, css), undefined, 'unconditional preview card must turn the C13 gate RED')
+  const duplicatePreviewInjection = page.replace(
+    '<Text className="result-route-name">{routeModel.name || \'路线待确认\'}</Text>',
+    '<Text className="result-route-name">{routeModel.name || \'路线待确认\'}</Text>\n              <View className="route-preview-card" />',
+  )
+  assert.notEqual(duplicatePreviewInjection, page, 'unconditional preview injection must change source')
+  assert.doesNotThrow(() => parseBabel(duplicatePreviewInjection, { sourceType: 'module', plugins: ['jsx'] }), 'unconditional preview injection must remain Babel-parseable')
+  assert.throws(() => assertC13ResultSummaryHierarchy(duplicatePreviewInjection, css), undefined, 'unconditional preview injection must turn the C13 gate RED')
+  const accessibleMessageMutation = page.replace(
+    "{reason.message || '确定性规则提示'}",
+    'reason.severity',
+  )
+  assert.notEqual(accessibleMessageMutation, page, 'reason accessible-message mutation must change source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(accessibleMessageMutation, css), undefined, 'reason message loss must turn the C13 gate RED')
+  const tintedDepthMutation = css.replace('rgba(142,142,147,0.16)', 'rgba(36,138,61,0.18)')
+  assert.notEqual(tintedDepthMutation, css, 'verdict-tinted depth mutation must change CSS source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(page, tintedDepthMutation), undefined, 'verdict-tinted depth mutation must turn the C13 gate RED')
+  const blurMutation = css.replace(
+    '.result-verdict-content { position: relative; z-index: 1; }',
+    '.result-verdict-content { position: relative; z-index: 1; filter: blur(8rpx); }',
+  )
+  assert.notEqual(blurMutation, css, 'foreground blur mutation must change CSS source')
+  assert.throws(() => assertC13ResultSummaryHierarchy(page, blurMutation), undefined, 'foreground blur mutation must turn the C13 gate RED')
+}
+
+function assertC13ResultSummaryArtifact() {
+  const artifactPath = path.join(__dirname, '../taro-app/dist/pages/index/index.js')
+  assert.ok(fs.existsSync(artifactPath), `built result-page artifact must exist at ${artifactPath}`)
+  const artifact = fs.readFileSync(artifactPath, 'utf8')
+  const templatePath = path.join(__dirname, '../taro-app/dist/base.wxml')
+  assert.ok(fs.existsSync(templatePath), `built WeChat template must exist at ${templatePath}`)
+  const template = fs.readFileSync(templatePath, 'utf8')
+  assert.doesNotMatch(template, /aria-label/, 'built WeChat template must not claim unsupported aria-label semantics')
+  const reasonStart = artifact.indexOf('className:"reason-item"')
+  const reasonEnd = artifact.indexOf('data-issues', reasonStart)
+  assert.ok(reasonStart >= 0 && reasonEnd > reasonStart, 'built artifact must retain the result reasons subtree')
+  const reasons = artifact.slice(reasonStart, reasonEnd)
+  assert.match(reasons, /className:"reason-message reason-"\.concat\([^)]*severity\|\|"info"\)/, 'built artifact must retain severity as a non-overriding class')
+  assert.match(reasons, /children:e\.message\|\|"\\u786e\\u5b9a\\u6027\\u89c4\\u5219\\u63d0\\u793a"/, 'built artifact must retain the exact visible reason message/fallback')
+  assert.doesNotMatch(reasons, /aria-label/, 'built artifact must not rely on an aria-label that WeChat Text does not emit')
 }
 
 function resultPresentationContract() {
@@ -820,4 +946,5 @@ assertCacheChecklistAndHistory()
 assertLifecycleAndHistoryOrchestration()
 assertWmoGroups()
 resultPresentationContract()
+if (process.env.RESULT_PAGE_ARTIFACT === '1') assertC13ResultSummaryArtifact()
 console.log('PASS: I22b structured result-page contract')

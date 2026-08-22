@@ -972,3 +972,60 @@
   apparent route evidence.
 - Why: anchored trusted labels and explicit three-state conflict handling provide an explainable, deterministic
   applicability gate without a geocoder, border polygon, external service/key or fabricated production geometry.
+
+## 2026-08-22 — TP-D063 C13 结果摘要 B 版层级与中性景深
+
+- Status: Accepted by human for C13/#148 implementation; ready for controller review, no deployment or CloudBase mutation
+- Context: The merged C12 map preview was visually subordinate to a large verdict title, repeated the overall conclusion
+  in the following reason card, and the prototype's depth treatment risked blurring or color-tinting foreground content.
+- Decision: Keep the detailed result page's top summary card white. Render a compact `出发建议 · <结论>` kicker, then
+  the route name as the only large bold title; when a safe `routePreview` exists, place the sharp read-only map directly
+  below the name, followed by route scope/facts and the geometry notice/legend. Use neutral gray top/bottom pseudo-element
+  depth only, with direct children above the blur. Rename the next card to `判断依据` and render concrete reason messages
+  without a visible severity/verdict repetition. Preserve C12 conditional no-preview behavior.
+- Alternatives: retain the large verdict heading; tint the card by verdict; blur the whole card; derive or alter route,
+  weather or verdict data. These would weaken hierarchy, couple visual treatment to business severity, blur trusted content
+  or cross the presentation-only boundary.
+- Evidence: focused result-page contract records RED before edits and GREEN plus removal/reorder/tag/duplicate/tint/blur
+  mutations after edits; root tests, offline integration `55/0`, lint, typecheck, fixture-free WeChat build and diff-check
+  pass. Runtime model identity and DevTools visual evidence remain separate/unverified; no public/data/deployment action occurred.
+
+## 2026-08-22 — TP-D064 C13 WXSS universal-selector review fix
+
+- Status: Prepared on controller runtime Review; ready for controller re-review, no deployment or CloudBase mutation
+- Context: WeChat DevTools rejected the new `.result-verdict-card > *` universal-child selector even though the CLI WXSS
+  build passed, leaving the simulator blank. The compile failure was isolated to this C13 selector.
+- Decision: Use an explicit `result-verdict-content` wrapper for all top-card foreground text, Map and labels, and apply
+  `position/z-index` only to that named class. Keep the neutral gray pseudo-element depth behind it; do not broaden the
+  selector or alter route/map/model behavior.
+- Evidence: focused TDD RED forbids the universal selector and requires wrapper containment; GREEN passes focused/root
+  tests, typecheck, fixture-free WeChat build and diff-check. DevTools recompilation and screenshot remain controller-owned.
+
+## 2026-08-22 — TP-D065 C13 reason accessible-name and no-preview review fix
+
+- Status: Prepared on C13/#148 independent Review-fix; ready for controller re-review, no deployment or CloudBase mutation
+- Context: Review found that an unconditional route-preview-card mutation was not explicitly rejected, and the current
+  Taro/WeChat `Text` template does not emit `aria-label` in generated WXML. A severity-only aria label could therefore
+  replace the concrete reason message in environments that honor it while remaining unreachable in the target template.
+- Decision: Keep the preview card behind the existing safe `routeModel.routePreview && routePreviewMap` condition. Use the
+  exact `reason.message || '确定性规则提示'` Text content as the reachable name, retain severity only in the existing
+  `reason-*` class for non-overriding presentation, and make no unsupported aria claim.
+- The C11 overall `verdict.label` mapping remains model-owned; the unreferenced reason-list display helper is removed
+  solely to keep this message-only presentation lint-clean.
+- Evidence: focused TDD RED/GREEN covers the source hierarchy, explicit unconditional-preview and message-loss mutations,
+  plus an opt-in `RESULT_PAGE_ARTIFACT=1` gate that checks generated `dist/pages/index/index.js` for the reason class/
+  message seam and `dist/base.wxml` for no aria-label reliance. No model/service/DTO/history/geometry/dependency/
+  CloudBase/deployment change occurred. The controller committed/published the accessibility repair in PR #149;
+  `33d1469` is historical implementation-head evidence. Live GitHub metadata is authoritative for the current head,
+  which still requires same-head CI and two independent Reviews before mergeability is decided.
+
+## 2026-08-22 — TP-D066 C13 exact-preview injection test hardening
+
+- Status: Prepared on C13/#148 second independent Review; test/docs-only repair, no deployment or CloudBase mutation
+- Context: A self-closing `route-preview-card` inserted after the route name could coexist with the valid conditional
+  preview branch while the focused oracle remained GREEN.
+- Decision: Count both regular and self-closing preview-card instances and require exactly one instance under the exact
+  `routeModel.routePreview && routePreviewMap` condition. Keep the production branch unchanged.
+- Evidence: The duplicate injection is source-changing and Babel-parseable; the pre-fix oracle control was GREEN and the
+  new mutation-sensitive gate is RED for that injected source while the valid source is GREEN. Draft PR #149 is open;
+  live GitHub metadata is authoritative for its current head, which requires same-head CI and two independent Reviews.

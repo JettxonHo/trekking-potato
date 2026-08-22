@@ -1,199 +1,108 @@
-# ACTIVE TASK — #123 remaining staging validation (C12 merged)
+# ACTIVE TASK — #148 approved B result-summary hierarchy
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING`
-- Milestone: remaining staging evidence under community-track evidence (#115)
-- GitHub Issue: `#123`
-- Status/Mode: `BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`
-- Controller: Sol XHigh + human operator
-- Branch/base: C12 merged to `main@ae86b0b`; no active implementation branch
-- Executor: none active; any new bounded implementation requires exact custom `luna-worker`, configured
-  `gpt-5.6-luna` / `max`, while runtime identity remains separate evidence
+- Goal: `TP-COMMUNITY-001 / ACTIVE — C13 REVIEW_ACTIVE`
+- Milestone: C13 Result summary hierarchy
+- GitHub Issue: `#148`
+- Status/Mode: `REVIEW_ACTIVE / REVIEW_FIX`
+- Controller: Sol XHigh + human controller
+- Branch/base: `codex/148-result-summary-b` from exact `main@b25e521`
+- Executor: exact custom `luna-worker`, configured `gpt-5.6-luna/max`; runtime identity is separate evidence
 
-Current authority: C12/#145 implementation is complete through PR #146. The C12 contract and evidence below are
-retained as the completed handoff record. Active execution is limited to the human-controlled #123 staging ledger;
-S8–S15/S20 remain `BLOCKED`, and S16/S18 remain `UNVERIFIED_RUNTIME_TOOL`.
+## 1. Objective and frozen design
 
-## 1. Completed C12 objective and approved design
+Implement the human-approved B layout inside the detailed query result page's top summary card:
 
-Implement the human-approved B-lite preview inside the result summary card for a trusted full route with separately
-curated reviewed GPX/KML geometry:
+1. compact `出发建议 · <结论>` above the route name;
+2. route name is the only large bold title;
+3. no local/prototype/validation tag in real UI;
+4. when safe `routePreview` exists: advice → route name → sharp Map → scope/facts → geometry notice/legend;
+5. white card surface with subtle top/bottom background depth; foreground text and Map are unaffected;
+6. following card title is `判断依据`, containing reason messages only and no repeated overall verdict;
+7. no-preview results retain C12 fail-closed behavior with no blank shell.
 
-- one read-only Taro/WeChat `Map` thumbnail fitted to the complete route;
-- route-day polylines plus start/end indicators;
-- `enableZoom`, `enableScroll`, `enableRotate`, `enableOverlooking` and `showLocation` all false;
-- no click-through or full-screen viewer;
-- on map failure, one neutral client-drawn route-outline fallback from the same safe points;
-- missing/invalid/unreviewed geometry renders no empty preview placeholder.
+## 2. Exact allowlist
 
-## 2. Additive interface contract
-
-The only new result fact is optional `routeSnapshot.routePreview`:
-
-```text
-{
-  coordinateSystem,
-  bounds: { minLat, maxLat, minLon, maxLon },
-  segments: [{ day, points: [{ lat, lon }] }]
-}
-```
-
-Frozen invariants:
-
-- no more than 7 ordered segments and 500 points globally; each segment has at least 2 points;
-- finite latitude/longitude in legal ranges and bounds exactly contain all points;
-- only full routes with an approved reviewed-GPX/reviewed-track catalog source may carry it;
-- no timestamp, elevation, name/ID, OpenID, submission/evidence/file ID, path, host, URL, provenance, note or raw file;
-- weather sample points are not a substitute for the complete route;
-- the field is optional and additive; existing consumers and no-preview results remain unchanged.
-
-## 3. Exact allowlist
-
-- `cloudfunctions/getAdvice/domain/route-catalog.js`
-- `cloudfunctions/getAdvice/trip-base.js`
-- exact pilot catalog file(s) only if controller-approved preview geometry is available
-- `taro-app/src/pages/index/result-page-model.js`
 - `taro-app/src/pages/index/index.jsx`
 - `taro-app/src/pages/index/index.css`
-- `scripts/route-domain-contract-test.js`
-- `scripts/route-data-contract-test.js`
 - `scripts/result-page-contract-test.js`
-- `scripts/response-contract-test.js` only if the public response seam requires it
 - `GOAL.md`
 - `docs/current-status.md`
 - `docs/tasks/ACTIVE_TASK.md`
-- `docs/product-requirements.md`
-- `docs/architecture.md`
-- `docs/testing-strategy.md`
 - `docs/decision-log.md`
 
-No other path may change without controller approval. In particular: no package/lockfile, new dependency, storage,
-submission/admin/retention code, environment/config, CloudBase collection or deployment file.
+No other path may change without controller approval.
 
-## 4. Pre-agreed TDD seams
+## 3. TDD seams
 
-Test behavior through existing public seams:
+- Use the existing result-page render contract; record real focused RED before production JSX/CSS edits.
+- Assert exact hierarchy/order, compact advice copy, route-name-only large title, no prototype tag, no duplicated overall
+  verdict in `判断依据`, white/depth/sharp-content CSS layering, and C12 no-preview absence.
+- Representative order, duplicate-verdict, tag, foreground-blur and no-preview mutations must make the focused gate RED.
+- Expected values must be independent literals; do not duplicate production algorithms.
 
-1. `createRouteCatalog` accepts one literal bounded safe preview and rejects malformed, oversized, incorrectly bounded,
-   leaky or unreviewed-source previews.
-2. `trip-base` carries the optional preview only for a trusted full target; blocked/place-only/absent cases omit it.
-3. `buildResultPageModel` projects the exact safe shape without deriving geometry from weather samples.
-4. Result JSX renders `Map` with `polyline`/`includePoints`, all interaction/location flags false, and exact fallback
-   wiring. No-preview cases render neither map nor blank shell.
-5. Representative removal of validation, noninteractive flags, fallback wiring or fail-closed absence must turn the
-   focused contract RED.
+## 4. Non-scope and stop conditions
 
-Record a real focused RED before production edits, then minimal GREEN. Expected literals must be independent oracles;
-do not duplicate production geometry algorithms in tests.
+No verdict/weather/route logic, result model/service/public DTO, geometry generation, catalog data, history pagination,
+dependency/config, CloudBase, deployment, private evidence access, timer, deletion, publication or production release.
+Stop for any required out-of-allowlist path, public contract change or data/runtime action.
 
-## 5. Data truth and security boundary
+## 5. Verification and delivery
 
-- Synthetic preview geometry is allowed only in tests and local visual fixtures.
-- Do not fabricate a production route line. If no controller-approved de-identified preview projection is available,
-  land the fail-closed infrastructure without a production pilot and report the data gate.
-- Never query private submissions/evidence during normal route search and never reopen TP-D056 raw-file access.
-- No external map key or new service integration is authorized. Use the pinned Taro/WeChat Map capability only.
-- A route preview proves geometry only; it does not prove opening, access, safety or the displayed verdict.
-
-## 6. Verification
-
-Required latest-worktree gates:
-
-- focused route-domain/route-data/result-page/response tests affected by the change;
+- focused `test:result-page`;
 - root `corepack npm@10.9.2 test`;
-- `corepack npm@10.9.2 run test:integration`;
-- `corepack npm@10.9.2 run lint` (existing warnings reported separately);
-- `corepack npm@10.9.2 run typecheck`;
-- `CI=1 corepack npm@10.9.2 run build:weapp`;
-- `git diff --check`, exact allowlist, privacy/secret scans and official npmjs audit;
-- local WeChat DevTools visual inspection with synthetic/local state only; no CloudBase call or deployment.
+- integration `55/0`, lint, typecheck, fixture-free `CI=1 build:weapp`;
+- `git diff --check`, exact allowlist and privacy/secret scans;
+- local WeChat DevTools visual inspection using synthetic/local state only, with a viewable screenshot artifact.
 
-## 7.1 Review-fix round 1 checkpoint
+Executor delivers `READY_FOR_CONTROLLER_REVIEW`. Sol XHigh performs actual-diff review and two fresh independent
+Reviews before any merge decision. No executor may approve or merge its own work.
 
-- Two fresh independent Reviews returned `CHANGES_REQUESTED`. The bounded repair adds deterministic WGS84→GCJ-02
-  conversion before every WeChat Map-native coordinate, preserves outside-China coordinates, keeps the fallback on
-  normalized source geometry, nests the preview inside the top result-summary card, disables POI display, and covers
-  full/blocked/place/absent trip-base boundaries plus both fallback-reset seams.
-- Focused RED was captured against the pre-fix result-page contract; GREEN now includes representative coordinate
-  oracles and raw/offset/nesting/POI/reset deletion mutations. No production pilot geometry is available, so the data
-  gate remains fail-closed and no catalog file was changed.
-- Executor status: `READY_FOR_CONTROLLER_REVIEW`. Runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`. No
-  CloudBase call, deployment, dependency/key, commit, push, PR, merge or public release occurred.
-- Next action: controller-owned commit/push, latest-head CI and two fresh exact-head independent Reviews; only the
-  controller may decide mergeability and Issue status.
+## Implementation checkpoint — 2026-08-22
 
-## 7.2 Review-fix round 2 checkpoint
+- Focused RED was captured before JSX/CSS edits; focused GREEN now proves the approved order, route-name-only title,
+  no prototype/local tag, message-only `判断依据`, neutral gray depth/sharp foreground and fail-closed no-preview path.
+- Mutation probes for advice removal, scope reorder, duplicate verdict, prototype tag, verdict-tinted depth and
+  foreground blur each fail the focused gate. Full local matrix is green: root tests, integration `55/0`, lint
+  (`0 errors / 9 existing warnings`), typecheck, fixture-free WeChat build and `git diff --check`.
+- Actual implementation files are the three code/test paths in the allowlist plus the four lifecycle/decision docs;
+  no model/service/server/public DTO/history/dependency/CloudBase/deployment/private-evidence action occurred.
+- Status: `READY_FOR_CONTROLLER_REVIEW`; local DevTools visual evidence and controller-owned Reviews remain pending.
 
-- Fresh re-reviews returned `CHANGES_REQUESTED`. The repair remains within the exact allowlist and uses the trusted
-  full route's curated `region` as the coordinate applicability gate: recognized mainland province/region labels get
-  deterministic WGS84→GCJ-02 conversion; Nepal, Mongolia, Hong Kong and other non-mainland labels remain unchanged;
-  WGS84 without a region fails closed. This is intentionally bounded and does not claim global border exactness.
-- Focused RED was captured before production edits for inside-rectangle non-mainland stability and the missing
-  region-aware Map call. GREEN adds independent center/end-indicator converted-coordinate oracles, region/raw/offset
-  mutations, Map center/indicator prop mutations, and initial/error fallback state mutations.
-- No production pilot geometry is available, so the data gate remains fail-closed and no catalog file changed. No
-  CloudBase call, deployment, dependency/key, commit, push, PR, merge or public release occurred; runtime identity
-  remains `UNVERIFIED_RUNTIME_MODEL`.
-- Executor status: `READY_FOR_CONTROLLER_REVIEW`. Current next action is controller review of this round2 head,
-  latest-head CI, and two fresh exact-head independent Reviews; only the controller may decide mergeability/status.
+## Runtime review-fix checkpoint — 2026-08-22
 
-## 7.3 Review-fix round 3 checkpoint
+- Controller DevTools found a WXSS compile error from the new universal child selector. Focused RED now forbids
+  `.result-verdict-card > *` and requires the explicit `result-verdict-content` foreground wrapper.
+- GREEN keeps the Map and start/end labels inside that wrapper and moves z-index there. Focused/root tests, typecheck,
+  fixture-free WeChat build and `git diff --check` pass. Controller DevTools now recompiles with zero errors and renders
+  the B hierarchy from identity/location-free synthetic local state; the temporary injection was removed and the normal
+  homepage restored. Draft PR #149 is open; live GitHub metadata is authoritative, and its same current head requires
+  successful quality CI plus two fresh independent Reviews before Sol decides mergeability.
 
-- Fresh re-reviews returned `CHANGES_REQUESTED`. The repair remains inside this exact allowlist and uses a tri-state
-  trusted-region classifier: canonical/anchored mainland province forms receive deterministic WGS84→GCJ-02 mapping;
-  explicit non-mainland forms remain raw; unknown, missing and conflicting/collision labels fail closed with no map.
-  Unrecognized aliases and false positives (`日本山西县`, `法国四川餐厅`, `Sichuan Province`, `川西`) remain unknown;
-  collision cases (`香港·广东`, `尼泊尔·西藏边境`) remain unknown, while case-normalized Hong Kong remains
-  explicit non-mainland.
-- Focused RED preceded the classifier implementation (`classifyRoutePreviewRegion` was absent). GREEN includes an
-  unknown-region geometry absence oracle, independent converted center/end-indicator oracles, direct unknown/raw
-  mapping and non-mainland exclusion-removal mutations. No production pilot geometry is available; the data gate
-  remains fail-closed.
-- No CloudBase call, deployment, dependency/key, commit, push, PR, merge or public release occurred. Runtime
-  identity remains `UNVERIFIED_RUNTIME_MODEL`; result-page runtime visual evidence remains unclaimed.
-- Executor status: `READY_FOR_CONTROLLER_REVIEW`. Current next action is controller inspection of this latest
-  worktree/head, latest-head CI and two fresh exact-head independent Reviews; only the controller may decide
-  mergeability and Issue status.
+## Accessible-name and no-preview review-fix checkpoint — 2026-08-22
 
-## 7.4 Review-fix round 4 checkpoint
+- Independent Review identified two P2 contract gaps: unconditional route-preview-card injection was not independently
+  mutation-sensitive, and `aria-label` on Taro `Text` is absent from the generated WeChat template. A severity-only
+  label could therefore override or misstate the concrete reason message.
+- Focused RED was captured first. GREEN now requires the safe `routeModel.routePreview && routePreviewMap` wrapper,
+  keeps `reason.message || '确定性规则提示'` as the visible/reachable Text content, retains severity only in the
+  existing `reason-*` class and makes no unsupported aria claim. The message-loss and unconditional-preview mutations
+  return RED.
+- The C11 overall `verdict.label` mapping remains in the result model; only the unreferenced reason-list display helper
+  was removed, avoiding a new lint warning while preserving the message-only UI.
+- `RESULT_PAGE_ARTIFACT=1 node scripts/result-page-contract-test.js` is the executable build-artifact gate; it inspects
+  generated `dist/pages/index/index.js` for the reason class/message seam and `dist/base.wxml` for no aria-label reliance.
+  No model, service, DTO, geometry, history, dependency, CloudBase or deployment path changed.
+- Status: `READY_FOR_CONTROLLER_REVIEW`; the controller committed/published the accessibility repair in PR #149.
+  `33d1469` is its historical implementation head, not a frozen current-head claim. Live GitHub metadata is
+  authoritative; same-head CI and two fresh independent Reviews remain required
+  before Sol decides mergeability. No deployment occurred.
 
-- Correctness review identified one contract mismatch: when a trusted region matches both mainland and non-mainland
-  forms, the result must be `unknown` and produce no Map geometry. The classifier now computes both matches first;
-  mainland-only converts WGS84, non-mainland-only remains raw, and neither or both fail closed.
-- Focused RED preceded the production edit for `香港·广东` and `尼泊尔·西藏边境`; GREEN adds direct collision map
-  absence assertions and a collision-guard removal mutation that turns the focused contract RED. No production pilot
-  geometry is available, so the data gate remains fail-closed.
-- No CloudBase call, deployment, dependency/key, commit, push, PR, merge or public release occurred. Runtime
-  identity remains `UNVERIFIED_RUNTIME_MODEL`; result-page runtime visual evidence remains unclaimed.
-- Executor status: `READY_FOR_CONTROLLER_REVIEW`. Current next action is controller inspection of this latest
-  worktree/head, latest-head CI and two fresh exact-head independent Reviews; only the controller may decide
-  mergeability and Issue status.
+## Round-two exact-preview injection checkpoint — 2026-08-22
 
-## 7.5 Controller local visual verification
-
-- WeChat DevTools rendered an identity-free synthetic two-day WGS84 route on the iPhone 12/13 simulator. The Map was
-  visibly nested in the top verdict card with two route segments, start/end indicators and the geometry-only notice;
-  no blank shell or overlap was observed.
-- The temporary local mount fixture was removed immediately after capture, the normal homepage was rebuilt/restored,
-  and no fixture residue remains in source. This is local presentation evidence only—not production geometry,
-  deployment, openness, safety, private-data access or release evidence.
-- PR #146 exact head `1f0b125` passed quality run `32555506608` and two fresh independent Reviews with no P0–P3,
-  then squash merged as `main@ae86b0b`. C12 is complete; no CloudBase or public-release action followed.
-
-## 7.6 C12 merge checkpoint
-
-- PR #146 passed all same-head gates and merged as `ae86b0b`; production code and tests did not drift after final
-  approval, and the temporary visual fixture left no residue.
-- No production pilot geometry was added. C12 does not authorize deployment, catalog promotion, private-evidence
-  access, timer enablement, deletion, real-user invitation or public release.
-- This file now routes active work back to #123. No implementation executor is active; the remaining staging rows
-  require their existing human runtime and destructive-action gates.
-
-## 7. Stop conditions and deliverable
-
-Stop for contract conflict, missing required scope, new dependency/key/service, private-data access, production geometry
-fabrication, deployment/runtime mutation, or test evidence that cannot distinguish the frozen behavior.
-
-The completed C12 handoff is merged. For #123, do not infer implementation or destructive authority from this record:
-follow the live Issue and staging ledger, preserve every human runtime gate, and stop before timer enablement, deletion,
-real-user invitation or production/public release unless separately authorized.
+- The focused contract now counts every `<View className="route-preview-card">` and self-closing preview-card form,
+  requiring exactly one instance immediately under the safe `routeModel.routePreview && routePreviewMap` condition.
+- A representative self-closing card injected after the route name is source-changing, Babel-parseable and independently
+  RED; the valid unmutated branch remains GREEN. This is a test/docs-only repair; production JSX/CSS is unchanged.
+- Draft PR #149 is open; live GitHub metadata is authoritative for its current head. That same head requires successful
+  CI and two independent Reviews before Sol decides mergeability; any head change repeats both gates.

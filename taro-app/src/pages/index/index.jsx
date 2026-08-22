@@ -66,21 +66,6 @@ const DETERMINISTIC_RISK_ADVICE = '本风险由海拔/季节规则判定，请�
 const AI_UNAVAILABLE_NOTE = 'AI 说明暂不可用，当前仅展示确定性规则结果。'
 const HISTORY_SAVE_ERROR = '历史未保存，不影响本次结果'
 
-function formatReasonSeverityLabel(severity) {
-  switch (severity) {
-    case 'no_go':
-      return '暂不建议'
-    case 'caution':
-      return '谨慎出发'
-    case null:
-    case undefined:
-    case '':
-      return '提示'
-    default:
-      return severity || '提示'
-  }
-}
-
 function stripAiDisplayPrefix(value) {
   if (value === null || value === undefined) return ''
   const text = String(value)
@@ -1137,65 +1122,69 @@ export default class Index extends Component {
           {tripFlow.status === 'error' && tripFlow.error && tripFlow.error.code === 'query_context_unavailable' && <Button className="retry-btn" onClick={this.onContextRetry}>重新准备行程</Button>}
 
           <View className={`result-summary-card result-verdict-card verdict-${verdict.tone}`}>
-            <Text className="result-verdict-label">{verdict.label}</Text>
-            <Text className="result-route-name">{routeModel.name || '路线待确认'}</Text>
-            <Text className="result-route-scope">{routeModel.region || '地区待确认'} · {routeModel.scope}</Text>
-            <View className="result-route-facts">
-              {routeModel.routeTypeLabel && <Text className="result-fact">路线类型：{routeModel.routeTypeLabel}</Text>}
-              {routeModel.fixedDays !== null && <Text className="result-fact">固定 {routeModel.fixedDays} 天</Text>}
-              {routeModel.highestPointElevationM !== null && <Text className="result-fact">最高点 {routeModel.highestPointElevationM}m</Text>}
-              {routeModel.operationalStatusLabel && <Text className="result-fact">{routeModel.operationalStatusLabel}</Text>}
-            </View>
-            {routeModel.restriction && <Text className="restriction-copy">{routeModel.restriction.reason || '存在官方限制'}</Text>}
-            {routeModel.routePreview && routePreviewMap && (
-              <View className="route-preview-card">
-                <Text className="card-title">完整路线预览</Text>
-                <Text className="route-preview-note">仅展示已核验路线几何，不代表开放状态或安全结论</Text>
-                <View className="route-preview-stage">
-                  {!routePreviewFallback && (
-                    <Map
-                      className="route-preview-map"
-                      latitude={routePreviewCenter.latitude}
-                      longitude={routePreviewCenter.longitude}
-                      scale={12}
-                      polyline={routePreviewPolylines}
-                      includePoints={routePreviewPoints}
-                      circles={routePreviewIndicators}
-                      enableZoom={false}
-                      enableScroll={false}
-                      enableRotate={false}
-                      enableOverlooking={false}
-                      showLocation={false}
-                      enablePoi={false}
-                      onError={this.onRoutePreviewError}
-                    />
-                  )}
-                  {routePreviewFallback && (
-                    <View className="route-preview-fallback" aria-label="路线轮廓备用预览">
-                      {routePreviewFallbackLines(routePreview).map((line) => <View key={line.key} className="route-preview-fallback-line" style={line.style} />)}
-                      {routePreviewSourcePoints.map((point, index) => <View key={`route-preview-point-${index}`} className="route-preview-fallback-point" style={routePreviewPointStyle(point, routePreview.bounds)} />)}
-                      <Text className="route-preview-start" style={routePreviewStartStyle}>起点</Text>
-                      <Text className="route-preview-end" style={routePreviewEndStyle}>终点</Text>
-                    </View>
-                  )}
-                  {!routePreviewFallback && (
-                    <View className="route-preview-map-labels">
-                      <Text className="route-preview-start" style={routePreviewStartStyle}>起点</Text>
-                      <Text className="route-preview-end" style={routePreviewEndStyle}>终点</Text>
-                    </View>
-                  )}
+            <View className="result-verdict-content">
+              <Text className="result-advice-kicker">出发建议 · {verdict.label}</Text>
+              <Text className="result-route-name">{routeModel.name || '路线待确认'}</Text>
+              {routeModel.routePreview && routePreviewMap && (
+                <View className="route-preview-card">
+                  <View className="route-preview-stage">
+                    {!routePreviewFallback && (
+                      <Map
+                        className="route-preview-map"
+                        latitude={routePreviewCenter.latitude}
+                        longitude={routePreviewCenter.longitude}
+                        scale={12}
+                        polyline={routePreviewPolylines}
+                        includePoints={routePreviewPoints}
+                        circles={routePreviewIndicators}
+                        enableZoom={false}
+                        enableScroll={false}
+                        enableRotate={false}
+                        enableOverlooking={false}
+                        showLocation={false}
+                        enablePoi={false}
+                        onError={this.onRoutePreviewError}
+                      />
+                    )}
+                    {routePreviewFallback && (
+                      <View className="route-preview-fallback" aria-label="路线轮廓备用预览">
+                        {routePreviewFallbackLines(routePreview).map((line) => <View key={line.key} className="route-preview-fallback-line" style={line.style} />)}
+                        {routePreviewSourcePoints.map((point, index) => <View key={`route-preview-point-${index}`} className="route-preview-fallback-point" style={routePreviewPointStyle(point, routePreview.bounds)} />)}
+                        <Text className="route-preview-start" style={routePreviewStartStyle}>起点</Text>
+                        <Text className="route-preview-end" style={routePreviewEndStyle}>终点</Text>
+                      </View>
+                    )}
+                    {!routePreviewFallback && (
+                      <View className="route-preview-map-labels">
+                        <Text className="route-preview-start" style={routePreviewStartStyle}>起点</Text>
+                        <Text className="route-preview-end" style={routePreviewEndStyle}>终点</Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
-                <Text className="route-preview-legend">起点 / 终点 · {routePreview.segments.length} 段路线</Text>
+              )}
+              <Text className="result-route-scope">{routeModel.region || '地区待确认'} · {routeModel.scope}</Text>
+              <View className="result-route-facts">
+                {routeModel.routeTypeLabel && <Text className="result-fact">路线类型：{routeModel.routeTypeLabel}</Text>}
+                {routeModel.fixedDays !== null && <Text className="result-fact">固定 {routeModel.fixedDays} 天</Text>}
+                {routeModel.highestPointElevationM !== null && <Text className="result-fact">最高点 {routeModel.highestPointElevationM}m</Text>}
+                {routeModel.operationalStatusLabel && <Text className="result-fact">{routeModel.operationalStatusLabel}</Text>}
               </View>
-            )}
+              {routeModel.restriction && <Text className="restriction-copy">{routeModel.restriction.reason || '存在官方限制'}</Text>}
+              {routeModel.routePreview && routePreviewMap && (
+                <View className="route-preview-meta">
+                  <Text className="route-preview-note">仅展示已核验路线几何，不代表开放状态或安全结论</Text>
+                  <Text className="route-preview-legend">起点 / 终点 · {routePreview.segments.length} 段路线</Text>
+                </View>
+              )}
+            </View>
           </View>
 
           <View className="card result-reasons-card">
-            <Text className="card-title">确定性判断</Text>
+            <Text className="card-title">判断依据</Text>
             {pageModel.reasons.length > 0 ? pageModel.reasons.map((reason, index) => (
               <View key={`${reason.code || 'reason'}-${index}`} className="reason-item">
-                <Text className={`reason-severity reason-${reason.severity || 'info'}`}>{formatReasonSeverityLabel(reason.severity)}</Text>
-                <Text className="reason-message">{reason.message || '确定性规则提示'}</Text>
+                <Text className={`reason-message reason-${reason.severity || 'info'}`}>{reason.message || '确定性规则提示'}</Text>
               </View>
             )) : <Text className="empty-hint">暂无确定性风险提示</Text>}
             {pageModel.dataIssues.length > 0 && (
