@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — BLOCKED_STAGING`
+- Status: `ACTIVE — C13 IMPLEMENTATION_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -54,6 +54,7 @@ If code, Issue or another document conflicts with it, the executor stops and ret
 | C10 Presentation cleanup | #141 | homepage actions, AI copy and hourly weather disclosure match the approved mobile hierarchy |
 | C11 Verdict labels | #143 | internal certainty severities render as established business Chinese labels without changing rules |
 | C12 Route map preview | #145 | reviewed full routes render a fail-closed read-only map thumbnail with a geometry-only fallback |
+| C13 Result summary hierarchy | #148 | the approved B layout makes the route name primary, keeps map content sharp, and removes repeated verdict content |
 
 C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
 through PR #128 (`0e534d49`), the C06 offline acceptance package through PR #130 (`59ef3c2`), and C07 through
@@ -65,8 +66,19 @@ tool evidence; no production readiness or Goal completion is claimed. C08 merged
 #137 is closed without deployment, timer activation or deletion. C09 merged through PR #140 as `7a07757`; #139 is
 closed without deployment or automatic catalog promotion. C10 merged through PR #142 as `e417ab8`; #141 is closed.
 C11 merged through PR #144 as `93a86d8`; #143 is closed. C12 merged through PR #146 as `ae86b0b`; #145 implementation
-is complete and its live Issue status is authoritative. There is no active implementation slice. The remaining Goal
-blocker is #123 staging validation; no timer, destructive cleanup, real-user cohort or production release is implied.
+is complete. Human-approved C13/#148 is now the only active implementation slice; #123 remains the separate staging
+blocker. No timer, destructive cleanup, real-user cohort or production release is implied.
+
+## C13 approved B result-summary activation — 2026-08-22
+
+- The detailed result page keeps only the route name as the large bold title. The overall conclusion moves to a compact
+  `出发建议 · <结论>` line above it; no local-validation or prototype tag may appear in real UI.
+- For a safe reviewed `routePreview`, the top card order is advice, route name, sharp map, route scope/facts, geometry
+  disclaimer and legend. The white card surface receives subtle top/bottom background depth without blurring text/map.
+- The following card becomes `判断依据` and lists only concrete reason messages, so the overall conclusion is not
+  repeated. Missing preview geometry keeps the merged C12 fail-closed no-placeholder behavior.
+- #148 owns the exact frontend/test/status allowlist in ACTIVE_TASK. History pagination is a separate serial slice;
+  no model/service/server/public DTO, catalog, dependency, CloudBase, deployment or release change is authorized.
 
 ## C12 B-lite route-map preview activation — 2026-08-21
 
