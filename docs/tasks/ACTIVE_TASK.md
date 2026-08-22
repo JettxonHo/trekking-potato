@@ -1,15 +1,20 @@
-# ACTIVE TASK — #145 B-lite route-map preview
+# ACTIVE TASK — #123 remaining staging validation (C12 merged)
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-COMMUNITY-001 / ACTIVE — C12 REVIEW_FIX`
-- Milestone: `C12 Route map preview` under community-track evidence (#115)
-- GitHub Issue: `#145`
-- Status/Mode: `REVIEW_FIX / REVIEW_FIX`
+- Goal: `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING`
+- Milestone: remaining staging evidence under community-track evidence (#115)
+- GitHub Issue: `#123`
+- Status/Mode: `BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`
 - Controller: Sol XHigh + human operator
-- Branch/base: `codex/145-route-map-preview` from `main@93a86d8`
-- Executor: exact custom `luna-worker`, configured `gpt-5.6-luna` / `max`; runtime identity is separate evidence
+- Branch/base: C12 merged to `main@ae86b0b`; no active implementation branch
+- Executor: none active; any new bounded implementation requires exact custom `luna-worker`, configured
+  `gpt-5.6-luna` / `max`, while runtime identity remains separate evidence
 
-## 1. Objective and approved design
+Current authority: C12/#145 implementation is complete through PR #146. The C12 contract and evidence below are
+retained as the completed handoff record. Active execution is limited to the human-controlled #123 staging ledger;
+S8–S15/S20 remain `BLOCKED`, and S16/S18 remain `UNVERIFIED_RUNTIME_TOOL`.
+
+## 1. Completed C12 objective and approved design
 
 Implement the human-approved B-lite preview inside the result summary card for a trusted full route with separately
 curated reviewed GPX/KML geometry:
@@ -172,16 +177,23 @@ Required latest-worktree gates:
 - The temporary local mount fixture was removed immediately after capture, the normal homepage was rebuilt/restored,
   and no fixture residue remains in source. This is local presentation evidence only—not production geometry,
   deployment, openness, safety, private-data access or release evidence.
-- Status remains `READY_FOR_CONTROLLER_REVIEW`. Draft PR #146 is open; GitHub is authoritative for its current head
-  and latest quality result. The implementation head `d79d5fe` passed quality run `32555101807` before lifecycle-only
-  updates. Successful quality and two fresh independent Reviews must target the same current head; every head change
-  repeats those gates before the controller mergeability/Issue-status decision.
+- PR #146 exact head `1f0b125` passed quality run `32555506608` and two fresh independent Reviews with no P0–P3,
+  then squash merged as `main@ae86b0b`. C12 is complete; no CloudBase or public-release action followed.
+
+## 7.6 C12 merge checkpoint
+
+- PR #146 passed all same-head gates and merged as `ae86b0b`; production code and tests did not drift after final
+  approval, and the temporary visual fixture left no residue.
+- No production pilot geometry was added. C12 does not authorize deployment, catalog promotion, private-evidence
+  access, timer enablement, deletion, real-user invitation or public release.
+- This file now routes active work back to #123. No implementation executor is active; the remaining staging rows
+  require their existing human runtime and destructive-action gates.
 
 ## 7. Stop conditions and deliverable
 
 Stop for contract conflict, missing required scope, new dependency/key/service, private-data access, production geometry
 fabrication, deployment/runtime mutation, or test evidence that cannot distinguish the frozen behavior.
 
-Return `READY_FOR_CONTROLLER_REVIEW` with handshake, RED/GREEN/mutations, exact changed paths, gates, visual evidence,
-data-source truth and remaining limitations. The executor cannot approve, merge, deploy or publish. Latest-head CI and
-two fresh independent exact-head Reviews remain controller-owned.
+The completed C12 handoff is merged. For #123, do not infer implementation or destructive authority from this record:
+follow the live Issue and staging ledger, preserve every human runtime gate, and stop before timer enablement, deletion,
+real-user invitation or production/public release unless separately authorized.

@@ -1,11 +1,11 @@
 # 当前状态 — TP-COMMUNITY-001
 
-- Updated: `2026-08-21`
+- Updated: `2026-08-22`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C12 REVIEW_FIX`
-- Active task: `#145 / REVIEW_FIX` (B-lite reviewed route-map preview; parent #123/#115 remain open)
-- Branch/base: `codex/145-route-map-preview` from `main@93a86d8`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING`
+- Active task: `#123 / BLOCKED_STAGING` (remaining human-controlled staging rows; parent #115 remains open)
+- Branch/base: C12 merged to `main@ae86b0b`; no active implementation branch
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: PR #135 merged the diagnostic-free finalize/CAS fix as `ac600e5`; focused Bug #134 is closed after its
@@ -14,7 +14,8 @@
   `UNVERIFIED_RUNTIME_TOOL`. PR #138 merged the fail-closed retention dry-run as `b582d2c`; #137 is closed without
   deployment, timer activation or deletion. PR #140 merged the search contribution UX as `7a07757`; #139 is closed.
   PR #142 merged the C10 presentation cleanup as `e417ab8`; #141 is closed. PR #144 merged C11 as `93a86d8` and
-  #143 is closed. #145 is now the only active implementation slice.
+  #143 is closed. PR #146 merged C12 as `ae86b0b`; #145 implementation is complete and its live Issue status is
+  authoritative. There is no active implementation slice; #123 remains the only active blocker.
   No production/public release, server change or automatic catalog promotion is authorized.
 
 ## C12 B-lite route-map preview activation — 2026-08-21
@@ -100,10 +101,17 @@
   restored. Source residue, changed-path scope and `git diff --check` remain clean. No CloudBase call, deployment,
   production route data, private submission/evidence lookup, upload, timer, deletion or public release occurred.
 - Evidence boundary: this verifies local presentation only. Production pilot geometry remains absent/data-gated and
-  runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`. Draft PR #146 is open; GitHub is authoritative for its
-  current head and latest quality result. The implementation head `d79d5fe` passed quality run `32555101807` before
-  lifecycle-only updates. Successful quality and two fresh independent Reviews must target the same current head;
-  every head change repeats those gates before the controller mergeability decision.
+  runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`. PR #146 exact head `1f0b125` passed quality run
+  `32555506608` and two fresh independent Reviews with no P0–P3, then squash merged as `ae86b0b`. No CloudBase or
+  public-release action followed.
+
+## C12 merge checkpoint — 2026-08-22
+
+- PR #146 passed same-head quality and two independent exact-head Reviews, then squash merged into `main@ae86b0b`.
+- C12 implementation is complete. Production pilot geometry remains absent; no deployment, private-evidence lookup,
+  catalog promotion, timer, deletion, real-user invitation or public release occurred.
+- The only active blocker returns to #123: S8–S15/S20 remain `BLOCKED`, and S16/S18 remain
+  `UNVERIFIED_RUNTIME_TOOL`. #145 may close after this ledger reconciliation; live GitHub status is authoritative.
 
 ## C11 certainty-label activation — 2026-08-21
 
@@ -1700,15 +1708,14 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 - Sol XHigh: #115 planner, public-contract owner, child-Issue author, reviewer and merge authority.
 - Independent Sol reviewers: read-only product/API/security reviews of the planning diff; they do not implement or
   merge their own findings.
-- `luna-worker`: assigned to bounded #141 presentation cleanup on `codex/141-ui-hierarchy`; it must
-  return `READY_FOR_CONTROLLER_REVIEW` and cannot approve, merge, deploy or mutate staging. Completed subagents are
-  closed immediately after handoff.
+- `luna-worker`: no active implementation assignment. The bounded C12 executor and both final reviewers completed
+  their handoffs and were closed. A new implementation slice requires a fresh task contract and routing.
 - Terra XHigh: historical work retained; no Active Terra Agent and no automatic fallback authorization.
 
 ## Open work
 
-1. Complete #141 through focused TDD, local visual verification, full gates, two independent Reviews and latest-head
-   CI without changing trusted route/weather/verdict/advice or community-track contracts.
+1. Reconcile and close #145 after the merged C12 ledger is durable; no further C12 implementation or deployment is
+   pending.
 2. Deploy the reviewed dry-run-capable function only under a separate staging step; do not create,
    enable or invoke a timer and do not select delete mode without the later human gate.
 3. Continue #123 serially through S8–S14, preserving S15/S20 as `BLOCKED` and S16/S18 as
@@ -1755,10 +1762,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-C12/#145 is published as open Draft PR #146. GitHub is authoritative for its current head and latest quality result;
-any head change repeats quality and two fresh independent Reviews. When all three gates target the same current head,
-the controller decides mergeability and Issue status. No deployment, production geometry/data, private-evidence
-access or public release is authorized or claimed.
+C12/#145 is merged through PR #146 as `main@ae86b0b`; close #145 after this ledger reconciliation. The next product
+work remains #123 staging validation: S8–S15/S20 are `BLOCKED`, and S16/S18 are `UNVERIFIED_RUNTIME_TOOL`. No timer,
+destructive cleanup, production geometry/data, private-evidence access, real-user cohort or public release is
+authorized or claimed.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
