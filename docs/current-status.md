@@ -3,9 +3,9 @@
 - Updated: `2026-08-22`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C13 REVIEW_ACTIVE`
-- Active task: `#148 / REVIEW_ACTIVE` (approved B result-summary hierarchy; #123 remains the staging blocker)
-- Branch/base: `codex/148-result-summary-b` from exact `main@b25e521`
+- Current Goal: `TP-COMMUNITY-001 / ACTIVE — C14 IMPLEMENTATION_ACTIVE`
+- Active task: `#150 / IMPLEMENTATION_ACTIVE` (private history cursor pagination; #123 remains the staging blocker)
+- Branch/base: `codex/150-history-pagination` from exact `main@9de9013`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: PR #135 merged the diagnostic-free finalize/CAS fix as `ac600e5`; focused Bug #134 is closed after its
@@ -14,9 +14,22 @@
   `UNVERIFIED_RUNTIME_TOOL`. PR #138 merged the fail-closed retention dry-run as `b582d2c`; #137 is closed without
   deployment, timer activation or deletion. PR #140 merged the search contribution UX as `7a07757`; #139 is closed.
   PR #142 merged the C10 presentation cleanup as `e417ab8`; #141 is closed. PR #144 merged C11 as `93a86d8` and
-  #143 is closed. PR #146 merged C12 as `ae86b0b`; #145 implementation is complete and its live Issue status is
-  authoritative. Human-approved C13/#148 is the only active review slice; #123 remains the staging blocker.
-  No production/public release, server change or automatic catalog promotion is authorized.
+  #143 is closed. PR #146 merged C12 as `ae86b0b`; #145 implementation is complete. PR #149 merged the approved B
+  result hierarchy as `9de9013` and #148 is closed. Human-approved C14/#150 is the only active implementation slice;
+  #123 remains the staging blocker. No production/public release, CloudBase config/deploy action or automatic catalog
+  promotion is authorized.
+
+## C14 private-history pagination activation — 2026-08-22
+
+- Read-only takeover confirmed that the current backend returns at most one owner-bound page and the UI has no cursor,
+  `hasMore` or load-more action. Existing list recovery already has a monotonic request token but only replace semantics.
+- #150 freezes a maximum 20-item keyset page ordered by `createdAt desc, _id desc`, an opaque versioned seek cursor,
+  unchanged HistoryItem fields and malformed-cursor rejection before database access.
+- Page-one open/retry replaces; explicit `加载更多` appends unique IDs, preserves rows/cursor on failure and ignores
+  stale/closed callbacks. Delete/clear and history prefill retain their current behavior.
+- Exact custom executor is `luna-worker` from `~/.codex/agents/luna-worker.toml` (`gpt-5.6-luna/max` configuration;
+  runtime identity separately unverified). No deployment, CloudBase index/config mutation, real data access or delete/
+  clear invocation is authorized.
 
 ## C13 approved B result-summary activation — 2026-08-22
 
@@ -1829,10 +1842,11 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Draft PR #149 is open for C13/#148. Live GitHub metadata is authoritative for its current head; Sol waits for successful
-quality CI and two fresh independent Reviews on that same head before deciding mergeability. Any head change repeats
-both gates. History pagination remains a separate serial slice after C13; #123 staging rows remain unchanged. No timer,
-destructive cleanup, production geometry/data, private-evidence access, real-user cohort or public release is authorized.
+Dispatch exact `luna-worker` for C14/#150 after the recorded clean baseline and require real focused RED before any
+history production/page edit. The executor stops at `READY_FOR_CONTROLLER_REVIEW`; Sol then inspects the actual diff,
+runs latest-head quality and obtains two fresh exact-head independent Reviews before any merge decision. #123 staging
+rows remain unchanged. No CloudBase index/config mutation, deployment, real history access, delete/clear invocation,
+timer, destructive cleanup, real-user cohort or public release is authorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
