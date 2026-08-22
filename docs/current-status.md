@@ -100,8 +100,9 @@
   restored. Source residue, changed-path scope and `git diff --check` remain clean. No CloudBase call, deployment,
   production route data, private submission/evidence lookup, upload, timer, deletion or public release occurred.
 - Evidence boundary: this verifies local presentation only. Production pilot geometry remains absent/data-gated and
-  runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`. Next action is controller commit/push, Draft PR,
-  exact-head CI and two fresh exact-head independent Reviews before deciding mergeability.
+  runtime model identity remains `UNVERIFIED_RUNTIME_MODEL`. Draft PR #146 is open at head `d79d5fe`; exact-head
+  quality run `32555101807` succeeded. Remaining gates are two fresh exact-head independent Reviews and the controller
+  mergeability decision.
 
 ## C11 certainty-label activation — 2026-08-21
 
@@ -1753,9 +1754,9 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-C12/#145 review-fix round 4 is locally GREEN and `READY_FOR_CONTROLLER_REVIEW`. The controller must inspect this
-latest worktree/head, obtain latest-head CI and two fresh exact-head independent Reviews, then decide mergeability and
-Issue status. No commit/push/PR/deploy/production action is authorized in this executor slice.
+C12/#145 is published as open Draft PR #146 at head `d79d5fe`; exact-head quality run `32555101807` succeeded. The
+controller must obtain two fresh exact-head independent Reviews, then decide mergeability and Issue status. No
+deployment, production geometry/data, private-evidence access or public release is authorized or claimed.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
