@@ -1015,8 +1015,9 @@
 - Evidence: focused TDD RED/GREEN covers the source hierarchy, explicit unconditional-preview and message-loss mutations,
   plus an opt-in `RESULT_PAGE_ARTIFACT=1` gate that checks generated `dist/pages/index/index.js` for the reason class/
   message seam and `dist/base.wxml` for no aria-label reliance. No model/service/DTO/history/geometry/dependency/
-  CloudBase/deployment change occurred. The controller subsequently committed/published exact head `33d1469` to PR
-  #149; same-head CI and two independent Reviews remain the merge gate.
+  CloudBase/deployment change occurred. The controller committed/published the accessibility repair in PR #149;
+  `33d1469` is historical implementation-head evidence. Live GitHub metadata is authoritative for the current head,
+  which still requires same-head CI and two independent Reviews before mergeability is decided.
 
 ## 2026-08-22 — TP-D066 C13 exact-preview injection test hardening
 
@@ -1026,5 +1027,5 @@
 - Decision: Count both regular and self-closing preview-card instances and require exactly one instance under the exact
   `routeModel.routePreview && routePreviewMap` condition. Keep the production branch unchanged.
 - Evidence: The duplicate injection is source-changing and Babel-parseable; the pre-fix oracle control was GREEN and the
-  new mutation-sensitive gate is RED for that injected source while the valid source is GREEN. Exact controller-published
-  head `33d1469` remains on PR #149; same-head CI and two independent Reviews are still required.
+  new mutation-sensitive gate is RED for that injected source while the valid source is GREEN. Draft PR #149 is open;
+  live GitHub metadata is authoritative for its current head, which requires same-head CI and two independent Reviews.

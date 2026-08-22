@@ -125,8 +125,9 @@ blocker. No timer, destructive cleanup, real-user cohort or production release i
   severity class and exact message/fallback, and checks `dist/base.wxml` for the absence of an aria-label dependency.
   Focused contract, artifact gate and the fixture-free build are local evidence only; no route/model/service/DTO/history/
   CloudBase behavior changed.
-- The controller subsequently committed/published this review-fix at exact head `33d1469` on PR #149. Live GitHub
-  metadata is authoritative; status remains `READY_FOR_CONTROLLER_REVIEW` pending same-head CI and both independent
+- The controller committed/published the accessibility repair in PR #149; `33d1469` is its historical implementation
+  head, not a frozen current-head claim. Live GitHub metadata is authoritative; status remains
+  `READY_FOR_CONTROLLER_REVIEW` pending same-head CI and both independent
   Reviews before Sol decides mergeability. No deployment or release occurred.
 
 ## C13 round-two exact-preview injection checkpoint — 2026-08-22
@@ -136,8 +137,9 @@ blocker. No timer, destructive cleanup, real-user cohort or production release i
 - The focused oracle now counts every regular/self-closing preview-card instance and requires exactly one instance under
   the exact `routeModel.routePreview && routePreviewMap` condition. The representative duplicate injection is source-
   changing, Babel-parseable and independently RED; the unmutated valid branch remains GREEN.
-- This is a test/docs-only repair inside the #148 allowlist. Controller-published head `33d1469` remains the live PR #149
-  review head; same-head CI and two fresh independent Reviews remain required before Sol decides mergeability.
+- This is a test/docs-only repair inside the #148 allowlist. Draft PR #149 is open; live GitHub metadata is authoritative
+  for its current head, and that same head requires successful CI plus two fresh independent Reviews before Sol decides
+  mergeability. Any head change repeats both gates.
 
 ## C12 B-lite route-map preview activation — 2026-08-21
 
