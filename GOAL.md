@@ -1,7 +1,7 @@
 # TP-COMMUNITY-001 — 私有社区轨迹证据闭环
 
 - Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — C12 REVIEW_FIX`
+- Status: `ACTIVE — BLOCKED_STAGING`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-09`
 - Parent Issue: `#115`
@@ -64,8 +64,9 @@ smoke. The Goal remains active because #123 still requires the separately contro
 tool evidence; no production readiness or Goal completion is claimed. C08 merged through PR #138 as `b582d2c` and
 #137 is closed without deployment, timer activation or deletion. C09 merged through PR #140 as `7a07757`; #139 is
 closed without deployment or automatic catalog promotion. C10 merged through PR #142 as `e417ab8`; #141 is closed.
-C11 merged through PR #144 as `93a86d8`; #143 is closed. Issue #145 is the only active implementation slice and is
-limited to the human-approved B-lite route-map preview for reviewed full-route geometry.
+C11 merged through PR #144 as `93a86d8`; #143 is closed. C12 merged through PR #146 as `ae86b0b`; #145 implementation
+is complete and its live Issue status is authoritative. There is no active implementation slice. The remaining Goal
+blocker is #123 staging validation; no timer, destructive cleanup, real-user cohort or production release is implied.
 
 ## C12 B-lite route-map preview activation — 2026-08-21
 
@@ -152,10 +153,16 @@ limited to the human-approved B-lite route-map preview for reviewed full-route g
   the normal homepage was rebuilt and restored, and source residue plus `git diff --check` passed. No CloudBase call,
   deployment, production geometry, private submission/evidence access or public release occurred.
 - This is local presentation evidence only; it does not prove a production pilot route, route openness, safety,
-  deployment or runtime model identity. Draft PR #146 is open; GitHub is authoritative for its current head and
-  latest quality result. The implementation head `d79d5fe` passed quality run `32555101807` before lifecycle-only
-  updates. Mergeability requires successful quality and two fresh independent Reviews on the same current head;
-  every head change repeats those gates before the controller decision.
+  deployment or runtime model identity. PR #146 exact head `1f0b125` passed quality run `32555506608` and two fresh
+  independent Reviews with no P0–P3, then squash merged as `ae86b0b`. No CloudBase or public-release action followed.
+
+## C12 merge checkpoint — 2026-08-22
+
+- PR #146 passed same-head quality and two independent exact-head Reviews, then squash merged into `main@ae86b0b`.
+- C12 code is complete and #145 may be closed after this durable ledger reconciliation. No production pilot geometry
+  was added; invalid, absent, unreviewed, unknown-region and region-collision geometry remains fail-closed.
+- The Goal remains `ACTIVE — BLOCKED_STAGING` only for #123 S8–S15/S20 and S16/S18 runtime evidence. No timer,
+  destructive cleanup, production/public release or real-user cohort is authorized by the C12 merge.
 
 ## C09 Review-fix round 3 checkpoint — 2026-08-20
 
