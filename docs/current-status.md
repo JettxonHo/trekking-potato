@@ -35,6 +35,9 @@
   `BLOCKED_CANDIDATE` with unknown topology/direction/opening/rights until their serial child Issues run.
 - The read-only candidate search stopped after the Overpass endpoint rate-limited. This is an evidence boundary, not a
   reason to infer or promote a route. See `docs/route-catalog-expansion.md` for the complete field-level ledger.
+- Draft PR #154 is open. Historical planning head `965afb0` records the first published ledger; live GitHub metadata
+  is authoritative for the current head. Quality CI and both fresh independent Reviews must target that same current
+  head, and any head change repeats both gates.
 
 ## C14 private-history pagination activation — 2026-08-22
 
@@ -1878,11 +1881,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol XHigh reviews the completed #153 docs-only ledger and actual diff. If approved, the controller may commit/push it,
-open a Draft PR, require successful quality CI plus two fresh independent Reviews on the same current head, and then
-decide mergeability. Only after the planning PR merges may the first child evidence Issue be activated. #123 remains
-independently blocked; no CloudBase index/config mutation, deployment, timer, deletion, real-user cohort or public
-release is authorized.
+Complete quality CI and two fresh independent Reviews on the same live current head of Draft PR #154, then Sol XHigh
+decides mergeability. Any head change repeats both gates. Only after the planning PR merges may the first child
+evidence Issue be activated. #123 remains independently blocked; no CloudBase index/config mutation, deployment,
+timer, deletion, real-user cohort or public release is authorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

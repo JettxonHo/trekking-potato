@@ -1057,7 +1057,8 @@
 
 ## 2026-08-23 — TP-D068 C15 exactly-25 ledger and OSM/open-data source gate
 
-- Status: Prepared for `#153` planning Review; docs-only, no runtime catalog/data mutation, deployment or release.
+- Status: Draft PR #154 open for `#153` planning Review; docs-only, no runtime catalog/data mutation, deployment or
+  release. Live GitHub metadata is authoritative for current-head CI and Review gates.
 - Context: The human fixed a target total of 25 trusted RouteVariants: six existing structured pilots plus about
   nineteen new candidates. A route count without identity, rights, topology, direction and current access evidence
   would turn a discovery list into an unsafe recommendation surface.

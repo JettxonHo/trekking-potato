@@ -91,6 +91,6 @@ Issues, exact changed files and verification results. Do not commit, push, open 
 
 ## 10. Controller next action
 
-Inspect the completed docs-only diff. If approved, publish a Draft PR and require quality CI plus two fresh independent
-Reviews on the same current head. Do not activate a child evidence Issue or edit runtime route data before this planning
-PR merges.
+Draft PR #154 is open; historical planning head `965afb0` is not a frozen current-head claim. Live GitHub metadata is
+authoritative. Require quality CI plus two fresh independent Reviews on the same current head, repeating both gates
+after any head change. Do not activate a child evidence Issue or edit runtime route data before this planning PR merges.

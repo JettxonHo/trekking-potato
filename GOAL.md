@@ -76,6 +76,9 @@ enter the trusted catalog merely to reach the target count.
   promoted to make the count. Child Issues are proposed in the ledger and must be separately activated after Review.
 - Planning is now `READY_FOR_CONTROLLER_REVIEW`. The 19 new rows are evidence-work slots, not delivered routes; C15
   completes only when 19 new rows are promoted to searchable `full` variants or blocked rows are replaced and reviewed.
+- Draft PR #154 is open. Planning head `965afb0` is historical evidence only; live GitHub metadata is authoritative
+  for the current head. The same current head must pass quality CI and two fresh independent Reviews, and any head
+  change repeats both gates before Sol XHigh decides mergeability.
 
 ## Appendix: prior TP-COMMUNITY-001 checkpoints
 
