@@ -73,6 +73,7 @@ activated implementation Issue may promote only field-complete candidates after 
 
 ## 6. Controller next action
 
-Inspect the docs-only evidence diff. If approved, publish a Draft PR and require same-current-head quality CI plus two
-fresh independent Reviews. Since no candidate is eligible, do not activate a route-data implementation child from
-this batch; after merge, choose a reviewed replacement set or the next evidence batch.
+Draft PR #156 is open; evidence head `a4ebe74` is historical first-publication evidence only. Live GitHub metadata is
+authoritative. Require quality CI plus two fresh independent Reviews on the same current head, repeating both gates
+after any head change. Since no candidate is eligible, do not activate a route-data implementation child from this
+batch; after merge, choose a reviewed replacement set or the next evidence batch.

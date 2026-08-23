@@ -104,6 +104,9 @@ enter the trusted catalog merely to reach the target count.
 - Evidence status is `READY_FOR_CONTROLLER_REVIEW`. Because no candidate passed, the controller must not open a
   route-data implementation slice from this batch; after Review/merge, the next catalog step is a reviewed replacement
   candidate set or another evidence batch.
+- Draft PR #156 is open. Evidence head `a4ebe74` is historical first-publication evidence only; live GitHub metadata is
+  authoritative for the current head. Quality CI and two fresh independent Reviews must target the same current head,
+  and any head change repeats both gates.
 
 ## Appendix: prior TP-COMMUNITY-001 checkpoints
 
