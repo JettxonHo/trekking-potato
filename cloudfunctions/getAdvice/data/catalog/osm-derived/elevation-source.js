@@ -17,6 +17,11 @@ module.exports = makeElevationSource({
     'variant:osm-7060560-hac-sa-reservoir-fitness-trail',
     'variant:osm-17147571-sha-tin-fotan-shing-mun',
     'variant:osm-17147573-sha-tin-wai-pass',
+    'variant:osm-7065552-coloane-seac-min-pun',
+    'variant:osm-17618981-kunpeng-section-4',
+    'variant:osm-17719174-kunpeng-section-20',
+    'variant:osm-18220700-meilin-country-trail',
+    'variant:osm-18220701-tanglangshan-country-trail',
   ],
-  checkedAt: '2026-08-23T15:18:56.109Z',
+  checkedAt: '2026-08-23T16:29:03.768Z',
 })

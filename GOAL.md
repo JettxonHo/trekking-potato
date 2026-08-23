@@ -1,25 +1,25 @@
 # TP-CATALOG-001 — 首批可信路线目录扩充
 
 - Goal ID: `TP-CATALOG-001`
-- Status: `ACTIVE — #163 PHASE2_RUNTIME_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
+- Status: `ACTIVE — #165 BATCH4_PHASE2_RUNTIME_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-23`
 - Planning Issue: `#153 / CLOSED`
 - Completed evidence Issue: `#155 / CLOSED`
-- Active Issue: `#163`
+- Active Issue: `#165`
 - Release boundary: reviewed catalog data and tests only; no automatic promotion, CloudBase mutation or public release
 
 ## 1. Objective
 
 Grow the structured trusted runtime catalog to exactly twenty-five searchable `full` RouteVariant slots. The current
-runtime count is twenty searchable `full` variants (five existing pilots plus five #159, five #161 and five #163 Phase2 batch variants), leaving a
-remaining gap of five toward the 25-slot target. The Wutai restriction is retained separately and is not searchable
+runtime count is twenty-five searchable `full` variants (five existing pilots plus five each from #159, #161, #163 and #165), leaving a
+remaining gap of zero toward the 25-slot target. The Wutai restriction is retained separately and is not searchable
 or counted. The program promotes small serial batches only after identity, topology, direction, opening-status and
 public-contract review. Legacy builtin place names remain discovery hints and do not count as trusted RouteVariants.
 
 ## 2. Authority and reading order
 
-Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #163 and
+Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #165 and
 `docs/tasks/ACTIVE_TASK.md`. `docs/architecture.md`, `docs/community-track-workflow.md` and the new catalog-expansion
 ledger own the geometry, rights and promotion boundaries. A conflict stops the affected work and returns to Sol XHigh.
 
@@ -61,6 +61,16 @@ enter the trusted catalog merely to reach the target count.
 | C15 Batch A | #155 evidence slice | five Yubeng candidates receive evidence verdicts; only eligible rows may later enter RED/GREEN implementation |
 | C15 Batches B–D | serial child Issues | controller-frozen replacements reach a total of 25 searchable `full` variants without lowering evidence gates |
 | C15 Closeout | controller review | catalog count, attribution, source ledger and runtime contracts reconcile truthfully |
+
+## #165 final-batch activation — 2026-08-24 (historical pre-freeze checkpoint)
+
+- PR #164 exact head `51e3c28` passed quality run `32650097223` and two fresh exact-head independent Reviews, then
+  squash merged as `7ef1929`; Issue #163 closed.
+- Runtime truth is twenty searchable `full` variants plus the separate non-counting Wutai restriction, leaving the
+  final five routes toward the fixed target of 25.
+- Issue #165 owns the final serial batch. Phase1 may reconfirm the four eligible-but-unselected #163 alternates and
+  run one bounded replacement discovery pass. No candidate counts before a controller freeze, and no runtime,
+  elevation, dependency, CloudBase, deployment or release change is authorized.
 
 ## #163 Batch3 activation — 2026-08-23
 
@@ -812,7 +822,7 @@ The Goal is complete only when I01–I25 plus replacement child #77 are closed w
   non-counting. No runtime, tests, elevation, CloudBase, deployment or release action occurred.
 - Handoff: `READY_FOR_CONTROLLER_REVIEW`.
 
-## #163 Phase2 implementation checkpoint — 2026-08-23
+## #163 Phase2 implementation checkpoint — 2026-08-23 (historical before #165 closeout)
 
 - Controller freeze comments `5386726512` and `5386727268` authorized exactly relations `7060545`, `7060546`,
   `7060560`, `17147571` and `17147573`. Complete current-full OSM geometry, bounded previews, version manifests,
@@ -824,3 +834,38 @@ The Goal is complete only when I01–I25 plus replacement child #77 are closed w
 - TDD RED was captured before runtime edits (`test:route-data` failed at 10 versus 15 OSM variants); focused
   route-domain/data/resolver/result contracts pass. Handoff is `READY_FOR_CONTROLLER_REVIEW`; no deployment,
   commit, push or PR action was taken.
+
+## #165 Batch4 Phase1 evidence checkpoint — 2026-08-24 (historical; superseded by Phase2 below)
+
+- The bounded evidence pass reconfirmed the four eligible-but-unselected #163 alternates (`11816203`, `17147570`,
+  `17147572`, `17147574`) once each, then issued one metadata-only China hiking-relation query and exactly twenty
+  new current-full OSM reads. Every response was HTTP 200; no 429/throttle, retry, mirror, third-party/private
+  source, elevation request or raw geometry copy occurred. Details and request-start timestamps are in
+  `docs/catalog-batch4-source-evidence.md`.
+- Exactly five identities are **`PROPOSED_FOR_CONTROLLER_FREEZE`**: `7065552` 路環石面盆古道,
+  `17618981` 鲲鹏径第4段, `17719174` 鲲鹏径第20段, `18220700` 梅林山郊野径 and `18220701` 塘朗山郊野径.
+  Each is a connected, branch-free, ordered OSM walking relation with deterministic named endpoints; disclosed
+  residential/track/unclassified members remain separate road boundaries. Opening, permission, safety, legality and
+  ODbL-derived-database treatment remain `UNKNOWN`.
+- This is evidence-only and does not change runtime truth: searchable `full=20`, remaining gap `5`, Wutai remains a
+  separate non-counting restriction. No Phase 2 allowlist, runtime, tests, elevation or deployment authority is
+  implied. Handoff: **`READY_FOR_CONTROLLER_REVIEW`**.
+
+## #165 Phase2 final five runtime checkpoint — controller freeze `5387039704`
+
+- The Phase 1 proposal set is superseded by the controller freeze. Exactly five complete current-full OSM relations
+  are now represented as searchable `full` RouteVariants: `7065552` 路環石面盆古道, `17618981` 鲲鹏径第4段,
+  `17719174` 鲲鹏径第20段, `18220700` 梅林山郊野径 and `18220701` 塘朗山郊野径. Full ordered WGS84 geometry,
+  bounded previews and OSM relation/way/node version observations are retained; no relation was trimmed.
+- Each route used exactly one bounded Open-Meteo/Copernicus DEM GLO-90 request (100 cumulative-distance samples,
+  endpoints included, 100/100 response) for deterministic elevation metrics and duration. ODbL/open_data and trusted
+  elevation boundaries remain explicit, with visible OpenStreetMap attribution; complete geometry stays internal and
+  public trip/result DTOs remain geometry-free.
+- `operationalStatus=unknown` with route-specific rationale remains conservative. Residential/track/unclassified
+  members are disclosed road boundaries while user access mode remains `walk`; no opening, permission, safety or
+  legality claim is inferred. Runtime truth is now `full=25`, `gap=0`; Wutai remains a separate non-counting blocked
+  restriction. Focused contracts and the required full gates are pending/recorded in the Phase2 handoff; this is
+  **`READY_FOR_CONTROLLER_REVIEW`**, not merge/deploy/Goal acceptance.
+- The five OSM source cards use batch-completion/as-of `2026-08-23T16:13:29Z` after the current-full request-start
+  window `16:10:38Z`–`16:13:28Z`; those starts remain request metadata in the evidence report. Independent per-route
+  `elevationCheckedAt` values are unchanged.

@@ -235,10 +235,10 @@ function makeMultiVariantCatalog() {
 function productionCatalogTests() {
   const first = createProductionRouteCatalog()
   const second = createProductionRouteCatalog()
-  assert.deepEqual([first.sources.length, first.places.length, first.routes.length, first.variants.length], [32, 190, 21, 21])
+  assert.deepEqual([first.sources.length, first.places.length, first.routes.length, first.variants.length], [37, 195, 26, 26])
   assert.deepEqual(
     first.variants.reduce((counts, variant) => ({ ...counts, [variant.capability]: (counts[variant.capability] || 0) + 1 }), {}),
-    { full: 20, blocked: 1 },
+    { full: 25, blocked: 1 },
   )
   first.variants[0].canonicalName = 'mutated catalog result'
   assert.notEqual(second.variants[0].canonicalName, 'mutated catalog result')
@@ -267,6 +267,11 @@ function productionCatalogTests() {
     ['路環步行徑', 'variant:osm-7060545-coloane-trail'],
     ['黑沙水庫家樂徑', 'variant:osm-7060546-hac-sa-reservoir-family-trail'],
     ['黑沙水庫健康徑', 'variant:osm-7060560-hac-sa-reservoir-fitness-trail'],
+    ['路環石面盆古道', 'variant:osm-7065552-coloane-seac-min-pun'],
+    ['鲲鹏径第4段', 'variant:osm-17618981-kunpeng-section-4'],
+    ['鲲鹏径第20段', 'variant:osm-17719174-kunpeng-section-20'],
+    ['梅林山郊野径', 'variant:osm-18220700-meilin-country-trail'],
+    ['塘朗山郊野径', 'variant:osm-18220701-tanglangshan-country-trail'],
   ]
   for (const [query, candidateId] of frozenBatch) {
     const target = assertDirect(resolver.resolveQuery(query), 'canonical_exact', candidateId)
@@ -278,6 +283,19 @@ function productionCatalogTests() {
     assert.equal(target.routeVariant.accessMode, 'walk')
     assert.equal(target.routeVariant.operationalStatus, 'unknown')
     assert.equal(target.routeVariant.sourceIds.some((sourceId) => second.getById(sourceId).kind === 'open_data'), true)
+  }
+  const finalBatchAliases = [
+    ['Coloane Seac Min Pun Ancient Path', 'variant:osm-7065552-coloane-seac-min-pun'],
+    ['Caminho Antigo de Seac Min Pun de Coloane', 'variant:osm-7065552-coloane-seac-min-pun'],
+    ['Kunpeng Trail Section 4', 'variant:osm-17618981-kunpeng-section-4'],
+    ['鲲鹏4段', 'variant:osm-17618981-kunpeng-section-4'],
+    ['Kunpeng Trail Section 20', 'variant:osm-17719174-kunpeng-section-20'],
+    ['鲲鹏20段', 'variant:osm-17719174-kunpeng-section-20'],
+    ['Meilin Mountain Trail', 'variant:osm-18220700-meilin-country-trail'],
+    ['Tanglang Mountain Trail', 'variant:osm-18220701-tanglangshan-country-trail'],
+  ]
+  for (const [query, candidateId] of finalBatchAliases) {
+    assertDirect(resolver.resolveQuery(query), 'unique_alias_exact', candidateId)
   }
   const shaTinBare = resolver.resolveQuery('沙田郊野徑')
   assert.equal(shaTinBare.kind, 'confirmation')

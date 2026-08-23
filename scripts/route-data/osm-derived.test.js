@@ -17,6 +17,11 @@ const IDS = [
   'variant:osm-7060560-hac-sa-reservoir-fitness-trail',
   'variant:osm-17147571-sha-tin-fotan-shing-mun',
   'variant:osm-17147573-sha-tin-wai-pass',
+  'variant:osm-7065552-coloane-seac-min-pun',
+  'variant:osm-17618981-kunpeng-section-4',
+  'variant:osm-17719174-kunpeng-section-20',
+  'variant:osm-18220700-meilin-country-trail',
+  'variant:osm-18220701-tanglangshan-country-trail',
 ]
 
 const EXPECTED = {
@@ -35,6 +40,11 @@ const EXPECTED = {
   'variant:osm-7060560-hac-sa-reservoir-fitness-trail': { count: 186, first: [22.1241242, 113.5711307], last: [22.1241242, 113.5711307], aliases: ['Hac Sá Reservoir Fitness Trail', 'Circuito de Manutenção da Barragem de Hác-Sá'], direction: 'loop', startPoint: '路環黑沙馬路', endPoint: '路環黑沙馬路', relationVersion: 7, firstWay: ['777711503', 2], firstNode: ['7236294685', 2], duration: 0.58, checkedAt: '2026-08-23T15:16:26Z', mode: 'footway×8 + steps×3', region: '澳门' },
   'variant:osm-17147571-sha-tin-fotan-shing-mun': { count: 259, first: [22.3911172, 114.1848842], last: [22.3948972, 114.1681653], aliases: ['港鐵火炭站至城門郊野公園郊野徑', 'MTR Fo Tan Station to Shing Mun Country Park country trail'], direction: 'point_to_point', startPoint: '港鐵火炭站 MTR Fo Tan Station', endPoint: '城門郊野公園 Shing Mun Country Park', relationVersion: 1, firstWay: ['185051734', 19], firstNode: ['1232304178', 3], duration: 0.98, checkedAt: '2026-08-23T15:16:33Z', mode: 'footway×8 + steps×4', region: '香港' },
   'variant:osm-17147573-sha-tin-wai-pass': { count: 159, first: [22.3689441, 114.1970221], last: [22.3562432, 114.1992747], aliases: ['沙田圍至沙田坳郊野徑', 'Sha Tin Wai to Sha Tin Pass country trail'], direction: 'point_to_point', startPoint: '沙田圍 Sha Tin Wai', endPoint: '沙田坳 Sha Tin Pass', relationVersion: 6, firstWay: ['185040571', 17], firstNode: ['1102085105', 5], duration: 0.77, checkedAt: '2026-08-23T15:16:41Z', mode: 'footway×6 + steps×1', region: '香港' },
+  'variant:osm-7065552-coloane-seac-min-pun': { count: 118, first: [22.1175612, 113.5556786], last: [22.1172184, 113.5667588], aliases: ['Coloane Seac Min Pun Ancient Path', 'Caminho Antigo de Seac Min Pun de Coloane'], direction: 'point_to_point', startPoint: '路環黑沙馬路', endPoint: '路環竹灣馬路', relationVersion: 8, firstWay: ['1030267557', 1], firstNode: ['1941039429', 2], duration: 0.6, checkedAt: '2026-08-23T16:13:29Z', mode: 'footway×3 + steps×3 + residential×1', region: '澳门' },
+  'variant:osm-17618981-kunpeng-section-4': { count: 285, first: [22.6398415, 113.9501072], last: [22.6337579, 113.9656341], aliases: ['Kunpeng Trail Section 4', '鲲鹏4段'], direction: 'point_to_point', startPoint: '阳台山麻磡二号登山口', endPoint: '阳台山王京坑登山口', relationVersion: 8, firstWay: ['1305347020', 2], firstNode: ['11313769053', 1], duration: 2.84, checkedAt: '2026-08-23T16:13:29Z', mode: 'path×6 + steps×4 + footway×8 + track×1 + unclassified×1', region: '广东省深圳市' },
+  'variant:osm-17719174-kunpeng-section-20': { count: 140, first: [22.4986436, 114.5704975], last: [22.5207977, 114.5841795], aliases: ['Kunpeng Trail Section 20', '鲲鹏20段'], direction: 'point_to_point', startPoint: '东涌社区', endPoint: '大鹏山大雁顶', relationVersion: 3, firstWay: ['1077209491', 3], firstNode: ['9877056793', 1], duration: 2.42, checkedAt: '2026-08-23T16:13:29Z', mode: 'path×4', region: '广东省深圳市' },
+  'variant:osm-18220700-meilin-country-trail': { count: 995, first: [22.5824958, 114.0110536], last: [22.5759136, 114.0531497], aliases: ['Meilin Mountain Trail'], direction: 'point_to_point', startPoint: '梅林水库涂鸦墙', endPoint: '梅坳', relationVersion: 1, firstWay: ['682267931', 7], firstNode: ['6389238287', 2], duration: 2.35, checkedAt: '2026-08-23T16:13:29Z', mode: 'path×4', region: '广东省深圳市' },
+  'variant:osm-18220701-tanglangshan-country-trail': { count: 499, first: [22.5669281, 113.9772813], last: [22.5823293, 114.0110495], aliases: ['Tanglang Mountain Trail'], direction: 'point_to_point', startPoint: '塘朗山龙珠门', endPoint: '梅林水库涂鸦墙', relationVersion: 3, firstWay: ['553085838', 2], firstNode: ['5339279745', 1], duration: 3.69, checkedAt: '2026-08-23T16:13:29Z', mode: 'unclassified×3 + steps×6 + footway×1 + path×3', region: '广东省深圳市' },
 }
 
 function haversineKm(a, b) {
@@ -85,7 +95,7 @@ function assertFrozenSourceTimestamp(variant, source) {
 
 async function runOsmDerivedTests({ catalog }) {
   const variants = IDS.map((id) => catalog.getById(id))
-  assert.equal(variants.filter(Boolean).length, IDS.length, '当前 OSM 衍生目录必须包含十五条可搜索 full variant')
+  assert.equal(variants.filter(Boolean).length, IDS.length, '当前 OSM 衍生目录必须包含二十条可搜索 full variant')
   for (const variant of variants) {
     const expected = EXPECTED[variant.id]
     const geometry = variant.routeGeometry.points
@@ -248,6 +258,20 @@ async function runOsmDerivedTests({ catalog }) {
   assert.throws(() => assertFrozenIdentity(zhaogongStartMutation), undefined, 'fabricated Zhao Gong Shan endpoint mutation must turn the identity contract RED')
   const sanganbiAliasMutation = { ...variants[0], aliases: ['三杆笔水祖坑徒步', '三杆笔—水祖坑主线'] }
   assert.throws(() => assertFrozenIdentity(sanganbiAliasMutation), undefined, 'truncated mainline alias mutation must turn the identity contract RED')
+  const finalBatchIds = [
+    'variant:osm-7065552-coloane-seac-min-pun',
+    'variant:osm-17618981-kunpeng-section-4',
+    'variant:osm-17719174-kunpeng-section-20',
+    'variant:osm-18220700-meilin-country-trail',
+    'variant:osm-18220701-tanglangshan-country-trail',
+  ]
+  for (const finalBatchId of finalBatchIds) {
+    const finalBatchVariant = variants.find((variant) => variant.id === finalBatchId)
+    const omittedAlias = { ...finalBatchVariant, aliases: finalBatchVariant.aliases.slice(0, -1) }
+    assert.throws(() => assertFrozenIdentity(omittedAlias), undefined, `${finalBatchId} alias omission must turn the identity contract RED`)
+    const changedAlias = { ...finalBatchVariant, aliases: finalBatchVariant.aliases.map((alias, index) => index === 0 ? `${alias} (mutated)` : alias) }
+    assert.throws(() => assertFrozenIdentity(changedAlias), undefined, `${finalBatchId} alias change must turn the identity contract RED`)
+  }
 
   const truncated = { ...variants[0], routeGeometry: { ...variants[0].routeGeometry, points: variants[0].routeGeometry.points.slice(0, -1) } }
   assert.throws(() => assertFrozenGeometryShape(truncated), undefined, 'removing 16162196 final detour point must turn the frozen geometry contract RED')
@@ -265,6 +289,22 @@ async function runOsmDerivedTests({ catalog }) {
     undefined,
     'mutating the full-source checkedAt must turn the source provenance contract RED',
   )
+  const finalBatchRequestStarts = ['16:10:38Z', '16:11:00Z', '16:12:53Z', '16:13:17Z', '16:13:28Z']
+  for (const [index, finalBatchId] of finalBatchIds.entries()) {
+    const finalBatchVariant = variants.find((variant) => variant.id === finalBatchId)
+    const finalBatchSource = finalBatchVariant.sourceIds
+      .map((sourceId) => catalog.getById(sourceId))
+      .find((source) => source && source.kind === 'open_data')
+    const staleStartMutation = {
+      ...finalBatchSource,
+      provenance: { ...finalBatchSource.provenance, checkedAt: `2026-08-23T${finalBatchRequestStarts[index]}` },
+    }
+    assert.throws(
+      () => assertFrozenSourceTimestamp(finalBatchVariant, staleStartMutation),
+      undefined,
+      `${finalBatchId} pre-completion request-start timestamp must turn the source provenance contract RED`,
+    )
+  }
 
   const poisonVariant = variants[0]
   const route = catalog.getById(poisonVariant.routeId)

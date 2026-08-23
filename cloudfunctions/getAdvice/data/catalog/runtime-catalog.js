@@ -21,6 +21,11 @@ const osm7060546 = require('./osm-derived/7060546-hac-sa-reservoir-family-trail'
 const osm7060560 = require('./osm-derived/7060560-hac-sa-reservoir-fitness-trail')
 const osm17147571 = require('./osm-derived/17147571-sha-tin-fotan-shing-mun')
 const osm17147573 = require('./osm-derived/17147573-sha-tin-wai-pass')
+const osm7065552 = require('./osm-derived/7065552-coloane-seac-min-pun')
+const osm17618981 = require('./osm-derived/17618981-kunpeng-section-4')
+const osm17719174 = require('./osm-derived/17719174-kunpeng-section-20')
+const osm18220700 = require('./osm-derived/18220700-meilin-country-trail')
+const osm18220701 = require('./osm-derived/18220701-tanglangshan-country-trail')
 const elevationSource = require('./osm-derived/elevation-source')
 
 const PILOT_FRAGMENTS = [
@@ -45,6 +50,11 @@ const PILOT_FRAGMENTS = [
   osm7060560,
   osm17147571,
   osm17147573,
+  osm7065552,
+  osm17618981,
+  osm17719174,
+  osm18220700,
+  osm18220701,
 ]
 
 function createProductionRouteCatalog() {
