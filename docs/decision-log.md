@@ -1102,3 +1102,23 @@
 - Decision: all five rows remain `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION`. ODbL attribution and
   derived-database treatment remain an explicit future implementation gate. A later child Issue must re-run the full
   topology, identity, rights and current-access checks before proposing any runtime route-data change.
+
+## 2026-08-23 — TP-D070 C15-B scenic OSM evidence remains blocked
+
+- Status: Evidence/docs-only checkpoint for #157; no runtime catalog, CloudBase, deployment, child Issue or public-release
+  action occurred. The evidence report is `docs/scenic-route-evidence.md` and ledger rows 12–16 reconcile to it.
+- Context: The next five provisional rows are Huangshan `18970848`, Taishan `19818868`, Sanqing `18970781` and two
+  distinct Emei relations `13567761`/`13567762`. A relation tag or a general scenic-area notice cannot establish a
+  complete, currently permitted walking variant.
+- OSM evidence: one primary full-relation read per candidate succeeded on `2026-08-23`. Ordered way IDs/roles and
+  topology summaries record endpoint gaps in all five; Huangshan, Taishan and Sanqing have duplicate way refs, and
+  Taishan has four graph components. No node, coordinate or raw geometry was copied and no metrics were derived.
+- Access/mode decision: official Huangshan, Taishan, Sanqing and Emei sources provide only general entrance/opening,
+  cableway, shuttle or road context. Walking, cableway, shuttle and road segments remain separate; exact relation-
+  level opening/permission is `UNKNOWN`. The Emei relations share a stem but diverge in the middle sequence and must
+  not be merged.
+- Rights decision: ODbL attribution, notice/share-alike handling and the runtime derived-database form remain an
+  implementation-issue gate. Missing rights, topology, direction or exact operator access blocks promotion.
+- Consequence: all five rows remain `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION` or counted toward the
+  searchable target. A later implementation Issue must repeat a rate-limited topology/mode audit and resolve every
+  core field before any route-data change.

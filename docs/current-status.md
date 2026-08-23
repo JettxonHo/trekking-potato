@@ -4,9 +4,9 @@
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`;
   `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING` retained as a separately blocked runtime ledger
-- Current Goal: `TP-CATALOG-001 / ACTIVE — C15-A REVIEW_ACTIVE`
-- Active task: `#155 / READY_FOR_CONTROLLER_REVIEW / REVIEW`
-- Branch/base: `codex/155-yubeng-evidence` from exact `main@d36d70a`
+- Current Goal: `TP-CATALOG-001 / ACTIVE — C15-B REVIEW_ACTIVE`
+- Active task: `#157 / READY_FOR_CONTROLLER_REVIEW / REVIEW`
+- Branch/base: `codex/157-scenic-evidence` from exact `main@50d3a0e`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: the human approved a target total of 25 trusted RouteVariants: six existing structured pilots plus
@@ -64,6 +64,35 @@
   this batch. No CloudBase, deployment, release, raw-track or runtime-data action occurred.
 - Draft PR #156 is open. Evidence head `a4ebe74` is historical first-publication evidence only; live GitHub metadata
   is authoritative. The same current head requires successful quality CI and two fresh independent Reviews.
+
+## C15-A merge and scenic Batch B activation — 2026-08-23
+
+- PR #156 passed exact-head CI and two fresh independent Reviews, squash merged as `50d3a0e`; #155 is closed. None of
+  the five Yubeng candidates entered route data.
+- #157 audits ledger rows 12–16: Huangshan, Taishan, Sanqing and two separate Emei relations. It may update only the
+  frozen evidence/docs allowlist and cannot edit runtime data, tests, application code, dependencies or deployment.
+- Exact route identity, walking-versus-transport boundaries, full topology, ODbL treatment and current official scenic-
+  area/operator access evidence are mandatory. Missing evidence remains blocked.
+
+## C15-B scenic evidence audit checkpoint — 2026-08-23
+
+- Evidence report: `docs/scenic-route-evidence.md`; ledger rows 12–16 now reconcile to OSM relations
+  `18970848`, `19818868`, `18970781`, `13567761` and `13567762` with exact identity, aliases, ordered member IDs,
+  topology observations, access-mode boundaries and official-source findings.
+- One read-only OSM full-relation read per candidate succeeded. Huangshan has 80 way members, 5 ordered endpoint gaps,
+  1 graph component and 9 branch nodes; Taishan has 64 members, 15 gaps, 4 graph components and 17 branch nodes;
+  Sanqing has 43 members and 12 gaps; each Emei relation has 29 members and 1 gap. Duplicate way refs occur in
+  Huangshan, Taishan and Sanqing. No distance/elevation/duration metric, node, coordinate or raw geometry was copied.
+- First-party evidence supports only general operating context: Huangshan entry/shuttle and path notices, Taishan
+  Hongmen walking route plus separate cableway/shuttle, Sanqing cableway/ticketing, and Emei high-area capacity/
+  transport controls. A secondary reproduced Sanqing reopening notice remains context only. None proves a complete,
+  permissioned, currently open walking variant for the exact OSM relation;
+  cableway, shuttle and road segments remain separate. ODbL attribution/derived-database treatment is still `UNKNOWN`.
+- The two Emei rows remain distinct: they share a stem but diverge in their middle way-member sequences. All five rows
+  remain `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION` or counted toward the searchable target.
+- Executor checkpoint: `READY_FOR_CONTROLLER_REVIEW`; no runtime route-data edit, CloudBase action, deployment, timer,
+  deletion, public release or child Issue is authorized. Controller must inspect the actual diff and require latest-head
+  quality plus two fresh exact-head independent Reviews.
 
 ## C14 private-history pagination activation — 2026-08-22
 
@@ -1907,10 +1936,11 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Complete quality CI and two fresh independent Reviews on the same live current head of Draft PR #156, then Sol XHigh
-decides mergeability. Any head change repeats both gates. After merge, close #155 without a route-data implementation
-child; replace blocked slots or activate another evidence batch. #123 remains independently blocked; no CloudBase
-index/config mutation, deployment, timer, deletion, real-user cohort or public release is authorized.
+Sol XHigh reviews the completed #157 evidence report and actual diff. If approved, publish a docs-only Draft PR and
+require quality CI plus two fresh independent Reviews on the same current head. Since no candidate is eligible, do not
+open a route-data implementation child; after merge, replace blocked slots or activate the next evidence batch. #123
+remains independently blocked; no CloudBase index/config mutation, deployment, timer, deletion, real-user cohort or
+public release is authorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
