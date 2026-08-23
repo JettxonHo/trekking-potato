@@ -12,6 +12,11 @@ const IDS = [
   'variant:osm-19684389-huizhou-dananshan-classic',
   'variant:osm-19686682-huizhou-dananshan-lahu',
   'variant:osm-20072078-maluanshan-nature-notes',
+  'variant:osm-7060545-coloane-trail',
+  'variant:osm-7060546-hac-sa-reservoir-family-trail',
+  'variant:osm-7060560-hac-sa-reservoir-fitness-trail',
+  'variant:osm-17147571-sha-tin-fotan-shing-mun',
+  'variant:osm-17147573-sha-tin-wai-pass',
 ]
 
 const EXPECTED = {
@@ -25,6 +30,11 @@ const EXPECTED = {
   'variant:osm-19684389-huizhou-dananshan-classic': { count: 254, first: [22.9197573, 114.8586983], last: [22.9200593, 114.8969306], aliases: ['大南山精华线'], direction: 'point_to_point', startPoint: '大王庙', endPoint: '龙岩寺路口', relationVersion: 2, firstWay: ['1435939573', 1], firstNode: ['1583698720', 1], duration: 4.95, checkedAt: '2026-08-23T13:54:36Z' },
   'variant:osm-19686682-huizhou-dananshan-lahu': { count: 678, first: [22.9508159, 114.9275011], last: [22.9507221, 114.927029], aliases: ['大南山拉胡线'], direction: 'point_to_point', startPoint: '惠东县多祝镇永和村', endPoint: '惠东县多祝镇百木洋', relationVersion: 3, firstWay: ['1436114865', 1], firstNode: ['12114395883', 1], duration: 6.63, checkedAt: '2026-08-23T13:54:36Z' },
   'variant:osm-20072078-maluanshan-nature-notes': { count: 94, first: [22.6450105, 114.3396273], last: [22.6560267, 114.3403834], aliases: ['马峦自然笔记步道'], direction: 'point_to_point', startPoint: '马峦山郊野公园北门', endPoint: '土地庙三岔口', relationVersion: 1, firstWay: ['135644191', 10], firstNode: ['1321557953', 3], duration: 0.48, checkedAt: '2026-08-23T13:54:36Z' },
+  'variant:osm-7060545-coloane-trail': { count: 762, first: [22.1240825, 113.5672684], last: [22.1240825, 113.5672684], aliases: ['Coloane Trail', 'Trilho de Coloane'], direction: 'loop', startPoint: '路環高頂馬路', endPoint: '路環高頂馬路', relationVersion: 11, firstWay: ['827077156', 4], firstNode: ['2697520714', 4], duration: 2.8, checkedAt: '2026-08-23T15:16:11Z', mode: 'footway×4 + steps×2', region: '澳门' },
+  'variant:osm-7060546-hac-sa-reservoir-family-trail': { count: 279, first: [22.1245616, 113.5715626], last: [22.1245616, 113.5715626], aliases: ['Hac Sá Reservoir Family Trail', 'Circuito da Barragem de Hác-Sá'], direction: 'loop', startPoint: '黑沙馬路', endPoint: '黑沙馬路', relationVersion: 10, firstWay: ['1049280410', 1], firstNode: ['1536076576', 2], duration: 0.98, checkedAt: '2026-08-23T15:16:19Z', mode: 'footway×13 + steps×4', region: '澳门' },
+  'variant:osm-7060560-hac-sa-reservoir-fitness-trail': { count: 186, first: [22.1241242, 113.5711307], last: [22.1241242, 113.5711307], aliases: ['Hac Sá Reservoir Fitness Trail', 'Circuito de Manutenção da Barragem de Hác-Sá'], direction: 'loop', startPoint: '路環黑沙馬路', endPoint: '路環黑沙馬路', relationVersion: 7, firstWay: ['777711503', 2], firstNode: ['7236294685', 2], duration: 0.58, checkedAt: '2026-08-23T15:16:26Z', mode: 'footway×8 + steps×3', region: '澳门' },
+  'variant:osm-17147571-sha-tin-fotan-shing-mun': { count: 259, first: [22.3911172, 114.1848842], last: [22.3948972, 114.1681653], aliases: ['港鐵火炭站至城門郊野公園郊野徑', 'MTR Fo Tan Station to Shing Mun Country Park country trail'], direction: 'point_to_point', startPoint: '港鐵火炭站 MTR Fo Tan Station', endPoint: '城門郊野公園 Shing Mun Country Park', relationVersion: 1, firstWay: ['185051734', 19], firstNode: ['1232304178', 3], duration: 0.98, checkedAt: '2026-08-23T15:16:33Z', mode: 'footway×8 + steps×4', region: '香港' },
+  'variant:osm-17147573-sha-tin-wai-pass': { count: 159, first: [22.3689441, 114.1970221], last: [22.3562432, 114.1992747], aliases: ['沙田圍至沙田坳郊野徑', 'Sha Tin Wai to Sha Tin Pass country trail'], direction: 'point_to_point', startPoint: '沙田圍 Sha Tin Wai', endPoint: '沙田坳 Sha Tin Pass', relationVersion: 6, firstWay: ['185040571', 17], firstNode: ['1102085105', 5], duration: 0.77, checkedAt: '2026-08-23T15:16:41Z', mode: 'footway×6 + steps×1', region: '香港' },
 }
 
 function haversineKm(a, b) {
@@ -75,7 +85,7 @@ function assertFrozenSourceTimestamp(variant, source) {
 
 async function runOsmDerivedTests({ catalog }) {
   const variants = IDS.map((id) => catalog.getById(id))
-  assert.equal(variants.filter(Boolean).length, IDS.length, '当前 OSM 衍生目录必须包含十条可搜索 full variant')
+  assert.equal(variants.filter(Boolean).length, IDS.length, '当前 OSM 衍生目录必须包含十五条可搜索 full variant')
   for (const variant of variants) {
     const expected = EXPECTED[variant.id]
     const geometry = variant.routeGeometry.points
@@ -136,6 +146,11 @@ async function runOsmDerivedTests({ catalog }) {
     assert.match(openDataSource.attribution, /OpenStreetMap contributors/)
     assert.equal(openDataSource.provenance.provider, 'OpenStreetMap')
     assert.equal(openDataSource.provenance.snapshot, 'current-full')
+    if (expected.mode) assert.match(openDataSource.derivation, new RegExp(expected.mode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
+    if (expected.region) {
+      const place = catalog.getById(variant.routeId && catalog.getById(variant.routeId).placeId)
+      assert.equal(place.region, expected.region, `${variant.id} region must preserve the frozen non-mainland region`)
+    }
     assert.equal(openDataSource.provenance.relationVersion, expected.relationVersion, `${variant.id} relation version must remain exact`)
     assert.deepEqual(
       [openDataSource.provenance.wayVersions[0].id, openDataSource.provenance.wayVersions[0].version],
@@ -196,9 +211,9 @@ async function runOsmDerivedTests({ catalog }) {
     assert.equal(openDataFields.has('routeHighestPointElevationM'), false, 'OSM must not claim DEM maxima')
     assert.equal(openDataFields.has('weatherSamplePoints'), false, 'OSM must not claim DEM samples')
     assert.equal(openDataFields.has('operationalStatus'), false, 'OSM must not claim opening status')
-    const expectedOsmIdentityFields = variant.id === IDS[3]
+    const expectedOsmIdentityFields = variant.id === 'variant:osm-20739620-zhaogongshan-loop'
       ? ['direction', 'isLoop', 'accessMode']
-      : variant.id === IDS[4]
+        : variant.id === 'variant:osm-17841828-three-gorges-summit'
         ? ['isLoop', 'accessMode']
         : ['direction', 'startPoint', 'endPoint', 'isLoop', 'accessMode']
     for (const field of expectedOsmIdentityFields) {

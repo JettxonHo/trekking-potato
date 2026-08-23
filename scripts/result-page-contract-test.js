@@ -161,6 +161,9 @@ function assertRoutePreviewCoordinateProjection() {
     ['四川省甘孜藏族自治州', 'mainland'],
     ['中国大陆·四川', 'mainland'],
     ['香港', 'non_mainland'],
+    ['澳门', 'non_mainland'],
+    ['澳门特别行政区', 'non_mainland'],
+    ['macau', 'non_mainland'],
     ['香港·广东', 'unknown'],
     ['尼泊尔·西藏边境', 'unknown'],
     ['hong kong', 'non_mainland'],
@@ -188,6 +191,9 @@ function assertRoutePreviewCoordinateProjection() {
     [{ lat: 27.7172, lon: 85.3240 }, '尼泊尔'],
     [{ lat: 47.8864, lon: 106.9057 }, '蒙古国'],
     [{ lat: 22.3193, lon: 114.1694 }, '香港特别行政区'],
+    [{ lat: 22.1240825, lon: 113.5672684 }, '澳门'],
+    [{ lat: 22.1240825, lon: 113.5672684 }, '澳门特别行政区'],
+    [{ lat: 22.1240825, lon: 113.5672684 }, 'macau'],
   ]
   outsideMainland.forEach(([point, region]) => {
     assert.deepEqual(convertRoutePreviewPointForMap(point, 'WGS84', region), { latitude: point.lat, longitude: point.lon }, `${region} WGS84 coordinates must remain stable`)
@@ -276,6 +282,16 @@ function assertRoutePreviewCoordinateProjection() {
     const model = loadModel(nonMainlandExclusionMutationSource)
     assert.equal(model.classifyRoutePreviewRegion('香港'), 'non_mainland', 'non-mainland exclusion must remain effective')
   }, undefined, 'non-mainland exclusion removal must turn the focused oracle RED')
+  const macauTokenMutationSource = modelSource.replace("  '香港', 'hongkong', '澳门', 'macau',", "  '香港', 'hongkong', 'macau',")
+  assert.notEqual(macauTokenMutationSource, modelSource, 'Macau token mutation must change model source')
+  assert.throws(() => {
+    const model = loadModel(macauTokenMutationSource)
+    assert.equal(model.classifyRoutePreviewRegion('澳门'), 'non_mainland', 'the production 澳门 token must keep Macau outside mainland projection')
+    assert.deepEqual(model.convertRoutePreviewPointForMap({ lat: 22.1240825, lon: 113.5672684 }, 'WGS84', '澳门'), {
+      latitude: 22.1240825,
+      longitude: 113.5672684,
+    }, 'Macau WGS84 coordinates must remain unchanged')
+  }, undefined, 'deleting the production 澳门 token must turn the focused oracle RED')
   const assertCenterAndEndOracles = (model) => {
     const candidate = model.buildRoutePreviewMapGeometry(routePreview(), '四川省')
     assert.ok(candidate, 'mainland route preview geometry must be available')

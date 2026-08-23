@@ -1,14 +1,21 @@
 # C15 — 首批 25 个可信 RouteVariant 证据台账
 
 - Goal: `TP-CATALOG-001`
-- Parent Issue: `#161` (batch-2 evidence; planning lineage `#153` and merged batch `#159` retained below)
-- Status: `PHASE2_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
-- Snapshot checked: `2026-08-23` (replacement-discovery OSM metadata-only query observed at `2026-08-23T13:49:01Z`; full-read batch completion/as-of `2026-08-23T13:54:36Z` after the `13:52:15Z`–`13:54:36Z` window)
+- Parent Issue: `#163` (batch-3 evidence; planning and merged batches retained below)
+- Status: `PHASE2_RUNTIME_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
+- Snapshot checked: `2026-08-23` (replacement-discovery OSM metadata-only query observed at `2026-08-23T13:49:01Z`; full-read batch completion/as-of `2026-08-23T13:54:36Z` after the `13:52:15Z`–`13:54:36Z` window; #163 runtime batch completed at `2026-08-23T15:18:56.109Z`)
 - Scope: the target remains exactly 25 searchable `full` slots: five existing pilots plus twenty missing/replacement
-  slots. Current Phase2 runtime has fifteen searchable `full` variants (five existing plus five #159 and five #161
-  frozen batch variants), leaving a remaining gap of ten. The Wutai restriction is a separate non-counting record.
-- Runtime impact: PR #160 merged the first five additions; controller freeze `5386435179` authorized and implemented
-  five #161 additions. The catalog truth is now fifteen searchable `full` variants; exact-head review remains pending.
+  slots. Current Phase2 runtime has twenty searchable `full` variants (five existing plus five #159, five #161 and
+  five #163 frozen batch variants), leaving a remaining gap of five. The Wutai restriction is a separate non-counting
+  record.
+- Runtime impact: PR #160 merged the first five additions and PR #162 merged the next five as `f393c00`; the #163
+  controller-frozen Phase2 slice adds five more. Current catalog truth is twenty searchable `full` variants with a
+  remaining gap of five; no merge or deployment is implied by this local review state.
+
+## #163 Batch3 activation — 2026-08-23
+
+Issue #163 owns the next exact five-route serial batch. Phase1 bounded evidence and the controller freeze are retained
+below; Phase2 now represents the frozen five in runtime. Current truth is `full=20`, `gap=5`, Wutai non-counting.
 
 ## #161 Phase2 runtime reconciliation — 2026-08-23
 
@@ -180,3 +187,42 @@ separate blocked non-counting restriction. Each row keeps `operationalStatus=unk
 geometry, a ≤500-point preview, ODbL/open_data provenance, and deterministic metric/elevation evidence. See
 `docs/route-data-licenses.md` for the full relation manifests and the Open-Meteo/Copernicus derivation boundary.
 This checkpoint is implementation evidence, not a merge, deployment or Goal acceptance decision.
+
+## #163 Batch3 Phase1 evidence checkpoint — 2026-08-23
+
+The bounded third-batch report is [`docs/catalog-batch3-source-evidence.md`](catalog-batch3-source-evidence.md). One
+metadata-only China Overpass request returned 111 tagged relations; excluding the 55 prior searchable/audited IDs left
+74 new rows. Twenty current-full reads then completed once each at the required six-second interval, all HTTP 200 and
+without a throttle. Exactly five identities are proposed for controller freeze: `7060545`, `7060546`, `7060560`,
+`17147571` and `17147573`. The first three are closed footway/steps loops; the latter two are branch-free, ordered
+footway/steps chains with distinct named endpoints. Four other clean chains remain alternates and same-label/stale
+identity rows are held; all topology/mode failures remain blocked.
+
+These five are proposals only and do not change the ledger count: runtime truth remains searchable `full=15`, remaining
+gap `10`, with Wutai separate and non-counting. ODbL relation/full URLs and attribution obligations are recorded in the
+evidence report. Opening, permission, safety and derived-database treatment remain `UNKNOWN` pending controller review.
+No runtime, test, schema, elevation, CloudBase, deployment, commit or push action occurred. Handoff is
+`READY_FOR_CONTROLLER_REVIEW`.
+
+## #163 Phase2 runtime reconciliation — controller freeze `5386726512` / correction `5386727268`
+
+The Phase1 proposal state above is superseded by the controller freeze. The exact five frozen relations are now
+represented as searchable `full` RouteVariants; historical blocked rows remain in the ledger as evidence and are not
+silently renamed. Runtime slot reconciliation is:
+
+| Batch | Frozen runtime variants | Current contribution |
+|---|---|---:|
+| baseline | five existing reviewed pilots | 5 full |
+| #159 | `16162196`, `20072118`, `20046643`, `20739620`, `17841828` | 5 full |
+| #161 | `18364943`, `18364941`, `19684389`, `19686682`, `20072078` | 5 full |
+| #163 | `7060545`, `7060546`, `7060560`, `17147571`, `17147573` | 5 full |
+| restriction | `R-WUTAI` | non-counting blocked |
+
+The ledger target remains exactly 25 searchable slots (`5 existing + 20 missing/replacement`); current runtime is
+`full=20`, remaining gap `5`. #163 Macau variants use region `澳门`; both Sha Tin variants use region `香港`, share
+bare canonical `沙田郊野徑` (resolver confirmation) and retain only direct endpoint-qualified aliases. Complete OSM
+geometry, <=500 previews, ODbL/open-data provenance, one bounded Open-Meteo/Copernicus DEM GLO-90 request per route,
+version manifests and route-specific unknown-status rationales are recorded in
+[`docs/route-data-licenses.md`](route-data-licenses.md) and [`docs/catalog-batch3-source-evidence.md`](catalog-batch3-source-evidence.md).
+Full `routeGeometry` is internal and omitted from public trip/result DTOs. Handoff: `READY_FOR_CONTROLLER_REVIEW`;
+no deployment, CloudBase, commit, push or PR action occurred.

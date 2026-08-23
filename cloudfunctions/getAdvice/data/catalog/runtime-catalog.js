@@ -16,6 +16,11 @@ const osm18364941 = require('./osm-derived/18364941-black-stone-city-hike')
 const osm19684389 = require('./osm-derived/19684389-huizhou-dananshan-classic')
 const osm19686682 = require('./osm-derived/19686682-huizhou-dananshan-lahu')
 const osm20072078 = require('./osm-derived/20072078-maluanshan-nature-notes')
+const osm7060545 = require('./osm-derived/7060545-coloane-trail')
+const osm7060546 = require('./osm-derived/7060546-hac-sa-reservoir-family-trail')
+const osm7060560 = require('./osm-derived/7060560-hac-sa-reservoir-fitness-trail')
+const osm17147571 = require('./osm-derived/17147571-sha-tin-fotan-shing-mun')
+const osm17147573 = require('./osm-derived/17147573-sha-tin-wai-pass')
 const elevationSource = require('./osm-derived/elevation-source')
 
 const PILOT_FRAGMENTS = [
@@ -35,6 +40,11 @@ const PILOT_FRAGMENTS = [
   osm19684389,
   osm19686682,
   osm20072078,
+  osm7060545,
+  osm7060546,
+  osm7060560,
+  osm17147571,
+  osm17147573,
 ]
 
 function createProductionRouteCatalog() {

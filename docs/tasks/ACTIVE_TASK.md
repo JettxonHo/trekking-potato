@@ -1,19 +1,44 @@
-# ACTIVE TASK — #161 next five complete searchable routes
+# ACTIVE TASK — #163 third five complete searchable routes
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-CATALOG-001 / ACTIVE — #161 PHASE2_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
-- Milestone: C15-D batch-2 evidence and controller freeze
-- GitHub Issue: `#161`
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / PHASE2_IMPLEMENTATION_COMPLETE`
+- Goal: `TP-CATALOG-001 / ACTIVE — #163 PHASE2_RUNTIME_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
+- Milestone: C15-E batch-3 runtime implementation and controller review
+- GitHub Issue: `#163`
+- Status/Mode: `PHASE2_RUNTIME_IMPLEMENTATION / READY_FOR_CONTROLLER_REVIEW`
 - Controller: Sol XHigh + human product controller
-- Branch/base: `codex/161-catalog-batch2-5` from exact `main@14830eb3896338fd3fe40278cc609f1f2bc1dd06`
+- Branch/base: `codex/163-catalog-batch3-5` from exact `main@f393c0028625dc2deff0f26544cbf65f85f23038`
 - Executor: exact custom `luna-worker`, configured `gpt-5.6-luna/max`; runtime identity is separate evidence
 
-PR #160 merged the first five runtime additions as `14830eb`. Controller freeze `5386435179` authorized and the
-allowlisted Phase2 slice implemented five more complete OSM relations. The catalog now has fifteen searchable `full`
-variants and a remaining gap of ten; Wutai remains a separate non-counting restriction. Exact-head review is pending.
+PR #160 merged the first five runtime additions as `14830eb`; PR #162 passed exact-head CI and two Reviews, then
+squash merged the second five as `f393c00`. The catalog now has twenty searchable `full` variants and a remaining
+gap of five; Wutai remains a separate non-counting restriction.
 
-## Current #161 Phase1 contract (historical / superseded)
+## #163 Phase1 contract (completed; historical pre-freeze)
+
+Audit new China OSM `type=route` + `route=hiking` relations with explicit nonempty `name`, `from` and `to`. Exclude
+all searchable and previously audited relations. Use exactly one metadata-only discovery query, then at most twenty
+sequential current-full reads, one per relation, at least six seconds apart with an identifying User-Agent. Stop on
+the first `429` or provider throttle; do not retry, switch mirrors, scrape third-party route platforms or access
+private community evidence.
+
+Propose exactly five only when identity, one connected deterministic traversal, mode boundaries and ODbL provenance
+all pass. Opening, permit and safety remain `UNKNOWN`; geometry never proves them. Phase1 may modify only:
+
+1. `GOAL.md`
+2. `docs/current-status.md`
+3. `docs/governance/MASTER_PLAN.md`
+4. `docs/tasks/ACTIVE_TASK.md`
+5. `docs/route-catalog-expansion.md`
+6. `docs/decision-log.md`
+7. new `docs/catalog-batch3-source-evidence.md`
+
+No runtime, test, schema, elevation, dependency, config, CloudBase, deployment or release file may change before a
+live controller comment freezes exact identities and expands the Phase2 allowlist. Deliver five proposals or a
+truthful blocker; blocked candidates never count.
+
+## Historical #161 record
+
+### #161 Phase1 contract (historical / superseded)
 
 Phase1 is read-only evidence work. Audit a bounded primary-source candidate pool and write
 `docs/catalog-batch2-source-evidence.md`. Freeze exactly five only after identity, complete connected walking topology,
@@ -35,7 +60,7 @@ comment freezes the exact five and expands the Phase2 allowlist. Stop on rate li
 route platforms or access private community evidence. Deliver `READY_FOR_CONTROLLER_REVIEW` with five proposed
 identities or a truthful blocker; blocked candidates do not count.
 
-## Current #161 Phase2 contract — controller freeze `5386435179`
+### #161 Phase2 contract — controller freeze `5386435179`
 
 The controller froze exactly five identities. Phase2 may modify only the following 22 paths: `GOAL.md`; the five new
 OSM fragments (`18364943-menggu-sangberg.js`, `18364941-black-stone-city-hike.js`,
@@ -253,3 +278,58 @@ next evidence batch.
   typecheck, host WeChat build, root audit, diff-check, allowlist and sensitive scans pass. Cloud Function audit
   exposes pre-existing transitive vulnerabilities requiring an out-of-scope dependency upgrade. No commit, push, PR,
   deploy or CloudBase action occurred.
+
+## #163 Batch3 Phase1 completion checkpoint — 2026-08-23
+
+- The one authorized metadata-only Overpass query returned HTTP 200 with 111 tagged `route=hiking` relations. After
+  excluding the 55 IDs already searchable or audited in prior reports, 74 new rows remained. Twenty and only twenty
+  current-full OSM reads were performed once each, sequentially with an identifying User-Agent and at least six seconds
+  between starts; all returned HTTP 200, with no 429/throttle and no retry or alternate source.
+- Exactly five identities are `PROPOSED_FOR_CONTROLLER_FREEZE`: `7060545` 路環步行徑, `7060546` 黑沙水庫家樂徑,
+  `7060560` 黑沙水庫健康徑, `17147571` 沙田郊野徑 (港鐵火炭站 → 城門郊野公園), and `17147573` 沙田郊野徑
+  (沙田圍 → 沙田坳). Aggregate evidence, selected alternates and blocked rows are in
+  `docs/catalog-batch3-source-evidence.md`; no raw geometry was copied.
+- This remains Phase1 evidence-only. Runtime stays searchable `full=15`, remaining gap `10`, and Wutai remains a
+  separate non-counting restriction. No runtime/test/schema/elevation/CloudBase/deploy/commit/push/PR work occurred.
+  Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+
+## Current #163 Phase2 implementation allowlist — controller freeze `5386726512` / correction `5386727268`
+
+The controller expanded the allowlist to exactly these 22 paths for the bounded runtime slice:
+
+1. `GOAL.md`
+2. `cloudfunctions/getAdvice/data/catalog/osm-derived/7060545-coloane-trail.js`
+3. `cloudfunctions/getAdvice/data/catalog/osm-derived/7060546-hac-sa-reservoir-family-trail.js`
+4. `cloudfunctions/getAdvice/data/catalog/osm-derived/7060560-hac-sa-reservoir-fitness-trail.js`
+5. `cloudfunctions/getAdvice/data/catalog/osm-derived/17147571-sha-tin-fotan-shing-mun.js`
+6. `cloudfunctions/getAdvice/data/catalog/osm-derived/17147573-sha-tin-wai-pass.js`
+7. `cloudfunctions/getAdvice/data/catalog/osm-derived/README.md`
+8. `cloudfunctions/getAdvice/data/catalog/osm-derived/elevation-source.js`
+9. `cloudfunctions/getAdvice/data/catalog/runtime-catalog.js`
+10. `cloudfunctions/getAdvice/domain/route-catalog.js`
+11. `scripts/result-page-contract-test.js`
+12. `scripts/route-data-contract-test.js`
+13. `scripts/route-data/osm-derived.test.js`
+14. `scripts/route-domain-contract-test.js`
+15. `scripts/route-resolver-contract-test.js`
+16. `docs/catalog-batch3-source-evidence.md`
+17. `docs/current-status.md`
+18. `docs/decision-log.md`
+19. `docs/governance/MASTER_PLAN.md`
+20. `docs/route-catalog-expansion.md`
+21. `docs/route-data-licenses.md`
+22. `docs/tasks/ACTIVE_TASK.md`
+
+Frozen relations are `7060545` v11, `7060546` v10, `7060560` v7, `17147571` v1 and `17147573` v6. Complete
+ordered relation geometry is required; full point manifests remain in `docs/route-data-licenses.md`, while runtime
+node manifests are bounded first/last 32. Each route has exactly one bounded Open-Meteo/Copernicus DEM GLO-90
+request (<=100 cumulative-distance samples, endpoints included), deterministic Haversine/DEM metrics and duration,
+OSM/ODbL attribution, route-specific `operationalStatus=unknown` rationale and no official opening claim. Macau
+variants use region `澳门`; Hong Kong variants use region `香港`. The two Sha Tin variants share bare canonical
+`沙田郊野徑` (confirmation) and use only direct endpoint-qualified aliases. Full `routeGeometry` is internal and
+must not cross the trip/result DTO seam; `routePreview` is the bounded public projection.
+
+TDD RED was captured before production edits (`npm run test:route-data` observed `10 !== 15`); focused
+route-domain/data/resolver/result contracts now pass. Current runtime truth is `full=20`, `gap=5`, Wutai remains
+non-counting. No dependency, CloudBase, deployment, commit, push or PR action is authorized in this handoff.
+Executor status: `READY_FOR_CONTROLLER_REVIEW`.
