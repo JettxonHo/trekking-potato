@@ -3,11 +3,23 @@
 - Plan ID: `TP-MASTER-PLAN`
 - Plan version: `2.1.0`
 - Governance version: `TP-GOV-2.0.0`
-- Updated on: `2026-08-23`
+- Updated on: `2026-08-24`
 - Maintainer: 项目主控
 - Status: `ACTIVE`
 
 > 本文件是长期产品方向和优先级的事实源。当前执行范围、里程碑与状态以根目录 `GOAL.md` 为准。
+
+## C15 closeout — Issue #167 (2026-08-24)
+
+- PR #166 was approved at exact head `b0c8e1c4d8e5f2bddacff4a2a3697df050ab66df` (`b0c8e1c`), quality check run
+  `32654285375` succeeded, and it merged to live `main` as `264b6f3d55d01ca80bd907293aff90dc6eeca2be` (`264b6f3`).
+  Issue #165 is closed; Issue #167 is the documentation-only closeout.
+- `TP-CATALOG-001` is **`COMPLETE — CATALOG_READY`** for reviewed catalog code/data and contracts only: exactly
+  `full=25`, `blocked=1`, `gap=0`; Wutai is a separate non-counting restriction. This does not claim production,
+  public, real-device, CloudBase or deployment readiness.
+- The active runtime ledger returns to human-controlled Issue #123 as `BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`.
+  Preserve S8–S15/S20 `BLOCKED` and S16/S18 `UNVERIFIED_RUNTIME_TOOL`. Executors may not dispatch or mutate production,
+  CloudBase, staging release state or real-device acceptance. GitHub remains authoritative for any later head/PR/CI state.
 
 ## 1. 产品定位
 
@@ -39,8 +51,8 @@ AI 负责解释、归纳和非关键补充，不负责决定路线身份、类�
 ## 4. 当前路线图
 
 `TP-BETA-001` 与 `TP-STAGING-001` 已完成。`TP-COMMUNITY-001` 的社区轨迹实现已合并，但其运行时证据台账
-仍作为独立的 `BLOCKED_STAGING` Goal 保留。当前 `TP-CATALOG-001 / C15-F / #165` 负责最后五条可信路线
-目录扩充，使运行目录从二十条达到固定目标二十五条；它不改变
+仍作为独立的 `BLOCKED_STAGING` Goal 保留。`TP-CATALOG-001 / C15 / #167` 已完成目录代码/数据收口，使运行
+目录达到固定目标二十五条；剩余 #123 运行时验证仍由人控且不改变
 以下社区轨迹能力或人控门禁：
 
 1. 私有 GPX/KML 提交与安全解析；
@@ -173,7 +185,7 @@ residential/track/unclassified members are disclosed boundaries. They remain unc
 permission, safety and ODbL-derived-database treatment `UNKNOWN`. Runtime remains `full=20`, gap `5`, Wutai
 non-counting. Handoff is **`READY_FOR_CONTROLLER_REVIEW`** and no Phase 2 authority is implied.
 
-### #165 Phase2 final five runtime checkpoint — controller freeze `5387039704`
+### #165 Phase2 final five runtime checkpoint — controller freeze `5387039704` (historical; superseded by #167 closeout)
 
 The Phase 1 proposal set above is superseded by the controller freeze. Complete current-full relations `7065552` v8,
 `17618981` v8, `17719174` v3, `18220700` v1 and `18220701` v3 are now represented as searchable full variants with
@@ -183,7 +195,7 @@ Each relation has one bounded Open-Meteo/Copernicus DEM GLO-90 request (100 cumu
 endpoints) with deterministic metrics and duration. ODbL/open_data and trusted-elevation attribution remain visible;
 `operationalStatus=unknown` with route-specific rationale is conservative and no opening/permission/safety claim is
 inferred. Full geometry/manifests stay out of public DTOs. Runtime reconciliation is `full=25`, `gap=0`, Wutai remains
-non-counting, and the bounded executor handoff is **`READY_FOR_CONTROLLER_REVIEW`**; no merge/deployment authority is
-implied.
+non-counting. PR #166 subsequently merged this reviewed code/data; this historical checkpoint does not imply deployment,
+public release or human runtime validation.
 The OSM source cards use batch-completion/as-of `2026-08-23T16:13:29Z` after current-full request starts
 `16:10:38Z`–`16:13:28Z`; per-route elevation response timestamps remain independent and unchanged.

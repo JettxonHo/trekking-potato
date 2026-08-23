@@ -1,13 +1,14 @@
 # TP-CATALOG-001 — 首批可信路线目录扩充
 
 - Goal ID: `TP-CATALOG-001`
-- Status: `ACTIVE — #165 BATCH4_PHASE2_RUNTIME_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
+- Status: `COMPLETE — CATALOG_READY (code/data ready; not deployed)`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-23`
 - Planning Issue: `#153 / CLOSED`
 - Completed evidence Issue: `#155 / CLOSED`
-- Active Issue: `#165`
-- Release boundary: reviewed catalog data and tests only; no automatic promotion, CloudBase mutation or public release
+- Closeout Issue: `#167 / DOCS_ONLY_CLOSEOUT`
+- Active runtime ledger: `#123 / BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`
+- Release boundary: merged catalog code/data only; no production, public, real-device, CloudBase or deployment claim
 
 ## 1. Objective
 
@@ -17,9 +18,16 @@ remaining gap of zero toward the 25-slot target. The Wutai restriction is retain
 or counted. The program promotes small serial batches only after identity, topology, direction, opening-status and
 public-contract review. Legacy builtin place names remain discovery hints and do not count as trusted RouteVariants.
 
+## Current closeout truth — Issue #167 (2026-08-24)
+
+- PR #166 was approved at exact head `b0c8e1c4d8e5f2bddacff4a2a3697df050ab66df` (`b0c8e1c`), quality check run `32654285375` succeeded, and it merged to live `main` as `264b6f3d55d01ca80bd907293aff90dc6eeca2be` (`264b6f3`). Issue #165 is closed; Issue #167 is the documentation-only closeout and remains controller-owned until its review is complete.
+- `TP-CATALOG-001` is **`COMPLETE — CATALOG_READY`**: runtime truth is exactly `full=25`, `blocked=1`, `gap=0`; `R-WUTAI` is a separate blocked, non-counting restriction. This means code/data and contracts are ready for controller review, not deployed or public.
+- The active runtime ledger returns to Issue #123: `BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`. Preserve S8–S15/S20 as `BLOCKED` and S16/S18 as `UNVERIFIED_RUNTIME_TOOL`. No executor dispatch, production mutation, real-device acceptance, CloudBase action or deployment is authorized by this closeout.
+- GitHub is the live source for branch, head, merge and CI state. The recorded `main@264b6f3` is the closeout snapshot; any later commit, PR or CI result must be rechecked from live metadata rather than inferred from this document.
+
 ## 2. Authority and reading order
 
-Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #165 and
+Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #167 and
 `docs/tasks/ACTIVE_TASK.md`. `docs/architecture.md`, `docs/community-track-workflow.md` and the new catalog-expansion
 ledger own the geometry, rights and promotion boundaries. A conflict stops the affected work and returns to Sol XHigh.
 
@@ -68,9 +76,10 @@ enter the trusted catalog merely to reach the target count.
   squash merged as `7ef1929`; Issue #163 closed.
 - Runtime truth is twenty searchable `full` variants plus the separate non-counting Wutai restriction, leaving the
   final five routes toward the fixed target of 25.
-- Issue #165 owns the final serial batch. Phase1 may reconfirm the four eligible-but-unselected #163 alternates and
-  run one bounded replacement discovery pass. No candidate counts before a controller freeze, and no runtime,
-  elevation, dependency, CloudBase, deployment or release change is authorized.
+- Historically, Issue #165 owned the final serial batch. Its Phase1 reconfirmation and bounded replacement pass were
+  completed, followed by the controller freeze and runtime implementation; same-head quality CI and two fresh exact-head
+  independent Reviews were completed before PR #166 merged. No candidate was counted before that freeze, and this
+  historical activation granted no production, CloudBase, deployment or release authority.
 
 ## #163 Batch3 activation — 2026-08-23
 
@@ -851,7 +860,7 @@ The Goal is complete only when I01–I25 plus replacement child #77 are closed w
   separate non-counting restriction. No Phase 2 allowlist, runtime, tests, elevation or deployment authority is
   implied. Handoff: **`READY_FOR_CONTROLLER_REVIEW`**.
 
-## #165 Phase2 final five runtime checkpoint — controller freeze `5387039704`
+## #165 Phase2 final five runtime checkpoint — controller freeze `5387039704` (historical; superseded by #167 closeout)
 
 - The Phase 1 proposal set is superseded by the controller freeze. Exactly five complete current-full OSM relations
   are now represented as searchable `full` RouteVariants: `7065552` 路環石面盆古道, `17618981` 鲲鹏径第4段,
@@ -861,11 +870,12 @@ The Goal is complete only when I01–I25 plus replacement child #77 are closed w
   endpoints included, 100/100 response) for deterministic elevation metrics and duration. ODbL/open_data and trusted
   elevation boundaries remain explicit, with visible OpenStreetMap attribution; complete geometry stays internal and
   public trip/result DTOs remain geometry-free.
-- `operationalStatus=unknown` with route-specific rationale remains conservative. Residential/track/unclassified
-  members are disclosed road boundaries while user access mode remains `walk`; no opening, permission, safety or
-  legality claim is inferred. Runtime truth is now `full=25`, `gap=0`; Wutai remains a separate non-counting blocked
-  restriction. Focused contracts and the required full gates are pending/recorded in the Phase2 handoff; this is
-  **`READY_FOR_CONTROLLER_REVIEW`**, not merge/deploy/Goal acceptance.
+- `operationalStatus=unknown` with route-specific rationale remained conservative. Residential/track/unclassified
+  members were disclosed road boundaries while user access mode remained `walk`; no opening, permission, safety or
+  legality claim was inferred. Runtime truth at that handoff was `full=25`, `gap=0`; Wutai remained a separate
+  non-counting blocked restriction. Same-head quality CI and two fresh exact-head independent Reviews were completed,
+  then PR #166 merged this code/data. The executor handoff was **`READY_FOR_CONTROLLER_REVIEW`**; this historical
+  checkpoint did not imply deployment or Goal acceptance.
 - The five OSM source cards use batch-completion/as-of `2026-08-23T16:13:29Z` after the current-full request-start
   window `16:10:38Z`–`16:13:28Z`; those starts remain request metadata in the evidence report. Independent per-route
   `elevationCheckedAt` values are unchanged.

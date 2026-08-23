@@ -1,22 +1,26 @@
-# ACTIVE TASK — #165 final five complete searchable routes
+# ACTIVE TASK — #123 human-controlled staging/runtime validation
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-CATALOG-001 / ACTIVE — #165 BATCH4_PHASE2_RUNTIME`
-- Milestone: C15-F final five-route runtime implementation
-- GitHub Issue: `#165`
-- Status/Mode: `PHASE2_RUNTIME_IMPLEMENTATION / READY_FOR_CONTROLLER_REVIEW`
+- Goal: `TP-CATALOG-001 / COMPLETE — CATALOG_READY (code/data ready; not deployed)`
+- Milestone: C15 closeout complete; remaining work is human runtime validation only
+- GitHub Issue: `#123` (closeout Issue #167 is docs-only and controller-owned)
+- Status/Mode: `BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`
 - Controller: Sol XHigh + human product controller
-- Branch/base: `codex/165-catalog-final-5` from exact `main@7ef1929493989d07f0a683aba1dfcf51837a9ff5`
-- Executor: exact custom `luna-worker`, configured `gpt-5.6-luna/max`; runtime identity is separate evidence
+- Branch/base snapshot: live `main@264b6f3d55d01ca80bd907293aff90dc6eeca2be` (`264b6f3`)
+- GitHub current-head invariant: this is the closeout merge snapshot; re-read live metadata before any later #167
+  CI/Review or merge decision rather than treating this hash as a future head.
+- Executor boundary: no executor dispatch, production mutation, CloudBase action, deployment, public release or
+  real-device acceptance is authorized. Only the human controller may perform #123 staging/runtime actions.
 
-PR #160 merged the first five runtime additions as `14830eb`, PR #162 merged the second as `f393c00`, and PR #164
-merged the third as `7ef1929` after same-head CI and two Reviews. Controller freeze `5387039704` authorized the final
-five runtime additions. The catalog now has twenty-five searchable `full` variants and a final gap of zero; Wutai
-remains a separate non-counting restriction.
+PR #166 was approved at exact head `b0c8e1c4d8e5f2bddacff4a2a3697df050ab66df` (`b0c8e1c`), quality check run
+`32654285375` succeeded, and it merged to live `main` as `264b6f3d55d01ca80bd907293aff90dc6eeca2be` (`264b6f3`).
+Issue #165 is closed. The catalog has exactly twenty-five searchable `full` variants and a final gap of zero; Wutai
+remains a separate blocked, non-counting restriction. Preserve #123 rows S8–S15/S20 as `BLOCKED` and S16/S18 as
+`UNVERIFIED_RUNTIME_TOOL`.
 
-## Current #165 Phase2 contract — controller freeze `5387039704`
+## Historical #165 Phase2 contract — controller freeze `5387039704` (superseded by #167 closeout)
 
-Exactly five complete current-full OSM relations are implemented for controller review: `7065552` v8, `17618981`
+Exactly five complete current-full OSM relations were implemented for controller review: `7065552` v8, `17618981`
 v8, `17719174` v3, `18220700` v1 and `18220701` v3. The five fragments retain ordered WGS84 full geometry,
 <=500-point previews, first/last-32 runtime node manifests and complete relation/way/node version manifests in
 `docs/route-data-licenses.md`. Macau uses region `澳门`; the four Shenzhen routes use `广东省深圳市`. Residential,
@@ -28,7 +32,7 @@ endpoints, 100/100 response), deterministic Haversine/elevation/duration metrics
 and manifests are omitted from public trip/result DTOs. Runtime reconciliation is `full=25`, `gap=0`; Wutai remains
 non-counting.
 
-The current Phase2 allowlist is exactly:
+The pre-merge Phase2 allowlist was exactly:
 
 1. `GOAL.md`
 2. `cloudfunctions/getAdvice/data/catalog/osm-derived/7065552-coloane-seac-min-pun.js`
@@ -53,9 +57,10 @@ The current Phase2 allowlist is exactly:
 21. `docs/route-data-licenses.md`
 22. `docs/tasks/ACTIVE_TASK.md`
 
-TDD RED was captured before the fragments (`test:route-data` observed `15 !== 20`); the implementation is now
-`READY_FOR_CONTROLLER_REVIEW`. No opening/permission/safety/legality fact is inferred, and no commit, push, PR,
-merge, deployment or CloudBase action is authorized by this executor.
+TDD RED was captured before the fragments (`test:route-data` observed `15 !== 20`); the executor handoff at that
+pre-merge head was `READY_FOR_CONTROLLER_REVIEW`. No opening/permission/safety/legality fact was inferred, and no
+commit, push, PR or merge action had occurred at that handoff. The controller then approved PR #166 at the recorded
+head and merged it to `main`; this section is historical and does not authorize deployment or CloudBase action.
 
 ## Historical #165 Phase1 contract (superseded by the Phase2 freeze above)
 
