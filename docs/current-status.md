@@ -55,8 +55,9 @@
 - OSM relation pages/member endpoints confirmed current identities and ordered way-member lists. The first full OSM
   API request returned HTTP `429`; the read was stopped. Preliminary endpoint continuity from planning is not a full
   topology approval, so gaps, branches, completeness and derived metrics remain `UNKNOWN`.
-- The 2026-04-10 Xiaruo Township Government notice names the matching Binghu, Nise and Shenhu routes as
-  undeveloped/unopened. Shenpu and Ninong have no current route-level opening/permit source in this pass. All five
+- The four-agency Deqin County notice dated `2025-10-14`, published/reposted on the Xiaruo Township site on
+  `2026-04-10`, names the matching Binghu, Nise and Shenhu routes as undeveloped/unopened. Shenpu and Ninong have no
+  current route-level opening/permit source in this pass. All five
   rows remain `BLOCKED_CANDIDATE`; no row entered runtime data and none counts toward the searchable target.
 - Executor checkpoint: `READY_FOR_CONTROLLER_REVIEW`; controller must inspect the report/diff and decide whether a
   later step is warranted. Since all five candidates are blocked, no route-data implementation Issue is warranted for

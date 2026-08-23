@@ -58,8 +58,9 @@ core field remains blocked. Relation `19700036` cannot leave quarantine until it
 - Current relation pages/member endpoints provide identity, aliases, `from`/`to` tags and ordered all-way members.
   The OSM full API returned HTTP `429` on the first request, so the full node/way gap/branch/completeness audit is
   `UNKNOWN`; the planning endpoint observation is explicitly preliminary and no metrics were derived.
-- Official Xiaruo Township Government evidence blocks matching Binghu/Nise/Shenhu routes. Shenpu and Ninong have no
-  current route-level opening/permit evidence. All five rows are `BLOCKED_CANDIDATE`; no route-data edit is authorized.
+- A four-agency Deqin County notice dated `2025-10-14`, published/reposted on the Xiaruo Township site on `2026-04-10`,
+  blocks matching Binghu/Nise/Shenhu routes. Shenpu and Ninong have no current route-level opening/permit evidence.
+  All five rows are `BLOCKED_CANDIDATE`; no route-data edit is authorized.
 
 ## 5. Verification and deliverable
 

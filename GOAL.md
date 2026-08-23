@@ -95,8 +95,9 @@ enter the trusted catalog merely to reach the target count.
 - The OSM full-relation read returned HTTP `429` on the first request. Per the stop condition, the full node/way
   topology replay stopped; preliminary endpoint continuity remains preliminary and gaps/branches/completeness are
   `UNKNOWN`. No metrics or raw geometry were copied.
-- The official Xiaruo Township notice dated `2026-04-10` names the matching Binghu, Nise and Shenhu routes as
-  undeveloped/unopened, so relations `19700005`, `19700028` and `19700036` remain blocked. No current route-level
+- The four-agency Deqin County notice dated `2025-10-14`, published/reposted on the Xiaruo Township site on
+  `2026-04-10`, names the matching Binghu, Nise and Shenhu routes as undeveloped/unopened, so relations `19700005`,
+  `19700028` and `19700036` remain blocked. No current route-level
   opening/permit source was found for Shenpu (`19700031`) or Ninong (`19700085`); both remain blocked as `UNKNOWN`.
 - All five evidence verdicts are `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION`. This audit makes no
   runtime catalog, CloudBase, deployment or public-release claim. A later implementation Issue must repeat the full

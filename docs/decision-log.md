@@ -1095,8 +1095,9 @@
   way-member IDs. The first full OSM API request returned HTTP `429`; the executor stopped rather than retrying. The
   planning endpoint-continuity observation remains preliminary; node-level gaps, branches, completeness, direction
   reversal and metrics are `UNKNOWN`.
-- Current government access evidence: the 2026-04-10 Xiaruo Township notice names the matching Yubeng Binghu, Nise,
-  and Shenhu routes as undeveloped/unopened, blocking `19700005`, `19700028` and `19700036`. No current route-level
+- Current government access evidence: a four-agency Deqin County notice dated `2025-10-14`, published/reposted on the
+  Xiaruo Township site on `2026-04-10`, names the matching Yubeng Binghu, Nise and Shenhu routes as undeveloped/
+  unopened, blocking `19700005`, `19700028` and `19700036`. No current route-level
   opening/permit source was found for Shenpu (`19700031`) or Ninong (`19700085`), so both remain `UNKNOWN` and blocked.
 - Decision: all five rows remain `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION`. ODbL attribution and
   derived-database treatment remain an explicit future implementation gate. A later child Issue must re-run the full

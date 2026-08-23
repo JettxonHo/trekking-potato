@@ -16,20 +16,21 @@ request. The existing planning snapshot's consecutive-endpoint observation is re
 gaps, branches and completeness are therefore `UNKNOWN` in this audit. No distance, elevation or duration metric is
 derived from incomplete evidence.
 
-The current official local-government access notice is independently decisive for three rows: the 2026-04-10
-Xiaruo Township notice lists the Yubeng **Shenhu, Binghu, insect-grass and Nise routes** among undeveloped/unopened
-areas and prohibits tourism/exploration there. The same official source does not provide a route-level opening notice
-for Shenpu or Ninong. A scenic-area price page, a general tourism article or an OSM tag cannot substitute for a
-current route-level opening/permit source. All five rows therefore remain blocked.
+The current official local-government access notice is independently decisive for three rows: the four-agency Deqin
+County notice is dated `2025-10-14` and was published/reposted on the Xiaruo Township site on `2026-04-10`. It lists
+the Yubeng **Shenhu, Binghu, insect-grass and Nise routes** among undeveloped/unopened areas and prohibits tourism/
+exploration there. The same official source does not provide a route-level opening notice for Shenpu or Ninong. A
+scenic-area price page, a general tourism article or an OSM tag cannot substitute for a current route-level opening/
+permit source. All five rows therefore remain blocked.
 
 ## Candidate verdicts
 
 | Relation | Provisional identity and aliases | OSM direction tags | Member/topology audit | Current official access evidence | Rights/attribution | Evidence verdict |
 |---:|---|---|---|---|---|---|
-| `19700005` | Place `雨崩` (planned ID `UNKNOWN`); Route `雨崩冰湖线`; Variant `雨崩上村 → 雨崩冰湖`; aliases `冰湖线`, `Yubeng Binghu Route`, `REF=冰湖线`, `name:zh`, `name:zh-Hans` | `from=雨崩上村`, `to=雨崩冰湖`; no `roundtrip`/loop semantics | 11 ordered way members, all role-empty; preliminary planning snapshot observed consecutive endpoints. Full gaps/branches/completeness recheck stopped at OSM API `429`; metrics `UNKNOWN` | Xiaruo Township Government notice (2026-04-10) explicitly includes `雨崩村冰湖线路` in undeveloped/unopened areas; no promotion as open | ODbL applies; future attribution/derived-database treatment and exact runtime use decision are not recorded | **`BLOCKED_CANDIDATE`** — explicit route prohibition, plus incomplete topology/rights gate |
-| `19700028` | Place `雨崩` (planned ID `UNKNOWN`); Route `雨崩尼色线`; Variant `雨崩上村 → 尼色冰洞`; aliases `尼色线`, `Yubeng Nise Route`, `REF=尼色线`, `name:zh`, `name:zh-Hans` | `from=雨崩上村`, `to=尼色冰洞`; no `roundtrip`/loop semantics | 8 ordered way members, all role-empty; preliminary planning snapshot observed consecutive endpoints. Full gaps/branches/completeness recheck stopped at OSM API `429`; metrics `UNKNOWN` | Xiaruo Township Government notice (2026-04-10) explicitly includes `雨崩村尼色线路` in undeveloped/unopened areas; no promotion as open | ODbL applies; future attribution/derived-database treatment and exact runtime use decision are not recorded | **`BLOCKED_CANDIDATE`** — explicit route prohibition, plus incomplete topology/rights gate |
+| `19700005` | Place `雨崩` (planned ID `UNKNOWN`); Route `雨崩冰湖线`; Variant `雨崩上村 → 雨崩冰湖`; aliases `冰湖线`, `Yubeng Binghu Route`, `REF=冰湖线`, `name:zh`, `name:zh-Hans` | `from=雨崩上村`, `to=雨崩冰湖`; no `roundtrip`/loop semantics | 11 ordered way members, all role-empty; preliminary planning snapshot observed consecutive endpoints. Full gaps/branches/completeness recheck stopped at OSM API `429`; metrics `UNKNOWN` | Four-agency Deqin County notice dated `2025-10-14`, published/reposted by Xiaruo Township site `2026-04-10`, explicitly includes `雨崩村冰湖线路` in undeveloped/unopened areas; no promotion as open | ODbL applies; future attribution/derived-database treatment and exact runtime use decision are not recorded | **`BLOCKED_CANDIDATE`** — explicit route prohibition, plus incomplete topology/rights gate |
+| `19700028` | Place `雨崩` (planned ID `UNKNOWN`); Route `雨崩尼色线`; Variant `雨崩上村 → 尼色冰洞`; aliases `尼色线`, `Yubeng Nise Route`, `REF=尼色线`, `name:zh`, `name:zh-Hans` | `from=雨崩上村`, `to=尼色冰洞`; no `roundtrip`/loop semantics | 8 ordered way members, all role-empty; preliminary planning snapshot observed consecutive endpoints. Full gaps/branches/completeness recheck stopped at OSM API `429`; metrics `UNKNOWN` | Four-agency Deqin County notice dated `2025-10-14`, published/reposted by Xiaruo Township site `2026-04-10`, explicitly includes `雨崩村尼色线路` in undeveloped/unopened areas; no promotion as open | ODbL applies; future attribution/derived-database treatment and exact runtime use decision are not recorded | **`BLOCKED_CANDIDATE`** — explicit route prohibition, plus incomplete topology/rights gate |
 | `19700031` | Place `雨崩` (planned ID `UNKNOWN`); Route `雨崩神瀑线`; Variant `雨崩下村 → 雨崩神瀑`; aliases `神瀑线`, `Yubeng Shenpu Route`, `REF=神瀑线`, `name:zh`, `name:zh-Hans` | `from=雨崩下村`, `to=雨崩神瀑`; no `roundtrip`/loop semantics | 4 ordered way members, all role-empty; preliminary planning snapshot observed consecutive endpoints. Full gaps/branches/completeness recheck stopped at OSM API `429`; metrics `UNKNOWN` | No current route-level official/operator opening or permit source found. General government safety notices do not prove that this exact OSM variant is open | ODbL applies; future attribution/derived-database treatment and exact runtime use decision are not recorded | **`BLOCKED_CANDIDATE`** — current access `UNKNOWN`, plus incomplete topology/rights gate |
-| `19700036` | Place `雨崩` (planned ID `UNKNOWN`); Route `雨崩神湖线`; Variant `雨崩下村 → 雨崩神湖`; aliases `神湖线`, `name:zh`, `name:zh-Hans`; **identity conflict: `name:en=Yubeng Shenpu Route`** | `from=雨崩下村`, `to=雨崩神湖`; no `roundtrip`/loop semantics | 3 ordered way members, all role-empty; preliminary planning snapshot observed consecutive endpoints. Full gaps/branches/completeness recheck stopped at OSM API `429`; metrics `UNKNOWN` | Xiaruo Township Government notice (2026-04-10) explicitly includes `雨崩村神湖线路` in undeveloped/unopened areas; no promotion as open | ODbL applies; identity conflict and future attribution/derived-database treatment remain unresolved | **`BLOCKED_CANDIDATE`** — identity quarantine is mandatory; explicit route prohibition and incomplete topology/rights also block |
+| `19700036` | Place `雨崩` (planned ID `UNKNOWN`); Route `雨崩神湖线`; Variant `雨崩下村 → 雨崩神湖`; aliases `神湖线`, `name:zh`, `name:zh-Hans`; **identity conflict: `name:en=Yubeng Shenpu Route`** | `from=雨崩下村`, `to=雨崩神湖`; no `roundtrip`/loop semantics | 3 ordered way members, all role-empty; preliminary planning snapshot observed consecutive endpoints. Full gaps/branches/completeness recheck stopped at OSM API `429`; metrics `UNKNOWN` | Four-agency Deqin County notice dated `2025-10-14`, published/reposted by Xiaruo Township site `2026-04-10`, explicitly includes `雨崩村神湖线路` in undeveloped/unopened areas; no promotion as open | ODbL applies; identity conflict and future attribution/derived-database treatment remain unresolved | **`BLOCKED_CANDIDATE`** — identity quarantine is mandatory; explicit route prohibition and incomplete topology/rights also block |
 | `19700085` | Place `雨崩` (planned ID `UNKNOWN`); Route `雨崩尼农线`; Variant `尼农村停车场 → 雨崩上村`; aliases `尼农线`, `Yubeng Ninong Route`, `REF=尼农线`, `name:zh`, `name:zh-Hans` | `from=尼农村停车场`, `to=雨崩上村`; no `roundtrip`/loop semantics | 11 ordered way members, all role-empty; preliminary planning snapshot observed consecutive endpoints. Full gaps/branches/completeness recheck stopped at OSM API `429`; metrics `UNKNOWN` | No current route-level official/operator opening or permit source found. The existence of a village/road project does not prove this walking variant is open | ODbL applies; future attribution/derived-database treatment and exact runtime use decision are not recorded | **`BLOCKED_CANDIDATE`** — current access `UNKNOWN`, plus incomplete topology/rights gate |
 
 `from`/`to` are OSM relation tags, not a product-level proof of one-way travel, out-and-back behavior, loop closure,
@@ -64,11 +65,13 @@ request. Per the Issue stop condition, no broad retry or alternate bulk extracti
 
 ### Direct matching prohibition (three rows)
 
-The [Xiaruo Township Government notice dated 2026-04-10](https://www.deqin.gov.cn/zfxxgk_deqin_xrx/fdzdgknr/tzgg/202604/20260410_239871.html)
-lists `雨崩村神湖、冰湖、虫草线路、尼色线路` under undeveloped areas without tourism facilities/safety
-guarantees and prohibits tourism/exploration there. This is a current government access control, not an inference from
-OSM geometry. It blocks `19700005` (冰湖), `19700028` (尼色) and `19700036` (神湖) from promotion. It does not
-authorize a different route or establish a reopening date.
+The [four-agency Deqin County notice dated 2025-10-14, published/reposted on the Xiaruo Township site on
+2026-04-10](https://www.deqin.gov.cn/zfxxgk_deqin_xrx/fdzdgknr/tzgg/202604/20260410_239871.html) is signed by the
+Deqin County Culture and Tourism Bureau, Forestry and Grassland Bureau, Emergency Management Bureau, and the Deqin
+Branch of the Diqing Prefecture Ecology and Environment Bureau. It lists `雨崩村神湖、冰湖、虫草线路、尼色线路`
+under undeveloped areas without tourism facilities/safety guarantees and prohibits tourism/exploration there. This is
+government access control, not an inference from OSM geometry. It blocks `19700005` (冰湖), `19700028` (尼色) and
+`19700036` (神湖) from promotion. It does not authorize a different route or establish a reopening date.
 
 The [Deqin County Culture and Tourism Bureau notice dated 2026-03-18](https://www.deqin.gov.cn/zfxxgk_deqin_whhlyj/fdzdgknr/tzgg/202603/20260318_239184.html)
 is a contemporaneous county notice titled “关于禁止在未开发区域开展旅游、探险等活动的通告”. Its page links the
