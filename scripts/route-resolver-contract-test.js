@@ -235,10 +235,10 @@ function makeMultiVariantCatalog() {
 function productionCatalogTests() {
   const first = createProductionRouteCatalog()
   const second = createProductionRouteCatalog()
-  assert.deepEqual([first.sources.length, first.places.length, first.routes.length, first.variants.length], [22, 180, 11, 11])
+  assert.deepEqual([first.sources.length, first.places.length, first.routes.length, first.variants.length], [27, 185, 16, 16])
   assert.deepEqual(
     first.variants.reduce((counts, variant) => ({ ...counts, [variant.capability]: (counts[variant.capability] || 0) + 1 }), {}),
-    { full: 10, blocked: 1 },
+    { full: 15, blocked: 1 },
   )
   first.variants[0].canonicalName = 'mutated catalog result'
   assert.notEqual(second.variants[0].canonicalName, 'mutated catalog result')
@@ -259,6 +259,11 @@ function productionCatalogTests() {
     ['坪惠湿地步道', 'variant:osm-20046643-pinghui-wetland-trail'],
     ['赵公山东北环线', 'variant:osm-20739620-zhaogongshan-loop'],
     ['三峡之巅徒步道', 'variant:osm-17841828-three-gorges-summit'],
+    ['猛古村-桑伯格徒步线路', 'variant:osm-18364943-menggu-sangberg'],
+    ['黑石城徒步', 'variant:osm-18364941-black-stone-city-hike'],
+    ['惠州大南山精华线', 'variant:osm-19684389-huizhou-dananshan-classic'],
+    ['惠州大南山拉胡线', 'variant:osm-19686682-huizhou-dananshan-lahu'],
+    ['马峦山自然笔记步道', 'variant:osm-20072078-maluanshan-nature-notes'],
   ]
   for (const [query, candidateId] of frozenBatch) {
     const target = assertDirect(resolver.resolveQuery(query), 'canonical_exact', candidateId)

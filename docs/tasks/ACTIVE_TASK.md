@@ -1,21 +1,95 @@
-# ACTIVE TASK — #159 Phase2 runtime catalog batch-1 review-fix
+# ACTIVE TASK — #161 next five complete searchable routes
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-CATALOG-001 / ACTIVE — #159 PHASE2_REVIEW_FIX`
-- Milestone: C15-C batch-1 topology-first discovery freeze / Phase2 runtime review-fix
-- GitHub Issue: `#159`
-- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / PHASE2_REVIEW_FIX`
+- Goal: `TP-CATALOG-001 / ACTIVE — #161 PHASE2_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
+- Milestone: C15-D batch-2 evidence and controller freeze
+- GitHub Issue: `#161`
+- Status/Mode: `READY_FOR_CONTROLLER_REVIEW / PHASE2_IMPLEMENTATION_COMPLETE`
 - Controller: Sol XHigh + human product controller
-- Branch/base: `codex/159-catalog-batch1-5` from exact `main@cb50fd97b5b3333e7800a58538cc42d7fb4caf27`
+- Branch/base: `codex/161-catalog-batch2-5` from exact `main@14830eb3896338fd3fe40278cc609f1f2bc1dd06`
 - Executor: exact custom `luna-worker`, configured `gpt-5.6-luna/max`; runtime identity is separate evidence
 
-The live #159 instruction supersedes stale 24-full-plus-Wutai wording. The corrected ledger remains exactly 25 searchable
-`full` slots (five existing + twenty missing/replacement); current Phase2 runtime has ten searchable `full` variants
-(five existing + five frozen batch variants), leaving a remaining gap of fifteen. Wutai is a separate non-counting
-restriction. This handoff covers the bounded Phase2 review-fix and remains subject to controller review; it does not
-imply deployment or release.
+PR #160 merged the first five runtime additions as `14830eb`. Controller freeze `5386435179` authorized and the
+allowlisted Phase2 slice implemented five more complete OSM relations. The catalog now has fifteen searchable `full`
+variants and a remaining gap of ten; Wutai remains a separate non-counting restriction. Exact-head review is pending.
 
-## 1. Phase1 candidate set (historical / superseded)
+## Current #161 Phase1 contract (historical / superseded)
+
+Phase1 is read-only evidence work. Audit a bounded primary-source candidate pool and write
+`docs/catalog-batch2-source-evidence.md`. Freeze exactly five only after identity, complete connected walking topology,
+deterministic direction/loop semantics, transport-mode separation, ODbL attribution, reproducible source context and a
+bounded elevation plan are all explicit. Unknown opening remains unknown; geometry never proves access or safety.
+
+Exact Phase1 allowlist:
+
+1. `GOAL.md`
+2. `docs/current-status.md`
+3. `docs/governance/MASTER_PLAN.md`
+4. `docs/tasks/ACTIVE_TASK.md`
+5. `docs/route-catalog-expansion.md`
+6. `docs/decision-log.md`
+7. new `docs/catalog-batch2-source-evidence.md`
+
+No runtime, test, schema, dependency, config, CloudBase, deployment or release file may change before a live controller
+comment freezes the exact five and expands the Phase2 allowlist. Stop on rate limiting and do not scrape third-party
+route platforms or access private community evidence. Deliver `READY_FOR_CONTROLLER_REVIEW` with five proposed
+identities or a truthful blocker; blocked candidates do not count.
+
+## Current #161 Phase2 contract — controller freeze `5386435179`
+
+The controller froze exactly five identities. Phase2 may modify only the following 22 paths: `GOAL.md`; the five new
+OSM fragments (`18364943-menggu-sangberg.js`, `18364941-black-stone-city-hike.js`,
+`19684389-huizhou-dananshan-classic.js`, `19686682-huizhou-dananshan-lahu.js`,
+`20072078-maluanshan-nature-notes.js`); `cloudfunctions/getAdvice/data/catalog/osm-derived/README.md`,
+`elevation-source.js`; `runtime-catalog.js`; `domain/route-catalog.js`; contract tests
+`scripts/result-page-contract-test.js`, `scripts/route-data-contract-test.js`, `scripts/route-data/osm-derived.test.js`,
+`scripts/route-domain-contract-test.js`, `scripts/route-resolver-contract-test.js`; and the lifecycle/evidence docs
+`docs/catalog-batch2-source-evidence.md`, `docs/current-status.md`, `docs/decision-log.md`,
+`docs/governance/MASTER_PLAN.md`, `docs/route-catalog-expansion.md`, `docs/route-data-licenses.md`,
+`docs/tasks/ACTIVE_TASK.md`.
+
+Each new variant retains complete ordered current-full OSM geometry, <=500 WGS84 preview points, relation/way/node
+version provenance, one <=100-point Open-Meteo/Copernicus elevation request, deterministic metrics and route-specific
+`operationalStatus=unknown` rationale. Road/track members are disclosed; no opening, operator, safety or deployment
+claim is inferred. TDD RED preceded production edits; focused contracts pass. Handoff is
+`READY_FOR_CONTROLLER_REVIEW` with runtime truth `full=15`, `gap=10`, Wutai non-counting.
+
+## #161 Phase1 checkpoint — 2026-08-23
+
+- Report: [`docs/catalog-batch2-source-evidence.md`](../catalog-batch2-source-evidence.md).
+- The first new OSM full read (`10548040`) returned HTTP 200 but failed topology/direction gates; the second request
+  (`12390533`) returned HTTP `429`. The stop condition was honored without retry or broad replacement search.
+- Result is a truthful shortfall: `0/5 PROPOSED_FOR_CONTROLLER_FREEZE`; searchable runtime remains `full=10`,
+  `gap=15`, with Wutai outside the count. No candidate, geometry, elevation or metric was promoted.
+- Executor status: `READY_FOR_CONTROLLER_REVIEW`; controller direction is required before any renewed research or
+  Phase2 allowlist expansion.
+
+## #161 controller-authorized fresh pass checkpoint — 2026-08-23
+
+- Comment `5386298463` permitted only `12390533`, `12390888`, `18731549`, `18731550`, `18952585`, `19017834`,
+  `20737376` and `20739619`, each at most once, sequentially with a minimum five-second interval and identifying
+  User-Agent. No throttle occurred; the first status-only 200 (`12390533`) was not re-requested.
+- No candidate passed all gates: `19017834`/`20739619` lack deterministic named direction, while other rows fail
+  topology/order, mixed transport or payload provenance. Result is `0/5 PROPOSED_FOR_CONTROLLER_FREEZE`.
+- Report updated at `docs/catalog-batch2-source-evidence.md`; runtime remains `full=10`, `gap=15`, Wutai outside
+  the count. No Phase2 allowlist expansion, test/runtime/schema/elevation change or deployment occurred.
+
+## #161 controller-authorized replacement discovery checkpoint — 2026-08-23
+
+- Comment `5386337561` authorized exactly one metadata-only China hiking-relation Overpass query, then at most twenty
+  sequential current-full reads with an identifying User-Agent and a six-second interval. The query returned HTTP 200
+  with 111 metadata records; all twenty selected full reads returned HTTP 200 and no 429/throttle occurred.
+- Exactly five identities are `PROPOSED_FOR_CONTROLLER_FREEZE`: `18364943` 猛古村-桑伯格徒步线路, `18364941` 黑石城徒步,
+  `19684389` 惠州大南山精华线, `19686682` 惠州大南山拉胡线 and `20072078` 马峦山自然笔记步道. Each has a
+  connected branch-free, orderable two-endpoint graph and an explicit route=hiking walk mode with road boundaries
+  disclosed where present. Opening/operator permission remain `UNKNOWN`.
+- This remains docs-only Phase1. Searchable runtime stays `full=10`, gap `15`, with Wutai non-counting; no runtime,
+  schema, test, elevation, CloudBase, deployment, commit or push action occurred. Handoff is
+  `READY_FOR_CONTROLLER_REVIEW`.
+
+## Historical #159 record
+
+### #159 Phase1 candidate set (historical / superseded)
 
 The six-document, discovery-only candidate list below is retained as historical provenance. It was superseded by the
 controller's Phase2 freeze (`5385785828`) for the bounded runtime slice. The current frozen set is
@@ -45,7 +119,7 @@ No application, Cloud Function, runtime route data, test, fixture, dependency, c
 change. No commit, push, PR, merge, CloudBase or deployment action is authorized in this slice. Escalate before scope
 expansion.
 
-## 2A. Current Phase2 review-fix allowlist
+## 2A. Historical #159 Phase2 review-fix allowlist (superseded)
 
 The controller-frozen Phase2 runtime review-fix uses this exact 25-path allowlist (including the 20739620 replacement):
 
@@ -77,6 +151,25 @@ The controller-frozen Phase2 runtime review-fix uses this exact 25-path allowlis
 
 The current review-fix may change only these paths. It does not authorize dependency, CloudBase, deployment, release,
 commit, push or PR actions; any required scope expansion must be escalated before editing.
+
+## 2B. Current #161 Phase2 implementation allowlist — controller freeze `5386435179`
+
+The active #161 Phase2 slice supersedes the historical #159 list above. Its exact paths are: `GOAL.md`; the five new
+OSM fragments under `cloudfunctions/getAdvice/data/catalog/osm-derived/` (`18364943-menggu-sangberg.js`,
+`18364941-black-stone-city-hike.js`, `19684389-huizhou-dananshan-classic.js`,
+`19686682-huizhou-dananshan-lahu.js`, `20072078-maluanshan-nature-notes.js`); `README.md`; `elevation-source.js`;
+`runtime-catalog.js`; `domain/route-catalog.js`; tests `scripts/result-page-contract-test.js`,
+`scripts/route-data-contract-test.js`, `scripts/route-data/osm-derived.test.js`,
+`scripts/route-domain-contract-test.js`, `scripts/route-resolver-contract-test.js`; and lifecycle/evidence docs
+`docs/catalog-batch2-source-evidence.md`, `docs/current-status.md`, `docs/decision-log.md`,
+`docs/governance/MASTER_PLAN.md`, `docs/route-catalog-expansion.md`, `docs/route-data-licenses.md`,
+`docs/tasks/ACTIVE_TASK.md`.
+
+No dependency, config, UI production, CloudBase, deployment, release, commit, push or PR action is authorized. The
+five fragments must preserve complete current-full geometry, <=500-point previews, ODbL provenance/version manifests,
+one <=100-point Open-Meteo/Copernicus elevation request, deterministic metrics, route-specific unknown-status rationale
+and disclosed road/track members. Handoff is `READY_FOR_CONTROLLER_REVIEW` with `full=15`, `gap=10`, Wutai
+non-counting.
 
 ## 3. Evidence contract
 

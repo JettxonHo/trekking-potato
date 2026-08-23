@@ -1,25 +1,25 @@
 # TP-CATALOG-001 — 首批可信路线目录扩充
 
 - Goal ID: `TP-CATALOG-001`
-- Status: `ACTIVE — #159 PHASE2_REVIEW_FIX / READY_FOR_CONTROLLER_REVIEW`
+- Status: `ACTIVE — #161 PHASE2_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-23`
 - Planning Issue: `#153 / CLOSED`
 - Completed evidence Issue: `#155 / CLOSED`
-- Active Issue: `#159`
+- Active Issue: `#161`
 - Release boundary: reviewed catalog data and tests only; no automatic promotion, CloudBase mutation or public release
 
 ## 1. Objective
 
 Grow the structured trusted runtime catalog to exactly twenty-five searchable `full` RouteVariant slots. The current
-runtime count is ten searchable `full` variants (five existing pilots plus five #159 Phase2 batch variants), leaving a
-remaining gap of fifteen toward the 25-slot target. The Wutai restriction is retained separately and is not searchable
+runtime count is fifteen searchable `full` variants (five existing pilots plus five #159 and five #161 Phase2 batch variants), leaving a
+remaining gap of ten toward the 25-slot target. The Wutai restriction is retained separately and is not searchable
 or counted. The program promotes small serial batches only after identity, topology, direction, opening-status and
 public-contract review. Legacy builtin place names remain discovery hints and do not count as trusted RouteVariants.
 
 ## 2. Authority and reading order
 
-Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #159 and
+Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #161 and
 `docs/tasks/ACTIVE_TASK.md`. `docs/architecture.md`, `docs/community-track-workflow.md` and the new catalog-expansion
 ledger own the geometry, rights and promotion boundaries. A conflict stops the affected work and returns to Sol XHigh.
 
@@ -61,6 +61,52 @@ enter the trusted catalog merely to reach the target count.
 | C15 Batch A | #155 evidence slice | five Yubeng candidates receive evidence verdicts; only eligible rows may later enter RED/GREEN implementation |
 | C15 Batches B–D | serial child Issues | controller-frozen replacements reach a total of 25 searchable `full` variants without lowering evidence gates |
 | C15 Closeout | controller review | catalog count, attribution, source ledger and runtime contracts reconcile truthfully |
+
+## #161 Phase1 evidence checkpoint — 2026-08-23
+
+- The bounded evidence report is [`docs/catalog-batch2-source-evidence.md`](docs/catalog-batch2-source-evidence.md).
+- The first new OSM full-relation request (`10548040`) returned HTTP 200 but failed topology/direction gates; the
+  next request returned HTTP `429`. The mandatory stop rule was honored with no retry or broad fallback search.
+- Result: `0/5 PROPOSED_FOR_CONTROLLER_FREEZE`; current runtime truth remains ten searchable `full` variants plus
+  non-counting `R-WUTAI`. This evidence-only slice makes no runtime, elevation, preview, CloudBase or release claim.
+- Executor handoff: `READY_FOR_CONTROLLER_REVIEW`; a controller must re-authorize a fresh bounded source pass or
+  replace the batch before any five-route freeze or Phase2 allowlist expansion.
+
+## #161 controller-authorized fresh pass checkpoint — 2026-08-23
+
+- Live comment `5386298463` authorized one sequential read of only the eight unresolved ledger relations, with an
+  identifying User-Agent and a minimum five-second interval. Seven full bodies returned HTTP 200; `12390533` also
+  returned HTTP 200 but its body was not retained and was not re-requested.
+- The clean aggregate paths (`19017834`, `20739619`) still lack deterministic named endpoints/direction. Other rows
+  fail branch/order or mixed transport gates; no candidate passed. Result remains `0/5 PROPOSED_FOR_CONTROLLER_FREEZE`.
+- Durable detail is in [`docs/catalog-batch2-source-evidence.md`](docs/catalog-batch2-source-evidence.md). Runtime
+  remains ten searchable `full` variants plus non-counting `R-WUTAI`; no Phase2/elevation/runtime action occurred.
+
+## #161 controller-authorized replacement discovery checkpoint — 2026-08-23
+
+- Live comment `5386337561` authorized one metadata-only China hiking-relation Overpass query, then at most twenty
+  sequential current-full OSM reads with a six-second interval and identifying User-Agent. The metadata response was
+  HTTP 200 (111 tagged relations); all twenty selected full responses were HTTP 200 and no throttle occurred.
+- Exactly five identities reached `PROPOSED_FOR_CONTROLLER_FREEZE`: `18364943` 猛古村-桑伯格徒步线路,
+  `18364941` 黑石城徒步, `19684389` 惠州大南山精华线, `19686682` 惠州大南山拉胡线 and `20072078`
+  马峦山自然笔记步道. Each has explicit OSM from/to tags, a connected branch-free two-endpoint chain and a
+  disclosed walk/road mode boundary. All retain `operationalStatus=unknown`; no official opening claim is inferred.
+- The five are proposals only: runtime remains searchable `full=10`, gap `15`, with Wutai non-counting. No geometry,
+  elevation, runtime, schema, test, CloudBase, deployment, commit or push action occurred. Evidence is in
+  [`docs/catalog-batch2-source-evidence.md`](docs/catalog-batch2-source-evidence.md); handoff is
+  `READY_FOR_CONTROLLER_REVIEW`.
+
+## #161 Phase2 implementation checkpoint — 2026-08-23
+
+- Controller freeze `5386435179` authorized exactly five runtime additions: relations `18364943`, `18364941`,
+  `19684389`, `19686682` and `20072078`. Complete ordered WGS84 geometry, bounded previews, version manifests and
+  one-request Open-Meteo/Copernicus elevation derivations are now present in the Phase2 allowlist.
+- Truthful lifecycle count is `full=15` searchable variants (five baseline + five #159 + five #161), `gap=10` toward
+  exactly 25; Wutai remains the separate non-counting restriction. All five new variants keep
+  `operationalStatus=unknown` with route-specific rationale and disclose track/road members.
+- TDD RED was captured before production edits (`npm run test:route-data` failed at 5 versus the frozen 10 OSM-derived
+  variants); focused route-data and resolver GREEN now pass. Handoff remains `READY_FOR_CONTROLLER_REVIEW`; no
+  deployment, commit, push or PR action was taken.
 
 ## C15 planning checkpoint — 2026-08-23 (historical #153)
 

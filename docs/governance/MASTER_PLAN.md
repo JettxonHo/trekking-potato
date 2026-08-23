@@ -75,11 +75,32 @@ AI 负责解释、归纳和非关键补充，不负责决定路线身份、类�
 ## 6. C15 首批 25 个可信 RouteVariant 目录扩充
 
 当前路线目录扩充沿用既有 `Place / Route / RouteVariant` 结构，不把 175 条 legacy builtin 名称当作可信变体。
-`#159` 的活动台账 `docs/route-catalog-expansion.md` 固定 exactly-25 searchable `full` slots：五条已存在的
-可查询 pilot 加二十条 missing/replacement slots。五台山限制记录以 `R-WUTAI` 单列，不计入 searchable total。
+`#159` 已把运行目录提升到十条 searchable `full` routes；controller freeze `5386435179` 已授权并实现
+`#161` 第二个五条串行批次，当前运行目录为十五条 searchable `full` routes，剩余十条。
+`docs/route-catalog-expansion.md` 仍固定 exactly-25 searchable `full` slots，五台山限制记录以 `R-WUTAI`
+单列且不计入 searchable total。
 新候选先保留为 `UNKNOWN`/`BLOCKED_CANDIDATE`，不自动写入 runtime catalog。任何候选无法通过完整证据门禁时，
 必须经 Review 更换，不能以 blocked 槽位凑数。首批五个 proposed identities 记录在
 `docs/catalog-batch1-source-evidence.md`，须先由 controller freeze 才能进入后续实现 Issue。
+
+`#161` Phase1 bounded pass stopped after the second new OSM full-relation request returned HTTP `429`. The
+successful first read (`10548040`) was topology-blocked; no candidate was proposed or counted. See
+`docs/catalog-batch2-source-evidence.md`. A fresh source pass or replacement requires controller direction; no
+runtime/elevation or Phase2 implementation is implied.
+
+The controller-authorized #161 fresh pass then read only the eight unresolved OSM full relations once each with a
+five-second interval and identifying User-Agent. Seven payloads were usable and one (`12390533`) was status-only 200;
+the aggregate evidence still produced zero passing identities. Two simple walking paths lacked deterministic named
+direction, while the remaining rows were blocked by topology/order, mixed transport or missing payload provenance.
+The durable result is in `docs/catalog-batch2-source-evidence.md`; no route is counted or frozen.
+
+The controller then authorized one metadata-only China hiking-relation Overpass query and at most twenty sequential
+current-full reads (comment `5386337561`). The query returned 111 tagged relations; all twenty selected full reads
+returned HTTP 200 with no throttle. Exactly five topology/direction-clean identities are recorded as
+  `PROPOSED_FOR_CONTROLLER_FREEZE`: `18364943`, `18364941`, `19684389`, `19686682` and `20072078`. Their road members
+are disclosed under route=hiking walk access; opening/operator permission remains `UNKNOWN`. The subsequent controller
+freeze authorized Phase2 implementation with complete ordered geometry, bounded previews and one-request elevation
+derivations. Runtime truth is now `full=15`, remaining gap `10`; Wutai remains non-counting.
 
 ### 来源与权利边界
 
