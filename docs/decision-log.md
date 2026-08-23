@@ -1256,3 +1256,48 @@
 - One bounded Open-Meteo Elevation API request per route returned 100/93/100/100/94 samples with endpoints included. Copernicus DEM GLO-90 elevations were interpolated onto full OSM points; Haversine floor and deterministic duration (`distanceKm/4 + ascentM/600`) are covered by focused tests. No retry or runtime network integration was added.
 - OSM/open-data sources retain ODbL, adjacent OpenStreetMap attribution, relation/way/node version provenance and route-specific mode disclosures (`track`, `tertiary`, `unclassified`, `service`). All five operational statuses remain `unknown`; no opening/operator/safety claim is inferred and no official source is fabricated.
 - TDD RED was captured before production edits. Focused route-data, route-domain, resolver and result-page contracts pass; runtime catalog counts are `[27 sources, 185 places, 16 routes, 16 variants]` with source decomposition `10 OSM open_data + 16 prior source cards + 1 shared trusted elevation source` and capabilities `{full:15, blocked:1}`. Lifecycle truth is `full=15`, remaining gap `10`; Wutai remains non-counting. Handoff: `READY_FOR_CONTROLLER_REVIEW`; no commit, push, PR, deploy or CloudBase action.
+
+## 2026-08-23 — TP-D080 merge #161 and activate #163 third catalog batch
+
+- PR #162 exact head `4e575b8` passed quality run `32646797982` and two fresh exact-head independent Reviews, then
+  squash merged as `f393c00`; Issue #161 closed. Runtime truth is fifteen searchable `full` variants plus the
+  separate non-counting Wutai restriction, leaving ten routes toward the fixed target of 25.
+- Issue #163 owns the next serial batch of exactly five. Phase1 is docs/evidence-only: one metadata discovery query
+  and at most twenty sequential current-full reads, with an immediate stop on the first throttle. Blocked candidates
+  do not count and no route enters runtime before a live controller freeze.
+- This activation grants no runtime, elevation, dependency, config, CloudBase, deployment, deletion or release action.
+
+## 2026-08-23 — TP-D081 #163 Batch3 bounded evidence proposes exactly five
+
+- The single authorized metadata-only Overpass query selected China `type=route`, `route=hiking` relations with
+  nonempty `name`/`from`/`to`. It returned HTTP 200 with 111 tagged relations; after excluding 55 previously
+  searchable/audited relation IDs, 74 new metadata rows remained. Exactly twenty current-full OSM reads followed,
+  sequentially with an identifying User-Agent and at least six seconds between starts; all twenty were HTTP 200 and
+  no throttle occurred. No retry, mirror, third-party/private source, elevation request or raw geometry copy was used.
+- Five identities are `PROPOSED_FOR_CONTROLLER_FREEZE`: `7060545` 路環步行徑 (closed footway/steps loop), `7060546`
+  黑沙水庫家樂徑 (closed footway/steps loop), `7060560` 黑沙水庫健康徑 (closed footway/steps loop), `17147571`
+  沙田郊野徑 (港鐵火炭站 → 城門郊野公園; footway/steps) and `17147573` 沙田郊野徑 (沙田圍 → 沙田坳;
+  footway/steps). Four additional clean chains remain alternates; same-label open chains, stale/former identity,
+  branch/gap/disconnected graphs are held or blocked as documented in the report.
+- These are evidence proposals only and do not count toward the catalog: runtime remains searchable `full=15`, gap
+  `10`, with Wutai separate and non-counting. ODbL relation/full source URLs and visible attribution obligations are
+  recorded in `docs/catalog-batch3-source-evidence.md`; opening, permission, safety and derived-database treatment
+  remain `UNKNOWN`. Handoff: `READY_FOR_CONTROLLER_REVIEW`; no runtime, tests, elevation, CloudBase, deploy, commit,
+  push or PR action occurred.
+
+## 2026-08-23 — TP-D082 #163 Phase2 frozen five runtime implementation
+
+- Controller freeze comments `5386726512` and correction `5386727268` authorized exact relations `7060545` v11,
+  `7060546` v10, `7060560` v7, `17147571` v1 and `17147573` v6. Each was read once from OSM current-full and has
+  complete ordered WGS84 geometry, bounded <=500 preview, relation/way/node version provenance and a single bounded
+  Open-Meteo/Copernicus DEM GLO-90 elevation request (<=100 cumulative-distance samples, endpoints included).
+- Macau variants use region `澳门`; the two Sha Tin variants use region `香港`, share bare canonical `沙田郊野徑`
+  (resolver confirmation) and retain only direct endpoint-qualified aliases. All five keep
+  `operationalStatus=unknown` with route-specific rationales; no opening or safety fact is inferred from geometry.
+  OSM/ODbL and trusted-elevation source boundaries are separate, with visible attribution; full `routeGeometry` and
+  manifests remain internal and are omitted from public DTOs.
+- TDD RED preceded production edits (`npm run test:route-data` observed `10 !== 15`). Focused
+  route-domain/data/resolver/result contracts pass; resolver shape is `[32 sources, 190 places, 21 routes, 21 variants]`
+  with capabilities `{full:20, blocked:1}`. Lifecycle truth is `full=20`, remaining gap `5`; Wutai remains a separate
+  non-counting restriction. Handoff: `READY_FOR_CONTROLLER_REVIEW`; no commit, push, PR, merge, deployment, CloudBase
+  or dependency action occurred.

@@ -235,10 +235,10 @@ function makeMultiVariantCatalog() {
 function productionCatalogTests() {
   const first = createProductionRouteCatalog()
   const second = createProductionRouteCatalog()
-  assert.deepEqual([first.sources.length, first.places.length, first.routes.length, first.variants.length], [27, 185, 16, 16])
+  assert.deepEqual([first.sources.length, first.places.length, first.routes.length, first.variants.length], [32, 190, 21, 21])
   assert.deepEqual(
     first.variants.reduce((counts, variant) => ({ ...counts, [variant.capability]: (counts[variant.capability] || 0) + 1 }), {}),
-    { full: 15, blocked: 1 },
+    { full: 20, blocked: 1 },
   )
   first.variants[0].canonicalName = 'mutated catalog result'
   assert.notEqual(second.variants[0].canonicalName, 'mutated catalog result')
@@ -264,14 +264,36 @@ function productionCatalogTests() {
     ['惠州大南山精华线', 'variant:osm-19684389-huizhou-dananshan-classic'],
     ['惠州大南山拉胡线', 'variant:osm-19686682-huizhou-dananshan-lahu'],
     ['马峦山自然笔记步道', 'variant:osm-20072078-maluanshan-nature-notes'],
+    ['路環步行徑', 'variant:osm-7060545-coloane-trail'],
+    ['黑沙水庫家樂徑', 'variant:osm-7060546-hac-sa-reservoir-family-trail'],
+    ['黑沙水庫健康徑', 'variant:osm-7060560-hac-sa-reservoir-fitness-trail'],
   ]
   for (const [query, candidateId] of frozenBatch) {
     const target = assertDirect(resolver.resolveQuery(query), 'canonical_exact', candidateId)
     assert.equal(target.capability, 'full')
-    assert.equal(target.routeVariant.direction, query === '赵公山东北环线' ? 'loop' : 'point_to_point')
+    assert.equal(
+      target.routeVariant.direction,
+      ['赵公山东北环线', '路環步行徑', '黑沙水庫家樂徑', '黑沙水庫健康徑'].includes(query) ? 'loop' : 'point_to_point',
+    )
     assert.equal(target.routeVariant.accessMode, 'walk')
     assert.equal(target.routeVariant.operationalStatus, 'unknown')
     assert.equal(target.routeVariant.sourceIds.some((sourceId) => second.getById(sourceId).kind === 'open_data'), true)
+  }
+  const shaTinBare = resolver.resolveQuery('沙田郊野徑')
+  assert.equal(shaTinBare.kind, 'confirmation')
+  assert.equal(shaTinBare.matchStage, 'canonical_exact')
+  assert.deepEqual(
+    shaTinBare.candidates.map((candidate) => candidate.candidateId).sort(),
+    ['variant:osm-17147571-sha-tin-fotan-shing-mun', 'variant:osm-17147573-sha-tin-wai-pass'],
+    'bare shared Sha Tin canonical query must remain a confirmation, not pick one relation',
+  )
+  for (const [query, candidateId] of [
+    ['港鐵火炭站至城門郊野公園郊野徑', 'variant:osm-17147571-sha-tin-fotan-shing-mun'],
+    ['MTR Fo Tan Station to Shing Mun Country Park country trail', 'variant:osm-17147571-sha-tin-fotan-shing-mun'],
+    ['沙田圍至沙田坳郊野徑', 'variant:osm-17147573-sha-tin-wai-pass'],
+    ['Sha Tin Wai to Sha Tin Pass country trail', 'variant:osm-17147573-sha-tin-wai-pass'],
+  ]) {
+    assertDirect(resolver.resolveQuery(query), 'unique_alias_exact', candidateId)
   }
   const pinghui = second.getById('variant:osm-20046643-pinghui-wetland-trail')
   assert.deepEqual(

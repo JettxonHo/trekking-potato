@@ -16,6 +16,11 @@ const osm18364941 = require('../cloudfunctions/getAdvice/data/catalog/osm-derive
 const osm19684389 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/19684389-huizhou-dananshan-classic')
 const osm19686682 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/19686682-huizhou-dananshan-lahu')
 const osm20072078 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/20072078-maluanshan-nature-notes')
+const osm7060545 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/7060545-coloane-trail')
+const osm7060546 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/7060546-hac-sa-reservoir-family-trail')
+const osm7060560 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/7060560-hac-sa-reservoir-fitness-trail')
+const osm17147571 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/17147571-sha-tin-fotan-shing-mun')
+const osm17147573 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/17147573-sha-tin-wai-pass')
 const elevationSource = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/elevation-source')
 const { runWutaiTests } = require('./route-data/wutai.test')
 const { runWugongshanReverseTests } = require('./route-data/wugongshan-reverse.test')
@@ -42,6 +47,11 @@ const PILOT_FRAGMENTS = [
   osm19684389,
   osm19686682,
   osm20072078,
+  osm7060545,
+  osm7060546,
+  osm7060560,
+  osm17147571,
+  osm17147573,
   { sources: [elevationSource], places: [], routes: [], variants: [] },
 ]
 

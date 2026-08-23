@@ -4,22 +4,31 @@
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`;
   `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING` retained as a separately blocked runtime ledger
-- Current Goal: `TP-CATALOG-001 / ACTIVE — #161 PHASE2_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
-- Active task: `#161 / READY_FOR_CONTROLLER_REVIEW / PHASE2_IMPLEMENTATION_COMPLETE`
-- Branch/base: `codex/161-catalog-batch2-5` from exact `main@14830eb3896338fd3fe40278cc609f1f2bc1dd06`
+- Current Goal: `TP-CATALOG-001 / ACTIVE — #163 PHASE2_RUNTIME_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
+- Active task: `#163 / PHASE2_RUNTIME_IMPLEMENTATION / READY_FOR_CONTROLLER_REVIEW`
+- Branch/base: `codex/163-catalog-batch3-5` from exact `main@f393c0028625dc2deff0f26544cbf65f85f23038`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: PR #160 merged the first runtime batch as `14830eb`; the human-approved target remains exactly 25
-  searchable `full` RouteVariant slots. The catalog now has fifteen searchable `full` variants, leaving a gap of ten.
-  #161's five controller-frozen routes have complete current-full geometry, bounded previews and deterministic
-  elevation metrics; they await exact-head CI and Reviews. Wutai is a separate non-counting restriction record. The broad legacy
+- Current work: PR #160 merged the first runtime batch as `14830eb`; PR #162 merged the second batch as `f393c00`.
+  The human-approved target remains exactly 25 searchable `full` RouteVariant slots. The catalog now has twenty
+  searchable `full` variants, leaving a gap of five. #163 Phase2 implements the controller-frozen third five-route
+  batch. Wutai is a separate non-counting restriction record. The broad legacy
   builtin list remains discovery-only. #123 stays open and blocked
   with S8–S15/S20 `BLOCKED` and S16/S18 `UNVERIFIED_RUNTIME_TOOL`; C15 grants no CloudBase, timer, deletion, cohort
   or release authority.
 
-- Count truth: fifteen records are searchable `full` (five existing pilots plus five #159 and five #161 Phase2 variants); ten slots
+- Count truth: twenty records are searchable `full` (five existing pilots plus five #159, five #161 and five #163 Phase2 variants); five slots
   remain toward the completion target of 25. `R-WUTAI` is a non-counting restriction. A blocked candidate is replaced
   and never counts as a delivered route.
+
+## #163 Batch3 activation — 2026-08-23 (historical pre-freeze checkpoint)
+
+- PR #162 exact head `4e575b8` passed quality run `32646797982` and two fresh exact-head Reviews, then squash merged
+  as `f393c00`; Issue #161 is closed.
+- Issue #163 owns the next exactly-five evidence batch. Phase1 is docs-only and bounded to one metadata query plus at
+  most twenty sequential current-full reads; the first throttle stops the pass without retry or substitution.
+- At activation runtime was `full=15`, `gap=10`, Wutai non-counting; the later controller freeze and Phase2
+  checkpoint below supersede this pre-freeze state.
 
 ## #161 Batch2 evidence checkpoint — 2026-08-23
 
@@ -1995,9 +2004,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Complete quality CI and two fresh independent Reviews on the same live current head of Draft PR #158, then Sol XHigh
-decides mergeability. Since no candidate is eligible, do not open a route-data implementation child; after merge,
-replace blocked slots or activate the next evidence batch. #123 remains independently blocked; no CloudBase index/
+The Draft PR lifecycle for #163 is controller-owned. Live GitHub metadata is authoritative for the current PR head and
+latest quality run; Sol XHigh may decide mergeability only after successful quality CI and two fresh independent
+Reviews target that same current head. Any head change repeats both gates. After a truthful #163 merge, reconcile and
+close the Issue before activating the final five-route batch. #123 remains independently blocked; no CloudBase index/
 config mutation, deployment, timer, deletion, real-user cohort or public release is authorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
@@ -2458,3 +2468,33 @@ config mutation, deployment, timer, deletion, real-user cohort or public release
   `git diff --check`, exact allowlist and added-line sensitive scans are green.
 - This bounded round is `READY_FOR_CONTROLLER_REVIEW`; no commit, push, PR, merge, deployment, CloudBase or dependency
   action occurred.
+
+## #163 Batch3 Phase1 evidence checkpoint — 2026-08-23
+
+- One metadata-only Overpass request returned HTTP 200 with 111 tagged China `route=hiking` relations. Excluding the
+  55 relation IDs audited or already searchable in earlier reports left 74 new rows. Exactly twenty current-full OSM
+  reads followed sequentially with an identifying User-Agent and a six-second minimum interval; all returned HTTP 200
+  and no 429/throttle occurred. No retry, mirror, third-party/private source, elevation query or raw geometry copy was
+  used.
+- The evidence report [`docs/catalog-batch3-source-evidence.md`](catalog-batch3-source-evidence.md) proposes exactly
+  five identities for controller freeze: `7060545`, `7060546`, `7060560`, `17147571` and `17147573`. Their aggregate
+  graphs are connected, branch-safe and orientable; the first three are explicit closed loops and the latter two have
+  distinct named endpoints. Other clean rows remain alternates or are held for same-label direction, stale identity,
+  road disclosure or batch-cap reasons; blocked rows are not counted.
+- Runtime truth remains searchable `full=15`, remaining gap `10` toward 25; Wutai is separate/non-counting. This is
+  docs-only evidence and is `READY_FOR_CONTROLLER_REVIEW`; no runtime, test, schema, elevation, CloudBase, deployment,
+  commit or push action occurred.
+
+## #163 Phase2 runtime checkpoint — 2026-08-23
+
+- Controller freeze comments `5386726512` and correction `5386727268` froze complete relations `7060545`, `7060546`,
+  `7060560`, `17147571` and `17147573`. Each has one current-full OSM read (no throttle/retry), complete ordered
+  WGS84 geometry, bounded <=500 preview, full relation/way/node provenance and one <=100-point Open-Meteo/Copernicus
+  DEM GLO-90 elevation request.
+- Runtime catalog checkpoint is `32 sources / 190 places / 21 routes / 21 variants`, capabilities `full=20, blocked=1`;
+  source decomposition is 15 OSM open_data + 16 prior source cards + 1 shared trusted elevation source. Macau region is
+  `澳门`; both Sha Tin variants use region `香港`, bare canonical query remains confirmation and endpoint-qualified
+  aliases resolve directly.
+- Focused route-domain/data/resolver/result contracts pass after real TDD RED (`10 !== 15` before runtime). Full gates
+  and exact-head controller review remain pending; no deploy/CloudBase/commit/push/PR action. Handoff:
+  **`READY_FOR_CONTROLLER_REVIEW`**.

@@ -12,6 +12,11 @@ module.exports = makeElevationSource({
     'variant:osm-19684389-huizhou-dananshan-classic',
     'variant:osm-19686682-huizhou-dananshan-lahu',
     'variant:osm-20072078-maluanshan-nature-notes',
+    'variant:osm-7060545-coloane-trail',
+    'variant:osm-7060546-hac-sa-reservoir-family-trail',
+    'variant:osm-7060560-hac-sa-reservoir-fitness-trail',
+    'variant:osm-17147571-sha-tin-fotan-shing-mun',
+    'variant:osm-17147573-sha-tin-wai-pass',
   ],
-  checkedAt: '2026-08-23T14:14:54.944Z',
+  checkedAt: '2026-08-23T15:18:56.109Z',
 })

@@ -75,8 +75,9 @@ AI 负责解释、归纳和非关键补充，不负责决定路线身份、类�
 ## 6. C15 首批 25 个可信 RouteVariant 目录扩充
 
 当前路线目录扩充沿用既有 `Place / Route / RouteVariant` 结构，不把 175 条 legacy builtin 名称当作可信变体。
-`#159` 已把运行目录提升到十条 searchable `full` routes；controller freeze `5386435179` 已授权并实现
-`#161` 第二个五条串行批次，当前运行目录为十五条 searchable `full` routes，剩余十条。
+`#159` 已把运行目录提升到十条 searchable `full` routes；`#161` 第二个五条串行批次通过 PR #162
+合并为 `f393c00`。当前运行目录为二十条 searchable `full` routes，剩余五条；`#163` 第三批五条已按控制器冻结
+进入 Phase2 runtime review。
 `docs/route-catalog-expansion.md` 仍固定 exactly-25 searchable `full` slots，五台山限制记录以 `R-WUTAI`
 单列且不计入 searchable total。
 新候选先保留为 `UNKNOWN`/`BLOCKED_CANDIDATE`，不自动写入 runtime catalog。任何候选无法通过完整证据门禁时，
@@ -100,7 +101,9 @@ returned HTTP 200 with no throttle. Exactly five topology/direction-clean identi
   `PROPOSED_FOR_CONTROLLER_FREEZE`: `18364943`, `18364941`, `19684389`, `19686682` and `20072078`. Their road members
 are disclosed under route=hiking walk access; opening/operator permission remains `UNKNOWN`. The subsequent controller
 freeze authorized Phase2 implementation with complete ordered geometry, bounded previews and one-request elevation
-derivations. Runtime truth is now `full=15`, remaining gap `10`; Wutai remains non-counting.
+derivations. PR #162 passed exact-head CI and two fresh Reviews, then merged as `f393c00`; runtime truth was `full=15`,
+remaining gap `10`; Wutai remains non-counting. Issue #163 now has a controller-frozen Phase2 runtime slice and
+current truth `full=20`, remaining gap `5`.
 
 ### 来源与权利边界
 
@@ -130,3 +133,27 @@ The first five runtime RouteVariants are an implementation review slice only: 16
 boundaries, deterministic metrics, full geometry and bounded previews are documented in `docs/route-data-licenses.md`.
 Unknown opening status remains conservative; road membership is disclosed and no provider/network/deployment authority is
 granted. Controller review and merge remain separate decisions.
+
+### #163 Batch3 Phase1 evidence checkpoint (completed; historical pre-freeze)
+
+Issue #163's bounded evidence pass completed one metadata-only Overpass query (111 tagged relations; 74 after the
+55-ID prior-audit exclusion) and exactly twenty sequential current-full reads, all HTTP 200 with no throttle. Five
+new identities are proposed for controller freeze: `7060545`, `7060546`, `7060560`, `17147571` and `17147573`.
+Their OSM aggregate topology is connected, branch-safe and deterministic (three explicit loops and two distinct
+endpoint chains); no route is counted before a controller freeze. Opening/permission/safety and ODbL derived-database
+treatment remain review gates. Durable evidence is `docs/catalog-batch3-source-evidence.md`; no runtime, elevation,
+CloudBase or deployment action was authorized in this phase.
+
+### #163 Phase2 runtime implementation checkpoint
+
+Controller freeze comments `5386726512` and `5386727268` authorize exactly relations `7060545` v11, `7060546` v10,
+`7060560` v7, `17147571` v1 and `17147573` v6. Each has complete current-full OSM ordered WGS84 geometry, <=500
+preview, relation/way/node provenance and one <=100-point Open-Meteo/Copernicus DEM GLO-90 elevation request. Macau
+variants use region `澳门`; Hong Kong Sha Tin variants use region `香港`, share bare canonical `沙田郊野徑` (resolver
+confirmation) and retain direct endpoint-qualified aliases. All operational statuses remain unknown with route-specific
+rationales; no opening or safety claim is inferred. Full geometry/manifests are internal and omitted from public DTOs.
+
+The bounded Phase2 runtime checkpoint is `32 sources / 190 places / 21 routes / 21 variants`, capabilities
+`full=20, blocked=1`, and source decomposition `15 OSM open_data + 16 prior source cards + 1 shared trusted elevation
+source`. Focused route-domain/data/resolver/result contracts pass after real TDD RED; lifecycle handoff is
+`READY_FOR_CONTROLLER_REVIEW`. No deployment, CloudBase, commit, push or PR action occurred.
