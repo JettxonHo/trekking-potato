@@ -1,23 +1,43 @@
-# 当前状态 — TP-COMMUNITY-001
+# 当前状态 — TP-CATALOG-001
 
-- Updated: `2026-08-22`
+- Updated: `2026-08-23`
 - Governance: `TP-GOV-2.0.0`
-- Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`
-- Current Goal: `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING`
-- Active task: `#123 / BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`
-- Branch/base: C14 merged to exact `main@131e616`; this branch is documentation-only closeout
+- Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`;
+  `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING` retained as a separately blocked runtime ledger
+- Current Goal: `TP-CATALOG-001 / ACTIVE — C15 REVIEW_ACTIVE`
+- Active task: `#153 / READY_FOR_CONTROLLER_REVIEW / REVIEW`
+- Branch/base: `codex/153-route-catalog-25-plan` from exact `main@da25900`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: PR #135 merged the diagnostic-free finalize/CAS fix as `ac600e5`; focused Bug #134 is closed after its
-  anonymous synthetic runtime blocker passed. Sanitized direct console/runtime observation now verifies S1–S7 and S17
-  in the authoritative ledger. S8–S15 and S20 remain `BLOCKED`; S16 and S18 remain
-  `UNVERIFIED_RUNTIME_TOOL`. PR #138 merged the fail-closed retention dry-run as `b582d2c`; #137 is closed without
-  deployment, timer activation or deletion. PR #140 merged the search contribution UX as `7a07757`; #139 is closed.
-  PR #142 merged the C10 presentation cleanup as `e417ab8`; #141 is closed. PR #144 merged C11 as `93a86d8` and
-  #143 is closed. PR #146 merged C12 as `ae86b0b`; #145 implementation is complete. PR #149 merged the approved B
-  result hierarchy as `9de9013` and #148 is closed. PR #151 merged C14 history pagination as `131e616`; #150 may close
-  after this documentation reconciliation. #123 is again the only active staging blocker. No production/public
-  release, CloudBase config/deploy action or automatic catalog promotion is authorized.
+- Current work: the human approved a target total of 25 trusted RouteVariants: six existing structured pilots plus
+  about nineteen new reviewed variants. #153 owns the planning ledger and serial batch contracts. The broad legacy
+  builtin list remains discovery-only. #123 stays open and blocked with S8–S15/S20 `BLOCKED` and S16/S18
+  `UNVERIFIED_RUNTIME_TOOL`; C15 grants no CloudBase, timer, deletion, cohort or release authority.
+
+- Count truth: the existing six records are five searchable `full` pilots plus one Wutai restriction record. The
+  completion target is therefore 24 searchable `full` variants plus that retained restriction record. The 19 new
+  ledger rows are candidates only; a blocked candidate must be replaced and does not count as a delivered route.
+
+## C15 trusted-catalog planning activation — 2026-08-23
+
+- The planning slice creates a durable 25-slot ledger with identity, source/license, geometry/topology, direction,
+  opening-status evidence, checked-at date, blocker, batch and promotion verdict.
+- OSM `route=hiking/foot` relations are candidates only. First-party or contributor tracks require explicit rights;
+  third-party scraping or bulk extraction remains forbidden. Missing evidence blocks promotion instead of being
+  inferred from geometry or legacy route copy.
+- Work is serial: planning Review first, then child Issues in batches of roughly four or five. The five connected
+  short Yubeng OSM relations are preferred for the first evidence-rich batch; disconnected or ambiguous routes remain
+  blocked.
+- Exact custom executor: `luna-worker`, configured at `gpt-5.6-luna/max`; runtime identity remains separate evidence.
+  No production route data, CloudBase action, deployment or public release has occurred.
+- The planning ledger now has exactly 25 rows (6 existing + 19 new). Five Yubeng OSM relations are Batch A; relation
+  `19700036` is quarantined for a Chinese/English identity mismatch. The other fourteen named relations are
+  `BLOCKED_CANDIDATE` with unknown topology/direction/opening/rights until their serial child Issues run.
+- The read-only candidate search stopped after the Overpass endpoint rate-limited. This is an evidence boundary, not a
+  reason to infer or promote a route. See `docs/route-catalog-expansion.md` for the complete field-level ledger.
+- Draft PR #154 is open. Historical planning head `965afb0` records the first published ledger; live GitHub metadata
+  is authoritative for the current head. Quality CI and both fresh independent Reviews must target that same current
+  head, and any head change repeats both gates.
 
 ## C14 private-history pagination activation — 2026-08-22
 
@@ -1861,10 +1881,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Reconcile and merge this documentation-only closeout, then close #150. Continue only through #123's human-controlled
-runtime-validation ledger: S8–S15/S20 remain `BLOCKED`, and S16/S18 remain `UNVERIFIED_RUNTIME_TOOL`. No CloudBase
-index/config mutation, deployment, real history access, delete/clear invocation, timer, destructive cleanup,
-real-user cohort or public release is authorized by this closeout.
+Complete quality CI and two fresh independent Reviews on the same live current head of Draft PR #154, then Sol XHigh
+decides mergeability. Any head change repeats both gates. Only after the planning PR merges may the first child
+evidence Issue be activated. #123 remains independently blocked; no CloudBase index/config mutation, deployment,
+timer, deletion, real-user cohort or public release is authorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

@@ -1054,3 +1054,33 @@
   fresh exact-head Reviews, and any head change repeats both gates. The pinned history `wx-server-sdk` audit has
   pre-existing transitive findings whose breaking upgrade is outside this slice. No deployment, CloudBase/data action
   or release is authorized.
+
+## 2026-08-23 — TP-D068 C15 exactly-25 ledger and OSM/open-data source gate
+
+- Status: Draft PR #154 open for `#153` planning Review; docs-only, no runtime catalog/data mutation, deployment or
+  release. Live GitHub metadata is authoritative for current-head CI and Review gates.
+- Context: The human fixed a target total of 25 trusted RouteVariants: six existing structured pilots plus about
+  nineteen new candidates. A route count without identity, rights, topology, direction and current access evidence
+  would turn a discovery list into an unsafe recommendation surface.
+- Decision: Freeze `docs/route-catalog-expansion.md` as an exactly-25-slot ledger. Existing six pilots remain the
+  baseline. Nineteen new rows are provisional OSM relation identities, split into serial batches A–D of roughly
+  four/five. Every row carries Place/Route/RouteVariant identity, source URL/type, license/authorization, geometry/
+  topology, direction, official/operator opening source plus checked-at date, blocker, batch and verdict. Missing
+  facts are written `UNKNOWN`; promotion is `BLOCKED_CANDIDATE`, never inferred or auto-published.
+- Source policy: OSM `route=hiking/foot` relations are open-data geometry candidates under ODbL, with attribution and
+  applicable derived-database obligations. A connected way sequence does not prove completeness, opening, legality,
+  safety, direction semantics or suitability. First-party/operator status controls opening; first-party or explicitly
+  authorized/open-licensed tracks control geometry rights. Third-party scraping/bulk extraction remains forbidden.
+- Batch A evidence: five Yubeng relations (`19700005`, `19700028`, `19700031`, `19700036`, `19700085`) were observed
+  from OSM metadata on `2026-08-23`; preliminary endpoint continuity was checked for each. `19700036` has a Chinese/
+  English name mismatch and remains quarantined. The Overpass candidate search was stopped after rate limiting; no
+  replacement or promotion was invented.
+- Alternatives rejected: counting legacy builtin names as variants; treating OSM geometry as proof of opening/safety;
+  copying third-party tracks without rights; running all batches in parallel; or filling unknown rows with invented
+  metrics/status. Those would weaken route identity, legal attribution or the controlled promotion boundary.
+- Consequences: Child Issues must independently audit topology, direction, rights, official opening and public
+  contracts before any route-data fragment changes. The existing six contain five searchable `full` pilots and one
+  Wutai restriction record, so blocked new candidates must be replaced until nineteen new searchable `full` variants
+  pass Review; ledger occupancy alone does not satisfy the target. #123 remains a separate human-runtime blocker. No
+  child Issue or PR was opened by the executor planning slice; controller review and plan-sync are required before
+  implementation.

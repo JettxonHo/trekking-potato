@@ -1,76 +1,90 @@
-# TP-COMMUNITY-001 — 私有社区轨迹证据闭环
+# TP-CATALOG-001 — 首批可信路线目录扩充
 
-- Goal ID: `TP-COMMUNITY-001`
-- Status: `ACTIVE — BLOCKED_STAGING`
+- Goal ID: `TP-CATALOG-001`
+- Status: `ACTIVE — C15 REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
-- Started: `2026-08-09`
-- Parent Issue: `#115`
-- Release boundary: code, tests and separate staging-deployment checklist; no automatic route publication or production release
+- Started: `2026-08-23`
+- Parent Issue: `#153`
+- Release boundary: reviewed catalog data and tests only; no automatic promotion, CloudBase mutation or public release
 
 ## 1. Objective
 
-Add a private GPX/KML submission and administrator-review workflow for closed-beta users. The workflow converts a
-real server-validated private file into a bounded reviewed-evidence projection. It reduces manual geometry intake but
-does not decide route opening, route type, fixed days, safety, weather, verdicts or trusted-catalog publication.
+Grow the structured trusted runtime catalog from six reviewed RouteVariants to a target total of twenty-five. The
+program first creates a source-and-rights ledger, then promotes small serial batches only after identity, topology,
+direction, opening-status and public-contract review. Legacy builtin place names remain discovery hints and do not
+count as trusted RouteVariants.
+
+The existing six comprise five searchable `full` pilots and one safety-blocked Wutai restriction record. Therefore
+the user-facing completion target is twenty-four searchable `full` variants plus that one retained restriction record;
+a blocked new candidate must be replaced and cannot satisfy the target merely by occupying a ledger slot.
 
 ## 2. Authority and reading order
 
-Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #115/child Issue and
-`docs/tasks/ACTIVE_TASK.md`. `docs/community-track-workflow.md` is the authoritative public/data/security contract.
-If code, Issue or another document conflicts with it, the executor stops and returns the conflict to Sol XHigh.
+Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #153 and
+`docs/tasks/ACTIVE_TASK.md`. `docs/architecture.md`, `docs/community-track-workflow.md` and the new catalog-expansion
+ledger own the geometry, rights and promotion boundaries. A conflict stops the affected work and returns to Sol XHigh.
 
-## 3. Scope
+## 3. Fixed human decision
 
-- GPX and KML local-file selection with explicit uploader rights/consent;
-- server-reserved private storage path, actual object/file validation and safe bounded XML parsing;
-- owner-only submission list/detail/cancel and honest cleanup-pending state;
-- 30-day maximum raw retention and 180-day de-identified evidence retention with internal idempotent cleanup;
-- server-only `TRACK_REVIEW_ADMIN_OPENIDS` authorization and administrator review;
-- reviewed evidence projection with identity/time/raw references removed;
-- tests, documentation and a separate human-controlled staging deployment checklist.
+- Target total: 25 reviewed records: the five existing searchable pilots, the existing Wutai restriction record, and
+  nineteen new searchable `full` variants. A failed candidate is replaced through a reviewed ledger update.
+- Work in serial batches of roughly four or five variants; each batch has its own child Issue, allowlist and Review.
+- Prefer explicit OSM/open-data relations, first-party recordings and explicitly authorized contributor/partner files.
+- A candidate never publishes automatically. Missing or ambiguous evidence remains blocked instead of being invented.
+- #123 remains an independent human-runtime blocker; C15 performs no timer, retention, deletion or CloudBase action.
 
-## 4. Non-scope
+## 4. Required promotion evidence
 
-- scraping/importing 两步路、六只脚 or other third-party platforms;
-- KMZ, remote URL ingestion, public UGC feeds or public raw-track downloads;
-- automatic Place/Route/RouteVariant creation or catalog mutation;
-- treating a track as proof of access, permission, opening, safety or a verdict;
-- production/public release, new paid infrastructure, deletion of pre-existing data, cleanup outside the approved
-  30/180 lifecycle or broad auth/storage permission changes.
+- unique Place, Route and RouteVariant identity with collision-safe aliases;
+- complete bounded geometry tied to the exact variant and direction, with topology review;
+- durable source URL/type plus license or authorization basis;
+- official/operator opening or access source with a checked-at date;
+- existing route type, duration, distance/elevation, weather-sample and optional routePreview contracts;
+- behavior tests at the public route-domain/data/response/result seams and two fresh exact-head Reviews.
 
-## 5. Milestones and serial Issues
+Geometry does not prove access, permission, opening, safety, weather or a verdict. OSM-derived candidates retain ODbL
+attribution and derived-database obligations. Restricted, closed, disconnected or rights-unclear candidates do not
+enter the trusted catalog merely to reach the target count.
+
+## 5. Non-scope
+
+- scraping, cracking or bulk extraction from 两步路、六只脚、Wikiloc, Strava, AllTrails or similar platforms;
+- unreviewed path-to-route generation, automatic catalog promotion or public raw-track downloads;
+- private submission/evidence lookup, new external services, paid APIs, dependencies, keys or schema changes;
+- CloudBase mutation/deployment, timer or destructive cleanup, real-user cohort, production/public release;
+- treating legacy builtin route rows as trusted variants without the full promotion evidence above.
+
+## 6. Milestones and serial Issues
 
 | Milestone | Work item | Completion condition |
 |---|---|---|
-| C1 Parse | C01 | bounded GPX/KML parser and reviewed projection pass security/behavior tests |
-| C2 Owner API | C02 | begin/finalize/list/get/cancel use server identity and private reserved storage |
-| C3 Review API | C03 | admin allowlist, raw access and review state machine are fail-closed and idempotent |
-| C4 User UX | C04 | rights, upload, status, revision and cancel are usable without public UGC |
-| C5 Admin UX | C05 | admin-only queue/detail/review works without exposing identity or secrets |
-| C6 Acceptance | C06 | cross-layer gates, docs and human staging checklist are complete |
-| C7 Focused UX | C07 | community-track owner/admin workflow moves to a secondary page and the route-query homepage is simplified |
-| C8 Retention dry-run | #137 | fail-closed, zero-write retention preview passes Review before any timer or destructive cleanup gate |
-| C9 Search contribution UX | #139 | candidate and no-result states provide an honest private GPX/KML contribution path |
-| C10 Presentation cleanup | #141 | homepage actions, AI copy and hourly weather disclosure match the approved mobile hierarchy |
-| C11 Verdict labels | #143 | internal certainty severities render as established business Chinese labels without changing rules |
-| C12 Route map preview | #145 | reviewed full routes render a fail-closed read-only map thumbnail with a geometry-only fallback |
-| C13 Result summary hierarchy | #148 | the approved B layout makes the route name primary, keeps map content sharp, and removes repeated verdict content |
-| C14 History pagination | #150 | owner-private history supports bounded stable cursor paging and explicit load-more recovery |
+| C15 Plan | #153 planning slice | 25-slot source ledger, evidence status, batch order and child-Issue contracts pass Review |
+| C15 Batch A | child Issue after plan merge | first evidence-rich four-to-five variants promoted through RED/GREEN and Review |
+| C15 Batches B–D | serial child Issues | remaining reviewed variants reach a total of 25 without lowering evidence gates |
+| C15 Closeout | controller review | catalog count, attribution, source ledger and runtime contracts reconcile truthfully |
 
-C01 completed through approved PR #124, C02 through PR #125, C03 through PR #126, C04 through PR #127, C05
-through PR #128 (`0e534d49`), the C06 offline acceptance package through PR #130 (`59ef3c2`), and C07 through
-PR #132 (`86fafb6`). Issues #118–#122, #131 and #134 are closed. The complete community-track owner/admin workflow now
-lives on a secondary page while preserving TP-D056 Option A. Sanitized staging evidence now verifies the required
-collections/configuration, all six exact indexes and the bundled private owner/admin/rejection/cancel/lease-recovery
-smoke. The Goal remains active because #123 still requires the separately controlled timer/retention rows and runtime-
-tool evidence; no production readiness or Goal completion is claimed. C08 merged through PR #138 as `b582d2c` and
-#137 is closed without deployment, timer activation or deletion. C09 merged through PR #140 as `7a07757`; #139 is
-closed without deployment or automatic catalog promotion. C10 merged through PR #142 as `e417ab8`; #141 is closed.
-C11 merged through PR #144 as `93a86d8`; #143 is closed. C12 merged through PR #146 as `ae86b0b`; #145 implementation
-is complete. C13 merged through PR #149 as `9de9013` and #148 is closed. C14 merged through PR #151 as `131e616` after
-exact-head quality and two independent Reviews; #150 may close after this documentation reconciliation. The only
-active work returns to the human-controlled #123 staging blocker. No timer, destructive cleanup, real-user cohort or
-production release is implied.
+## C15 planning checkpoint — 2026-08-23
+
+- `docs/route-catalog-expansion.md` records exactly 25 slots: six existing pilots and nineteen provisional OSM
+  relation candidates. The new rows are source identities only; none has a runtime ID or promotion verdict of `full`.
+- Batch A contains five Yubeng relations. All five have a preliminary consecutive-way endpoint observation; relation
+  `19700036` remains quarantined because its Chinese and English names conflict. All five still require topology,
+  direction, rights/attribution and official/operator opening evidence.
+- Batches B–D contain fourteen additional named OSM relations. Their member geometry, topology, exact direction,
+  rights and current opening status remain `UNKNOWN`; each is explicitly `BLOCKED_CANDIDATE`.
+- The Overpass candidate search was stopped after rate limiting. No candidate was silently substituted, merged or
+  promoted to make the count. Child Issues are proposed in the ledger and must be separately activated after Review.
+- Planning is now `READY_FOR_CONTROLLER_REVIEW`. The 19 new rows are evidence-work slots, not delivered routes; C15
+  completes only when 19 new rows are promoted to searchable `full` variants or blocked rows are replaced and reviewed.
+- Draft PR #154 is open. Planning head `965afb0` is historical evidence only; live GitHub metadata is authoritative
+  for the current head. The same current head must pass quality CI and two fresh independent Reviews, and any head
+  change repeats both gates before Sol XHigh decides mergeability.
+
+## Appendix: prior TP-COMMUNITY-001 checkpoints
+
+`TP-COMMUNITY-001` remains incomplete at #123 for human-controlled staging rows. Its reviewed code and privacy
+boundaries remain binding, but it is not the active implementation Goal and this C15 authorization does not complete
+or weaken any #123 row.
 
 ## C14 private-history pagination activation — 2026-08-22
 
