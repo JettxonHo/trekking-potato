@@ -530,7 +530,13 @@ function validateFullVariant(variant, path, sourceById, issues) {
     && typeof variant.operationalStatusRationale === 'string'
     && variant.operationalStatusRationale.length > 0
   const hasOpenDataRouteGeometry = Boolean(variant.routeGeometry)
-    && variant.sourceIds.some((sourceId) => sourceById.get(sourceId)?.kind === 'open_data')
+    && variant.id.startsWith('variant:osm-')
+    && variant.sourceIds.some((sourceId) => {
+      const source = sourceById.get(sourceId)
+      return source?.kind === 'open_data'
+        && source.provenance?.provider === 'OpenStreetMap'
+        && source.supports.some((support) => support.entityId === variant.id && support.field === 'routeGeometry')
+    })
   const allowsUnknownWithoutOpeningEvidence = hasOpenDataRouteGeometry && hasConservativeUnknownRationale
   if (variant.operationalStatus === 'unknown' && hasOpenDataRouteGeometry && !hasConservativeUnknownRationale) {
     addIssue(issues, 'missing_required', `${path}.operationalStatusRationale`)

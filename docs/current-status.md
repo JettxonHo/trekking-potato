@@ -2403,3 +2403,18 @@ config mutation, deployment, timer, deletion, real-user cohort or public release
   `55/0`, lint (0 errors/9 existing warnings), typecheck, `CI=1 npm run build:weapp`, `git diff --check`, exact
   allowlist and sensitive scans. Root npm audit reports 0 vulnerabilities; Cloud Function audit remains a documented
   pre-existing transitive dependency finding and no dependency change was authorized. No commit/push/PR/deploy.
+
+## #159 Phase2 review-fix round 2 checkpoint — 2026-08-23
+
+- The frozen set remains `16162196`, `20072118`, `20046643`, `20739620` and `17841828`; searchable count is `full=10`
+  with `gap=15`, and Wutai remains non-counting. The old Phase1 candidate/6-doc allowlist is historical; the current
+  Phase2 25-path allowlist is recorded in `docs/tasks/ACTIVE_TASK.md`.
+- Runtime source truth is corrected: 20072118 has no official source (its Shenzhen PDF is docs-only context), while
+  16162196 uses the verified joint planning-document title/publisher without expanding its field supports.
+- Unknown-status exemption requires an `variant:osm-*` ID, the same OpenStreetMap `open_data` source, non-empty
+  rationale, and that source's exact `routeGeometry` support. Non-OSM and cross-source negative fixtures remain RED;
+  OSM-derived tests also assert deterministic duration and version-manifest anchors.
+- This round's focused contracts, root `npm test`, typecheck, lint (0 errors/9 existing warnings), host WeChat build,
+  `git diff --check`, exact allowlist and added-line sensitive scans are green.
+- This bounded round is `READY_FOR_CONTROLLER_REVIEW`; no commit, push, PR, merge, deployment, CloudBase or dependency
+  action occurred.

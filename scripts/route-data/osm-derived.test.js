@@ -10,11 +10,11 @@ const IDS = [
 ]
 
 const EXPECTED = {
-  'variant:osm-16162196-sanganbi-shuizukeng': { count: 897, first: [22.6624162, 114.4996587], last: [22.6977536, 114.4291095], aliases: ['三杆笔水祖坑徒步'], direction: 'point_to_point', startPoint: '三杆笔', endPoint: '水祖坑' },
-  'variant:osm-20072118-die-butterfly-trail': { count: 138, first: [22.6399587, 114.3297848], last: [22.6578917, 114.3411226], aliases: ['深圳蝴蝶步道', '马峦山蝴蝶步道'], direction: 'point_to_point', startPoint: '朴树口', endPoint: '马峦山北门' },
-  'variant:osm-20046643-pinghui-wetland-trail': { count: 186, first: [22.7253741, 114.3954554], last: [22.7102382, 114.4006842], aliases: ['坪惠湿地公园步道', '坪山湿地步道'], direction: 'point_to_point', startPoint: '聚龙山湿地生态园北门', endPoint: '坪山湿地公园南门' },
-  'variant:osm-20739620-zhaogongshan-loop': { count: 211, first: [30.9639991, 103.5380078], last: [30.9639991, 103.5380078], aliases: ['赵公山东北徒步环线'], direction: 'loop', startPoint: '未命名环线起终点', endPoint: '未命名环线起终点' },
-  'variant:osm-17841828-three-gorges-summit': { count: 413, first: [31.0412584, 109.574918], last: [31.0313051, 109.6254474], aliases: ['三峡之巅步道', '赤甲楼至三峡之巅'], direction: 'point_to_point', startPoint: '赤甲楼方向入口', endPoint: '三峡之巅' },
+  'variant:osm-16162196-sanganbi-shuizukeng': { count: 897, first: [22.6624162, 114.4996587], last: [22.6977536, 114.4291095], aliases: ['三杆笔水祖坑徒步'], direction: 'point_to_point', startPoint: '三杆笔', endPoint: '水祖坑', relationVersion: 6, firstWay: ['775673080', 7], firstNode: ['11091229573', 1], duration: 6.66 },
+  'variant:osm-20072118-die-butterfly-trail': { count: 138, first: [22.6399587, 114.3297848], last: [22.6578917, 114.3411226], aliases: ['深圳蝴蝶步道', '马峦山蝴蝶步道'], direction: 'point_to_point', startPoint: '朴树口', endPoint: '马峦山北门', relationVersion: 2, firstWay: ['1280449576', 1], firstNode: ['1531041784', 2], duration: 1.1 },
+  'variant:osm-20046643-pinghui-wetland-trail': { count: 186, first: [22.7253741, 114.3954554], last: [22.7102382, 114.4006842], aliases: ['坪惠湿地公园步道', '坪山湿地步道'], direction: 'point_to_point', startPoint: '聚龙山湿地生态园北门', endPoint: '坪山湿地公园南门', relationVersion: 3, firstWay: ['1464139174', 1], firstNode: ['13430496177', 1], duration: 0.62 },
+  'variant:osm-20739620-zhaogongshan-loop': { count: 211, first: [30.9639991, 103.5380078], last: [30.9639991, 103.5380078], aliases: ['赵公山东北徒步环线'], direction: 'loop', startPoint: '未命名环线起终点', endPoint: '未命名环线起终点', relationVersion: 1, firstWay: ['483583238', 7], firstNode: ['4689853814', 2], duration: 4.76 },
+  'variant:osm-17841828-three-gorges-summit': { count: 413, first: [31.0412584, 109.574918], last: [31.0313051, 109.6254474], aliases: ['三峡之巅步道', '赤甲楼至三峡之巅'], direction: 'point_to_point', startPoint: '赤甲楼方向入口', endPoint: '三峡之巅', relationVersion: 1, firstWay: ['548313909', 5], firstNode: ['8200991706', 2], duration: 5.1 },
 }
 
 function haversineKm(a, b) {
@@ -49,6 +49,14 @@ function assertFrozenIdentity(variant) {
   assert.equal(variant.endPoint, expected.endPoint, `${variant.id} end identity must remain exact`)
 }
 
+function assertFrozenDuration(variant) {
+  const expected = EXPECTED[variant.id]
+  const derived = Math.round((variant.distanceKm / 4 + variant.ascentM / 600) * 100) / 100
+  assert.equal(derived, expected.duration, `${variant.id} duration formula must remain distanceKm/4 + ascentM/600 with runtime rounding`)
+  assert.equal(variant.stages[0].durationHours.min, derived, `${variant.id} minimum duration must use the deterministic formula`)
+  assert.equal(variant.stages[0].durationHours.max, derived, `${variant.id} maximum duration must use the deterministic formula`)
+}
+
 async function runOsmDerivedTests({ catalog }) {
   const variants = IDS.map((id) => catalog.getById(id))
   assert.equal(variants.filter(Boolean).length, IDS.length, '冻结批次必须包含恰好五条可搜索 full variant')
@@ -57,6 +65,7 @@ async function runOsmDerivedTests({ catalog }) {
     const geometry = variant.routeGeometry.points
     assertFrozenIdentity(variant)
     assertFrozenGeometryShape(variant)
+    assertFrozenDuration(variant)
     let distance = 0
     let ascent = 0
     let descent = 0
@@ -111,6 +120,17 @@ async function runOsmDerivedTests({ catalog }) {
     assert.match(openDataSource.attribution, /OpenStreetMap contributors/)
     assert.equal(openDataSource.provenance.provider, 'OpenStreetMap')
     assert.equal(openDataSource.provenance.snapshot, 'current-full')
+    assert.equal(openDataSource.provenance.relationVersion, expected.relationVersion, `${variant.id} relation version must remain exact`)
+    assert.deepEqual(
+      [openDataSource.provenance.wayVersions[0].id, openDataSource.provenance.wayVersions[0].version],
+      expected.firstWay,
+      `${variant.id} first way version must remain exact`,
+    )
+    assert.deepEqual(
+      [openDataSource.provenance.nodeVersions[0].id, openDataSource.provenance.nodeVersions[0].version],
+      expected.firstNode,
+      `${variant.id} first node version must remain exact`,
+    )
     assert.ok(openDataSource.provenance.relationVersion > 0)
     assert.ok(openDataSource.provenance.wayVersions.length > 0)
     assert.ok(openDataSource.provenance.nodeVersions.length > 0)
@@ -123,6 +143,32 @@ async function runOsmDerivedTests({ catalog }) {
         }),
         false,
         '20046643 contextual park page must not claim the exact route as an official source',
+      )
+    }
+    if (variant.id === 'variant:osm-20072118-die-butterfly-trail') {
+      assert.equal(
+        variant.sourceIds.some((sourceId) => {
+          const source = catalog.getById(sourceId)
+          return source && source.kind === 'official'
+        }),
+        false,
+        '20072118 contextual planning PDF must not claim the exact relation as an official source',
+      )
+    }
+    if (variant.id === 'variant:osm-16162196-sanganbi-shuizukeng') {
+      const officialSource = variant.sourceIds
+        .map((sourceId) => catalog.getById(sourceId))
+        .find((source) => source && source.kind === 'official')
+      assert.ok(officialSource, '16162196 must retain its official planning identity source')
+      assert.equal(officialSource.title, '深圳市绿道网（“鹏城万里”多层次户外步道体系）专项规划（2024–2035年）')
+      assert.equal(officialSource.publisher, '深圳市城市管理和综合执法局、深圳市规划和自然资源局')
+      assert.deepEqual(
+        officialSource.supports
+          .filter((support) => support.entityId === variant.id)
+          .map((support) => support.field)
+          .sort(),
+        ['canonicalName', 'endPoint', 'startPoint'],
+        '16162196 official source must retain only direct variant identity/direction supports',
       )
     }
     const openDataFields = new Set(openDataSource.supports
@@ -175,6 +221,8 @@ async function runOsmDerivedTests({ catalog }) {
   assert.throws(() => assertFrozenGeometryShape(truncated), undefined, 'removing 16162196 final detour point must turn the frozen geometry contract RED')
   const offset = { ...variants[0], routeGeometry: { ...variants[0].routeGeometry, points: variants[0].routeGeometry.points.map((point, index) => index === 0 ? { ...point, lat: point.lat + 0.001 } : point) } }
   assert.throws(() => assertFrozenGeometryShape(offset), undefined, 'offsetting a frozen endpoint must turn the geometry contract RED')
+  const durationMutation = { ...variants[1], stages: [{ ...variants[1].stages[0], durationHours: { min: 1.11, max: 1.11 } }] }
+  assert.throws(() => assertFrozenDuration(durationMutation), undefined, 'mutating duration must turn the deterministic formula contract RED')
 
   const poisonVariant = variants[0]
   const route = catalog.getById(poisonVariant.routeId)

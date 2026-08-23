@@ -30,7 +30,7 @@ module.exports = makeFragment({
   wayVersions,
   nodeVersions,
   checkedAt: "2026-08-23T11:52:08.437Z",
-  official: {"id":"source:official-shenzhen-sanganbi","title":"深圳市郊野径路线资料（三杆笔—水祖坑）","publisher":"深圳市规划和自然资源局","url":"https://www.sz.gov.cn/attachment/1/1445/1445537/11467139.pdf","checkedAt":"2026-08-23","fields":["canonicalName","startPoint","endPoint"]},
+  official: {"id":"source:official-shenzhen-sanganbi","title":"深圳市绿道网（“鹏城万里”多层次户外步道体系）专项规划（2024–2035年）","publisher":"深圳市城市管理和综合执法局、深圳市规划和自然资源局","url":"https://www.sz.gov.cn/attachment/1/1445/1445537/11467139.pdf","checkedAt":"2026-08-23","fields":["canonicalName","startPoint","endPoint"]},
   osmSupports: ["direction","startPoint","endPoint","isLoop","accessMode"],
   summary: "深圳三杆笔至水祖坑的完整 OSM 郊野径关系；运营开放状态保持未知。",
   extraNote: "Complete ordered relation geometry; runtime node manifest is bounded to first/last 32 entries. Full used-node version manifest is retained in docs/route-data-licenses.md; no immutable-full claim.",

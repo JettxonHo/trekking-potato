@@ -235,7 +235,7 @@ function makeMultiVariantCatalog() {
 function productionCatalogTests() {
   const first = createProductionRouteCatalog()
   const second = createProductionRouteCatalog()
-  assert.deepEqual([first.sources.length, first.places.length, first.routes.length, first.variants.length], [23, 180, 11, 11])
+  assert.deepEqual([first.sources.length, first.places.length, first.routes.length, first.variants.length], [22, 180, 11, 11])
   assert.deepEqual(
     first.variants.reduce((counts, variant) => ({ ...counts, [variant.capability]: (counts[variant.capability] || 0) + 1 }), {}),
     { full: 10, blocked: 1 },

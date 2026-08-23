@@ -1177,3 +1177,21 @@
 - Review-fix gates pass (focused, root, offline integration `55/0`, lint, typecheck, WeChat build, diff/allowlist/
   sensitive scans). Root audit is clean; Cloud Function audit findings are pre-existing transitive vulnerabilities
   requiring an out-of-scope dependency upgrade. No commit, push, PR, deploy or dependency change was performed.
+
+## 2026-08-23 — TP-D074 #159 Phase2 review-fix round 2 source/evidence corrections
+
+- Controller review required removal of the 20072118 runtime official block. The linked Shenzhen planning PDF is
+  retained only as documented context; it does not bind the exact relation or establish current opening. The source
+  ledger therefore drops the associated runtime official source, while the direct OSM identity/topology evidence stays.
+- The 16162196 official record now uses the verified title `深圳市绿道网（“鹏城万里”多层次户外步道体系）专项规划
+  （2024–2035年）` and joint publisher `深圳市城市管理和综合执法局、深圳市规划和自然资源局`; supports remain
+  limited to the fields directly reproducible from that document (`canonicalName`, `startPoint`, `endPoint`).
+- Unknown operational-status evidence is fail-closed unless the variant ID is `variant:osm-*`, its linked source is
+  OpenStreetMap with `kind=open_data`, that same source supports `field=routeGeometry` for the exact entity, and the
+  rationale is non-empty. Legacy/non-OSM and cross-source mutations are explicit RED fixtures.
+- The exact production catalog shape is now `22` sources (`180` places, `11` routes, `11` variants in the resolver
+  contract fixture; the runtime variants remain `full=10`, `blocked=1`), and OSM-derived tests pin the deterministic
+  duration formula plus relation/first-way/first-node version anchors. No commit, push, PR, merge, deploy, CloudBase or
+  dependency action is authorized.
+- Validation completed without network research: focused four contracts, root `npm test`, typecheck, lint (0 errors/9
+  existing warnings), host WeChat build, `git diff --check`, exact allowlist and added-line sensitive scans all pass.

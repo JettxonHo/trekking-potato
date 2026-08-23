@@ -230,7 +230,7 @@ function testOpenDataGeometrySourceKind() {
   assert.deepEqual(catalog.variants[0].routeGeometry, makeSafeRouteGeometry(), 'full ordered geometry must cross the catalog seam')
   assert.deepEqual(catalog.variants[0].routePreview, makeSafeRoutePreview(), 'open_data preview must use an explicit evidence seam')
 
-  const unknownWithRationale = makeOpenDataFixture()
+  const unknownWithRationale = makeOsmOpenDataFixture()
   unknownWithRationale.variants[0].operationalStatus = 'unknown'
   unknownWithRationale.variants[0].operationalStatusRationale = 'Current opening evidence is not verified; status remains unknown.'
   unknownWithRationale.sources[0].supports = unknownWithRationale.sources[0].supports
@@ -238,6 +238,47 @@ function testOpenDataGeometrySourceKind() {
   assert.equal(createRouteCatalog(unknownWithRationale).variants[0].operationalStatus, 'unknown')
   delete unknownWithRationale.variants[0].operationalStatusRationale
   expectInvalid(unknownWithRationale, { code: 'missing_required', path: 'variants[0].operationalStatusRationale' })
+
+  const legacyIdWithOpenData = makeOpenDataFixture()
+  legacyIdWithOpenData.variants[0].operationalStatus = 'unknown'
+  legacyIdWithOpenData.variants[0].operationalStatusRationale = 'Current opening evidence is not verified; status remains unknown.'
+  legacyIdWithOpenData.sources[0].supports = legacyIdWithOpenData.sources[0].supports
+    .filter((support) => support.field !== 'operationalStatus')
+  expectInvalid(legacyIdWithOpenData, { code: 'missing_evidence', path: 'variants[0].evidence.operationalStatus' })
+
+  const nonOsmProvider = makeOpenDataFixture()
+  nonOsmProvider.variants[0].operationalStatus = 'unknown'
+  nonOsmProvider.variants[0].operationalStatusRationale = 'Current opening evidence is not verified; status remains unknown.'
+  nonOsmProvider.sources[0].provenance.provider = 'A different map provider'
+  nonOsmProvider.sources[0].supports = nonOsmProvider.sources[0].supports
+    .filter((support) => support.field !== 'operationalStatus')
+  expectInvalid(nonOsmProvider, { code: 'invalid_value', path: 'sources[0].provenance.provider' })
+
+  const nonOsmKind = makeOpenDataFixture()
+  nonOsmKind.variants[0].operationalStatus = 'unknown'
+  nonOsmKind.variants[0].operationalStatusRationale = 'Current opening evidence is not verified; status remains unknown.'
+  nonOsmKind.sources[0].kind = 'government'
+  nonOsmKind.sources[0].supports = nonOsmKind.sources[0].supports
+    .filter((support) => support.field !== 'operationalStatus')
+  expectInvalid(nonOsmKind, { code: 'missing_evidence', path: 'variants[0].evidence.operationalStatus' })
+
+  const routeGeometryOnDifferentSource = makeOsmOpenDataFixture()
+  routeGeometryOnDifferentSource.variants[0].operationalStatus = 'unknown'
+  routeGeometryOnDifferentSource.variants[0].operationalStatusRationale = 'Current opening evidence is not verified; status remains unknown.'
+  routeGeometryOnDifferentSource.sources[0].supports = routeGeometryOnDifferentSource.sources[0].supports
+    .filter((support) => support.field !== 'operationalStatus' && support.field !== 'routeGeometry')
+  const otherGeometrySource = makeSource({ supports: [
+    ...FULL_EVIDENCE_FIELDS
+      .filter((field) => field !== 'operationalStatus')
+      .map((field) => ({ entityId: 'variant:osm-fixture-full', field, method: 'direct' })),
+    { entityId: 'variant:osm-fixture-full', field: 'routeGeometry', method: 'direct' },
+  ] })
+  otherGeometrySource.id = 'source:fixture-other-geometry'
+  otherGeometrySource.tier = 'A'
+  otherGeometrySource.kind = 'official'
+  routeGeometryOnDifferentSource.sources.push(otherGeometrySource)
+  routeGeometryOnDifferentSource.variants[0].sourceIds.push(otherGeometrySource.id)
+  expectInvalid(routeGeometryOnDifferentSource, { code: 'missing_evidence', path: 'variants[0].evidence.operationalStatus' })
 
   const reviewedGeometryUnknown = makeOpenDataFixture()
   reviewedGeometryUnknown.sources[0].kind = 'reviewed_track'
@@ -278,6 +319,17 @@ function makeOpenDataFixture() {
   ]
   input.variants[0].routeGeometry = makeSafeRouteGeometry()
   input.variants[0].routePreview = makeSafeRoutePreview()
+  return input
+}
+
+function makeOsmOpenDataFixture() {
+  const input = makeOpenDataFixture()
+  input.variants[0].id = 'variant:osm-fixture-full'
+  input.sources[0].supports = input.sources[0].supports.map((support) => (
+    support.entityId === 'variant:fixture-full'
+      ? { ...support, entityId: 'variant:osm-fixture-full' }
+      : support
+  ))
   return input
 }
 

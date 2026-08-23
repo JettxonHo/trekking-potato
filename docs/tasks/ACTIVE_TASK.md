@@ -15,7 +15,12 @@ The live #159 instruction supersedes stale 24-full-plus-Wutai wording. The corre
 restriction. This handoff covers the bounded Phase2 review-fix and remains subject to controller review; it does not
 imply deployment or release.
 
-## 1. Candidate set
+## 1. Phase1 candidate set (historical / superseded)
+
+The six-document, discovery-only candidate list below is retained as historical provenance. It was superseded by the
+controller's Phase2 freeze (`5385785828`) for the bounded runtime slice. The current frozen set is
+`16162196`, `20072118`, `20046643`, `20739620` and `17841828`; the searchable ledger is `full=10` with `gap=15`,
+and the Wutai restriction remains non-counting.
 
 - `16162196` — 深圳三杆笔—水祖坑郊野径
 - `20072118` — 深圳蝴蝶步道
@@ -27,7 +32,7 @@ The exact identities, aggregate topology, official context and reject list are i
 [`docs/catalog-batch1-source-evidence.md`](../catalog-batch1-source-evidence.md). Every proposal remains
 `BLOCKED_PENDING_CONTROLLER_FREEZE`; this document does not promote a route.
 
-## 2. Exact allowlist
+## 2. Phase1 exact allowlist (historical / superseded)
 
 - `GOAL.md`
 - `docs/current-status.md`
@@ -39,6 +44,39 @@ The exact identities, aggregate topology, official context and reject list are i
 No application, Cloud Function, runtime route data, test, fixture, dependency, config, schema or deployment file may
 change. No commit, push, PR, merge, CloudBase or deployment action is authorized in this slice. Escalate before scope
 expansion.
+
+## 2A. Current Phase2 review-fix allowlist
+
+The controller-frozen Phase2 runtime review-fix uses this exact 25-path allowlist (including the 20739620 replacement):
+
+1. `GOAL.md`
+2. `docs/current-status.md`
+3. `docs/governance/MASTER_PLAN.md`
+4. `docs/tasks/ACTIVE_TASK.md`
+5. `docs/route-catalog-expansion.md`
+6. `docs/decision-log.md`
+7. `docs/catalog-batch1-source-evidence.md`
+8. `docs/route-data-licenses.md`
+9. `cloudfunctions/getAdvice/data/catalog/runtime-catalog.js`
+10. `cloudfunctions/getAdvice/domain/route-catalog.js`
+11. `scripts/route-data-contract-test.js`
+12. `scripts/route-domain-contract-test.js`
+13. `scripts/route-resolver-contract-test.js`
+14. `scripts/result-page-contract-test.js`
+15. `scripts/route-data/osm-derived.test.js`
+16. `taro-app/src/pages/index/index.jsx`
+17. `taro-app/src/pages/index/index.css`
+18. `cloudfunctions/getAdvice/data/catalog/osm-derived/README.md`
+19. `cloudfunctions/getAdvice/data/catalog/osm-derived/common.js`
+20. `cloudfunctions/getAdvice/data/catalog/osm-derived/elevation-source.js`
+21. `cloudfunctions/getAdvice/data/catalog/osm-derived/16162196-sanganbi-shuizukeng.js`
+22. `cloudfunctions/getAdvice/data/catalog/osm-derived/17841828-three-gorges-summit.js`
+23. `cloudfunctions/getAdvice/data/catalog/osm-derived/20046643-pinghui-wetland-trail.js`
+24. `cloudfunctions/getAdvice/data/catalog/osm-derived/20072118-die-butterfly-trail.js`
+25. `cloudfunctions/getAdvice/data/catalog/osm-derived/20739620-zhaogongshan-loop.js`
+
+The current review-fix may change only these paths. It does not authorize dependency, CloudBase, deployment, release,
+commit, push or PR actions; any required scope expansion must be escalated before editing.
 
 ## 3. Evidence contract
 

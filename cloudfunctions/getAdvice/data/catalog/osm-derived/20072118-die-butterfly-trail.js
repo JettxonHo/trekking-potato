@@ -30,7 +30,6 @@ module.exports = makeFragment({
   wayVersions,
   nodeVersions,
   checkedAt: "2026-08-23T11:52:08.437Z",
-  official: {"id":"source:official-shenzhen-butterfly-trail","title":"深圳市“鹏城万里”郊野径路线资料（蝴蝶步道）","publisher":"深圳市城市管理和综合执法局","url":"https://cgj.sz.gov.cn/attachment/1/1445/1445537/11290180.pdf","checkedAt":"2026-08-23","fields":["canonicalName","startPoint","endPoint"]},
   osmSupports: ["direction","startPoint","endPoint","isLoop","accessMode"],
   summary: "深圳朴树口至马峦山北门的蝴蝶步道关系；运营开放状态保持未知。",
   extraNote: "Complete ordered relation geometry; runtime node manifest is bounded to first/last 32 entries. Full used-node version manifest is retained in docs/route-data-licenses.md; no immutable-full claim.",

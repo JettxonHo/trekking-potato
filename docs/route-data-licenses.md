@@ -13,13 +13,15 @@ with other Zhao Gong Shan relations.
 
 The 20739620 closed loop uses accessMode walk; member way 1521185467 is highway=residential and is disclosed. No cableway, shuttle, or vehicle-only segment is mixed into these walking variants. All five operationalStatus values remain unknown; absent current opening proof is never converted to open.
 
-| Relation | Canonical variant | Direction | OSM relation URL | Applicable official/identity source |
+| Relation | Canonical variant | Direction | OSM relation URL | Official/identity source (exact or context) |
 |---|---|---|---|---|
 | 16162196 (v6) | 三杆笔—水祖坑郊野径 | 三杆笔 → 水祖坑 | https://www.openstreetmap.org/relation/16162196 | https://www.sz.gov.cn/attachment/1/1445/1445537/11467139.pdf |
-| 20072118 (v2) | 蝴蝶步道 | 朴树口 → 马峦山北门 | https://www.openstreetmap.org/relation/20072118 | https://cgj.sz.gov.cn/attachment/1/1445/1445537/11290180.pdf |
-| 20046643 (v3) | 坪惠湿地步道 | 聚龙山湿地生态园北门 → 坪山湿地公园南门 | https://www.openstreetmap.org/relation/20046643 | https://cgj.sz.gov.cn/xsmh/gysz/csgy/content/post_10775015.html |
+| 20072118 (v2) | 蝴蝶步道 | 朴树口 → 马峦山北门 | https://www.openstreetmap.org/relation/20072118 | Context only: [深圳“鹏城万里”规划 PDF](https://cgj.sz.gov.cn/attachment/1/1445/1445537/11290180.pdf); does not bind this exact relation or prove current opening |
+| 20046643 (v3) | 坪惠湿地步道 | 聚龙山湿地生态园北门 → 坪山湿地公园南门 | https://www.openstreetmap.org/relation/20046643 | Context only: [深圳公园建设页面](https://cgj.sz.gov.cn/xsmh/gysz/csgy/content/post_10775015.html); does not bind this exact relation or prove current opening |
 | 20739620 (v1) | 赵公山东北环线 | loop | https://www.openstreetmap.org/relation/20739620 | No additional official route-level opening source located; status unknown |
 | 17841828 (v1) | 三峡之巅徒步道 | 赤甲楼方向入口 → 三峡之巅 | https://www.openstreetmap.org/relation/17841828 | https://cq.gov.cn/zwgk/zfxxgkml/zdlyxxgk/ggwh/ly/zxdt/202501/t20250121_14190770.html |
+
+The 16162196 official context is the Shenzhen planning document **深圳市绿道网（“鹏城万里”多层次户外步道体系）专项规划（2024–2035年）**, jointly published by **深圳市城市管理和综合执法局、深圳市规划和自然资源局**. Its runtime supports stay limited to the directly reproducible variant identity/direction fields (`canonicalName`, `startPoint`, `endPoint`); it is not a route-level opening assertion.
 
 ## Full relation version manifests
 

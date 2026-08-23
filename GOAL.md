@@ -723,3 +723,20 @@ The Goal is complete only when I01–I25 plus replacement child #77 are closed w
 - Review-fix gates: root tests, offline integration `55/0`, lint (0 errors/9 existing warnings), typecheck, host
   WeChat build, and focused contracts pass. Root audit reports 0 vulnerabilities; Cloud Function transitive audit
   findings remain pre-existing and require an out-of-scope dependency upgrade. No commit, push, PR or deploy occurred.
+
+## #159 Phase2 review-fix round 2 checkpoint — 2026-08-23
+
+- The controller's second review-fix keeps the frozen five and the truthful searchable count (`full=10`, `gap=15`;
+  Wutai remains a separate non-counting restriction). The historical Phase1 candidate/allowlist text is marked
+  superseded in `docs/tasks/ACTIVE_TASK.md`; the current 25-path Phase2 allowlist includes the 20739620 replacement.
+- 20072118 no longer carries a route-level official source in runtime. Its Shenzhen planning PDF remains docs-only
+  context and does not bind the exact relation or prove current opening. 16162196 now uses the verified joint-document
+  title/publisher while retaining only direct `canonicalName`, `startPoint` and `endPoint` supports.
+- The unknown-status exception now requires all of: `variant:osm-*`, an OpenStreetMap `open_data` source, a non-empty
+  rationale, and same-source `routeGeometry` support. Legacy/non-OSM and cross-source mutations remain RED. OSM-derived
+  tests freeze the duration formula and relation/first-way/first-node version observations for every route.
+- Validation for this round is green: focused route-domain/data/resolver/result-page, root `npm test`, typecheck, lint
+  (0 errors/9 existing warnings), `CI=1 npm run build:weapp`, `git diff --check`, exact allowlist and added-line
+  sensitive scans.
+- This round remains `READY_FOR_CONTROLLER_REVIEW`; no commit, push, PR, merge, deployment, CloudBase or dependency
+  action is implied.
