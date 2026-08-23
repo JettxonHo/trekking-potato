@@ -1,11 +1,12 @@
 # TP-CATALOG-001 — 首批可信路线目录扩充
 
 - Goal ID: `TP-CATALOG-001`
-- Status: `ACTIVE — C15-A REVIEW_ACTIVE`
+- Status: `ACTIVE — C15-B REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-23`
 - Planning Issue: `#153 / CLOSED`
-- Active Issue: `#155`
+- Completed evidence Issue: `#155 / CLOSED`
+- Active Issue: `#157`
 - Release boundary: reviewed catalog data and tests only; no automatic promotion, CloudBase mutation or public release
 
 ## 1. Objective
@@ -21,7 +22,7 @@ a blocked new candidate must be replaced and cannot satisfy the target merely by
 
 ## 2. Authority and reading order
 
-Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #155 and
+Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #157 and
 `docs/tasks/ACTIVE_TASK.md`. `docs/architecture.md`, `docs/community-track-workflow.md` and the new catalog-expansion
 ledger own the geometry, rights and promotion boundaries. A conflict stops the affected work and returns to Sol XHigh.
 
@@ -108,6 +109,37 @@ enter the trusted catalog merely to reach the target count.
 - Draft PR #156 is open. Evidence head `a4ebe74` is historical first-publication evidence only; live GitHub metadata is
   authoritative for the current head. Quality CI and two fresh independent Reviews must target the same current head,
   and any head change repeats both gates.
+
+## C15-A merge and C15-B activation — 2026-08-23
+
+- PR #156 passed exact-head quality CI and two independent Reviews, squash merged as `50d3a0e`, and #155 closed with
+  all five Yubeng candidates blocked and no route-data child.
+- #157 is the only active evidence slice. It audits Huangshan, Taishan, Sanqing and two distinct Emei OSM relations.
+- This phase is evidence/docs only. It stops before runtime data and keeps walking, cableway, shuttle and road segments
+  distinct; missing current official access, topology or ODbL treatment remains blocked.
+
+## C15-B evidence audit checkpoint — 2026-08-23
+
+- `docs/scenic-route-evidence.md` records current OSM relation identity, ordered way-member IDs/roles, endpoint-gap and
+  graph-topology observations, mode boundaries and first-party/operator access findings for rows 12–16.
+- All five OSM full-relation reads succeeded once. Huangshan has five ordered gaps and nine branch nodes; Taishan has
+  fifteen gaps and four graph components; Sanqing has twelve gaps; each Emei relation has one gap. Duplicate way refs
+  occur in Huangshan, Taishan and Sanqing. No metrics were derived from these incomplete/branched relations, and no raw
+  nodes, coordinates or geometry were copied.
+- First-party sources establish only general scenic opening/transport context for Huangshan, Taishan and Emei. The
+  Sanqing operator ticket/cableway HTTPS source was not TLS-reproducible during Review, is excluded from verified primary
+  evidence, and was not replaced with HTTP; its secondary reopening notice is context only and is not positive route
+  authority. None binds a complete, rights-cleared, currently open walking variant for the exact OSM relation. ODbL
+  attribution/derived-database treatment remains an implementation gate. The two Emei relations remain distinct because
+  their middle member sequences diverge.
+- All five candidates remain `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION`. No runtime route-data child,
+  CloudBase action, deployment, release or public catalog claim is authorized by this checkpoint.
+- Executor checkpoint: `READY_FOR_CONTROLLER_REVIEW`; controller must inspect the evidence report, ledger/status diff,
+  latest-head quality and two fresh exact-head independent Reviews before deciding mergeability or next batch.
+- Since no candidate passed, no route-data implementation child may be activated from this batch. After Review/merge,
+  blocked slots require replacement or the next evidence batch.
+- Draft PR #158 is open. Evidence head `7fcdd48` is historical first-publication evidence only; live GitHub metadata is
+  authoritative. Quality CI and two fresh independent Reviews must target the same current head.
 
 ## Appendix: prior TP-COMMUNITY-001 checkpoints
 
