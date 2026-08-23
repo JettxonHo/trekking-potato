@@ -3,7 +3,7 @@
 - Plan ID: `TP-MASTER-PLAN`
 - Plan version: `2.1.0`
 - Governance version: `TP-GOV-2.0.0`
-- Updated on: `2026-08-09`
+- Updated on: `2026-08-23`
 - Maintainer: 项目主控
 - Status: `ACTIVE`
 
@@ -70,6 +70,30 @@ AI 负责解释、归纳和非关键补充，不负责决定路线身份、类�
 - 生产发布或公共闭测；staging 部署仍需单独人工门禁
 - 删除存量数据或不可逆迁移
 
-## 6. 验收权
+## 6. C15 首批 25 个可信 RouteVariant 目录扩充
+
+当前路线目录扩充沿用既有 `Place / Route / RouteVariant` 结构，不把 175 条 legacy builtin 名称当作可信变体。
+`#153` 的规划台账 `docs/route-catalog-expansion.md` 固定 exactly-25 slots：六条已存在的结构化 pilot 加十九条
+带来源身份的候选。新候选先保留为 `UNKNOWN`/`BLOCKED_CANDIDATE`，不自动写入 runtime catalog。
+现有六条中五条为可查询 `full` pilot，一条为五台山限制记录；因此完成口径是 24 条可查询 `full` 变体加该
+限制记录。十九条新候选若有任何一条无法通过完整证据门禁，必须经 Review 更换候选，不能以 blocked 槽位凑数。
+
+### 来源与权利边界
+
+- OSM `type=route` + `route=hiking/foot` relation 只提供开放数据几何候选。OSM 的 ODbL 署名、通知和适用的
+  派生数据库义务必须随任何后续 Source/数据投影记录；规划阶段只保留关系页链接与元数据，不复制原始几何。
+- first-party、operator 或明确授权的 contributor/partner track 才能进入几何审阅。GPX/KML/OSM 几何不证明开放、
+  许可、合法性、安全、天气或结论；当前开放状态必须由官方/运营方来源独立支持。
+- 不抓取、绕过或批量提取两步路、六只脚、Wikiloc、Strava、AllTrails 等平台。来源权利、身份、拓扑、方向或
+  开放状态缺失时维持 `UNKNOWN` 并阻塞，不为达到 25 条而补造。
+
+### 串行批次
+
+先审 Batch A 的五条雨崩关系，再按四至五条串行推进 B–D；每批一个独立 child Issue、冻结 allowlist、真实
+RED/GREEN、两次 exact-head Review。雨崩 relation `19700036` 的中英文名称冲突已单独隔离；任何 disconnected、
+ambiguous、rights-unclear 或缺少 current operator source 的 row 都不能 promotion。#123 的人控 staging blocker
+仍独立存在，C15 不授予 CloudBase、定时器、删除、部署或公共发布权限。
+
+## 7. 验收权
 
 执行 Agent只能交付 Review。Sol XHigh 负责 PR 级批准与合并判断；Goal 是否达到人工验收由项目控制者决定。
