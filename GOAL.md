@@ -67,7 +67,7 @@ enter the trusted catalog merely to reach the target count.
 
 - `docs/route-catalog-expansion.md` records exactly 25 slots: six existing pilots and nineteen provisional OSM
   relation candidates. The new rows are source identities only; none has a runtime ID or promotion verdict of `full`.
-- Batch A contains five Yubeng relations. Four have a preliminary consecutive-way endpoint observation; relation
+- Batch A contains five Yubeng relations. All five have a preliminary consecutive-way endpoint observation; relation
   `19700036` remains quarantined because its Chinese and English names conflict. All five still require topology,
   direction, rights/attribution and official/operator opening evidence.
 - Batches B–D contain fourteen additional named OSM relations. Their member geometry, topology, exact direction,
