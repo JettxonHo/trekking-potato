@@ -4,24 +4,34 @@
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`;
   `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING` retained as a separately blocked runtime ledger
-- Current Goal: `TP-CATALOG-001 / ACTIVE — #165 BATCH4_PHASE2_RUNTIME`
-- Active task: `#165 / PHASE2_RUNTIME_IMPLEMENTATION / READY_FOR_CONTROLLER_REVIEW`
-- Branch/base: `codex/165-catalog-final-5` from exact `main@7ef1929493989d07f0a683aba1dfcf51837a9ff5`
+- Current Goal: `TP-CATALOG-001 / COMPLETE — CATALOG_READY (code/data ready; not deployed)`
+- Active task: `#123 / BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION` (human-controlled)
+- Closeout: `#167 / DOCS_ONLY_CLOSEOUT / READY_FOR_CONTROLLER_REVIEW`
+- Branch/base snapshot: closeout merge `main@264b6f3d55d01ca80bd907293aff90dc6eeca2be` (`264b6f3`); re-read live
+  GitHub metadata for any later #167 head/CI/Review decision
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
-- Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: PR #160 merged the first runtime batch as `14830eb`, PR #162 merged the second as `f393c00`, and
-  PR #164 merged the third as `7ef1929`; controller freeze `5387039704` authorized the final five runtime additions.
-  The human-approved target remains exactly 25 searchable `full` RouteVariant slots. The catalog now has twenty-five
-  searchable `full` variants, leaving a gap of zero. Wutai is a separate non-counting restriction record. The broad legacy
-  builtin list remains discovery-only. #123 stays open and blocked
-  with S8–S15/S20 `BLOCKED` and S16/S18 `UNVERIFIED_RUNTIME_TOOL`; C15 grants no CloudBase, timer, deletion, cohort
-  or release authority.
+- Staging/runtime verdict: `BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`; no real-device, production, public or CloudBase
+  evidence is claimed. Any staging action is human-controlled; executors may not dispatch or mutate production.
+- Closeout truth: PR #166 was approved at exact head `b0c8e1c4d8e5f2bddacff4a2a3697df050ab66df` (`b0c8e1c`), quality
+  check run `32654285375` succeeded, and it merged to live `main` as `264b6f3d55d01ca80bd907293aff90dc6eeca2be` (`264b6f3`).
+  Issue #165 is closed and Issue #167 is the documentation-only closeout. The catalog has exactly twenty-five
+  searchable `full` variants, one blocked non-counting `R-WUTAI`, and gap zero. #123 remains open with S8–S15/S20
+  `BLOCKED` and S16/S18 `UNVERIFIED_RUNTIME_TOOL`; C15 grants no timer, deletion, cohort, release, CloudBase or
+  deployment authority.
 
 - Count truth: twenty-five records are searchable `full` (five existing pilots plus five each from #159, #161, #163
   and #165); zero slots remain toward the completion target of 25. `R-WUTAI` is a non-counting restriction. A blocked
   candidate is replaced and never counts as a delivered route.
 
-## #165 Phase2 final five runtime checkpoint — controller freeze `5387039704`
+## #167 C15 closeout — current controller checkpoint (2026-08-24)
+
+`TP-CATALOG-001` is **`COMPLETE — CATALOG_READY`** for reviewed code/data and public contracts only. It is not a
+production, public, real-device or CloudBase release. The runtime ledger is intentionally handed back to human-owned
+Issue #123 as `BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`; retain S8–S15/S20 `BLOCKED` and S16/S18
+`UNVERIFIED_RUNTIME_TOOL`. GitHub remains authoritative for live head/merge/CI state, so the recorded `main@264b6f3`
+snapshot must be rechecked if the repository moves.
+
+## #165 Phase2 final five runtime checkpoint — controller freeze `5387039704` (historical; superseded by #167 closeout)
 
 - Exact complete relations `7065552`, `17618981`, `17719174`, `18220700` and `18220701` are represented as runtime
   `full` variants with ordered WGS84 geometry, <=500 previews, current-full relation/way/node provenance and route
@@ -34,8 +44,8 @@
 - The five OSM source cards use batch-completion/as-of `2026-08-23T16:13:29Z` after current-full request starts
   `16:10:38Z`–`16:13:28Z`; the evidence report retains those starts as request metadata. Per-route
   `elevationCheckedAt` values remain independent and unchanged.
-- Runtime reconciliation is `full=25`, `gap=0`, with Wutai separate/non-counting. Focused and full gates are being
-  run for controller review; this checkpoint is **`READY_FOR_CONTROLLER_REVIEW`** and does not imply merge/deploy.
+- Runtime reconciliation was `full=25`, `gap=0`, with Wutai separate/non-counting. PR #166 subsequently merged the
+  reviewed code/data; this historical checkpoint does not imply deployment or public/runtime validation.
 
 ## #163 Batch3 activation — 2026-08-23 (historical pre-freeze checkpoint)
 
@@ -2020,11 +2030,12 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-The Draft PR lifecycle for #165 is controller-owned. Live GitHub metadata is authoritative for the current PR head and
-latest quality run; Sol XHigh may decide mergeability only after successful quality CI and two fresh independent
-Reviews target that same current head. Any head change repeats both gates. After a truthful merge, reconcile the
-25-route runtime/ledger and close the Goal without implying deployment or public release. #123 remains independently
-blocked; no CloudBase index/config mutation, deployment, timer, deletion or real-user cohort is authorized.
+Issue #167 is the current docs-only closeout. Live GitHub metadata is authoritative for its current head and quality
+run; Sol XHigh may decide mergeability only after successful same-head quality CI and two fresh independent Reviews
+targeting that same current head. Any head change repeats both gates. After controller merge/closeout of #167, continue
+with human-controlled #123 `BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`; no CloudBase index/config mutation, deployment,
+timer, deletion, real-device acceptance or real-user cohort is authorized. PR #166 is already merged and must not be
+treated as a future action.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

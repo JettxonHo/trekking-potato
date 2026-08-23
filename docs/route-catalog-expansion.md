@@ -1,18 +1,29 @@
 # C15 — 首批 25 个可信 RouteVariant 证据台账
 
 - Goal: `TP-CATALOG-001`
-- Parent Issue: `#165` (final five-route evidence/freeze batch; planning and merged batches retained below)
-- Status: `PHASE2_RUNTIME_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
-- Snapshot checked: `2026-08-24` (runtime merge truth through PR #164 / `main@7ef1929`; earlier source windows remain recorded below)
+- Parent/closeout Issue: `#167` (docs-only C15 reconciliation; #165 is closed; planning and merged batches retained below)
+- Status: `COMPLETE — CATALOG_READY` (reviewed code/data; not deployed or public)
+- Snapshot checked: `2026-08-24` (live runtime merge truth through PR #166 / `main@264b6f3d55d01ca80bd907293aff90dc6eeca2be`; earlier source windows remain recorded below)
 - Scope: the target remains exactly 25 searchable `full` slots: five existing pilots plus twenty missing/replacement
   slots. Current Phase2 runtime has twenty-five searchable `full` variants (five existing plus five each from #159,
   #161, #163 and #165), leaving a remaining gap of zero. The Wutai restriction is a separate non-counting record.
-- Runtime impact: PR #160 merged the first five additions, PR #162 merged the next five as `f393c00`, and PR #164
-  merged the third five as `7ef1929`. The controller freeze `5387039704` authorized the final #165 five for Phase 2;
-  current catalog truth is twenty-five searchable `full` variants with a remaining gap of zero. Wutai remains a
-  separate non-counting blocked restriction.
+- Runtime impact: PR #160 merged the first five additions, PR #162 merged the next five as `f393c00`, PR #164 merged
+  the third five as `7ef1929`, and PR #166 merged the final five as `264b6f3`. PR #166 exact approved head was
+  `b0c8e1c4d8e5f2bddacff4a2a3697df050ab66df` (`b0c8e1c`) with successful quality run `32654285375`; Issue #165 is
+  closed. Current catalog truth is exactly twenty-five searchable `full` variants, one blocked non-counting Wutai
+  restriction and gap zero. This is code/data readiness only; no production, public, real-device, CloudBase or
+  deployment claim is made. The active runtime ledger is back with human-controlled Issue #123 as
+  `BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`.
 
-## #165 Phase2 final five — controller freeze `5387039704`
+## #167 C15 closeout checkpoint — 2026-08-24
+
+The closeout records the live GitHub merge/CI snapshot above and makes `TP-CATALOG-001` **`COMPLETE — CATALOG_READY`**.
+The catalog count is `full=25`, `blocked=1`, `gap=0`; `R-WUTAI` remains a separate non-counting restriction. Runtime
+validation is not implied: #123 retains S8–S15/S20 `BLOCKED` and S16/S18 `UNVERIFIED_RUNTIME_TOOL`, and no executor may
+dispatch or mutate production/CloudBase or claim public or real-device release. Future head/PR/CI state must be
+re-read from GitHub rather than inferred from this historical snapshot.
+
+## #165 Phase2 final five — controller freeze `5387039704` (historical; superseded by #167 closeout)
 
 The historical Phase 1 evidence report is superseded by this bounded runtime checkpoint. The exact complete relations
 now represented in the searchable catalog are:
@@ -33,7 +44,8 @@ deterministic elevation metrics/duration. OSM/open_data carries ODbL-1.0 and adj
 supports only the elevation-derived fields and joined `elevationM` component. `operationalStatus=unknown` with a
 route-specific rationale remains conservative, with no opening, permission, legality or safety inference. Full
 `routeGeometry` and manifests stay out of public DTOs. Runtime reconciliation is now `full=25`, `gap=0`; Wutai is
-non-counting. Handoff: **`READY_FOR_CONTROLLER_REVIEW`**.
+non-counting. This implementation checkpoint was later merged by PR #166; it records code/data evidence only and does
+not claim deployment, public release or human runtime validation.
 The five OSM source cards use batch-completion/as-of `2026-08-23T16:13:29Z` after current-full request starts
 `16:10:38Z`–`16:13:28Z`; per-route elevation response timestamps remain independent and unchanged.
 

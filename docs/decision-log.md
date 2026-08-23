@@ -1347,3 +1347,16 @@
 - The five new OSM source cards use batch-completion/as-of `2026-08-23T16:13:29Z`, after current-full request starts
   `16:10:38Z`–`16:13:28Z`; the evidence report preserves those starts as request metadata and each independent
   `elevationCheckedAt` remains unchanged.
+
+## 2026-08-24 — TP-D086 #167 C15 closeout: catalog ready, runtime still human-blocked
+
+- Live GitHub metadata records PR #166 approved at exact head `b0c8e1c4d8e5f2bddacff4a2a3697df050ab66df` (`b0c8e1c`),
+  successful quality check run `32654285375`, and merge to `main` as `264b6f3d55d01ca80bd907293aff90dc6eeca2be` (`264b6f3`).
+  Issue #165 is closed; Issue #167 is a docs-only reconciliation and remains subject to controller review.
+- `TP-CATALOG-001` is **`COMPLETE — CATALOG_READY`** for reviewed code/data and contracts only: runtime is exactly
+  `full=25`, `blocked=1`, `gap=0`; `R-WUTAI` is a separate blocked, non-counting restriction. This status is not a
+  production, public, real-device, CloudBase or deployment claim.
+- The active runtime ledger returns to human-controlled Issue #123 as `BLOCKED_STAGING / HUMAN_RUNTIME_VALIDATION`.
+  S8–S15/S20 remain `BLOCKED`; S16/S18 remain `UNVERIFIED_RUNTIME_TOOL`. Executors may not dispatch or mutate
+  production/CloudBase or claim staging/public release. GitHub is authoritative for any later head, PR or CI state;
+  the recorded `main@264b6f3` is this closeout snapshot only.
