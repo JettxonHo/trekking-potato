@@ -159,6 +159,7 @@ function assertRoutePreviewCoordinateProjection() {
   const regionClassificationCases = [
     ['四川省', 'mainland'],
     ['四川省甘孜藏族自治州', 'mainland'],
+    ['广东省深圳市', 'mainland'],
     ['中国大陆·四川', 'mainland'],
     ['香港', 'non_mainland'],
     ['澳门', 'non_mainland'],

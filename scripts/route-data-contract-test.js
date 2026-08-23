@@ -21,6 +21,11 @@ const osm7060546 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived
 const osm7060560 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/7060560-hac-sa-reservoir-fitness-trail')
 const osm17147571 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/17147571-sha-tin-fotan-shing-mun')
 const osm17147573 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/17147573-sha-tin-wai-pass')
+const osm7065552 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/7065552-coloane-seac-min-pun')
+const osm17618981 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/17618981-kunpeng-section-4')
+const osm17719174 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/17719174-kunpeng-section-20')
+const osm18220700 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/18220700-meilin-country-trail')
+const osm18220701 = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/18220701-tanglangshan-country-trail')
 const elevationSource = require('../cloudfunctions/getAdvice/data/catalog/osm-derived/elevation-source')
 const { runWutaiTests } = require('./route-data/wutai.test')
 const { runWugongshanReverseTests } = require('./route-data/wugongshan-reverse.test')
@@ -52,6 +57,11 @@ const PILOT_FRAGMENTS = [
   osm7060560,
   osm17147571,
   osm17147573,
+  osm7065552,
+  osm17618981,
+  osm17719174,
+  osm18220700,
+  osm18220701,
   { sources: [elevationSource], places: [], routes: [], variants: [] },
 ]
 

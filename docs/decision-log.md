@@ -1267,6 +1267,22 @@
   do not count and no route enters runtime before a live controller freeze.
 - This activation grants no runtime, elevation, dependency, config, CloudBase, deployment, deletion or release action.
 
+## 2026-08-24 — TP-D084 #165 Batch4 Phase1 bounded evidence proposes final five
+
+- Issue #165 completed the authorized evidence-only pass on `codex/165-catalog-final-5`: four #163 alternates were
+  re-read once; one metadata-only China `route=hiking` Overpass query returned HTTP 200; and exactly twenty new
+  current-full OSM reads completed once each with an identifying User-Agent and six-second minimum start interval.
+  No 429/throttle, retry, mirror, third-party/private source, elevation query, raw geometry copy or runtime edit
+  occurred. Reproducible details and request timestamps are in `docs/catalog-batch4-source-evidence.md`.
+- Exactly five identities are **`PROPOSED_FOR_CONTROLLER_FREEZE`**: `7065552` 路環石面盆古道, `17618981` 鲲鹏径第4段,
+  `17719174` 鲲鹏径第20段, `18220700` 梅林山郊野径 and `18220701` 塘朗山郊野径. Each passes connected,
+  branch-free, ordered walking topology with deterministic named endpoints; residential/track/unclassified members
+  are disclosed boundaries. Current opening, permission, safety, legality and ODbL-derived-database treatment remain
+  `UNKNOWN`.
+- Runtime remains searchable `full=20`, remaining gap `5`, and Wutai remains separate/non-counting. This is
+  `READY_FOR_CONTROLLER_REVIEW`; no Phase 2 allowlist, elevation, deployment, CloudBase, commit, push or PR action
+  is implied.
+
 ## 2026-08-23 — TP-D081 #163 Batch3 bounded evidence proposes exactly five
 
 - The single authorized metadata-only Overpass query selected China `type=route`, `route=hiking` relations with
@@ -1301,3 +1317,33 @@
   with capabilities `{full:20, blocked:1}`. Lifecycle truth is `full=20`, remaining gap `5`; Wutai remains a separate
   non-counting restriction. Handoff: `READY_FOR_CONTROLLER_REVIEW`; no commit, push, PR, merge, deployment, CloudBase
   or dependency action occurred.
+
+## 2026-08-24 — TP-D083 merge #163 and activate #165 final catalog batch
+
+- Draft PR #164 exact head `51e3c28` passed quality run `32650097223` and two fresh exact-head independent Reviews,
+  then squash merged as `7ef1929`; Issue #163 closed. Runtime truth is twenty searchable `full` variants plus the
+  separate non-counting Wutai restriction, leaving exactly five routes toward the fixed target of 25.
+- Issue #165 owns the final serial batch. Phase1 reconfirms the four eligible-but-unselected #163 alternates and may
+  perform one bounded metadata query plus at most twenty additional current-full reads for the fifth/replacements.
+- This activation is evidence/docs-only. It grants no runtime, elevation, dependency, config, CloudBase, deployment,
+  deletion or release action before a live controller freeze expands the Phase2 allowlist.
+
+## 2026-08-24 — TP-D085 #165 Phase2 final five runtime implementation checkpoint
+
+- Controller freeze comment `5387039704` authorized exactly relations `7065552` v8, `17618981` v8, `17719174` v3,
+  `18220700` v1 and `18220701` v3. This supersedes the Phase 1 proposal-only state in the batch-4 evidence report.
+- TDD RED preceded production edits (`npm run test:route-data` failed at 15 versus 20 OSM variants). The five complete
+  ordered WGS84 relation geometries, <=500 previews, current-full OSM relation/way/node provenance and route-specific
+  unknown-status rationales are now represented in runtime. One Open-Meteo/Copernicus DEM GLO-90 request per route
+  returned 100/100 cumulative-distance samples; deterministic Haversine/elevation/duration derivations are recorded.
+- Source truth remains separated: each relation links an ODbL-1.0 OpenStreetMap `open_data` source and the shared
+  trusted elevation source supports only DEM-derived fields and the joined `elevationM` component. Road/track/
+  unclassified members are disclosed while `accessMode=walk`; no opening, permission, legality or safety claim is
+  inferred. Full geometry/manifests remain omitted from public trip/result DTOs.
+- Catalog reconciliation is `37 sources / 195 places / 26 routes / 26 variants`, capabilities `full=25, blocked=1`;
+  source decomposition is `20 OSM open_data + 16 prior source cards + 1 shared trusted elevation source`. Runtime
+  truth is `full=25`, gap `0`, Wutai non-counting. Focused/full gates and lifecycle docs are prepared for
+  **`READY_FOR_CONTROLLER_REVIEW`**; no commit, push, merge, PR, deployment or CloudBase action occurred.
+- The five new OSM source cards use batch-completion/as-of `2026-08-23T16:13:29Z`, after current-full request starts
+  `16:10:38Z`–`16:13:28Z`; the evidence report preserves those starts as request metadata and each independent
+  `elevationCheckedAt` remains unchanged.

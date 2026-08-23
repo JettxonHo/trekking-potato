@@ -1,25 +1,41 @@
 # 当前状态 — TP-CATALOG-001
 
-- Updated: `2026-08-23`
+- Updated: `2026-08-24`
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`;
   `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING` retained as a separately blocked runtime ledger
-- Current Goal: `TP-CATALOG-001 / ACTIVE — #163 PHASE2_RUNTIME_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
-- Active task: `#163 / PHASE2_RUNTIME_IMPLEMENTATION / READY_FOR_CONTROLLER_REVIEW`
-- Branch/base: `codex/163-catalog-batch3-5` from exact `main@f393c0028625dc2deff0f26544cbf65f85f23038`
+- Current Goal: `TP-CATALOG-001 / ACTIVE — #165 BATCH4_PHASE2_RUNTIME`
+- Active task: `#165 / PHASE2_RUNTIME_IMPLEMENTATION / READY_FOR_CONTROLLER_REVIEW`
+- Branch/base: `codex/165-catalog-final-5` from exact `main@7ef1929493989d07f0a683aba1dfcf51837a9ff5`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: PR #160 merged the first runtime batch as `14830eb`; PR #162 merged the second batch as `f393c00`.
-  The human-approved target remains exactly 25 searchable `full` RouteVariant slots. The catalog now has twenty
-  searchable `full` variants, leaving a gap of five. #163 Phase2 implements the controller-frozen third five-route
-  batch. Wutai is a separate non-counting restriction record. The broad legacy
+- Current work: PR #160 merged the first runtime batch as `14830eb`, PR #162 merged the second as `f393c00`, and
+  PR #164 merged the third as `7ef1929`; controller freeze `5387039704` authorized the final five runtime additions.
+  The human-approved target remains exactly 25 searchable `full` RouteVariant slots. The catalog now has twenty-five
+  searchable `full` variants, leaving a gap of zero. Wutai is a separate non-counting restriction record. The broad legacy
   builtin list remains discovery-only. #123 stays open and blocked
   with S8–S15/S20 `BLOCKED` and S16/S18 `UNVERIFIED_RUNTIME_TOOL`; C15 grants no CloudBase, timer, deletion, cohort
   or release authority.
 
-- Count truth: twenty records are searchable `full` (five existing pilots plus five #159, five #161 and five #163 Phase2 variants); five slots
-  remain toward the completion target of 25. `R-WUTAI` is a non-counting restriction. A blocked candidate is replaced
-  and never counts as a delivered route.
+- Count truth: twenty-five records are searchable `full` (five existing pilots plus five each from #159, #161, #163
+  and #165); zero slots remain toward the completion target of 25. `R-WUTAI` is a non-counting restriction. A blocked
+  candidate is replaced and never counts as a delivered route.
+
+## #165 Phase2 final five runtime checkpoint — controller freeze `5387039704`
+
+- Exact complete relations `7065552`, `17618981`, `17719174`, `18220700` and `18220701` are represented as runtime
+  `full` variants with ordered WGS84 geometry, <=500 previews, current-full relation/way/node provenance and route
+  identity/direction taken from OSM tags. Macau is `澳门`; the four Shenzhen mainland routes use `广东省深圳市`.
+- Each route has one bounded Open-Meteo/Copernicus DEM GLO-90 request (100 cumulative-distance samples including
+  endpoints, 100/100 response) and deterministic elevation/duration derivation. Road/track/unclassified members are
+  disclosed; `accessMode=walk`, `operationalStatus=unknown` with route-specific rationale and no opening/permission/
+  safety inference. ODbL/open_data and trusted elevation attribution remain visible; full geometry/manifests stay out
+  of public DTOs.
+- The five OSM source cards use batch-completion/as-of `2026-08-23T16:13:29Z` after current-full request starts
+  `16:10:38Z`–`16:13:28Z`; the evidence report retains those starts as request metadata. Per-route
+  `elevationCheckedAt` values remain independent and unchanged.
+- Runtime reconciliation is `full=25`, `gap=0`, with Wutai separate/non-counting. Focused and full gates are being
+  run for controller review; this checkpoint is **`READY_FOR_CONTROLLER_REVIEW`** and does not imply merge/deploy.
 
 ## #163 Batch3 activation — 2026-08-23 (historical pre-freeze checkpoint)
 
@@ -2004,11 +2020,11 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-The Draft PR lifecycle for #163 is controller-owned. Live GitHub metadata is authoritative for the current PR head and
+The Draft PR lifecycle for #165 is controller-owned. Live GitHub metadata is authoritative for the current PR head and
 latest quality run; Sol XHigh may decide mergeability only after successful quality CI and two fresh independent
-Reviews target that same current head. Any head change repeats both gates. After a truthful #163 merge, reconcile and
-close the Issue before activating the final five-route batch. #123 remains independently blocked; no CloudBase index/
-config mutation, deployment, timer, deletion, real-user cohort or public release is authorized.
+Reviews target that same current head. Any head change repeats both gates. After a truthful merge, reconcile the
+25-route runtime/ledger and close the Goal without implying deployment or public release. #123 remains independently
+blocked; no CloudBase index/config mutation, deployment, timer, deletion or real-user cohort is authorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
@@ -2498,3 +2514,18 @@ config mutation, deployment, timer, deletion, real-user cohort or public release
 - Focused route-domain/data/resolver/result contracts pass after real TDD RED (`10 !== 15` before runtime). Full gates
   and exact-head controller review remain pending; no deploy/CloudBase/commit/push/PR action. Handoff:
   **`READY_FOR_CONTROLLER_REVIEW`**.
+
+## #165 Batch4 Phase1 evidence checkpoint — 2026-08-24 (historical; superseded by Phase2 above)
+
+- Four #163 alternates were re-read once, followed by one metadata-only Overpass request and exactly twenty new
+  current-full OSM reads under an identifying User-Agent and six-second request-start interval. All responses were
+  HTTP 200 with no throttle or retry; no raw geometry or elevation was retained. The durable report is
+  [`docs/catalog-batch4-source-evidence.md`](catalog-batch4-source-evidence.md).
+- The exact five proposals are `7065552` 路環石面盆古道, `17618981` 鲲鹏径第4段, `17719174` 鲲鹏径第20段,
+  `18220700` 梅林山郊野径 and `18220701` 塘朗山郊野径. Each passes connected/branch-free/order-safe walking
+  topology with distinct OSM `from`/`to`; road/track boundaries are disclosed. They remain
+  **`PROPOSED_FOR_CONTROLLER_FREEZE`**, not counted routes, and opening/permission/safety/ODbL treatment are
+  `UNKNOWN`.
+- Historical runtime remained searchable `full=20`, gap `5`, with Wutai separate/non-counting. This docs-only handoff was
+  **`READY_FOR_CONTROLLER_REVIEW`**; no runtime, test, elevation, CloudBase, deployment, commit, push or PR action
+  occurred.

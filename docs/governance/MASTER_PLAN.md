@@ -39,7 +39,8 @@ AI 负责解释、归纳和非关键补充，不负责决定路线身份、类�
 ## 4. 当前路线图
 
 `TP-BETA-001` 与 `TP-STAGING-001` 已完成。`TP-COMMUNITY-001` 的社区轨迹实现已合并，但其运行时证据台账
-仍作为独立的 `BLOCKED_STAGING` Goal 保留。当前 `TP-CATALOG-001 / C15` 负责可信路线目录扩充；它不改变
+仍作为独立的 `BLOCKED_STAGING` Goal 保留。当前 `TP-CATALOG-001 / C15-F / #165` 负责最后五条可信路线
+目录扩充，使运行目录从二十条达到固定目标二十五条；它不改变
 以下社区轨迹能力或人控门禁：
 
 1. 私有 GPX/KML 提交与安全解析；
@@ -157,3 +158,32 @@ The bounded Phase2 runtime checkpoint is `32 sources / 190 places / 21 routes / 
 `full=20, blocked=1`, and source decomposition `15 OSM open_data + 16 prior source cards + 1 shared trusted elevation
 source`. Focused route-domain/data/resolver/result contracts pass after real TDD RED; lifecycle handoff is
 `READY_FOR_CONTROLLER_REVIEW`. No deployment, CloudBase, commit, push or PR action occurred.
+
+### #165 Batch4 Phase1 evidence checkpoint — 2026-08-24 (historical; superseded by Phase2 below)
+
+The historical Issue #165 evidence-only bounded pass re-read four #163 alternates once, one metadata-only
+China hiking-relation query returned HTTP 200, and exactly twenty new current-full OSM relations were read once each
+with a six-second minimum interval and identifying User-Agent. No throttle, retry, mirror, third-party/private
+source, elevation request or runtime mutation occurred. The durable report is
+`docs/catalog-batch4-source-evidence.md`.
+
+Exactly five identities are proposed for controller freeze: `7065552`, `17618981`, `17719174`, `18220700` and
+`18220701`. Their connected, branch-free ordered topologies and named endpoints pass the aggregate walking-mode gate;
+residential/track/unclassified members are disclosed boundaries. They remain uncounted proposals with opening,
+permission, safety and ODbL-derived-database treatment `UNKNOWN`. Runtime remains `full=20`, gap `5`, Wutai
+non-counting. Handoff is **`READY_FOR_CONTROLLER_REVIEW`** and no Phase 2 authority is implied.
+
+### #165 Phase2 final five runtime checkpoint — controller freeze `5387039704`
+
+The Phase 1 proposal set above is superseded by the controller freeze. Complete current-full relations `7065552` v8,
+`17618981` v8, `17719174` v3, `18220700` v1 and `18220701` v3 are now represented as searchable full variants with
+ordered WGS84 geometry, <=500-point previews and relation/way/node version provenance. Macau uses `澳门`; the four
+Shenzhen mainland routes use `广东省深圳市`; road/track/unclassified members are disclosed under `accessMode=walk`.
+Each relation has one bounded Open-Meteo/Copernicus DEM GLO-90 request (100 cumulative-distance samples including
+endpoints) with deterministic metrics and duration. ODbL/open_data and trusted-elevation attribution remain visible;
+`operationalStatus=unknown` with route-specific rationale is conservative and no opening/permission/safety claim is
+inferred. Full geometry/manifests stay out of public DTOs. Runtime reconciliation is `full=25`, `gap=0`, Wutai remains
+non-counting, and the bounded executor handoff is **`READY_FOR_CONTROLLER_REVIEW`**; no merge/deployment authority is
+implied.
+The OSM source cards use batch-completion/as-of `2026-08-23T16:13:29Z` after current-full request starts
+`16:10:38Z`–`16:13:28Z`; per-route elevation response timestamps remain independent and unchanged.

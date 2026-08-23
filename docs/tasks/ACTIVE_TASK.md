@@ -1,19 +1,85 @@
-# ACTIVE TASK — #163 third five complete searchable routes
+# ACTIVE TASK — #165 final five complete searchable routes
 
 - Governance: `TP-GOV-2.0.0`
-- Goal: `TP-CATALOG-001 / ACTIVE — #163 PHASE2_RUNTIME_IMPLEMENTATION_READY_FOR_CONTROLLER_REVIEW`
-- Milestone: C15-E batch-3 runtime implementation and controller review
-- GitHub Issue: `#163`
+- Goal: `TP-CATALOG-001 / ACTIVE — #165 BATCH4_PHASE2_RUNTIME`
+- Milestone: C15-F final five-route runtime implementation
+- GitHub Issue: `#165`
 - Status/Mode: `PHASE2_RUNTIME_IMPLEMENTATION / READY_FOR_CONTROLLER_REVIEW`
 - Controller: Sol XHigh + human product controller
-- Branch/base: `codex/163-catalog-batch3-5` from exact `main@f393c0028625dc2deff0f26544cbf65f85f23038`
+- Branch/base: `codex/165-catalog-final-5` from exact `main@7ef1929493989d07f0a683aba1dfcf51837a9ff5`
 - Executor: exact custom `luna-worker`, configured `gpt-5.6-luna/max`; runtime identity is separate evidence
 
-PR #160 merged the first five runtime additions as `14830eb`; PR #162 passed exact-head CI and two Reviews, then
-squash merged the second five as `f393c00`. The catalog now has twenty searchable `full` variants and a remaining
-gap of five; Wutai remains a separate non-counting restriction.
+PR #160 merged the first five runtime additions as `14830eb`, PR #162 merged the second as `f393c00`, and PR #164
+merged the third as `7ef1929` after same-head CI and two Reviews. Controller freeze `5387039704` authorized the final
+five runtime additions. The catalog now has twenty-five searchable `full` variants and a final gap of zero; Wutai
+remains a separate non-counting restriction.
 
-## #163 Phase1 contract (completed; historical pre-freeze)
+## Current #165 Phase2 contract — controller freeze `5387039704`
+
+Exactly five complete current-full OSM relations are implemented for controller review: `7065552` v8, `17618981`
+v8, `17719174` v3, `18220700` v1 and `18220701` v3. The five fragments retain ordered WGS84 full geometry,
+<=500-point previews, first/last-32 runtime node manifests and complete relation/way/node version manifests in
+`docs/route-data-licenses.md`. Macau uses region `澳门`; the four Shenzhen routes use `广东省深圳市`. Residential,
+track and unclassified members remain disclosed boundaries while `accessMode=walk`.
+
+Each route has exactly one bounded Open-Meteo/Copernicus DEM GLO-90 request (100 cumulative-distance samples including
+endpoints, 100/100 response), deterministic Haversine/elevation/duration metrics and route-specific
+`operationalStatus=unknown` rationale. ODbL/open_data and trusted-elevation attribution are visible; full geometry
+and manifests are omitted from public trip/result DTOs. Runtime reconciliation is `full=25`, `gap=0`; Wutai remains
+non-counting.
+
+The current Phase2 allowlist is exactly:
+
+1. `GOAL.md`
+2. `cloudfunctions/getAdvice/data/catalog/osm-derived/7065552-coloane-seac-min-pun.js`
+3. `cloudfunctions/getAdvice/data/catalog/osm-derived/17618981-kunpeng-section-4.js`
+4. `cloudfunctions/getAdvice/data/catalog/osm-derived/17719174-kunpeng-section-20.js`
+5. `cloudfunctions/getAdvice/data/catalog/osm-derived/18220700-meilin-country-trail.js`
+6. `cloudfunctions/getAdvice/data/catalog/osm-derived/18220701-tanglangshan-country-trail.js`
+7. `cloudfunctions/getAdvice/data/catalog/osm-derived/README.md`
+8. `cloudfunctions/getAdvice/data/catalog/osm-derived/elevation-source.js`
+9. `cloudfunctions/getAdvice/data/catalog/runtime-catalog.js`
+10. `cloudfunctions/getAdvice/domain/route-catalog.js`
+11. `scripts/result-page-contract-test.js`
+12. `scripts/route-data-contract-test.js`
+13. `scripts/route-data/osm-derived.test.js`
+14. `scripts/route-domain-contract-test.js`
+15. `scripts/route-resolver-contract-test.js`
+16. `docs/catalog-batch4-source-evidence.md`
+17. `docs/current-status.md`
+18. `docs/decision-log.md`
+19. `docs/governance/MASTER_PLAN.md`
+20. `docs/route-catalog-expansion.md`
+21. `docs/route-data-licenses.md`
+22. `docs/tasks/ACTIVE_TASK.md`
+
+TDD RED was captured before the fragments (`test:route-data` observed `15 !== 20`); the implementation is now
+`READY_FOR_CONTROLLER_REVIEW`. No opening/permission/safety/legality fact is inferred, and no commit, push, PR,
+merge, deployment or CloudBase action is authorized by this executor.
+
+## Historical #165 Phase1 contract (superseded by the Phase2 freeze above)
+
+Reconfirm the four eligible-but-unselected #163 relations `11816203`, `17147570`, `17147572` and `17147574`; none is
+pre-approved. Use at most one metadata-only discovery query and at most twenty additional sequential current-full
+reads to find the fifth/replacements, excluding all searchable and previously audited IDs. Requests are at least six
+seconds apart with an identifying User-Agent and stop at the first provider throttle without retry or mirror.
+
+Propose exactly five only when identity, connected deterministic topology/direction, mode boundaries and ODbL
+provenance pass. Opening, permit and safety remain `UNKNOWN`; geometry never proves them. Phase1 may modify only:
+
+1. `GOAL.md`
+2. `docs/current-status.md`
+3. `docs/governance/MASTER_PLAN.md`
+4. `docs/tasks/ACTIVE_TASK.md`
+5. `docs/route-catalog-expansion.md`
+6. `docs/decision-log.md`
+7. new `docs/catalog-batch4-source-evidence.md`
+
+No runtime, test, schema, elevation, dependency, config, CloudBase, deployment or release file may change before a
+live controller comment freezes exact identities and expands the Phase2 allowlist. Deliver five proposals or a
+truthful blocker; blocked candidates never count.
+
+## Historical #163 Phase1 contract (completed; superseded)
 
 Audit new China OSM `type=route` + `route=hiking` relations with explicit nonempty `name`, `from` and `to`. Exclude
 all searchable and previously audited relations. Use exactly one metadata-only discovery query, then at most twenty
@@ -293,7 +359,7 @@ next evidence batch.
   separate non-counting restriction. No runtime/test/schema/elevation/CloudBase/deploy/commit/push/PR work occurred.
   Executor status: `READY_FOR_CONTROLLER_REVIEW`.
 
-## Current #163 Phase2 implementation allowlist — controller freeze `5386726512` / correction `5386727268`
+## Historical #163 Phase2 implementation allowlist — controller freeze `5386726512` / correction `5386727268` (superseded)
 
 The controller expanded the allowlist to exactly these 22 paths for the bounded runtime slice:
 
@@ -320,16 +386,35 @@ The controller expanded the allowlist to exactly these 22 paths for the bounded 
 21. `docs/route-data-licenses.md`
 22. `docs/tasks/ACTIVE_TASK.md`
 
-Frozen relations are `7060545` v11, `7060546` v10, `7060560` v7, `17147571` v1 and `17147573` v6. Complete
-ordered relation geometry is required; full point manifests remain in `docs/route-data-licenses.md`, while runtime
-node manifests are bounded first/last 32. Each route has exactly one bounded Open-Meteo/Copernicus DEM GLO-90
-request (<=100 cumulative-distance samples, endpoints included), deterministic Haversine/DEM metrics and duration,
-OSM/ODbL attribution, route-specific `operationalStatus=unknown` rationale and no official opening claim. Macau
-variants use region `澳门`; Hong Kong variants use region `香港`. The two Sha Tin variants share bare canonical
-`沙田郊野徑` (confirmation) and use only direct endpoint-qualified aliases. Full `routeGeometry` is internal and
-must not cross the trip/result DTO seam; `routePreview` is the bounded public projection.
+The historical freeze covered relations `7060545` v11, `7060546` v10, `7060560` v7, `17147571` v1 and `17147573` v6.
+Complete ordered relation geometry was required; full point manifests were retained in `docs/route-data-licenses.md`,
+while runtime node manifests were bounded first/last 32. Each route had exactly one bounded Open-Meteo/Copernicus
+DEM GLO-90 request (<=100 cumulative-distance samples, endpoints included), deterministic Haversine/DEM metrics and
+duration, OSM/ODbL attribution, route-specific `operationalStatus=unknown` rationale and no official opening claim.
+Macau variants used region `澳门`; Hong Kong variants used region `香港`. The two Sha Tin variants shared bare
+canonical `沙田郊野徑` (confirmation) and used only direct endpoint-qualified aliases. Full `routeGeometry` was
+internal and did not cross the trip/result DTO seam; `routePreview` was the bounded public projection.
 
 TDD RED was captured before production edits (`npm run test:route-data` observed `10 !== 15`); focused
-route-domain/data/resolver/result contracts now pass. Current runtime truth is `full=20`, `gap=5`, Wutai remains
-non-counting. No dependency, CloudBase, deployment, commit, push or PR action is authorized in this handoff.
-Executor status: `READY_FOR_CONTROLLER_REVIEW`.
+route-domain/data/resolver/result contracts then passed. At that checkpoint, runtime truth was `full=20`, `gap=5`,
+and Wutai remained non-counting. No dependency, CloudBase, deployment, commit, push or PR action was authorized in
+that handoff. Executor status was `READY_FOR_CONTROLLER_REVIEW`.
+
+## Historical Issue #165 Phase1 evidence handoff — final five (2026-08-24; superseded by Phase2)
+
+- Scope was evidence/docs-only on `codex/165-catalog-final-5` from `main@7ef1929493989d07f0a683aba1dfcf51837a9ff5`.
+  The exact seven-path Phase1 allowlist is this file, `GOAL.md`, `docs/current-status.md`,
+  `docs/governance/MASTER_PLAN.md`, `docs/route-catalog-expansion.md`, `docs/decision-log.md` and the new
+  `docs/catalog-batch4-source-evidence.md`; runtime, tests, schema, elevation, dependency, CloudBase and deployment
+  files remain forbidden.
+- Four #163 alternates were re-read once; one metadata-only Overpass query returned 111 rows and exactly twenty new
+  current-full relation reads then completed once each with an identifying User-Agent and six-second minimum interval.
+  All responses were HTTP 200, with no throttle/retry. No raw geometry, third-party/private evidence or elevation
+  request was used.
+- Exactly five uncounted identities were **`PROPOSED_FOR_CONTROLLER_FREEZE`**: `7065552`, `17618981`, `17719174`,
+  `18220700` and `18220701`. Each was connected, branch-free and order-safe with deterministic named endpoints;
+  disclosed road/track members do not become vehicle transport. All opening, permission, safety, legal and ODbL
+  derived-database facts remain `UNKNOWN`. Other clean rows are explicit alternates; blocked rows are not counted.
+- At that historical checkpoint, runtime truth was searchable `full=20`, gap `5`; Wutai was separate and
+  non-counting. Handoff was **`READY_FOR_CONTROLLER_REVIEW`**. No Phase 2 allowlist or implementation authority was
+  implied.
