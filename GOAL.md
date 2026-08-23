@@ -137,6 +137,8 @@ enter the trusted catalog merely to reach the target count.
   latest-head quality and two fresh exact-head independent Reviews before deciding mergeability or next batch.
 - Since no candidate passed, no route-data implementation child may be activated from this batch. After Review/merge,
   blocked slots require replacement or the next evidence batch.
+- Draft PR #158 is open. Evidence head `7fcdd48` is historical first-publication evidence only; live GitHub metadata is
+  authoritative. Quality CI and two fresh independent Reviews must target the same current head.
 
 ## Appendix: prior TP-COMMUNITY-001 checkpoints
 

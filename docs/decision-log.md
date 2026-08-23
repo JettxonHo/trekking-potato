@@ -1105,8 +1105,9 @@
 
 ## 2026-08-23 — TP-D070 C15-B scenic OSM evidence remains blocked
 
-- Status: Evidence/docs-only checkpoint for #157; no runtime catalog, CloudBase, deployment, child Issue or public-release
-  action occurred. The evidence report is `docs/scenic-route-evidence.md` and ledger rows 12–16 reconcile to it.
+- Status: Draft PR #158 open for #157 evidence Review; no runtime catalog, CloudBase, deployment, child Issue or
+  public-release action occurred. Live GitHub metadata is authoritative for current-head CI and Review gates. The
+  evidence report is `docs/scenic-route-evidence.md` and ledger rows 12–16 reconcile to it.
 - Context: The next five provisional rows are Huangshan `18970848`, Taishan `19818868`, Sanqing `18970781` and two
   distinct Emei relations `13567761`/`13567762`. A relation tag or a general scenic-area notice cannot establish a
   complete, currently permitted walking variant.

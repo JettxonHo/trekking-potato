@@ -93,6 +93,8 @@
 - Executor checkpoint: `READY_FOR_CONTROLLER_REVIEW`; no runtime route-data edit, CloudBase action, deployment, timer,
   deletion, public release or child Issue is authorized. Controller must inspect the actual diff and require latest-head
   quality plus two fresh exact-head independent Reviews.
+- Draft PR #158 is open. Evidence head `7fcdd48` is historical first-publication evidence only; live GitHub metadata
+  is authoritative. The same current head requires successful quality CI and two fresh independent Reviews.
 
 ## C14 private-history pagination activation — 2026-08-22
 
@@ -1936,11 +1938,10 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Sol XHigh reviews the completed #157 evidence report and actual diff. If approved, publish a docs-only Draft PR and
-require quality CI plus two fresh independent Reviews on the same current head. Since no candidate is eligible, do not
-open a route-data implementation child; after merge, replace blocked slots or activate the next evidence batch. #123
-remains independently blocked; no CloudBase index/config mutation, deployment, timer, deletion, real-user cohort or
-public release is authorized.
+Complete quality CI and two fresh independent Reviews on the same live current head of Draft PR #158, then Sol XHigh
+decides mergeability. Since no candidate is eligible, do not open a route-data implementation child; after merge,
+replace blocked slots or activate the next evidence batch. #123 remains independently blocked; no CloudBase index/
+config mutation, deployment, timer, deletion, real-user cohort or public release is authorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 
