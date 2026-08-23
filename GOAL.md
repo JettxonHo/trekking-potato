@@ -22,7 +22,7 @@ a blocked new candidate must be replaced and cannot satisfy the target merely by
 
 ## 2. Authority and reading order
 
-Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #155 and
+Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #157 and
 `docs/tasks/ACTIVE_TASK.md`. `docs/architecture.md`, `docs/community-track-workflow.md` and the new catalog-expansion
 ledger own the geometry, rights and promotion boundaries. A conflict stops the affected work and returns to Sol XHigh.
 

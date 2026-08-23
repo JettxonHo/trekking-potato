@@ -68,8 +68,9 @@ Geometry never proves permission, opening, safety, weather or suitability.
 - Local baseline and handoff checks are green: `test:route-domain`, `test:route-data`, `test:result-page`,
   `git diff --check`. Exact allowlist/sensitive scans and 25-row reconciliation remain required before handoff.
 
-No commit, push, PR, child Issue, runtime route-data edit, CloudBase action, deployment or release. A later separately
-activated implementation Issue may promote only field-complete candidates after this evidence slice merges.
+The executor performed no commit, push, PR, child Issue, runtime route-data edit, CloudBase action, deployment or
+release. The controller subsequently published Draft PR #158. A later separately activated implementation Issue may
+promote only field-complete candidates after this evidence slice merges.
 
 ## 6. Controller next action
 
