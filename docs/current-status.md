@@ -4,13 +4,14 @@
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`;
   `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING` retained as a separately blocked runtime ledger
-- Current Goal: `TP-CATALOG-001 / ACTIVE — C15 REVIEW_ACTIVE`
-- Active task: `#153 / READY_FOR_CONTROLLER_REVIEW / REVIEW`
-- Branch/base: `codex/153-route-catalog-25-plan` from exact `main@da25900`
+- Current Goal: `TP-CATALOG-001 / ACTIVE — C15-A REVIEW_ACTIVE`
+- Active task: `#155 / READY_FOR_CONTROLLER_REVIEW / REVIEW`
+- Branch/base: `codex/155-yubeng-evidence` from exact `main@d36d70a`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
 - Current work: the human approved a target total of 25 trusted RouteVariants: six existing structured pilots plus
-  about nineteen new reviewed variants. #153 owns the planning ledger and serial batch contracts. The broad legacy
+  about nineteen new reviewed variants. Merged planning #153 owns the ledger and serial batch contracts; #155 owns
+  the completed first evidence audit. The broad legacy
   builtin list remains discovery-only. #123 stays open and blocked with S8–S15/S20 `BLOCKED` and S16/S18
   `UNVERIFIED_RUNTIME_TOOL`; C15 grants no CloudBase, timer, deletion, cohort or release authority.
 
@@ -25,9 +26,9 @@
 - OSM `route=hiking/foot` relations are candidates only. First-party or contributor tracks require explicit rights;
   third-party scraping or bulk extraction remains forbidden. Missing evidence blocks promotion instead of being
   inferred from geometry or legacy route copy.
-- Work is serial: planning Review first, then child Issues in batches of roughly four or five. The five connected
-  short Yubeng OSM relations are preferred for the first evidence-rich batch; disconnected or ambiguous routes remain
-  blocked.
+- Work is serial: planning Review first, then child Issues in batches of roughly four or five. The five Yubeng OSM
+  relations had preliminary endpoint-continuity observations and entered the first evidence batch; incomplete or
+  ambiguous routes remain blocked.
 - Exact custom executor: `luna-worker`, configured at `gpt-5.6-luna/max`; runtime identity remains separate evidence.
   No production route data, CloudBase action, deployment or public release has occurred.
 - The planning ledger now has exactly 25 rows (6 existing + 19 new). Five Yubeng OSM relations are Batch A; relation
@@ -35,9 +36,31 @@
   `BLOCKED_CANDIDATE` with unknown topology/direction/opening/rights until their serial child Issues run.
 - The read-only candidate search stopped after the Overpass endpoint rate-limited. This is an evidence boundary, not a
   reason to infer or promote a route. See `docs/route-catalog-expansion.md` for the complete field-level ledger.
-- Draft PR #154 is open. Historical planning head `965afb0` records the first published ledger; live GitHub metadata
-  is authoritative for the current head. Quality CI and both fresh independent Reviews must target that same current
-  head, and any head change repeats both gates.
+- Draft PR #154 carried the planning review. Historical planning head `965afb0` records the first published ledger;
+  final planning head `4b9cfb8` passed quality CI and two fresh independent Reviews, then squash merged as `d36d70a`.
+
+## C15 planning merge and Batch A activation — 2026-08-23
+
+- Draft PR #154 passed quality CI and two fresh exact-head independent Reviews, then squash merged as `d36d70a`;
+  planning Issue #153 is closed.
+- #155 now owns evidence-only review of the five Yubeng relations. This phase may update only the frozen evidence/docs
+  allowlist and cannot edit runtime route data, tests, application code, dependencies, CloudBase or deployment state.
+- The evidence agent must stop a candidate on missing current operator access/opening evidence, identity ambiguity,
+  incomplete topology or unresolved ODbL treatment. A blocked candidate is not a delivered route.
+
+## C15-A evidence audit checkpoint — 2026-08-23
+
+- Evidence report: `docs/yubeng-route-evidence.md`; ledger rows 07–11 now link the report and record the exact
+  official-source/unknown-access outcomes.
+- OSM relation pages/member endpoints confirmed current identities and ordered way-member lists. The first full OSM
+  API request returned HTTP `429`; the read was stopped. Preliminary endpoint continuity from planning is not a full
+  topology approval, so gaps, branches, completeness and derived metrics remain `UNKNOWN`.
+- The 2026-04-10 Xiaruo Township Government notice names the matching Binghu, Nise and Shenhu routes as
+  undeveloped/unopened. Shenpu and Ninong have no current route-level opening/permit source in this pass. All five
+  rows remain `BLOCKED_CANDIDATE`; no row entered runtime data and none counts toward the searchable target.
+- Executor checkpoint: `READY_FOR_CONTROLLER_REVIEW`; controller must inspect the report/diff and decide whether a
+  later step is warranted. Since all five candidates are blocked, no route-data implementation Issue is warranted for
+  this batch. No CloudBase, deployment, release, raw-track or runtime-data action occurred.
 
 ## C14 private-history pagination activation — 2026-08-22
 
@@ -1881,10 +1904,11 @@ The baseline checks were rerun during M1 verification. Local Markdown links and 
 
 ## Next action
 
-Complete quality CI and two fresh independent Reviews on the same live current head of Draft PR #154, then Sol XHigh
-decides mergeability. Any head change repeats both gates. Only after the planning PR merges may the first child
-evidence Issue be activated. #123 remains independently blocked; no CloudBase index/config mutation, deployment,
-timer, deletion, real-user cohort or public release is authorized.
+Sol XHigh reviews the completed #155 evidence report and actual diff. If approved, publish a docs-only Draft PR and
+require successful quality CI plus two fresh independent Reviews on the same current head. After merge, close #155
+without a route-data implementation child; replace blocked slots or activate another evidence batch. #123 remains
+independently blocked; no CloudBase index/config mutation, deployment, timer, deletion, real-user cohort or public
+release is authorized.
 
 ## I21 implementation checkpoint — 2026-08-08 (initial head 69475df)
 

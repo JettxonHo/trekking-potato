@@ -1084,3 +1084,20 @@
   pass Review; ledger occupancy alone does not satisfy the target. #123 remains a separate human-runtime blocker. No
   child Issue or PR was opened by the executor planning slice; controller review and plan-sync are required before
   implementation.
+
+## 2026-08-23 — TP-D069 C15-A Yubeng evidence audit remains blocked
+
+- Status: Evidence-only audit complete; `#155` remains `EVIDENCE_ACTIVE` pending controller Review. No runtime catalog,
+  CloudBase, deployment or public-release action occurred.
+- Evidence artifact: `docs/yubeng-route-evidence.md`; ledger rows 07–11 reconcile to relations `19700005`, `19700028`,
+  `19700031`, `19700036` and `19700085`.
+- OSM relation pages and member endpoints establish current names, aliases, `from`/`to` tags, versions and ordered
+  way-member IDs. The first full OSM API request returned HTTP `429`; the executor stopped rather than retrying. The
+  planning endpoint-continuity observation remains preliminary; node-level gaps, branches, completeness, direction
+  reversal and metrics are `UNKNOWN`.
+- Current government access evidence: the 2026-04-10 Xiaruo Township notice names the matching Yubeng Binghu, Nise,
+  and Shenhu routes as undeveloped/unopened, blocking `19700005`, `19700028` and `19700036`. No current route-level
+  opening/permit source was found for Shenpu (`19700031`) or Ninong (`19700085`), so both remain `UNKNOWN` and blocked.
+- Decision: all five rows remain `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION`. ODbL attribution and
+  derived-database treatment remain an explicit future implementation gate. A later child Issue must re-run the full
+  topology, identity, rights and current-access checks before proposing any runtime route-data change.

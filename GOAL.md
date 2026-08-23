@@ -1,10 +1,11 @@
 # TP-CATALOG-001 — 首批可信路线目录扩充
 
 - Goal ID: `TP-CATALOG-001`
-- Status: `ACTIVE — C15 REVIEW_ACTIVE`
+- Status: `ACTIVE — C15-A REVIEW_ACTIVE`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-23`
-- Parent Issue: `#153`
+- Planning Issue: `#153 / CLOSED`
+- Active Issue: `#155`
 - Release boundary: reviewed catalog data and tests only; no automatic promotion, CloudBase mutation or public release
 
 ## 1. Objective
@@ -20,7 +21,7 @@ a blocked new candidate must be replaced and cannot satisfy the target merely by
 
 ## 2. Authority and reading order
 
-Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #153 and
+Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #155 and
 `docs/tasks/ACTIVE_TASK.md`. `docs/architecture.md`, `docs/community-track-workflow.md` and the new catalog-expansion
 ledger own the geometry, rights and promotion boundaries. A conflict stops the affected work and returns to Sol XHigh.
 
@@ -59,7 +60,7 @@ enter the trusted catalog merely to reach the target count.
 | Milestone | Work item | Completion condition |
 |---|---|---|
 | C15 Plan | #153 planning slice | 25-slot source ledger, evidence status, batch order and child-Issue contracts pass Review |
-| C15 Batch A | child Issue after plan merge | first evidence-rich four-to-five variants promoted through RED/GREEN and Review |
+| C15 Batch A | #155 evidence slice | five Yubeng candidates receive evidence verdicts; only eligible rows may later enter RED/GREEN implementation |
 | C15 Batches B–D | serial child Issues | remaining reviewed variants reach a total of 25 without lowering evidence gates |
 | C15 Closeout | controller review | catalog count, attribution, source ledger and runtime contracts reconcile truthfully |
 
@@ -76,9 +77,33 @@ enter the trusted catalog merely to reach the target count.
   promoted to make the count. Child Issues are proposed in the ledger and must be separately activated after Review.
 - Planning is now `READY_FOR_CONTROLLER_REVIEW`. The 19 new rows are evidence-work slots, not delivered routes; C15
   completes only when 19 new rows are promoted to searchable `full` variants or blocked rows are replaced and reviewed.
-- Draft PR #154 is open. Planning head `965afb0` is historical evidence only; live GitHub metadata is authoritative
-  for the current head. The same current head must pass quality CI and two fresh independent Reviews, and any head
-  change repeats both gates before Sol XHigh decides mergeability.
+- Draft PR #154 was the planning Review vehicle. Planning head `965afb0` is historical evidence only; final planning
+  head `4b9cfb8` passed quality CI and two fresh independent Reviews, then squash merged as `d36d70a`.
+
+## C15-A Yubeng evidence activation — 2026-08-23
+
+- Planning PR #154 passed exact-head CI and two independent Reviews, squash merged as `d36d70a`, and #153 closed.
+- #155 is the only active evidence slice. It audits OSM relations `19700005`, `19700028`, `19700031`, `19700036`
+  and `19700085`; relation `19700036` remains identity-quarantined.
+- This phase may add only durable evidence/status documents. It stops before runtime route-data changes. Missing current
+  operator access evidence, identity, topology or rights/attribution keeps a candidate blocked.
+
+## C15-A evidence audit checkpoint — 2026-08-23
+
+- `docs/yubeng-route-evidence.md` records current OSM relation identities, ordered member IDs/roles, direction tags,
+  ODbL treatment and official access-source findings for all five Batch A rows.
+- The OSM full-relation read returned HTTP `429` on the first request. Per the stop condition, the full node/way
+  topology replay stopped; preliminary endpoint continuity remains preliminary and gaps/branches/completeness are
+  `UNKNOWN`. No metrics or raw geometry were copied.
+- The official Xiaruo Township notice dated `2026-04-10` names the matching Binghu, Nise and Shenhu routes as
+  undeveloped/unopened, so relations `19700005`, `19700028` and `19700036` remain blocked. No current route-level
+  opening/permit source was found for Shenpu (`19700031`) or Ninong (`19700085`); both remain blocked as `UNKNOWN`.
+- All five evidence verdicts are `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION`. This audit makes no
+  runtime catalog, CloudBase, deployment or public-release claim. A later implementation Issue must repeat the full
+  topology, rights and current-access gates before any promotion proposal.
+- Evidence status is `READY_FOR_CONTROLLER_REVIEW`. Because no candidate passed, the controller must not open a
+  route-data implementation slice from this batch; after Review/merge, the next catalog step is a reviewed replacement
+  candidate set or another evidence batch.
 
 ## Appendix: prior TP-COMMUNITY-001 checkpoints
 
