@@ -1195,3 +1195,64 @@
   dependency action is authorized.
 - Validation completed without network research: focused four contracts, root `npm test`, typecheck, lint (0 errors/9
   existing warnings), host WeChat build, `git diff --check`, exact allowlist and added-line sensitive scans all pass.
+
+## 2026-08-23 — TP-D075 activate #161 second five-route evidence batch
+
+- PR #160 passed same-head quality and two independent Reviews, then squash merged as `14830eb`. The runtime catalog
+  truth is ten searchable `full` variants plus the separate non-counting Wutai restriction; fifteen searchable routes
+  remain toward the human-required total of twenty-five.
+- Issue #161 owns the next serial batch of exactly five. Phase1 is restricted to primary-source evidence and the seven
+  documentation paths in `docs/tasks/ACTIVE_TASK.md`; no candidate enters runtime or counts before a controller freeze
+  and separately authorized test-first Phase2.
+- Geometry does not prove opening, permission or safety. Rate limiting, identity ambiguity, disconnected/mixed-mode
+  topology, non-reproducible sources or unclear rights keep a candidate blocked and require replacement.
+
+## 2026-08-23 — TP-D076 #161 Batch2 evidence stopped on OSM rate limit
+
+- Status: `READY_FOR_CONTROLLER_REVIEW`; evidence-only, no runtime/catalog/test/CloudBase/deployment action.
+- The bounded pass read relation `10548040` current-full once (relation v7) and derived only aggregate topology. Its
+  connected graph has 24 branch nodes, 13 endpoints, cycle rank 7 and 12 ordered-member gaps; it is blocked despite
+  walking-class way modes. The next relation full request (`12390533`) returned HTTP `429`.
+- The executor stopped immediately per #161. No retry, alternate OSM endpoint, Overpass query, third-party platform,
+  private evidence or official-source expansion followed. Result is a truthful `0/5 PROPOSED_FOR_CONTROLLER_FREEZE`;
+  unqueried rows remain `UNKNOWN`/blocked and the runtime count stays `full=10` with Wutai non-counting.
+- `docs/catalog-batch2-source-evidence.md` is the durable report. Controller direction is required before another
+  bounded research pass or any Phase2 implementation allowlist is opened.
+
+## 2026-08-23 — TP-D077 #161 controller-authorized fresh OSM pass remains short
+
+- Status: `READY_FOR_CONTROLLER_REVIEW`; evidence-only. Comment `5386298463` authorized exactly eight unresolved
+  relations, one request each, sequentially at a minimum five-second interval with an identifying User-Agent.
+- Seven full responses returned HTTP 200 and one (`12390533`) returned HTTP 200 without a retained body; it was not
+  re-requested. No throttle occurred in this fresh pass and no alternate endpoint, Overpass or broad search was used.
+- `19017834` and `20739619` are connected branch-free walking paths but have no deterministic named endpoint/direction.
+  `12390888`, `18731549`, `18731550`, `18952585` and `20737376` fail branch/order or mixed transport gates; the
+  status-only `12390533` lacks topology/provenance. Result remains `0/5 PROPOSED_FOR_CONTROLLER_FREEZE`.
+- `docs/catalog-batch2-source-evidence.md` records relation versions, way/node scale, components, branches,
+  endpoints, cycle rank, mode mix, order gaps, ODbL URLs and blockers. No candidate counts toward ten current full
+  routes; Wutai remains a non-counting restriction; no Phase2/elevation/runtime action occurred.
+
+## 2026-08-23 — TP-D078 #161 bounded replacement discovery proposes exactly five
+
+- Controller comment `5386337561` authorized one metadata-only Overpass query for China `type=route` + `route=hiking`
+  relations carrying nonempty `name`, `from` and `to`, followed by at most twenty sequential current-full OSM reads
+  with a six-second interval and identifying User-Agent. The metadata query returned HTTP 200 with 111 records; all
+  twenty selected full reads returned HTTP 200 and no throttle occurred. No retries, alternate mirrors, third-party
+  route platforms, private evidence, elevation requests or geometry copies were used.
+- Exactly five rows reached `PROPOSED_FOR_CONTROLLER_FREEZE`: `18364943` 猛古村-桑伯格徒步线路,
+  `18364941` 黑石城徒步, `19684389` 惠州大南山精华线, `19686682` 惠州大南山拉胡线 and `20072078`
+  马峦山自然笔记步道. Each has explicit OSM from/to identity, one connected branch-free two-endpoint graph, zero
+  order gaps/duplicate way references and an orientable member chain. Route=hiking establishes the user walk mode;
+  tertiary/unclassified/residential/service/track members remain disclosed road segments, while cableway, ferry,
+  cycleway and major-road boundaries remain blockers. ODbL provenance is recorded by relation/full URLs.
+- This remains evidence-only. Every proposal keeps opening/operator permission and derived-database treatment
+  `UNKNOWN`; the runtime count remains searchable `full=10`, remaining gap `15`, and Wutai is non-counting. No ledger
+  slot is counted and no runtime/schema/test/elevation/CloudBase/deployment/commit/push action occurred. Durable detail:
+  `docs/catalog-batch2-source-evidence.md`; executor handoff is `READY_FOR_CONTROLLER_REVIEW`.
+
+## 2026-08-23 — TP-D079 #161 Phase2 frozen five implementation checkpoint
+
+- Controller comment `5386435179` froze exactly relations `18364943`, `18364941`, `19684389`, `19686682` and `20072078` for implementation. This supersedes the earlier Phase1 proposal-only checkpoint; the frozen set is now represented in runtime with complete current-full ordered WGS84 geometry and <=500-point previews.
+- One bounded Open-Meteo Elevation API request per route returned 100/93/100/100/94 samples with endpoints included. Copernicus DEM GLO-90 elevations were interpolated onto full OSM points; Haversine floor and deterministic duration (`distanceKm/4 + ascentM/600`) are covered by focused tests. No retry or runtime network integration was added.
+- OSM/open-data sources retain ODbL, adjacent OpenStreetMap attribution, relation/way/node version provenance and route-specific mode disclosures (`track`, `tertiary`, `unclassified`, `service`). All five operational statuses remain `unknown`; no opening/operator/safety claim is inferred and no official source is fabricated.
+- TDD RED was captured before production edits. Focused route-data, route-domain, resolver and result-page contracts pass; runtime catalog counts are `[27 sources, 185 places, 16 routes, 16 variants]` with source decomposition `10 OSM open_data + 16 prior source cards + 1 shared trusted elevation source` and capabilities `{full:15, blocked:1}`. Lifecycle truth is `full=15`, remaining gap `10`; Wutai remains non-counting. Handoff: `READY_FOR_CONTROLLER_REVIEW`; no commit, push, PR, deploy or CloudBase action.

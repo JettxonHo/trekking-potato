@@ -7,6 +7,11 @@ const IDS = [
   'variant:osm-20046643-pinghui-wetland-trail',
   'variant:osm-20739620-zhaogongshan-loop',
   'variant:osm-17841828-three-gorges-summit',
+  'variant:osm-18364943-menggu-sangberg',
+  'variant:osm-18364941-black-stone-city-hike',
+  'variant:osm-19684389-huizhou-dananshan-classic',
+  'variant:osm-19686682-huizhou-dananshan-lahu',
+  'variant:osm-20072078-maluanshan-nature-notes',
 ]
 
 const EXPECTED = {
@@ -15,6 +20,11 @@ const EXPECTED = {
   'variant:osm-20046643-pinghui-wetland-trail': { count: 186, first: [22.7253741, 114.3954554], last: [22.7102382, 114.4006842], aliases: ['坪惠湿地公园步道', '坪山湿地步道'], direction: 'point_to_point', startPoint: '聚龙山湿地生态园北门', endPoint: '坪山湿地公园南门', relationVersion: 3, firstWay: ['1464139174', 1], firstNode: ['13430496177', 1], duration: 0.62 },
   'variant:osm-20739620-zhaogongshan-loop': { count: 211, first: [30.9639991, 103.5380078], last: [30.9639991, 103.5380078], aliases: ['赵公山东北徒步环线'], direction: 'loop', startPoint: '未命名环线起终点', endPoint: '未命名环线起终点', relationVersion: 1, firstWay: ['483583238', 7], firstNode: ['4689853814', 2], duration: 4.76 },
   'variant:osm-17841828-three-gorges-summit': { count: 413, first: [31.0412584, 109.574918], last: [31.0313051, 109.6254474], aliases: ['三峡之巅步道', '赤甲楼至三峡之巅'], direction: 'point_to_point', startPoint: '赤甲楼方向入口', endPoint: '三峡之巅', relationVersion: 1, firstWay: ['548313909', 5], firstNode: ['8200991706', 2], duration: 5.1 },
+  'variant:osm-18364943-menggu-sangberg': { count: 124, first: [31.5895042, 102.7909033], last: [31.6322799, 102.7939707], aliases: ['猛古村至桑伯格徒步线路'], direction: 'point_to_point', startPoint: '猛古村', endPoint: '桑伯格', relationVersion: 1, firstWay: ['1299385594', 5], firstNode: ['12353587126', 1], duration: 3.9, checkedAt: '2026-08-23T13:54:36Z' },
+  'variant:osm-18364941-black-stone-city-hike': { count: 93, first: [31.6330211, 102.8192944], last: [31.6317709, 102.7941201], aliases: ['黑石城徒步线路'], direction: 'point_to_point', startPoint: '桑丹四', endPoint: '桑伯格', relationVersion: 1, firstWay: ['1339771039', 1], firstNode: ['12292979149', 1], duration: 2.5, checkedAt: '2026-08-23T13:54:36Z' },
+  'variant:osm-19684389-huizhou-dananshan-classic': { count: 254, first: [22.9197573, 114.8586983], last: [22.9200593, 114.8969306], aliases: ['大南山精华线'], direction: 'point_to_point', startPoint: '大王庙', endPoint: '龙岩寺路口', relationVersion: 2, firstWay: ['1435939573', 1], firstNode: ['1583698720', 1], duration: 4.95, checkedAt: '2026-08-23T13:54:36Z' },
+  'variant:osm-19686682-huizhou-dananshan-lahu': { count: 678, first: [22.9508159, 114.9275011], last: [22.9507221, 114.927029], aliases: ['大南山拉胡线'], direction: 'point_to_point', startPoint: '惠东县多祝镇永和村', endPoint: '惠东县多祝镇百木洋', relationVersion: 3, firstWay: ['1436114865', 1], firstNode: ['12114395883', 1], duration: 6.63, checkedAt: '2026-08-23T13:54:36Z' },
+  'variant:osm-20072078-maluanshan-nature-notes': { count: 94, first: [22.6450105, 114.3396273], last: [22.6560267, 114.3403834], aliases: ['马峦自然笔记步道'], direction: 'point_to_point', startPoint: '马峦山郊野公园北门', endPoint: '土地庙三岔口', relationVersion: 1, firstWay: ['135644191', 10], firstNode: ['1321557953', 3], duration: 0.48, checkedAt: '2026-08-23T13:54:36Z' },
 }
 
 function haversineKm(a, b) {
@@ -57,9 +67,15 @@ function assertFrozenDuration(variant) {
   assert.equal(variant.stages[0].durationHours.max, derived, `${variant.id} maximum duration must use the deterministic formula`)
 }
 
+function assertFrozenSourceTimestamp(variant, source) {
+  const expected = EXPECTED[variant.id]
+  if (!expected.checkedAt) return
+  assert.equal(source.provenance.checkedAt, expected.checkedAt, `${variant.id} OSM checkedAt must remain the batch-completion timestamp`)
+}
+
 async function runOsmDerivedTests({ catalog }) {
   const variants = IDS.map((id) => catalog.getById(id))
-  assert.equal(variants.filter(Boolean).length, IDS.length, '冻结批次必须包含恰好五条可搜索 full variant')
+  assert.equal(variants.filter(Boolean).length, IDS.length, '当前 OSM 衍生目录必须包含十条可搜索 full variant')
   for (const variant of variants) {
     const expected = EXPECTED[variant.id]
     const geometry = variant.routeGeometry.points
@@ -135,6 +151,7 @@ async function runOsmDerivedTests({ catalog }) {
     assert.ok(openDataSource.provenance.wayVersions.length > 0)
     assert.ok(openDataSource.provenance.nodeVersions.length > 0)
     assert.match(openDataSource.provenance.checkedAt, /Z$/)
+    assertFrozenSourceTimestamp(variant, openDataSource)
     if (variant.id === 'variant:osm-20046643-pinghui-wetland-trail') {
       assert.equal(
         variant.sourceIds.some((sourceId) => {
@@ -223,6 +240,16 @@ async function runOsmDerivedTests({ catalog }) {
   assert.throws(() => assertFrozenGeometryShape(offset), undefined, 'offsetting a frozen endpoint must turn the geometry contract RED')
   const durationMutation = { ...variants[1], stages: [{ ...variants[1].stages[0], durationHours: { min: 1.11, max: 1.11 } }] }
   assert.throws(() => assertFrozenDuration(durationMutation), undefined, 'mutating duration must turn the deterministic formula contract RED')
+  const timestampVariant = variants.find((variant) => EXPECTED[variant.id].checkedAt)
+  const timestampSource = timestampVariant.sourceIds
+    .map((sourceId) => catalog.getById(sourceId))
+    .find((source) => source && source.kind === 'open_data')
+  const timestampMutation = { ...timestampSource, provenance: { ...timestampSource.provenance, checkedAt: '2026-08-23T13:49:01Z' } }
+  assert.throws(
+    () => assertFrozenSourceTimestamp(timestampVariant, timestampMutation),
+    undefined,
+    'mutating the full-source checkedAt must turn the source provenance contract RED',
+  )
 
   const poisonVariant = variants[0]
   const route = catalog.getById(poisonVariant.routeId)

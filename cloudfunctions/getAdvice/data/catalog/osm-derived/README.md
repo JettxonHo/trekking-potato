@@ -1,6 +1,6 @@
 # OSM-derived catalog boundary
 
-These five JavaScript fragments are the controller-frozen #159 route-data slice. They are generated from complete,
+These ten JavaScript fragments are the controller-frozen #159/#161 route-data slices. They are generated from complete,
 ordered OpenStreetMap `type=route` relations and are distributed as an ODbL-derived database. Each fragment retains
 only the catalog geometry/preview and provenance needed by the route-domain seam; no contributor identity, private
 submission, GPX/KML file, raw API response, or elevation query URL is included.
@@ -13,5 +13,6 @@ code, not an additional data source. `elevation-source.js` records the separate
 trusted-api derivation boundary for one bounded Open-Meteo Elevation API request per route using Copernicus DEM GLO-90;
 no provider is called at runtime.
 
-All five variants keep `operationalStatus=unknown`. Route 20739620's residential member is disclosed while the user
-access mode remains `walk`; cableway, shuttle, and vehicle-only transport are not silently mixed into walking data.
+All ten OSM variants keep `operationalStatus=unknown`. Route 20739620's residential member is disclosed while the
+user access mode remains `walk`; the #161 routes disclose their `track`, `tertiary`, `unclassified`, `service`, or
+road walking members. Cableway, shuttle, and vehicle-only transport are not silently mixed into walking data.
