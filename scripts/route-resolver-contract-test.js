@@ -235,10 +235,10 @@ function makeMultiVariantCatalog() {
 function productionCatalogTests() {
   const first = createProductionRouteCatalog()
   const second = createProductionRouteCatalog()
-  assert.deepEqual([first.sources.length, first.places.length, first.routes.length, first.variants.length], [14, 175, 6, 6])
+  assert.deepEqual([first.sources.length, first.places.length, first.routes.length, first.variants.length], [23, 180, 11, 11])
   assert.deepEqual(
     first.variants.reduce((counts, variant) => ({ ...counts, [variant.capability]: (counts[variant.capability] || 0) + 1 }), {}),
-    { full: 5, blocked: 1 },
+    { full: 10, blocked: 1 },
   )
   first.variants[0].canonicalName = 'mutated catalog result'
   assert.notEqual(second.variants[0].canonicalName, 'mutated catalog result')
@@ -252,6 +252,28 @@ function productionCatalogTests() {
   assert.equal(assertDirect(resolver.resolveQuery('武功山反穿'), 'canonical_exact', wugongId).capability, 'full')
   assert.equal(assertDirect(resolver.resolveQuery('龙山村反穿武功山'), 'unique_alias_exact', wugongId).capability, 'full')
   assert.equal(assertDirect(resolver.resolveQuery('武功山·龙山村至景区正门反穿二日徒步线'), 'canonical_exact', wugongId).capability, 'full')
+
+  const frozenBatch = [
+    ['三杆笔—水祖坑郊野径', 'variant:osm-16162196-sanganbi-shuizukeng'],
+    ['蝴蝶步道', 'variant:osm-20072118-die-butterfly-trail'],
+    ['坪惠湿地步道', 'variant:osm-20046643-pinghui-wetland-trail'],
+    ['赵公山东北环线', 'variant:osm-20739620-zhaogongshan-loop'],
+    ['三峡之巅徒步道', 'variant:osm-17841828-three-gorges-summit'],
+  ]
+  for (const [query, candidateId] of frozenBatch) {
+    const target = assertDirect(resolver.resolveQuery(query), 'canonical_exact', candidateId)
+    assert.equal(target.capability, 'full')
+    assert.equal(target.routeVariant.direction, query === '赵公山东北环线' ? 'loop' : 'point_to_point')
+    assert.equal(target.routeVariant.accessMode, 'walk')
+    assert.equal(target.routeVariant.operationalStatus, 'unknown')
+    assert.equal(target.routeVariant.sourceIds.some((sourceId) => second.getById(sourceId).kind === 'open_data'), true)
+  }
+  const pinghui = second.getById('variant:osm-20046643-pinghui-wetland-trail')
+  assert.deepEqual(
+    pinghui.sourceIds.map((sourceId) => second.getById(sourceId).kind).sort(),
+    ['open_data', 'trusted_api'],
+    '20046643 contextual park page must not be promoted as an exact-route official source',
+  )
 
   const taishan = assertDirect(resolver.resolveQuery('泰山'), 'canonical_exact', 'place:legacy:泰山')
   assert.deepEqual(targetSummary(taishan), {

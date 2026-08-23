@@ -1157,6 +1157,13 @@ export default class Index extends Component {
         ['optional', '可选', 'gear-tag-optional'],
       ]
       const routePreview = routeModel.routePreview
+      const hasOpenDataRouteSource = pageModel.sources.route.some((source) => source && source.kind === 'open_data')
+      const hasElevationRouteSource = pageModel.sources.route.some((source) => (
+        source
+        && source.id === 'source:trusted-api-open-meteo-copernicus-glo90'
+        && source.kind === 'trusted_api'
+        && source.publisher === 'Open-Meteo / Copernicus DEM GLO-90'
+      ))
       const routePreviewSourcePoints = routePreview ? routePreviewAllPoints(routePreview) : []
       const routePreviewMap = routePreview ? buildRoutePreviewMapGeometry(routePreview, routeModel.region) : null
       const routePreviewPoints = routePreviewMap ? routePreviewMap.points : []
@@ -1230,6 +1237,7 @@ export default class Index extends Component {
                 <View className="route-preview-meta">
                   <Text className="route-preview-note">仅展示已核验路线几何，不代表开放状态或安全结论</Text>
                   <Text className="route-preview-legend">起点 / 终点 · {routePreview.segments.length} 段路线</Text>
+                  {hasOpenDataRouteSource && <Text className="route-preview-attribution">© OpenStreetMap contributors · ODbL-1.0 · openstreetmap.org/copyright</Text>}
                 </View>
               )}
             </View>
@@ -1326,6 +1334,8 @@ export default class Index extends Component {
                 <Text className="source-url">{source.url || '暂无公开链接'}</Text>
               </View>
             )) : <Text className="empty-hint">暂无路线来源摘要</Text>}
+            {hasOpenDataRouteSource && <Text className="source-attribution">数据地图：© OpenStreetMap contributors · ODbL-1.0 · openstreetmap.org/copyright</Text>}
+            {hasElevationRouteSource && <Text className="source-attribution">高程数据：Open-Meteo Elevation API · Copernicus DEM GLO-90</Text>}
             <View className="weather-source-item">
               <Text className="source-title">天气：{pageModel.sources.weather.source || '来源待确认'}</Text>
               <Text className="source-meta">获取时间：{pageModel.sources.weather.fetchedAt || '时间待确认'}</Text>

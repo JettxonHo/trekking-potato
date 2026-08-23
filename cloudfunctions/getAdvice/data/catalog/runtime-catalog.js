@@ -6,6 +6,12 @@ const siguniangErfeng = require('./pilots/siguniang-erfeng')
 const yulongBlueMoonYunshanping = require('./pilots/yulong-blue-moon-yunshanping')
 const gonggaLaoyulinYulongxi = require('./pilots/gongga-laoyulin-yulongxi')
 const danglingHuluhaiZhuoyongcuo = require('./pilots/dangling-huluhai-zhuoyongcuo')
+const osm16162196 = require('./osm-derived/16162196-sanganbi-shuizukeng')
+const osm20072118 = require('./osm-derived/20072118-die-butterfly-trail')
+const osm20046643 = require('./osm-derived/20046643-pinghui-wetland-trail')
+const osm20739620 = require('./osm-derived/20739620-zhaogongshan-loop')
+const osm17841828 = require('./osm-derived/17841828-three-gorges-summit')
+const elevationSource = require('./osm-derived/elevation-source')
 
 const PILOT_FRAGMENTS = [
   wutai,
@@ -14,6 +20,11 @@ const PILOT_FRAGMENTS = [
   yulongBlueMoonYunshanping,
   gonggaLaoyulinYulongxi,
   danglingHuluhaiZhuoyongcuo,
+  osm16162196,
+  osm20072118,
+  osm20046643,
+  osm20739620,
+  osm17841828,
 ]
 
 function createProductionRouteCatalog() {
@@ -23,6 +34,7 @@ function createProductionRouteCatalog() {
     routes: [...combined.routes, ...fragment.routes],
     variants: [...combined.variants, ...fragment.variants],
   }), { sources: [], places: [], routes: [], variants: [] })
+  fragments.sources.push(elevationSource)
 
   return createRouteCatalog({
     legacyRecords: BUILTIN_ROUTES,

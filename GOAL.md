@@ -1,35 +1,32 @@
 # TP-CATALOG-001 — 首批可信路线目录扩充
 
 - Goal ID: `TP-CATALOG-001`
-- Status: `ACTIVE — C15-B REVIEW_ACTIVE`
+- Status: `ACTIVE — #159 PHASE2_REVIEW_FIX / READY_FOR_CONTROLLER_REVIEW`
 - Governance: `TP-GOV-2.0.0`
 - Started: `2026-08-23`
 - Planning Issue: `#153 / CLOSED`
 - Completed evidence Issue: `#155 / CLOSED`
-- Active Issue: `#157`
+- Active Issue: `#159`
 - Release boundary: reviewed catalog data and tests only; no automatic promotion, CloudBase mutation or public release
 
 ## 1. Objective
 
-Grow the structured trusted runtime catalog from six reviewed RouteVariants to a target total of twenty-five. The
-program first creates a source-and-rights ledger, then promotes small serial batches only after identity, topology,
-direction, opening-status and public-contract review. Legacy builtin place names remain discovery hints and do not
-count as trusted RouteVariants.
-
-The existing six comprise five searchable `full` pilots and one safety-blocked Wutai restriction record. Therefore
-the user-facing completion target is twenty-four searchable `full` variants plus that one retained restriction record;
-a blocked new candidate must be replaced and cannot satisfy the target merely by occupying a ledger slot.
+Grow the structured trusted runtime catalog to exactly twenty-five searchable `full` RouteVariant slots. The current
+runtime count is ten searchable `full` variants (five existing pilots plus five #159 Phase2 batch variants), leaving a
+remaining gap of fifteen toward the 25-slot target. The Wutai restriction is retained separately and is not searchable
+or counted. The program promotes small serial batches only after identity, topology, direction, opening-status and
+public-contract review. Legacy builtin place names remain discovery hints and do not count as trusted RouteVariants.
 
 ## 2. Authority and reading order
 
-Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #157 and
+Follow `AGENTS.md`, this Goal, `docs/governance/MASTER_PLAN.md`, live #159 and
 `docs/tasks/ACTIVE_TASK.md`. `docs/architecture.md`, `docs/community-track-workflow.md` and the new catalog-expansion
 ledger own the geometry, rights and promotion boundaries. A conflict stops the affected work and returns to Sol XHigh.
 
 ## 3. Fixed human decision
 
-- Target total: 25 reviewed records: the five existing searchable pilots, the existing Wutai restriction record, and
-  nineteen new searchable `full` variants. A failed candidate is replaced through a reviewed ledger update.
+- Target total: 25 searchable `full` slots = five existing pilots + twenty missing/replacement slots. The Wutai
+  restriction is a separate non-counting record. A failed candidate is replaced through a reviewed ledger update.
 - Work in serial batches of roughly four or five variants; each batch has its own child Issue, allowlist and Review.
 - Prefer explicit OSM/open-data relations, first-party recordings and explicitly authorized contributor/partner files.
 - A candidate never publishes automatically. Missing or ambiguous evidence remains blocked instead of being invented.
@@ -60,15 +57,15 @@ enter the trusted catalog merely to reach the target count.
 
 | Milestone | Work item | Completion condition |
 |---|---|---|
-| C15 Plan | #153 planning slice | 25-slot source ledger, evidence status, batch order and child-Issue contracts pass Review |
+| C15 Plan | #153 planning slice | Corrected ledger has exactly 25 searchable slots (5 existing + 20 missing/replacement) and a separate Wutai restriction |
 | C15 Batch A | #155 evidence slice | five Yubeng candidates receive evidence verdicts; only eligible rows may later enter RED/GREEN implementation |
-| C15 Batches B–D | serial child Issues | remaining reviewed variants reach a total of 25 without lowering evidence gates |
+| C15 Batches B–D | serial child Issues | controller-frozen replacements reach a total of 25 searchable `full` variants without lowering evidence gates |
 | C15 Closeout | controller review | catalog count, attribution, source ledger and runtime contracts reconcile truthfully |
 
-## C15 planning checkpoint — 2026-08-23
+## C15 planning checkpoint — 2026-08-23 (historical #153)
 
-- `docs/route-catalog-expansion.md` records exactly 25 slots: six existing pilots and nineteen provisional OSM
-  relation candidates. The new rows are source identities only; none has a runtime ID or promotion verdict of `full`.
+- Historical planning recorded six structured records and nineteen provisional OSM relation candidates. That wording
+  is superseded by the active #159 correction below: only five existing records are searchable; Wutai is separate.
 - Batch A contains five Yubeng relations. All five have a preliminary consecutive-way endpoint observation; relation
   `19700036` remains quarantined because its Chinese and English names conflict. All five still require topology,
   direction, rights/attribution and official/operator opening evidence.
@@ -76,8 +73,8 @@ enter the trusted catalog merely to reach the target count.
   rights and current opening status remain `UNKNOWN`; each is explicitly `BLOCKED_CANDIDATE`.
 - The Overpass candidate search was stopped after rate limiting. No candidate was silently substituted, merged or
   promoted to make the count. Child Issues are proposed in the ledger and must be separately activated after Review.
-- Planning is now `READY_FOR_CONTROLLER_REVIEW`. The 19 new rows are evidence-work slots, not delivered routes; C15
-  completes only when 19 new rows are promoted to searchable `full` variants or blocked rows are replaced and reviewed.
+- Planning was `READY_FOR_CONTROLLER_REVIEW`. The historical 19 rows remain evidence-work records; they are not
+  delivered routes and do not override the corrected 20 missing/replacement slots.
 - Draft PR #154 was the planning Review vehicle. Planning head `965afb0` is historical evidence only; final planning
   head `4b9cfb8` passed quality CI and two fresh independent Reviews, then squash merged as `d36d70a`.
 
@@ -110,7 +107,7 @@ enter the trusted catalog merely to reach the target count.
   authoritative for the current head. Quality CI and two fresh independent Reviews must target the same current head,
   and any head change repeats both gates.
 
-## C15-A merge and C15-B activation — 2026-08-23
+## Historical C15-A merge and C15-B activation — 2026-08-23
 
 - PR #156 passed exact-head quality CI and two independent Reviews, squash merged as `50d3a0e`, and #155 closed with
   all five Yubeng candidates blocked and no route-data child.
@@ -118,7 +115,7 @@ enter the trusted catalog merely to reach the target count.
 - This phase is evidence/docs only. It stops before runtime data and keeps walking, cableway, shuttle and road segments
   distinct; missing current official access, topology or ODbL treatment remains blocked.
 
-## C15-B evidence audit checkpoint — 2026-08-23
+## Historical C15-B evidence audit checkpoint — 2026-08-23
 
 - `docs/scenic-route-evidence.md` records current OSM relation identity, ordered way-member IDs/roles, endpoint-gap and
   graph-topology observations, mode boundaries and first-party/operator access findings for rows 12–16.
@@ -140,6 +137,25 @@ enter the trusted catalog merely to reach the target count.
   blocked slots require replacement or the next evidence batch.
 - Draft PR #158 is open. Evidence head `7fcdd48` is historical first-publication evidence only; live GitHub metadata is
   authoritative. Quality CI and two fresh independent Reviews must target the same current head.
+
+## Historical C15-C Phase1 discovery-freeze correction — 2026-08-23 (#159)
+
+- Live #159 supersedes the stale `24 searchable + Wutai` wording. The corrected ledger is exactly 25 searchable `full`
+  slots: five existing searchable pilots plus twenty missing/replacement slots; `R-WUTAI` is a separate non-counting
+  restriction record. No runtime catalog row is created by this correction.
+- The bounded topology-first pass stopped after twenty bounded OSM full-relation reads (one duplicate verification).
+  It proposes exactly
+  five identities for controller freeze: Shenzhen `16162196` 三杆笔—水祖坑郊野径, `20072118` 蝴蝶步道,
+  `20046643` 坪惠湿地步道, `15852438` 阳台山蕉窝郊野径, and Chongqing `17841828` 三峡之巅徒步道. Their
+  aggregate graphs are connected, branch-free and duplicate-reference-free in this pass; road/cableway/shuttle
+  members are kept separate. Ordered-member gaps, missing direction tags or route-level opening evidence remain
+  explicit `UNKNOWN` blockers where applicable.
+- `docs/catalog-batch1-source-evidence.md` records the five proposals, official context, rejects and stop conditions.
+  Every proposed row is `BLOCKED_PENDING_CONTROLLER_FREEZE`; none is `ELIGIBLE_FOR_IMPLEMENTATION` or counted toward
+  the 25 until a controller freezes it and a later child Issue completes rights, topology, direction, metrics, current
+  operator opening and public-contract gates.
+- This historical Phase1 was docs/evidence-only. Its no-runtime statement is superseded by the controller-frozen
+  Phase2 runtime checkpoint below; the CloudBase, deployment and release boundaries remain unchanged.
 
 ## Appendix: prior TP-COMMUNITY-001 checkpoints
 
@@ -685,3 +701,25 @@ Stop and request human confirmation for deployment, production configuration, se
 ## 9. Completion
 
 The Goal is complete only when I01–I25 plus replacement child #77 are closed with compliant review evidence, `main` quality gates are green, five verified variants and the Wutai blocked record meet the hybrid source policy, all trusted/degraded flows are testable, documentation matches implementation, no Goal P0/P1 blocker is hidden, and a final report records milestones, PRs, tests, decisions, limitations, risks, debt, follow-ups, and release recommendation. Deployment and real-device beta execution are not required.
+
+## #159 Phase2 runtime checkpoint — controller freeze 5385785828
+
+- The frozen first implementation slice adds exactly five searchable full RouteVariants to the existing five (full=10, blocked Wutai remains non-counting): 16162196 complete relation, 20072118, 20046643, 20739620 complete loop, and 17841828 lower entrance → summit.
+- OSM current-full relation/way/node version observations, ODbL attribution, and bounded previews are recorded in `docs/route-data-licenses.md`; Open-Meteo/Copernicus elevation provenance is one bounded research request per route and is not a runtime provider.
+- Operational status remains unknown; residential road membership on 20739620 is disclosed while user access mode remains walk. Runtime, schema, attribution, and focused-contract tests are ready for controller review. No deploy, release or production network authority is implied.
+
+## #159 Phase2 bounded review-fix checkpoint — 2026-08-23
+
+- Controller review RED was captured before repair: `npm run typecheck` reported only the optional `official` fragment
+  argument and inferred `operationalStatusRationale` assignment errors. The minimal seam fixes make both errors pass
+  without changing the public catalog shape.
+- Unknown operational status evidence remains conservative: only a routeGeometry variant backed by an `open_data`
+  source and a non-empty rationale may omit an opening-status support; existing variants still require their source
+  evidence. OSM supports coordinates/order and relation identity/topology; the trusted Open-Meteo/Copernicus source
+  supports only the elevation component joined into routeGeometry and elevation-derived fields.
+- 20739620 uses neutral `未命名环线起终点` and only the specific alias `赵公山东北徒步环线`; 16162196 no longer carries
+  the truncated-mainline alias. OSM/ODbL attribution now shows the copyright guidance URL, while elevation attribution
+  is gated by the exact trusted source identity.
+- Review-fix gates: root tests, offline integration `55/0`, lint (0 errors/9 existing warnings), typecheck, host
+  WeChat build, and focused contracts pass. Root audit reports 0 vulnerabilities; Cloud Function transitive audit
+  findings remain pre-existing and require an out-of-scope dependency upgrade. No commit, push, PR or deploy occurred.
