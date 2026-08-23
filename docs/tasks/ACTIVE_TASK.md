@@ -62,7 +62,9 @@ Geometry never proves permission, opening, safety, weather or suitability.
   succeeded; ordered way IDs/roles and endpoint/graph summaries are recorded without copying raw geometry.
 - Huangshan, Taishan and Sanqing contain duplicate way refs; ordered endpoint gaps occur in all five (5/15/12/1/1),
   and Taishan has four graph components. General operator/government pages establish entrances, cableways, shuttles,
-  road access or area controls only; none proves the exact OSM walking relation is complete and currently permitted.
+  road access or area controls only. Sanqing operator ticket/cableway HTTPS was not TLS-reproducible during Review and
+  is excluded from verified primary evidence; HTTP was not used as a substitute. None proves the exact OSM walking
+  relation is complete and currently permitted.
 - The two Emei relations share a stem but diverge in the middle way sequence and remain distinct. ODbL attribution and
   derived-database treatment remain unresolved. All five verdicts are `BLOCKED_CANDIDATE`; no runtime child is opened.
 - Local baseline and handoff checks are green: `test:route-domain`, `test:route-data`, `test:result-page`,

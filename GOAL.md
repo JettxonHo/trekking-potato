@@ -126,11 +126,12 @@ enter the trusted catalog merely to reach the target count.
   fifteen gaps and four graph components; Sanqing has twelve gaps; each Emei relation has one gap. Duplicate way refs
   occur in Huangshan, Taishan and Sanqing. No metrics were derived from these incomplete/branched relations, and no raw
   nodes, coordinates or geometry were copied.
-- First-party sources establish only general scenic opening/transport context (including Huangshan gates/shuttle,
-  Taishan Hongmen walking line, Sanqing cableway/ticketing and Emei high-area operations). A secondary reproduced
-  Sanqing reopening notice is context only and is not positive route authority. None binds a complete,
-  rights-cleared, currently open walking variant for the exact OSM relation. ODbL attribution/derived-database treatment
-  remains an implementation gate. The two Emei relations remain distinct because their middle member sequences diverge.
+- First-party sources establish only general scenic opening/transport context for Huangshan, Taishan and Emei. The
+  Sanqing operator ticket/cableway HTTPS source was not TLS-reproducible during Review, is excluded from verified primary
+  evidence, and was not replaced with HTTP; its secondary reopening notice is context only and is not positive route
+  authority. None binds a complete, rights-cleared, currently open walking variant for the exact OSM relation. ODbL
+  attribution/derived-database treatment remains an implementation gate. The two Emei relations remain distinct because
+  their middle member sequences diverge.
 - All five candidates remain `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION`. No runtime route-data child,
   CloudBase action, deployment, release or public catalog claim is authorized by this checkpoint.
 - Executor checkpoint: `READY_FOR_CONTROLLER_REVIEW`; controller must inspect the evidence report, ledger/status diff,

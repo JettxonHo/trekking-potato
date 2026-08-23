@@ -15,10 +15,12 @@ endpoint gaps, every relation has branch nodes, Huangshan/Taishan/Sanqing contai
 has four disconnected graph components. The relation metadata does not establish a product direction, a complete
 walkable variant, or a walking/road/cableway/shuttle boundary. No distance, elevation or duration metric is derived.
 
-Official sources confirm that the scenic areas operate visitor entrances and transport systems, but they do not map
-the exact OSM relation to one currently open, permissioned walking variant. Where a source names a cableway, shuttle,
-road or a general scenic area, that fact is recorded as a separate access mode and is not substituted for walking-path
-evidence. The two Emei relations share a long stem but diverge in their middle members and remain separate variants.
+Available official sources establish some scenic-area entrances and transport context, but they do not map the exact OSM
+relation to one currently open, permissioned walking variant. The Sanqing operator ticket/cableway HTTPS source was not
+TLS-reproducible during Review, so it is excluded from verified primary evidence; HTTP is unsafe and was not used as a
+substitute. Where a source names a cableway, shuttle, road or a general scenic area, that fact is recorded as a separate
+access mode and is not substituted for walking-path evidence. The two Emei relations share a long stem but diverge in
+their middle members and remain separate variants.
 
 ODbL attribution and the future derived-database treatment are not yet decided for a runtime catalog projection. This
 is an independent promotion gate. All five rows therefore remain blocked even where a general scenic area or entrance
@@ -30,7 +32,7 @@ is currently operating.
 |---:|---|---|---|---|---|
 | `18970848` | Place `黄山` (planned ID `UNKNOWN`); Route `黄山路线`; Variant `云谷寺 → 慈光阁`; aliases `Huangshan Trail`, `name`, `from`, `to` | `type=route`, `route=hiking`, `network=nwn`; `from=云谷寺`, `to=慈光阁`; v5, changeset `164770803` | 80 way members; 5 ordered endpoint gaps; 1 graph component; 9 branch nodes; 5 graph endpoints; duplicate way refs | The [2026 Spring Festival operating notice](https://hsgwh.huangshan.gov.cn/xwzx/tzgg/9318819.html) gives general scenic opening and says walking-entry gates stop admitting at 15:00 during that period. The [official transport page](https://hsgwh.huangshan.gov.cn/lyfw/lyfw/jqhc/9197913.html) identifies 慈光阁 as a walking entrance and lists shuttle stops at 慈光阁/云谷寺. A [2025 path notice](https://hsgwh.huangshan.gov.cn/xwzx/tzgg/9244616.html) opened 云谷寺—白鹅岭 but temporarily closed 慈光阁—玉屏楼; no current notice found that proves this exact relation is an uninterrupted open walk. Cableways, shuttle buses and mountain roads are separate from the walking candidate. | ODbL applies; attribution/derived-database decision `UNKNOWN`. Gaps, branches, duplicate members and exact current walking status block promotion. **`BLOCKED_CANDIDATE`** |
 | `19818868` | Place `泰山` (planned ID `UNKNOWN`); Route `泰山红门登山道`; Variant `泰山红门登山道`; alias `Taishan Hongmen Route` | `type=route`, `route=foot`; no `from`/`to`; one member role `gate`; v17, changeset `182353010` | 64 way members; 15 ordered endpoint gaps; 4 graph components; 17 branch nodes; 7 graph endpoints; duplicate way refs | The [2026-04-29 Tai'an government notice](https://gxq.taian.gov.cn/art/2026/4/29/art_350045_10332904.html) describes the Hongmen visitor-center walking line as open for the holiday, about 9.5 km/7,863 steps, with a night-quota caveat. It separately describes Zhongtianmen cableway, shuttle lines and other entrances. The [Tai Shan committee route page](https://tsgw.taian.gov.cn/art/2021/5/26/art_363479_10320188.html) identifies the Hongmen sightseeing route, but neither source proves that this OSM relation's disconnected/duplicated member set is the exact current walkable variant. | ODbL applies; attribution/derived-database decision `UNKNOWN`. Missing direction, disconnected components, gaps/branches and exact relation-to-operator mapping block promotion. **`BLOCKED_CANDIDATE`** |
-| `18970781` | Place `三清山` (planned ID `UNKNOWN`); Route `三清山路线`; Variant `三清山路线`; alias `Mount Sanqing Trail` | `type=route`, `route=hiking`, `network=nwn`; no `from`/`to`; v3, changeset `164770889` | 43 way members; 12 ordered endpoint gaps; 1 graph component; 16 branch nodes; 8 graph endpoints; duplicate way refs | The operator's [2026 annual ticket/cableway notice](https://www.sqsfjq.com/index.php?s=%2FHome%2FNews%2Fdetail%2Fid%2F4943.html) confirms ticketing and separate 金沙、外双溪、港首 cableways. The [2026-08-11 reopening notice reproduced from 三清山旅游/三清山文化和旅游局](https://jx.ifeng.com/c/8vTp6otkYlK) says core scenic areas and all three cableways reopened after the typhoon, while 外双溪徒步道 and 玉京峰 remained temporarily closed. It does not identify which OSM members correspond to an open walking variant; cableway and closed/open footpath facts cannot repair the relation topology. | ODbL applies; attribution/derived-database decision `UNKNOWN`; exact variant, direction, mode boundary and current route-level opening remain unknown. **`BLOCKED_CANDIDATE`** |
+| `18970781` | Place `三清山` (planned ID `UNKNOWN`); Route `三清山路线`; Variant `三清山路线`; alias `Mount Sanqing Trail` | `type=route`, `route=hiking`, `network=nwn`; no `from`/`to`; v3, changeset `164770889` | 43 way members; 12 ordered endpoint gaps; 1 graph component; 16 branch nodes; 8 graph endpoints; duplicate way refs | The operator's 2026 ticket/cableway HTTPS source was not TLS-reproducible during Review and is excluded from verified primary evidence; HTTP is unsafe and was not used as a substitute. A [2026-08-11 secondary report](https://jx.ifeng.com/c/8vTp6otkYlK) reproduces an operator/government reopening notice as context only; it does not identify which OSM members correspond to an open walking variant. | ODbL applies; attribution/derived-database decision `UNKNOWN`; exact variant, direction, mode boundary and current route-level opening remain unknown. **`BLOCKED_CANDIDATE`** |
 | `13567761` | Place `峨眉山` (planned ID `UNKNOWN`); Route `峨眉山登顶路（经万年寺）`; Variant `经万年寺登顶`; aliases `Road to Golden Peak (via Wannian Temple)`, `name:zh` | `type=route`, `route=hiking`, `network=rwn`; no `from`/`to`; v4, changeset `159094401` | 29 way members; 1 ordered endpoint gap; 1 graph component; 1 branch node; 3 graph endpoints; no duplicate way refs | The [2026-05-22 Emei Scenic Area Committee notice](https://www.leshan.gov.cn/lsswszf/zzzqgsgg/808058894643269.html) says the scenic area remains open while the Golden Peak area has visitor limits and reduced sightseeing-bus/Golden-Peak-cableway capacity; it also anticipates separate Qingyin Pavilion/Wannian Temple tickets. A previously recorded 2025 government route URL returned HTTP `404` during Review and is excluded from evidence. Cableway, sightseeing bus and road segments remain separate. | ODbL applies; attribution/derived-database decision `UNKNOWN`. The relation has a topology gap and no exact current route-level opening/permission binding. **`BLOCKED_CANDIDATE`** |
 | `13567762` | Place `峨眉山` (planned ID `UNKNOWN`); Route `峨眉山登顶路（经一线天）`; Variant `经一线天登顶`; aliases `Road to Golden Peak (via Yixiantian)`, `name:zh` | `type=route`, `route=hiking`, `network=rwn`; no `from`/`to`; v4, changeset `159094401` | 29 way members; 1 ordered endpoint gap; 1 graph component; 1 branch node; 3 graph endpoints; no duplicate way refs | The same [2026-05-22 official Emei notice](https://www.leshan.gov.cn/lsswszf/zzzqgsgg/808058894643269.html) is only general scenic/high-area operating evidence. It does not state that the Yixiantian OSM relation is the current permitted walk, and the relation has no `from`/`to` tags. Cableway, sightseeing bus and road segments are not walking evidence. | ODbL applies; attribution/derived-database decision `UNKNOWN`. The relation remains distinct from `13567761`; missing direction, a topology gap and no exact route-level opening/permission binding block promotion. **`BLOCKED_CANDIDATE`** |
 
@@ -76,8 +78,9 @@ The OSM `route=hiking`/`route=foot` tag is a candidate identity only. For this a
 
 - **Walking:** only a complete, connected, direction-reviewed set of footway/path members can support a walking
   variant. None of the five passes that gate; all walking metrics are `UNKNOWN`.
-- **Cableway:** Huangshan Yungu/Yuping and Taishan Zhongtianmen/Taohuayuan, Sanqing Jinsha/Waishuangxi/Gangshou and
-  Emei Golden-Peak/ Wannian cableways are operator transport alternatives. A cableway endpoint or ticket does not
+- **Cableway:** Huangshan Yungu/Yuping, Taishan Zhongtianmen/Taohuayuan and Emei Golden-Peak/Wannian cableways are
+  separate transport alternatives. Sanqing cableway/ticketing status is excluded from verified evidence because its
+  operator HTTPS source was not TLS-reproducible; no HTTP substitute was used. A cableway endpoint or ticket does not
   turn a walking relation into a cableway route.
 - **Shuttle/road:** Huangshan south-gate/Ciguang/Yungu shuttle and Taishan Tianwai/Taohuayu/transfer-center buses,
   plus Emei sightseeing buses and scenic roads, are access transport. They are excluded from walking geometry and
@@ -105,11 +108,11 @@ relation's four components and duplicate members are one complete permitted walk
 
 ### Sanqing (`18970781`)
 
-The [operator's 2026 ticket/cableway policy](https://www.sqsfjq.com/index.php?s=%2FHome%2FNews%2Fdetail%2Fid%2F4943.html)
-confirms separate 金沙、外双溪、港首 cableways and ticketing. A [2026-08-11 secondary report](https://jx.ifeng.com/c/8vTp6otkYlK)
-reproduces an operator/government reopening notice, but this audit does not treat the secondary page as positive route
-authority. The report could not establish that the generic OSM relation maps to an open official walking section;
-access and mode boundary are `UNKNOWN` and the candidate is blocked.
+The operator's 2026 ticket/cableway HTTPS source was not TLS-reproducible during Review and is excluded from verified
+primary evidence; HTTP is unsafe and was not used as a substitute. A [2026-08-11 secondary report](https://jx.ifeng.com/c/8vTp6otkYlK)
+reproduces an operator/government reopening notice as context only, not positive route authority. The report could not
+establish that the generic OSM relation maps to an open official walking section; access and mode boundary are `UNKNOWN`
+and the candidate is blocked.
 
 ### Emei (`13567761`, `13567762`)
 

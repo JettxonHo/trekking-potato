@@ -84,10 +84,11 @@
   Sanqing has 43 members and 12 gaps; each Emei relation has 29 members and 1 gap. Duplicate way refs occur in
   Huangshan, Taishan and Sanqing. No distance/elevation/duration metric, node, coordinate or raw geometry was copied.
 - First-party evidence supports only general operating context: Huangshan entry/shuttle and path notices, Taishan
-  Hongmen walking route plus separate cableway/shuttle, Sanqing cableway/ticketing, and Emei high-area capacity/
-  transport controls. A secondary reproduced Sanqing reopening notice remains context only. None proves a complete,
-  permissioned, currently open walking variant for the exact OSM relation;
-  cableway, shuttle and road segments remain separate. ODbL attribution/derived-database treatment is still `UNKNOWN`.
+  Hongmen walking route plus separate cableway/shuttle, and Emei high-area capacity/transport controls. The Sanqing
+  operator ticket/cableway HTTPS source was not TLS-reproducible during Review, is excluded from verified primary
+  evidence, and was not replaced with HTTP; its secondary reopening notice remains context only. None proves a complete,
+  permissioned, currently open walking variant for the exact OSM relation; cableway, shuttle and road segments remain
+  separate. ODbL attribution/derived-database treatment is still `UNKNOWN`.
 - The two Emei rows remain distinct: they share a stem but diverge in their middle way-member sequences. All five rows
   remain `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION` or counted toward the searchable target.
 - Executor checkpoint: `READY_FOR_CONTROLLER_REVIEW`; no runtime route-data edit, CloudBase action, deployment, timer,

@@ -1114,10 +1114,11 @@
 - OSM evidence: one primary full-relation read per candidate succeeded on `2026-08-23`. Ordered way IDs/roles and
   topology summaries record endpoint gaps in all five; Huangshan, Taishan and Sanqing have duplicate way refs, and
   Taishan has four graph components. No node, coordinate or raw geometry was copied and no metrics were derived.
-- Access/mode decision: official Huangshan, Taishan, Sanqing and Emei sources provide only general entrance/opening,
-  cableway, shuttle or road context. Walking, cableway, shuttle and road segments remain separate; exact relation-
-  level opening/permission is `UNKNOWN`. The Emei relations share a stem but diverge in the middle sequence and must
-  not be merged.
+- Access/mode decision: official Huangshan, Taishan and Emei sources provide only general entrance/opening, cableway,
+  shuttle or road context. The Sanqing operator ticket/cableway HTTPS source was not TLS-reproducible during Review and
+  is excluded from verified primary evidence; HTTP was not used as a substitute, and its secondary reopening report is
+  context only. Walking, cableway, shuttle and road segments remain separate; exact relation-level opening/permission
+  is `UNKNOWN`. The Emei relations share a stem but diverge in the middle sequence and must not be merged.
 - Rights decision: ODbL attribution, notice/share-alike handling and the runtime derived-database form remain an
   implementation-issue gate. Missing rights, topology, direction or exact operator access blocks promotion.
 - Consequence: all five rows remain `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION` or counted toward the
