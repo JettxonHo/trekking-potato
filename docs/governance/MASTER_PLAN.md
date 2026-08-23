@@ -75,10 +75,11 @@ AI 负责解释、归纳和非关键补充，不负责决定路线身份、类�
 ## 6. C15 首批 25 个可信 RouteVariant 目录扩充
 
 当前路线目录扩充沿用既有 `Place / Route / RouteVariant` 结构，不把 175 条 legacy builtin 名称当作可信变体。
-`#153` 的规划台账 `docs/route-catalog-expansion.md` 固定 exactly-25 slots：六条已存在的结构化 pilot 加十九条
-带来源身份的候选。新候选先保留为 `UNKNOWN`/`BLOCKED_CANDIDATE`，不自动写入 runtime catalog。
-现有六条中五条为可查询 `full` pilot，一条为五台山限制记录；因此完成口径是 24 条可查询 `full` 变体加该
-限制记录。十九条新候选若有任何一条无法通过完整证据门禁，必须经 Review 更换候选，不能以 blocked 槽位凑数。
+`#159` 的活动台账 `docs/route-catalog-expansion.md` 固定 exactly-25 searchable `full` slots：五条已存在的
+可查询 pilot 加二十条 missing/replacement slots。五台山限制记录以 `R-WUTAI` 单列，不计入 searchable total。
+新候选先保留为 `UNKNOWN`/`BLOCKED_CANDIDATE`，不自动写入 runtime catalog。任何候选无法通过完整证据门禁时，
+必须经 Review 更换，不能以 blocked 槽位凑数。首批五个 proposed identities 记录在
+`docs/catalog-batch1-source-evidence.md`，须先由 controller freeze 才能进入后续实现 Issue。
 
 ### 来源与权利边界
 
@@ -91,11 +92,20 @@ AI 负责解释、归纳和非关键补充，不负责决定路线身份、类�
 
 ### 串行批次
 
-先审 Batch A 的五条雨崩关系，再按四至五条串行推进 B–D；每批一个独立 child Issue、冻结 allowlist、真实
-RED/GREEN、两次 exact-head Review。雨崩 relation `19700036` 的中英文名称冲突已单独隔离；任何 disconnected、
-ambiguous、rights-unclear 或缺少 current operator source 的 row 都不能 promotion。#123 的人控 staging blocker
-仍独立存在，C15 不授予 CloudBase、定时器、删除、部署或公共发布权限。
+批次按独立 child Issue、冻结 allowlist、真实 RED/GREEN、两次 exact-head Review 串行推进。Batch A 的五条雨崩
+关系和历史 B/C/D 关系仍是证据记录；#159 的首批 discovery freeze 另外提出五个 topology-first replacement
+identities，须由 controller 冻结后才可实现。任何 disconnected、ambiguous、rights-unclear 或缺少 current
+operator source 的 row 都不能 promotion。#123 的人控 staging blocker 仍独立存在，C15 不授予 CloudBase、
+定时器、删除、部署或公共发布权限。
 
 ## 7. 验收权
 
 执行 Agent只能交付 Review。Sol XHigh 负责 PR 级批准与合并判断；Goal 是否达到人工验收由项目控制者决定。
+
+### #159 Phase2 controller-freeze evidence checkpoint
+
+The first five runtime RouteVariants are an implementation review slice only: 16162196 complete relation, 20072118,
+20046643, 20739620 complete loop, and 17841828 lower entrance → summit. OSM/ODbL and Open-Meteo/Copernicus source
+boundaries, deterministic metrics, full geometry and bounded previews are documented in `docs/route-data-licenses.md`.
+Unknown opening status remains conservative; road membership is disclosed and no provider/network/deployment authority is
+granted. Controller review and merge remain separate decisions.

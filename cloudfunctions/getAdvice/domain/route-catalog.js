@@ -11,6 +11,7 @@ const SOURCE_KINDS = new Set([
   'government',
   'association',
   'trusted_api',
+  'open_data',
   'reviewed_gpx',
   'reviewed_track',
   'reliable_secondary',
@@ -26,8 +27,13 @@ const FULL_STATUSES = new Set(['open', 'unknown'])
 const ROUTE_PREVIEW_KEYS = new Set(['coordinateSystem', 'bounds', 'segments'])
 const ROUTE_PREVIEW_POINT_KEYS = new Set(['lat', 'lon'])
 const ROUTE_PREVIEW_BOUND_KEYS = new Set(['minLat', 'maxLat', 'minLon', 'maxLon'])
+const ROUTE_GEOMETRY_KEYS = new Set(['coordinateSystem', 'points'])
+const ROUTE_GEOMETRY_POINT_KEYS = new Set(['lat', 'lon', 'elevationM'])
+const OSM_PROVENANCE_KEYS = new Set(['provider', 'relationId', 'relationVersion', 'wayVersions', 'nodeVersions', 'snapshot', 'checkedAt'])
+const OSM_VERSION_KEYS = new Set(['id', 'version'])
 const MAX_ROUTE_PREVIEW_SEGMENTS = 7
 const MAX_ROUTE_PREVIEW_POINTS = 500
+const MAX_ROUTE_GEOMETRY_POINTS = 10000
 const FULL_EVIDENCE_FIELDS = [
   'canonicalName',
   'fixedDays',
@@ -138,7 +144,7 @@ function normalizeSource(source, path, issues) {
     ? value.supports.map((support, index) => normalizeSupport(support, `${path}.supports[${index}]`, issues))
     : invalidArray(value.supports, `${path}.supports`, issues)
 
-  return {
+  const normalized = {
     id: validateId(value.id, 'source:', `${path}.id`, issues),
     tier: validateEnum(value.tier, SOURCE_TIERS, `${path}.tier`, issues),
     kind: validateEnum(value.kind, SOURCE_KINDS, `${path}.kind`, issues),
@@ -149,6 +155,45 @@ function normalizeSource(source, path, issues) {
     supports,
     _path: path,
   }
+  if (value.license !== undefined) normalized.license = validateText(value.license, `${path}.license`, issues)
+  if (value.attribution !== undefined) normalized.attribution = validateText(value.attribution, `${path}.attribution`, issues)
+  if (value.derivation !== undefined) normalized.derivation = validateText(value.derivation, `${path}.derivation`, issues)
+  if (value.provenance !== undefined) normalized.provenance = normalizeOsmProvenance(value.provenance, `${path}.provenance`, issues)
+  if (value.kind === 'open_data') {
+    if (normalized.license !== 'ODbL-1.0') addIssue(issues, 'missing_required', `${path}.license`)
+    if (!normalized.attribution) addIssue(issues, 'missing_required', `${path}.attribution`)
+    if (!normalized.provenance) addIssue(issues, 'missing_required', `${path}.provenance`)
+  }
+  return normalized
+}
+
+function normalizeOsmProvenance(value, path, issues) {
+  const provenance = objectOrEmpty(value, path, issues)
+  rejectUnknownKeys(provenance, OSM_PROVENANCE_KEYS, path, issues)
+  return {
+    provider: validateExact(provenance.provider, 'OpenStreetMap', `${path}.provider`, issues),
+    relationId: validateText(provenance.relationId, `${path}.relationId`, issues),
+    relationVersion: validatePositiveInteger(provenance.relationVersion, `${path}.relationVersion`, issues),
+    wayVersions: normalizeVersionManifest(provenance.wayVersions, `${path}.wayVersions`, issues),
+    nodeVersions: normalizeVersionManifest(provenance.nodeVersions, `${path}.nodeVersions`, issues),
+    snapshot: validateExact(provenance.snapshot, 'current-full', `${path}.snapshot`, issues),
+    checkedAt: validateTimestamp(provenance.checkedAt, `${path}.checkedAt`, issues),
+  }
+}
+
+function normalizeVersionManifest(value, path, issues) {
+  if (!Array.isArray(value)) return invalidArray(value, path, issues)
+  if (value.length === 0) addIssue(issues, 'invalid_value', path)
+  const ids = new Set()
+  return value.map((entry, index) => {
+    const entryPath = `${path}[${index}]`
+    const manifest = objectOrEmpty(entry, entryPath, issues)
+    rejectUnknownKeys(manifest, OSM_VERSION_KEYS, entryPath, issues)
+    const id = validateText(manifest.id, `${entryPath}.id`, issues)
+    if (ids.has(id)) addIssue(issues, 'duplicate_id', `${entryPath}.id`)
+    ids.add(id)
+    return { id, version: validatePositiveInteger(manifest.version, `${entryPath}.version`, issues) }
+  })
 }
 
 function normalizeSupport(support, path, issues) {
@@ -248,7 +293,7 @@ function normalizeFullVariant(value, path, issues) {
   const canonicalName = validateText(value.canonicalName, `${path}.canonicalName`, issues)
   const aliases = normalizeAliases(value.aliases, `${path}.aliases`, issues)
   validateAliasesAgainstCanonicalName(aliases, canonicalName, `${path}.aliases`, issues)
-  return {
+  const normalized = {
     entityKind: validateExact(value.entityKind, 'route_variant', `${path}.entityKind`, issues),
     recordStatus: validateExact(value.recordStatus, 'verified', `${path}.recordStatus`, issues),
     capability: validateExact(value.capability, 'full', `${path}.capability`, issues),
@@ -273,11 +318,18 @@ function normalizeFullVariant(value, path, issues) {
     verificationLevel: validateEnum(value.verificationLevel, new Set(['A', 'B']), `${path}.verificationLevel`, issues),
     sourceIds: normalizeIdArray(value.sourceIds, `${path}.sourceIds`, issues),
     sourceCheckedAt: validateDate(value.sourceCheckedAt, `${path}.sourceCheckedAt`, issues),
+    ...(value.routeGeometry === undefined
+      ? {}
+      : { routeGeometry: normalizeRouteGeometry(value.routeGeometry, `${path}.routeGeometry`, issues) }),
     ...(value.routePreview === undefined
       ? {}
       : { routePreview: normalizeRoutePreview(value.routePreview, `${path}.routePreview`, issues, value.fixedDays) }),
+    ...(value.operationalStatusRationale === undefined
+      ? {}
+      : { operationalStatusRationale: validateText(value.operationalStatusRationale, `${path}.operationalStatusRationale`, issues) }),
     _path: path,
   }
+  return normalized
 }
 
 function normalizeBlockedVariant(value, path, issues) {
@@ -474,13 +526,32 @@ function validateFullVariant(variant, path, sourceById, issues) {
     }
   }
 
-  const evidenceFields = variant.nearbyPeakElevationM === null
+  const hasConservativeUnknownRationale = variant.operationalStatus === 'unknown'
+    && typeof variant.operationalStatusRationale === 'string'
+    && variant.operationalStatusRationale.length > 0
+  const hasOpenDataRouteGeometry = Boolean(variant.routeGeometry)
+    && variant.id.startsWith('variant:osm-')
+    && variant.sourceIds.some((sourceId) => {
+      const source = sourceById.get(sourceId)
+      return source?.kind === 'open_data'
+        && source.provenance?.provider === 'OpenStreetMap'
+        && source.supports.some((support) => support.entityId === variant.id && support.field === 'routeGeometry')
+    })
+  const allowsUnknownWithoutOpeningEvidence = hasOpenDataRouteGeometry && hasConservativeUnknownRationale
+  if (variant.operationalStatus === 'unknown' && hasOpenDataRouteGeometry && !hasConservativeUnknownRationale) {
+    addIssue(issues, 'missing_required', `${path}.operationalStatusRationale`)
+  }
+  const evidenceFields = (variant.nearbyPeakElevationM === null
     ? FULL_EVIDENCE_FIELDS
-    : [...FULL_EVIDENCE_FIELDS, 'nearbyPeakElevationM']
+    : [...FULL_EVIDENCE_FIELDS, 'nearbyPeakElevationM'])
+    .filter((field) => field !== 'operationalStatus' || variant.operationalStatus === 'open' || !allowsUnknownWithoutOpeningEvidence)
   for (const field of evidenceFields) {
     if (!hasEvidence(variant.id, field, variant.sourceIds, sourceById, new Set(['A', 'B']))) {
       addIssue(issues, 'missing_evidence', `${path}.evidence.${field}`)
     }
+  }
+  if (variant.routeGeometry && !hasEvidence(variant.id, 'routeGeometry', variant.sourceIds, sourceById, new Set(['A', 'B']))) {
+    addIssue(issues, 'missing_evidence', `${path}.evidence.routeGeometry`)
   }
   if (variant.routePreview && !hasReviewedPreviewEvidence(variant, sourceById)) {
     addIssue(issues, 'missing_evidence', `${path}.evidence.routePreview`)
@@ -492,9 +563,30 @@ function hasReviewedPreviewEvidence(variant, sourceById) {
     const source = sourceById.get(sourceId)
     return source
       && source.tier === 'B'
-      && (source.kind === 'reviewed_gpx' || source.kind === 'reviewed_track')
+      && (source.kind === 'reviewed_gpx' || source.kind === 'reviewed_track' || source.kind === 'open_data')
       && source.supports.some((support) => support.entityId === variant.id && support.field === 'routePreview')
   })
+}
+
+function normalizeRouteGeometry(value, path, issues) {
+  const geometry = objectOrEmpty(value, path, issues)
+  rejectUnknownKeys(geometry, ROUTE_GEOMETRY_KEYS, path, issues)
+  const coordinateSystem = validateExact(geometry.coordinateSystem, 'WGS84', `${path}.coordinateSystem`, issues)
+  if (!Array.isArray(geometry.points)) return invalidArray(geometry.points, `${path}.points`, issues)
+  if (geometry.points.length < 2 || geometry.points.length > MAX_ROUTE_GEOMETRY_POINTS) {
+    addIssue(issues, 'invalid_value', `${path}.points`)
+  }
+  const points = geometry.points.map((rawPoint, index) => {
+    const pointPath = `${path}.points[${index}]`
+    const point = objectOrEmpty(rawPoint, pointPath, issues)
+    rejectUnknownKeys(point, ROUTE_GEOMETRY_POINT_KEYS, pointPath, issues)
+    return {
+      lat: validateCoordinateNumber(point.lat, -90, 90, `${pointPath}.lat`, issues),
+      lon: validateCoordinateNumber(point.lon, -180, 180, `${pointPath}.lon`, issues),
+      elevationM: validateFiniteNumber(point.elevationM, `${pointPath}.elevationM`, issues),
+    }
+  })
+  return { coordinateSystem, points }
 }
 
 function normalizeRoutePreview(value, path, issues, expectedDays) {
@@ -715,6 +807,16 @@ function validateDate(value, path, issues) {
     return ''
   }
   if (!isIsoDate(value)) addIssue(issues, 'invalid_value', path)
+  return value
+}
+
+function validateTimestamp(value, path, issues) {
+  if (typeof value !== 'string') {
+    addIssue(issues, 'invalid_type', path)
+    return ''
+  }
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime()) || !value.endsWith('Z')) addIssue(issues, 'invalid_value', path)
   return value
 }
 

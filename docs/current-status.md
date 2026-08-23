@@ -4,20 +4,21 @@
 - Governance: `TP-GOV-2.0.0`
 - Previous Goals: `TP-BETA-001 / COMPLETE — CODE_READY`; `TP-STAGING-001 / COMPLETE — CONDITIONAL_GO`;
   `TP-COMMUNITY-001 / ACTIVE — BLOCKED_STAGING` retained as a separately blocked runtime ledger
-- Current Goal: `TP-CATALOG-001 / ACTIVE — C15-B REVIEW_ACTIVE`
-- Active task: `#157 / READY_FOR_CONTROLLER_REVIEW / REVIEW`
-- Branch/base: `codex/157-scenic-evidence` from exact `main@50d3a0e`
+- Current Goal: `TP-CATALOG-001 / ACTIVE — #159 PHASE2_REVIEW_FIX / READY_FOR_CONTROLLER_REVIEW`
+- Active task: `#159 / READY_FOR_CONTROLLER_REVIEW / PHASE2_REVIEW_FIX`
+- Branch/base: `codex/159-catalog-batch1-5` from exact `main@cb50fd97b5b3333e7800a58538cc42d7fb4caf27`
 - Environment boundary: existing `cloud1-d0gtzgqzh9c128aaf` is the only staging candidate; production is not configured
 - Staging verdict: `CONDITIONAL_GO` for a bounded four-route cohort; not production
-- Current work: the human approved a target total of 25 trusted RouteVariants: six existing structured pilots plus
-  about nineteen new reviewed variants. Merged planning #153 owns the ledger and serial batch contracts; #155 owns
-  the completed first evidence audit. The broad legacy
-  builtin list remains discovery-only. #123 stays open and blocked with S8–S15/S20 `BLOCKED` and S16/S18
-  `UNVERIFIED_RUNTIME_TOOL`; C15 grants no CloudBase, timer, deletion, cohort or release authority.
+- Current work: the human-approved target remains exactly 25 searchable `full` RouteVariant slots. #159 Phase2 now has
+  ten searchable `full` variants (five existing pilots plus five frozen batch variants), leaving a remaining gap of
+  fifteen. Wutai is a separate non-counting restriction record. Merged planning #153 owns the ledger lineage; #159
+  owns the Phase2 runtime review-fix. The broad legacy builtin list remains discovery-only. #123 stays open and blocked
+  with S8–S15/S20 `BLOCKED` and S16/S18 `UNVERIFIED_RUNTIME_TOOL`; C15 grants no CloudBase, timer, deletion, cohort
+  or release authority.
 
-- Count truth: the existing six records are five searchable `full` pilots plus one Wutai restriction record. The
-  completion target is therefore 24 searchable `full` variants plus that retained restriction record. The 19 new
-  ledger rows are candidates only; a blocked candidate must be replaced and does not count as a delivered route.
+- Count truth: ten records are searchable `full` (five existing pilots plus five #159 Phase2 variants); fifteen slots
+  remain toward the completion target of 25. `R-WUTAI` is a non-counting restriction. A blocked candidate is replaced
+  and never counts as a delivered route.
 
 ## C15 trusted-catalog planning activation — 2026-08-23
 
@@ -31,9 +32,9 @@
   ambiguous routes remain blocked.
 - Exact custom executor: `luna-worker`, configured at `gpt-5.6-luna/max`; runtime identity remains separate evidence.
   No production route data, CloudBase action, deployment or public release has occurred.
-- The planning ledger now has exactly 25 rows (6 existing + 19 new). Five Yubeng OSM relations are Batch A; relation
-  `19700036` is quarantined for a Chinese/English identity mismatch. The other fourteen named relations are
-  `BLOCKED_CANDIDATE` with unknown topology/direction/opening/rights until their serial child Issues run.
+- Historical planning had six records plus nineteen provisional candidates. Active #159 corrects the ledger to 25
+  searchable slots (5 existing + 20 missing/replacement) and keeps Wutai outside that count as `R-WUTAI`. The five
+  Yubeng relations and prior named relations remain evidence records, not delivered routes.
 - The read-only candidate search stopped after the Overpass endpoint rate-limited. This is an evidence boundary, not a
   reason to infer or promote a route. See `docs/route-catalog-expansion.md` for the complete field-level ledger.
 - Draft PR #154 carried the planning review. Historical planning head `965afb0` records the first published ledger;
@@ -65,7 +66,7 @@
 - Draft PR #156 is open. Evidence head `a4ebe74` is historical first-publication evidence only; live GitHub metadata
   is authoritative. The same current head requires successful quality CI and two fresh independent Reviews.
 
-## C15-A merge and scenic Batch B activation — 2026-08-23
+## Historical C15-A merge and scenic Batch B activation — 2026-08-23
 
 - PR #156 passed exact-head CI and two fresh independent Reviews, squash merged as `50d3a0e`; #155 is closed. None of
   the five Yubeng candidates entered route data.
@@ -74,7 +75,7 @@
 - Exact route identity, walking-versus-transport boundaries, full topology, ODbL treatment and current official scenic-
   area/operator access evidence are mandatory. Missing evidence remains blocked.
 
-## C15-B scenic evidence audit checkpoint — 2026-08-23
+## Historical C15-B scenic evidence audit checkpoint — 2026-08-23
 
 - Evidence report: `docs/scenic-route-evidence.md`; ledger rows 12–16 now reconcile to OSM relations
   `18970848`, `19818868`, `18970781`, `13567761` and `13567762` with exact identity, aliases, ordered member IDs,
@@ -96,6 +97,21 @@
   quality plus two fresh exact-head independent Reviews.
 - Draft PR #158 is open. Evidence head `7fcdd48` is historical first-publication evidence only; live GitHub metadata
   is authoritative. The same current head requires successful quality CI and two fresh independent Reviews.
+
+## Historical C15-C Phase1 discovery-freeze correction — 2026-08-23 (#159)
+
+- `docs/route-catalog-expansion.md` now states exactly 25 searchable slots (`01–05` plus `07–26`): five existing
+  searchable pilots and twenty missing/replacement slots. `R-WUTAI` is a separate non-counting restriction record.
+- The bounded topology-first pass stopped at twenty bounded full-relation reads (one duplicate verification). The five proposed identities are
+  `16162196` 三杆笔—水祖坑郊野径, `20072118` 蝴蝶步道, `20046643` 坪惠湿地步道, `15852438` 阳台山蕉窝郊野径,
+  and `17841828` 三峡之巅徒步道. The evidence report is
+  [`docs/catalog-batch1-source-evidence.md`](catalog-batch1-source-evidence.md).
+- All five are `BLOCKED_PENDING_CONTROLLER_FREEZE`, not eligible and not counted. Aggregate graph topology is
+  connected/branch-free/duplicate-free in this pass, while ordered-member gaps, missing `from`/`to`, rights and exact
+  current opening remain explicit blockers. Walking, cableway, shuttle and road boundaries are kept separate.
+- Historical Phase1 executor status was `READY_FOR_CONTROLLER_REVIEW`; no runtime action occurred in that phase. The
+  controller freeze and Phase2 implementation checkpoint below supersede its pending-freeze instruction. CloudBase,
+  deployment and release remain outside #159 authority.
 
 ## C14 private-history pagination activation — 2026-08-22
 
@@ -2362,3 +2378,43 @@ config mutation, deployment, timer, deletion, real-user cohort or public release
 - Routing before spawn: logical role `IMPLEMENTER`; exact custom Agent `luna-worker`; config
   `~/.codex/agents/luna-worker.toml`; configured model `gpt-5.6-luna`; reasoning `max`; `CONFIG_VERIFIED`;
   runtime model visibility must be reported by the executor. Terra remains unauthorized.
+
+## #159 Phase2 implementation checkpoint — 2026-08-23
+
+- Controller freeze `5385785828` is implemented on `codex/159-catalog-batch1-5`: five new full variants are present alongside the five existing full pilots and the separate Wutai blocked record (full=10, blocked=1).
+- All five use complete ordered WGS84 relation geometry and bounded previews. OSM sources retain ODbL attribution and current-full relation/way/node provenance; the full node manifests and deterministic metric/elevation derivation are in `docs/route-data-licenses.md`.
+- Elevation research succeeded once per route through Open-Meteo/Copernicus (≤100 sampled points, no retry or runtime network). `operationalStatus=unknown` is explicit and no opening claim is made. Focused domain/data/resolver/result gates pass; controller review remains required.
+
+## #159 Phase2 bounded review-fix checkpoint — 2026-08-23
+
+- Captured controller RED before repair: typecheck had exactly two errors (missing optional `official` in the 207
+  fragment and post-assignment inference for `operationalStatusRationale`). Both are fixed at the shared seam with no
+  public shape drift.
+- Route-domain evidence is narrow and truthful: unknown status may omit opening-source support only when a variant has
+  routeGeometry, an `open_data` source and a non-empty `operationalStatusRationale`; existing variants and reviewed
+  geometry still require their normal operational-status evidence. OSM supports ordered coordinates/topology and the
+  applicable identity fields; Open-Meteo/Copernicus supports only the joined routeGeometry elevation component and
+  elevation-derived fields.
+- Corrected identity claims: 20739620 uses `未命名环线起终点` and the specific alias `赵公山东北徒步环线`; 16162196
+  keeps the complete relation without the old mainline alias; 20046643's contextual park source no longer claims
+  variant endpoints. OSM map/source attribution includes `openstreetmap.org/copyright`; elevation text requires the
+  exact trusted source id/kind/publisher.
+- Review-fix validation is green: focused route-domain/data/resolver/result-page, root `npm test`, offline integration
+  `55/0`, lint (0 errors/9 existing warnings), typecheck, `CI=1 npm run build:weapp`, `git diff --check`, exact
+  allowlist and sensitive scans. Root npm audit reports 0 vulnerabilities; Cloud Function audit remains a documented
+  pre-existing transitive dependency finding and no dependency change was authorized. No commit/push/PR/deploy.
+
+## #159 Phase2 review-fix round 2 checkpoint — 2026-08-23
+
+- The frozen set remains `16162196`, `20072118`, `20046643`, `20739620` and `17841828`; searchable count is `full=10`
+  with `gap=15`, and Wutai remains non-counting. The old Phase1 candidate/6-doc allowlist is historical; the current
+  Phase2 25-path allowlist is recorded in `docs/tasks/ACTIVE_TASK.md`.
+- Runtime source truth is corrected: 20072118 has no official source (its Shenzhen PDF is docs-only context), while
+  16162196 uses the verified joint planning-document title/publisher without expanding its field supports.
+- Unknown-status exemption requires an `variant:osm-*` ID, the same OpenStreetMap `open_data` source, non-empty
+  rationale, and that source's exact `routeGeometry` support. Non-OSM and cross-source negative fixtures remain RED;
+  OSM-derived tests also assert deterministic duration and version-manifest anchors.
+- This round's focused contracts, root `npm test`, typecheck, lint (0 errors/9 existing warnings), host WeChat build,
+  `git diff --check`, exact allowlist and added-line sensitive scans are green.
+- This bounded round is `READY_FOR_CONTROLLER_REVIEW`; no commit, push, PR, merge, deployment, CloudBase or dependency
+  action occurred.

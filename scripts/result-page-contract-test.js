@@ -709,6 +709,7 @@ function resultPresentationContractForSources(page, css) {
   assertAiDisplayProjection(page)
   assertReasonSeverityDisplayProjection(page)
   assertMapPreviewWiring(page, css)
+  assertOpenDataAttributionWiring(page, css)
   assertC13ResultSummaryHierarchy(page, css)
   assertWeatherDisclosureProjection(page)
   assertToggleIsolation(page)
@@ -730,6 +731,39 @@ function resultPresentationContractForSources(page, css) {
   const missingHandlerMutation = page.replace('onClick={() => this.onWeatherSampleToggle(sampleKey)}', 'onClick={() => {}}')
   assert.notEqual(missingHandlerMutation, page, 'missing-toggle-handler mutation must change page source')
   assert.throws(() => resultPresentationContractForSources(missingHandlerMutation, css), undefined, 'missing-toggle-handler must turn the focused contract RED')
+}
+
+function assertOpenDataAttributionWiring(page, css) {
+  const resultStart = page.indexOf('    if (showResult && result)')
+  assert.ok(resultStart >= 0, 'structured result render must remain present for source attribution')
+  const resultRender = page.slice(resultStart)
+  assert.match(resultRender, /const hasOpenDataRouteSource = pageModel\.sources\.route\.some\(\(source\) => source && source\.kind === 'open_data'\)/, 'OSM attribution must be gated by the explicit open_data source kind')
+  assert.match(resultRender, /const hasElevationRouteSource = pageModel\.sources\.route\.some\(\(source\) => \([\s\S]*source\.id === 'source:trusted-api-open-meteo-copernicus-glo90'[\s\S]*source\.kind === 'trusted_api'[\s\S]*source\.publisher === 'Open-Meteo \/ Copernicus DEM GLO-90'/, 'elevation attribution must require the exact trusted Open-Meteo/Copernicus source')
+  assert.match(resultRender, /hasOpenDataRouteSource &&/, 'OSM attribution must be conditional on an open_data route source')
+  assert.match(resultRender, /hasElevationRouteSource &&/, 'elevation attribution must be conditional on the exact trusted elevation source')
+  assert.match(resultRender, /route-preview-attribution/, 'OSM attribution must sit adjacent to the route preview map')
+  assert.match(resultRender, /source-attribution/, 'OSM attribution must sit adjacent to the route source card')
+  assert.match(resultRender, /OpenStreetMap contributors/, 'visible attribution must name OpenStreetMap contributors')
+  assert.match(resultRender, /ODbL-1\.0/, 'visible attribution must name the ODbL license')
+  assert.match(resultRender, /openstreetmap\.org\/copyright/, 'visible attribution must link the OSM copyright guidance')
+  assert.match(css, /\.route-preview-attribution\s*\{/, 'route preview attribution needs bounded styling')
+  assert.match(css, /\.source-attribution\s*\{/, 'source-card attribution needs bounded styling')
+
+  const attributionMutation = page.replace('© OpenStreetMap contributors · ODbL-1.0 · openstreetmap.org/copyright', '© OpenStreetMap contributors')
+  assert.notEqual(attributionMutation, page, 'license removal mutation must change page source')
+  assert.throws(() => assertOpenDataAttributionWiring(attributionMutation, css), undefined, 'ODbL removal must turn the focused attribution contract RED')
+  const gateMutation = page.replace("source && source.kind === 'open_data'", 'source && source.kind === \'official\'')
+  assert.notEqual(gateMutation, page, 'open_data gate mutation must change page source')
+  assert.throws(() => assertOpenDataAttributionWiring(gateMutation, css), undefined, 'open_data gate mutation must turn the focused attribution contract RED')
+  const mapAttributionMutation = page.replace('<Text className="route-preview-attribution">© OpenStreetMap contributors · ODbL-1.0 · openstreetmap.org/copyright</Text>', '')
+  assert.notEqual(mapAttributionMutation, page, 'map attribution removal mutation must change page source')
+  assert.throws(() => assertOpenDataAttributionWiring(mapAttributionMutation, css), undefined, 'map attribution removal must turn the focused attribution contract RED')
+  const sourceAttributionMutation = page.replace('<Text className="source-attribution">数据地图：© OpenStreetMap contributors · ODbL-1.0 · openstreetmap.org/copyright</Text>', '')
+  assert.notEqual(sourceAttributionMutation, page, 'source attribution removal mutation must change page source')
+  assert.throws(() => assertOpenDataAttributionWiring(sourceAttributionMutation, css), undefined, 'source attribution removal must turn the focused attribution contract RED')
+  const elevationGateMutation = page.replace("source.id === 'source:trusted-api-open-meteo-copernicus-glo90'", "source.id === 'source:other-elevation'")
+  assert.notEqual(elevationGateMutation, page, 'trusted elevation gate mutation must change page source')
+  assert.throws(() => assertOpenDataAttributionWiring(elevationGateMutation, css), undefined, 'trusted elevation gate mutation must turn the focused attribution contract RED')
 }
 
 function assertMapPreviewWiring(page, css) {

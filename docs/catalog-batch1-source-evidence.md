@@ -1,0 +1,651 @@
+# C15-C 首批发现冻结证据（Issue #159）
+
+- Goal: `TP-CATALOG-001`
+- Issue: `#159`
+- Checked: `2026-08-23`
+- Status: `PLANNING_ONLY / READY_FOR_CONTROLLER_REVIEW`
+- Runtime impact: none. No Route/RouteVariant data, schema, tests, CloudBase or deployment file was changed.
+
+## 1. Count and freeze contract
+
+The searchable target is exactly **25 full RouteVariant slots**: five existing searchable pilots plus twenty
+missing/replacement slots. The Wutai restriction is retained as `R-WUTAI` and is not searchable or countable. A
+candidate in this report is a proposed identity only; it is not a runtime record and does not satisfy the count until a
+controller freezes it and a later implementation slice proves every promotion field.
+
+The bounded discovery freeze proposes exactly five identities. The proposals are intentionally conservative:
+`operationalStatus` is `UNKNOWN` unless a current first-party source proves the exact walking relation is open, and
+walking path, cableway, shuttle and road segments are recorded separately. No candidate is `ELIGIBLE_FOR_IMPLEMENTATION`
+in this evidence-only slice.
+
+## 2. Evidence contract and bounded method
+
+- Primary geometry/identity source: one OSM full-relation read per audited relation, using the relation page as the
+  reproducible source. OSM data is treated as ODbL candidate data; no nodes, coordinates, ordered way payload or raw
+  track was copied into the repository.
+- Topology summary is aggregate-only: graph components, branch nodes, graph endpoints, duplicate way references,
+  ordered-member continuity (when measured), and highway-mode classes. A connected graph does not prove completeness,
+  permission, safety or opening.
+- Official context came from municipal/scenic/operator/government pages and planning PDFs. General park or trail-system
+  pages are not treated as exact relation-level opening proof.
+- The pass stopped after twenty bounded full-relation reads (one was a duplicate verification) within the controller's
+  allowance. No bulk third-party track source, GPX/KML, private submission or retry-after-rate-limit path was used.
+
+## 3. Five proposed identities (controller-freeze package)
+
+All five rows below are `PROPOSED_REPLACEMENT / BLOCKED_PENDING_CONTROLLER_FREEZE`; none is counted and none is eligible
+for runtime implementation.
+
+| Proposed identity | Primary OSM relation and aggregate topology | Walking / transport boundary | Deterministic direction evidence | Official/operator context | Verdict and remaining blocker |
+|---|---|---|---|---|---|
+| `三杆笔—水祖坑郊野径` (深圳) | [`relation/16162196`](https://www.openstreetmap.org/relation/16162196); 11 ways, 1 graph component, 0 branch nodes, 2 endpoints, 0 duplicate refs; all `path`, 0 road ways; ordered-member gaps `5` (member order is not a canonical walk sequence). | Walking path only in the audited relation; no cableway, shuttle or road way was included. | OSM `from=三杆笔`, `to=水祖坑`. | Shenzhen official planning/greenway tables name “三杆笔—水祖坑” and assign the segment to 坪山区政府: [`11467139.pdf`](https://www.sz.gov.cn/attachment/1/1445/1445537/11467139.pdf), [`11290178.pdf`](https://cgj.sz.gov.cn/attachment/1/1445/1445537/11290178.pdf). | `BLOCKED_PENDING_CONTROLLER_FREEZE`; exact current opening, rights/attribution treatment and member-order completeness remain `UNKNOWN`. |
+| `蝴蝶步道` (马峦山, 深圳) | [`relation/20072118`](https://www.openstreetmap.org/relation/20072118); 5 ways, 1 graph component, 0 branch nodes, 2 endpoints, 0 duplicate refs; all `path`, 0 road ways; ordered-member gaps `4`. | Walking path only; no cableway or shuttle member observed. | OSM `from=朴树口`, `to=马峦山北门`. | Shenzhen’s official “鹏城万里” table identifies the Maluan Mountain trail system and its park management center: [`11290180.pdf`](https://cgj.sz.gov.cn/attachment/1/1445/1445537/11290180.pdf). The source does not prove this exact relation is open today. | `BLOCKED_PENDING_CONTROLLER_FREEZE`; exact relation-level official opening and rights treatment are `UNKNOWN`. |
+| `坪惠湿地步道` (深圳) | [`relation/20046643`](https://www.openstreetmap.org/relation/20046643); 9 ways, 1 graph component, 0 branch nodes, 2 endpoints, 0 duplicate refs; modes `footway/path`, 0 road ways; ordered-member continuity metric not retained in this bounded pass. | Walking/footway only; no cableway, shuttle or road way observed. | OSM `from=聚龙山湿地生态园北门`, `to=坪山湿地公园南门`. | Shenzhen official park page confirms the named 聚龙山湿地公园 and its managed wetland trail environment: [`聚龙山湿地公园`](https://cgj.sz.gov.cn/xsmh/gysz/csgy/content/post_10775015.html). Exact relation opening and route ownership remain unconfirmed. | `BLOCKED_PENDING_CONTROLLER_FREEZE`; exact route-level operator/opening and rights treatment are `UNKNOWN`. |
+| `阳台山蕉窝郊野径` (深圳) | [`relation/15852438`](https://www.openstreetmap.org/relation/15852438); 3 ways, 1 graph component, 0 branch nodes, 2 endpoints, 0 duplicate refs; all `path`, 0 road ways; ordered-member gap `1`. | Walking path only; no cableway, shuttle or road way observed. | OSM has `to=蕉窝村旧址` and exactly two graph endpoints; the unnamed opposite endpoint is not promoted as a public place name. | The Shenzhen official hiking plan lists the 阳台山郊野径 family and assigns the relevant management responsibility to the municipal comprehensive-enforcement authority: [`11467135.pdf`](https://www.sz.gov.cn/attachment/1/1406/1406401/11467135.pdf). OSM operator tag is `深圳市公园管理局`; exact relation opening is not proven. | `BLOCKED_PENDING_CONTROLLER_FREEZE`; start identity/direction, current opening and rights treatment remain `UNKNOWN`. |
+| `三峡之巅徒步道` (重庆奉节) | [`relation/17841828`](https://www.openstreetmap.org/relation/17841828); 9 ways, 1 graph component, 0 branch nodes, 2 endpoints, 0 duplicate refs; footway-only; ordered-member gaps `0`. | Walking path is kept separate from the official cableway/观光车 transport boundary; no transport way was included in the relation audit. | Official government/operator notices describe the one-way hiking ascent from the named entrances (`赤甲楼`/`坳口`/`石庙`) toward the summit; the OSM relation itself has no `from`/`to` tags. | 奉节县政府 scenic page and Chongqing government notices identify the trail, entrance timing and transport separation: [`奉节县政府`](https://www.cqfj.gov.cn/index/fjwl/jpjq/202209/t20220914_11109757.html), [`重庆市政府路线提示`](https://cq.gov.cn/zwgk/zfxxgkml/zdlyxxgk/ggwh/ly/zxdt/202501/t20250121_14190770.html), [`重庆市政府维护通告`](https://cq.gov.cn/ywdt/bmts/202502/t20250207_14264898.html). | `BLOCKED_PENDING_CONTROLLER_FREEZE`; route-to-relation identity, current opening and ODbL-derived-database treatment require controller review. |
+
+### License and rights checkpoint (all five)
+
+Each relation-page URL above is an OSM open-data source under the Open Database License (ODbL); attribution, notice
+and any derived-database/share-alike treatment are required before a runtime projection. The municipal/scenic pages
+and PDFs are used only as official identity/operator context and no text, image, track or geometry was copied. No
+candidate has a controller-approved derived-database form or a compatible first-party geometry authorization yet, so
+rights remain `UNKNOWN` for all five. This is a blocker, not a license inference.
+
+### Direction and status rule
+
+The first three rows carry explicit OSM `from`/`to`. The Yangtai row has only `to` and therefore must not be treated as
+direction-complete without resolving its unnamed endpoint. The Three Gorges source supplies a one-way operational
+description, but the relation has no matching `from`/`to` tags. These are proposed identities for the controller to
+freeze, not permission to infer a runtime direction or `open` status.
+
+## 4. Rejected or held-out candidates
+
+The following read-only observations are retained as reject reasons and do not consume searchable slots:
+
+| Relation / identity | Aggregate observation | Decision |
+|---|---|---|
+| `12390841` 纪龙山徒步 | Graph-clean path (1 component, 0 branches, 2 endpoints, no duplicate refs; `from=东华村`, `to=东华村`). No route-level government/operator source was reproducibly established in the bounded pass. | `REJECTED_SOURCE_BLOCKER` — do not count a clean OSM graph as official route authority. |
+| `20072034` 坪山区森林步道 | 56 ways, 3 branch nodes, 5 endpoints, 22 road/service/tertiary/unclassified ways mixed with walking ways. | `REJECTED_TOPOLOGY_AND_MODE_BOUNDARY`. |
+| `20045604` 碧岭瀑布群步道 | 2 graph components, 4 endpoints and 5 road/unclassified/residential ways. | `REJECTED_DISCONNECTED_AND_ROAD_MIX`. |
+| `20045602` 禾雀花步道 | 1 component and 0 branches but 6 road/service ways out of 8. | `REJECTED_ROAD_BOUNDARY`. |
+| `20072101` 红花岭乡土植物步道 | 3 branch nodes and 1 endpoint; `roundtrip=yes` does not repair the graph. | `REJECTED_BRANCHING`. |
+| `20068997`, `20069017`, `20069060` 云海 1/2/3 线 | Connected paths with 6/1/1 residential/service ways respectively; all share the same `石头围 → 云海公园` identity boundary. | `REJECTED_ROAD_MIX_AND_DUPLICATE_IDENTITY_RISK`. |
+| Scenic rows `18970848`, `19818868`, `18970781`, `13567761`, `13567762` | Prior C15-B report records endpoint gaps/branches/duplicates and unresolved walking-versus-transport boundaries. | Remain `BLOCKED_CANDIDATE`; not replacements in this freeze. |
+
+## 5. Controller handoff and stop conditions
+
+1. Controller must freeze exactly five proposed identities or reject/replace a row; no row is counted merely because it
+   appears in this report.
+2. Before any runtime work, a child Issue must re-check exact identity/collision, complete topology, direction, ODbL
+   attribution/derived-database form, duration/distance/elevation/weather fields, current operator opening and public
+   contracts. Any unresolved field remains `UNKNOWN` and blocks promotion.
+3. If an official source cannot bind the route-level walking relation, the candidate remains `BLOCKED_CANDIDATE`; HTTP,
+   secondary reports, cableway/shuttle notices or road access are not substitutes.
+4. No runtime edit, deployment, CloudBase action, private evidence lookup, third-party track extraction, commit, push,
+  PR or merge was performed by this executor.
+
+
+## 6. Controller amendment package — replacement audit (2026-08-23)
+
+The controller requested a bounded re-check of three replacement identities before any RED or runtime work. This is an evidence-only stop package: **none is proposed, counted, or eligible**. The pass used one current OSM `relation/{id}/full.json` read per candidate and one relation-version metadata read; no retry or rate-limit bypass was used. `checkedAt` for this pass is `2026-08-23T11:11:30Z`. No elevation query was made.
+
+### Source and immutability boundary
+
+- Primary identity/topology source for each row is the OSM relation page plus the API URLs below. OSM candidate data is under [ODbL](https://www.openstreetmap.org/copyright); no coordinate, ordered geometry, GPX/KML, contributor identity, or private file was copied into this repository.
+- The exact relation version endpoint returned HTTP 200. The current `full.json` endpoint also returned HTTP 200, but a historical `relation/{id}/{version}/full.json` endpoint is not available; this package therefore **does not claim an immutable full-geometry snapshot**. The used way/node version manifests below are provenance for the checked current-full response only.
+- No route-level official/scenic/operator opening URL was established in this bounded replacement pass. That fact is `UNKNOWN` and blocks promotion; an OSM tag or a general scenic page cannot substitute for exact walking-route authority. Road, cableway and shuttle members are kept separate from walking members.
+
+### Candidate verdicts
+
+| Candidate / exact relation tags | Relation and topology at checkedAt | Walking / transport boundary | Direction / source | Verdict |
+|---|---|---|---|---|
+| **大明山环线（广西大明山）** — `relation/12336480`; tags `{"name":"大明山环线","name:en":"Damingshan Loop","name:zh":"大明山环线","network":"lwn","ref":"大明山","route":"hiking","type":"route"}` | relation v3 (2021-03-02T21:43:10Z, changeset 100305784); 10 ways, 356 unique used nodes, 1 component(s), 0 branch node(s), 2 endpoint(s), member-order gaps 0, edge count 355, unique edges 355, cycleRank 0; closed-loop=no; modes `path, tertiary, unclassified, footway`. | Walking members are only the `path/footway` ways; road members are **not** silently reclassified. Road ways: 908577717 (v1, highway=tertiary, name=daming climb); 908577718 (v3, highway=unclassified, name=daming climb); 416332847 (v1, highway=unclassified). No cableway/shuttle member was observed. | OSM relation has no `from`/`to` tags; exact metadata [v3](https://api.openstreetmap.org/api/0.6/relation/12336480/3.json) and current full source [full](https://api.openstreetmap.org/api/0.6/relation/12336480/full.json) were checked. Official/operator route-level source: `UNKNOWN`. | **BLOCKED_REPLACEMENT** — 拓扑不是闭环（2 endpoints, cycleRank=0），且 relation 成员含 tertiary/unclassified 公路；不能满足纯徒步 connected closed-loop 门槛。route-level 官方/operator 开放来源未在本次 bounded pass 建立。 |
+| **赵公山东北环线（成都都江堰赵公山）** — `relation/20739620`; tags `{"bicycle":"no","highway":"path","horse":"no","name":"赵公山东北环线","network":"lwn","route":"hiking","sac_scale":"mountain_hiking","surface":"dirt","trail_visibility":"excellent","type":"route"}` | relation v1 (2026-05-25T05:51:53Z, changeset 183137726); 3 ways, 210 unique used nodes, 1 component(s), 0 branch node(s), 0 endpoint(s), member-order gaps 0, edge count 210, unique edges 210, cycleRank 1; closed-loop=yes; modes `path, residential`. | Walking members are only the `path/footway` ways; road members are **not** silently reclassified. Road ways: 1521185467 (v1, highway=residential). No cableway/shuttle member was observed. | OSM relation has no `from`/`to` tags; exact metadata [v1](https://api.openstreetmap.org/api/0.6/relation/20739620/1.json) and current full source [full](https://api.openstreetmap.org/api/0.6/relation/20739620/full.json) were checked. Official/operator route-level source: `UNKNOWN`. | **BLOCKED_REPLACEMENT** — 图是 connected closed cycle（0 endpoints, cycleRank=1），但 3 个成员中含 residential 公路 way `1521185467`; 不能宣称 pure-walking。route-level 官方/operator 来源未在本次 bounded pass 建立。 |
+| **狮子山大环线（四川彭州）** — `relation/19908413`; tags `{"name":"狮子山大环线","network":"rwn","route":"hiking","type":"route"}` | relation v1 (2025-12-02T05:07:28Z, changeset 175385280); 2 ways, 1092 unique used nodes, 1 component(s), 0 branch node(s), 2 endpoint(s), member-order gaps 0, edge count 1091, unique edges 1091, cycleRank 0; closed-loop=no; modes `footway`. | Walking members are only the `path/footway` ways; road members are **not** silently reclassified. Road ways: none. No cableway/shuttle member was observed. | OSM relation has no `from`/`to` tags; exact metadata [v1](https://api.openstreetmap.org/api/0.6/relation/19908413/1.json) and current full source [full](https://api.openstreetmap.org/api/0.6/relation/19908413/full.json) were checked. Official/operator route-level source: `UNKNOWN`. | **BLOCKED_REPLACEMENT** — 仅 footway 且 connected，但名称中的“大环线”与当前图不符：2 endpoints、cycleRank=0；relation 无 `from`/`to`，方向和闭环语义未解决。route-level 官方/operator 来源未在本次 bounded pass 建立。 |
+
+### Exact relation/way/node version manifests
+
+The following manifests are ordered by relation member order (ways) and first appearance in those ways (unique nodes). They contain IDs and versions only, not geometry. They are intentionally recorded as a current-full provenance manifest, not an immutable-full claim.
+
+<details>
+<summary><code>relation/12336480</code> v3 — 大明山环线（广西大明山）</summary>
+
+- OSM page: https://www.openstreetmap.org/relation/12336480
+- Immutable relation metadata: https://api.openstreetmap.org/api/0.6/relation/12336480/3.json (HTTP 200)
+- Current full response: https://api.openstreetmap.org/api/0.6/relation/12336480/full.json (HTTP 200)
+- `checkedAt`: `2026-08-23T11:11:30Z`
+- Way manifest (10 members):
+
+```text
+829468590:v1, 908577717:v1, 829468591:v1, 908577718:v3, 825723761:v4, 829468592:v2, 825723760:v2, 416335267:v3,
+829466031:v1, 416332847:v1
+```
+- Node manifest (356 unique used nodes):
+
+```text
+4992680142:v1, 7742137494:v1, 7742137495:v1, 7742137496:v1, 7742137497:v1, 7742137498:v1, 7742137499:v1,
+7742137500:v1, 7742137501:v1, 7742137502:v1, 7742137503:v1, 7742137504:v1, 7742137505:v1, 7742137506:v1,
+7742137507:v1, 7742137508:v1, 7742137509:v1, 7742137510:v1, 7742137511:v1, 7742137512:v1, 7742137513:v1,
+7742137514:v1, 7742137515:v1, 7742137516:v1, 7742137517:v1, 7742137518:v1, 7742137519:v1, 7742137520:v1,
+7742137521:v1, 7742137522:v1, 7742137523:v1, 7742137524:v1, 7742137525:v1, 7742137526:v1, 7742137527:v1,
+7742137528:v1, 7742137529:v1, 7742137530:v1, 7742137531:v1, 7742137532:v1, 7742137533:v1, 7742137534:v1,
+7742137535:v1, 7742137536:v1, 7742137537:v1, 7742137538:v1, 7742137539:v1, 7742137540:v1, 7742137541:v1,
+7742137542:v1, 7742137543:v1, 7742137544:v1, 7742137545:v1, 7742137546:v1, 7742137547:v1, 7742137548:v1,
+7742137549:v1, 7742137550:v1, 7742137551:v1, 7742137552:v1, 7742137553:v1, 7742137554:v1, 7742137555:v1,
+7742137556:v1, 7742137557:v1, 7742137558:v1, 7742137559:v1, 7742137560:v1, 7742137561:v1, 7742137562:v1,
+7742137563:v1, 4992597348:v1, 4992597347:v1, 4992597341:v1, 7742137564:v1, 7742137565:v1, 7742137566:v1,
+7742137567:v1, 7742137568:v1, 4992597232:v1, 4992597231:v1, 4992597227:v1, 4992597224:v1, 4992597017:v1,
+4992597013:v1, 4992597007:v1, 4992596998:v1, 4992596992:v1, 4992596987:v1, 4992596980:v1, 4992596975:v1,
+4992596962:v2, 5594647751:v1, 5594647752:v1, 8436366417:v1, 5594647753:v2, 8436366418:v1, 8436366419:v1,
+5594647754:v2, 8436326747:v2, 8436366420:v1, 5594647755:v4, 7709701059:v1, 7709701060:v1, 7709701061:v1,
+7709701062:v1, 7709701063:v1, 7709701064:v1, 7709701065:v1, 7709701066:v1, 7709701067:v1, 7709701068:v1,
+7709701069:v1, 8436366423:v1, 7709701070:v1, 7709701071:v1, 7709701072:v1, 8436366422:v1, 8436366421:v1,
+7742137569:v1, 7742137570:v1, 7742137571:v1, 7742137572:v1, 7742137573:v1, 7742137574:v1, 7742137575:v1,
+7742137576:v1, 7742137577:v1, 7742137578:v1, 7742137579:v1, 7742137580:v1, 7742137581:v1, 7742137582:v1,
+12351572851:v1, 12351572852:v1, 7742137583:v2, 7742137584:v2, 7742142285:v2, 7742142286:v2, 7742142287:v1,
+12351572850:v1, 7742142288:v2, 12351572853:v1, 12351572854:v1, 12351572849:v1, 7742142289:v2, 12351572855:v1,
+7742142290:v2, 7709701033:v2, 7709701018:v1, 7709701019:v1, 7709701020:v1, 7709701021:v1, 7709701022:v1,
+7709701023:v1, 7709701024:v1, 7709701025:v1, 7709701026:v1, 7709701027:v1, 7709701028:v1, 7709701029:v1,
+7709701030:v1, 7709701031:v2, 7709701032:v2, 4171029971:v1, 4171029944:v1, 4171029964:v1, 4171029895:v1,
+4171029458:v1, 4171029433:v1, 4171029429:v1, 4171029923:v1, 4171029938:v1, 7742121535:v1, 7742121536:v1,
+7742121537:v1, 7742121538:v1, 7742121539:v1, 7742121540:v1, 7742121541:v1, 7742121542:v1, 7742121543:v1,
+7742121544:v1, 7742121545:v1, 7742121546:v1, 7742121547:v1, 7742121548:v1, 7742121549:v1, 7742121550:v1,
+7742121551:v1, 7742121552:v1, 7742121553:v1, 7742121554:v1, 7742121555:v1, 7742121556:v1, 7742121557:v1,
+7742121558:v1, 7742121559:v1, 7742121560:v1, 7742121561:v1, 7742121562:v1, 7742121563:v1, 7742121564:v1,
+7742121565:v1, 7742121566:v1, 7742121567:v1, 7742121568:v1, 7742121569:v1, 7742121570:v1, 7742121571:v1,
+7742121572:v1, 7742121573:v1, 7742121574:v1, 7742121575:v1, 7742121576:v1, 7742121577:v1, 7742121578:v1,
+7742121579:v1, 7742121580:v1, 7742121581:v1, 7742121582:v1, 7742121583:v1, 7742121584:v1, 7742121585:v1,
+7742121586:v1, 7742121587:v1, 7742121588:v1, 7742121589:v1, 7742121590:v1, 7742121591:v1, 7742121592:v1,
+7742121593:v1, 7742121594:v1, 7742121595:v1, 7742121596:v1, 7742121597:v1, 7742121598:v1, 7742121599:v1,
+7742121600:v1, 7742121601:v1, 7742121602:v1, 7742121603:v1, 7742121604:v1, 7742121605:v1, 7742121606:v1,
+7742121607:v1, 7742121608:v1, 7742121609:v1, 7742121610:v1, 7742121611:v1, 7742121612:v1, 7742121613:v1,
+7742121614:v1, 7742121615:v1, 7742121616:v1, 7742121617:v1, 7742121618:v1, 7742121619:v1, 7742121620:v1,
+7742121621:v1, 7742121622:v1, 7742121623:v1, 7742121624:v1, 7742121625:v1, 7742121626:v1, 7742121627:v1,
+7742121628:v1, 7742121629:v1, 7742121630:v1, 7742121631:v1, 7742121632:v1, 7742121633:v1, 7742121634:v1,
+7742121635:v1, 7742121636:v1, 7742121637:v1, 7742121638:v1, 7742121639:v1, 7742121640:v1, 7742121641:v1,
+7742121642:v1, 7742121643:v1, 7742121644:v1, 7742121645:v1, 7742121646:v1, 7742121647:v1, 7742121648:v1,
+7742121649:v1, 7742121650:v1, 7742121651:v1, 7742121652:v1, 7742121653:v1, 7742121654:v1, 7742121655:v1,
+7742121656:v1, 7742121657:v1, 7742121658:v1, 7742121659:v1, 7742121660:v1, 7742121661:v1, 7742121662:v1,
+7742121663:v1, 7742121664:v1, 7742121665:v1, 7742121666:v1, 7742121667:v1, 7742121668:v1, 7742121669:v1,
+7742121670:v1, 7742121671:v1, 7742121672:v1, 7742121673:v1, 7742121674:v1, 7742121675:v1, 7742121676:v1,
+7742121677:v1, 5424469530:v1, 7742121678:v1, 7742121679:v1, 7742121680:v1, 5424469532:v1, 7742121681:v1,
+7742121682:v1, 7742121683:v1, 7742121684:v1, 7742121685:v1, 7742121686:v1, 7742121687:v1, 7742121688:v1,
+7742121689:v1, 7742121690:v1, 7742121691:v1, 7742121692:v1, 7742121693:v1, 7742121694:v1, 7742121695:v1,
+7742121696:v1, 7742121697:v1, 7742121698:v1, 7742121699:v1, 7742121700:v1, 7742121701:v1, 7742121702:v1,
+7742121703:v1, 4171015236:v1, 4171015276:v1, 4171015272:v1, 4171015211:v1, 4171015214:v1, 4171015247:v1,
+4171015190:v1, 4171011186:v1, 4171015273:v1, 4171015222:v1, 4171011180:v1, 4171015212:v1
+```
+</details>
+
+<details>
+<summary><code>relation/20739620</code> v1 — 赵公山东北环线（成都都江堰赵公山）</summary>
+
+- OSM page: https://www.openstreetmap.org/relation/20739620
+- Immutable relation metadata: https://api.openstreetmap.org/api/0.6/relation/20739620/1.json (HTTP 200)
+- Current full response: https://api.openstreetmap.org/api/0.6/relation/20739620/full.json (HTTP 200)
+- `checkedAt`: `2026-08-23T11:11:30Z`
+- Way manifest (3 members):
+
+```text
+483583238:v7, 1218331474:v3, 1521185467:v1
+```
+- Node manifest (210 unique used nodes):
+
+```text
+4689853814:v2, 4763324975:v1, 4763324976:v1, 4763324977:v1, 4763324978:v1, 4763324979:v1, 4763324980:v1,
+4763324981:v1, 4763324982:v1, 4763324983:v1, 4763324984:v1, 4763324985:v1, 4763324986:v1, 4763324987:v1,
+4763324988:v1, 4763324989:v1, 4763324990:v1, 4763324991:v1, 4763324992:v1, 4763324993:v2, 4763324994:v1,
+4763324995:v1, 4763324996:v1, 4763324997:v1, 4763324998:v1, 4763324999:v1, 4763325000:v1, 4763325001:v1,
+4763325002:v1, 4763325003:v1, 4763325004:v1, 4763325005:v1, 4763325006:v1, 4763325007:v1, 4763325008:v1,
+4763325009:v1, 4763325010:v1, 4763325011:v1, 4763325012:v1, 4763325013:v1, 4763325014:v1, 4763325015:v1,
+4763325016:v1, 4763325017:v1, 4763325018:v1, 4763325019:v1, 4763325020:v1, 4763325721:v1, 4763325722:v1,
+4763325723:v1, 4763325724:v1, 4763325725:v1, 4763325726:v1, 4763325727:v1, 4763325728:v1, 4763325729:v1,
+4763325730:v1, 4763325731:v1, 4763325732:v1, 4763325733:v1, 4763325734:v1, 4763325735:v1, 4763325736:v1,
+4763325737:v1, 4763325738:v1, 4763325739:v1, 4763325740:v1, 4763325741:v1, 4763325742:v1, 4763325743:v1,
+4763325744:v1, 4763325745:v1, 4763325746:v1, 4763325747:v1, 11289573239:v1, 13875255979:v1, 13875255980:v1,
+13875255981:v1, 13875255982:v1, 13875255983:v1, 13875255984:v1, 13875255985:v1, 13875255986:v1, 13875255987:v1,
+13875255988:v1, 13875255989:v1, 13875255990:v1, 13875255991:v1, 13875255992:v1, 13875255993:v1, 13875255994:v1,
+13875255995:v1, 13875255996:v1, 13875255997:v1, 13875255998:v1, 13875255999:v1, 13875256000:v1, 13875286701:v1,
+13875286702:v1, 13875286703:v1, 13875286704:v1, 13875286705:v1, 13875286706:v1, 13875286707:v1, 13875286708:v1,
+13875286709:v1, 13875286710:v1, 13875286711:v1, 13875286712:v1, 13875286713:v1, 13875286714:v1, 13875286715:v1,
+13875286716:v1, 13875286717:v1, 13875286718:v1, 13875286719:v1, 13875286720:v1, 13875286721:v1, 13875286722:v1,
+13875286723:v1, 13875286724:v1, 13875286725:v1, 13875286726:v1, 13875286727:v1, 13875286728:v1, 13875286729:v1,
+13875286730:v1, 13875286731:v1, 13875286732:v1, 13875286733:v1, 13875286734:v1, 13875286735:v1, 13875286736:v1,
+13875286737:v1, 13875286738:v1, 13875286739:v1, 13875286740:v1, 13875286741:v1, 13875286742:v1, 13875286743:v1,
+13875286744:v1, 13875286745:v1, 11289224569:v1, 11289216468:v1, 11289216467:v1, 11289216466:v1, 11289216465:v1,
+11289216464:v1, 11289216463:v1, 11289216462:v1, 11289216461:v1, 13872500207:v1, 11289573294:v1, 11289573293:v1,
+11289573292:v1, 11289573291:v2, 11289573290:v1, 11289573289:v1, 11289573288:v1, 11289573287:v1, 11289573286:v1,
+11289573285:v1, 11289573284:v1, 11289573283:v1, 11289573282:v1, 11289573281:v1, 11289573280:v1, 11289573279:v1,
+11289573278:v2, 11289573277:v2, 11289573276:v3, 11289573275:v2, 11289573274:v2, 11289573273:v2, 13729301541:v1,
+11289573272:v2, 13729301542:v1, 13729301543:v1, 11289573271:v1, 11289573270:v1, 11289573269:v1, 11289573268:v1,
+11289573267:v1, 11289573266:v1, 11289573265:v1, 11289573264:v1, 11289573263:v1, 11289573262:v1, 11289573261:v2,
+11289573260:v2, 11289573259:v2, 11289573258:v2, 11289573257:v2, 11289573256:v2, 11289573255:v2, 11289573254:v2,
+11289573253:v2, 11289573252:v2, 11289573251:v2, 11289573250:v2, 11289573249:v2, 11289573248:v1, 11289573247:v2,
+11289573246:v2, 11289573245:v2, 11289573244:v2, 11289573243:v2, 11289573242:v1, 11289573241:v1, 11289573240:v1
+```
+</details>
+
+<details>
+<summary><code>relation/19908413</code> v1 — 狮子山大环线（四川彭州）</summary>
+
+- OSM page: https://www.openstreetmap.org/relation/19908413
+- Immutable relation metadata: https://api.openstreetmap.org/api/0.6/relation/19908413/1.json (HTTP 200)
+- Current full response: https://api.openstreetmap.org/api/0.6/relation/19908413/full.json (HTTP 200)
+- `checkedAt`: `2026-08-23T11:11:30Z`
+- Way manifest (2 members):
+
+```text
+1354908570:v14, 1357141179:v2
+```
+- Node manifest (1092 unique used nodes):
+
+```text
+12538957230:v1, 12538957236:v1, 12538957237:v1, 12538957238:v1, 12538957239:v1, 12538957240:v1, 12538957241:v1,
+12538957242:v1, 12538957243:v1, 12538957244:v1, 12538957245:v1, 12538957246:v1, 12538957247:v1, 12538957248:v1,
+12538957249:v1, 12538957250:v1, 12538957251:v1, 12538957252:v1, 12538957253:v1, 12538957254:v1, 12538957255:v1,
+12538957256:v1, 12538957257:v1, 12538957258:v1, 12538957259:v1, 12538957260:v1, 12538957261:v1, 12538957262:v1,
+12538957263:v1, 12538957264:v1, 12538957265:v1, 12538957266:v1, 12538957267:v1, 12538957268:v1, 12538957269:v1,
+12538957270:v1, 12538957271:v1, 12538957272:v1, 12538957273:v1, 12538957274:v1, 12538957275:v1, 12538957276:v1,
+12538957277:v1, 12538957278:v1, 12538957279:v1, 12538957280:v1, 12538957281:v1, 12538957282:v1, 12538957283:v1,
+12538957284:v1, 12538957285:v1, 12538957286:v1, 12538957287:v1, 12538957288:v1, 12538957289:v1, 12538957290:v1,
+12538957291:v1, 12538957292:v1, 12538957293:v1, 12538957294:v1, 12538957295:v1, 12538957296:v1, 12538957297:v1,
+12538957298:v1, 12538957299:v1, 12538957300:v1, 12538957301:v1, 12538957302:v1, 12538957303:v2, 12538957304:v1,
+12538957305:v1, 12538957306:v1, 12538957307:v1, 12538957308:v1, 12538957309:v1, 12538957310:v1, 12538957311:v1,
+12538957312:v1, 12538957313:v1, 12538957314:v1, 12538957315:v1, 12538957316:v1, 12538957317:v1, 12538957318:v1,
+12538957319:v1, 12538957320:v1, 12538957321:v1, 12538957322:v1, 12538957323:v1, 12538957324:v1, 12538957325:v1,
+12538957326:v1, 12538957327:v1, 12538957328:v1, 12538957329:v1, 12538957330:v1, 12538957331:v1, 12538957332:v1,
+12538957333:v1, 12538957334:v1, 12538957335:v1, 12538957336:v1, 12538957337:v1, 12538957338:v1, 12538957339:v1,
+12538957340:v1, 12538957341:v1, 12538957342:v1, 12538957343:v1, 12538957344:v1, 12538957345:v1, 12538957346:v1,
+12538957347:v1, 12538957348:v1, 12538957349:v1, 12538957350:v1, 12538957351:v3, 12538957352:v1, 12538957353:v1,
+12538957354:v1, 12538957355:v1, 12538957356:v1, 12538957357:v1, 12538957358:v1, 12538957359:v1, 12538957360:v1,
+12538957361:v1, 12538957362:v1, 12538957363:v1, 12538957364:v1, 12538957365:v1, 12538957366:v1, 12538957367:v1,
+12538957368:v1, 12538957369:v1, 12538957370:v3, 12538957371:v1, 12538957372:v1, 12538957373:v1, 12538957374:v1,
+12538957375:v1, 12538957376:v1, 12538957377:v1, 12538957378:v1, 12538957379:v1, 12538957380:v1, 12538957381:v1,
+12538957382:v1, 12538957383:v1, 12538957384:v1, 12538957385:v1, 12538957386:v1, 12538957387:v1, 12538957388:v1,
+12538957389:v1, 12538957390:v1, 12538957391:v1, 12538957392:v1, 12538957393:v1, 12538957394:v1, 12538957395:v1,
+12538957396:v1, 12538957397:v1, 12538957398:v1, 12538957399:v1, 12538957400:v1, 12538957401:v1, 12538957402:v1,
+12538957403:v1, 12538957404:v1, 12538957405:v1, 12538957406:v1, 12538957407:v1, 12538957408:v1, 12538957409:v1,
+12538957410:v1, 12538957411:v1, 12538957412:v1, 12538957413:v1, 12538957414:v1, 12538957415:v1, 12538957416:v1,
+12538957417:v1, 12538957418:v1, 12538957419:v1, 12538957420:v1, 12538957421:v1, 12538957422:v1, 12538957423:v1,
+12538957424:v1, 12538957425:v1, 12538957426:v1, 12538957427:v1, 12538957428:v1, 12538957429:v1, 12538957430:v1,
+12538957431:v1, 12538957432:v1, 12538957433:v1, 12538957434:v1, 12538957435:v1, 12538957436:v1, 12538957437:v1,
+12538957438:v1, 12538957439:v1, 12538957440:v1, 12538957441:v1, 12538957442:v1, 12538957443:v1, 12538957444:v1,
+12538957445:v1, 12538957446:v1, 12538957447:v1, 12538957448:v1, 12538957449:v1, 12538957450:v1, 12538957451:v1,
+12538957452:v1, 12538957453:v1, 12538957454:v1, 12538957455:v1, 12538957456:v1, 12538957457:v1, 12538957458:v1,
+12538957459:v1, 12538957460:v1, 12538957461:v1, 12538957462:v1, 12538957463:v1, 12538957464:v1, 12538957465:v1,
+12538957466:v1, 12539368139:v1, 12538957467:v1, 12538957468:v1, 12538957469:v1, 12538957470:v1, 12538957471:v1,
+12538957472:v1, 12538957473:v1, 12538957474:v1, 12538957475:v1, 12538957476:v1, 12538957477:v1, 12538957478:v1,
+12538957479:v1, 12538957480:v1, 12538957481:v1, 12538957482:v1, 12538957483:v1, 12538957484:v1, 12538957485:v1,
+12538957486:v1, 12538957487:v1, 12538957488:v1, 12538957489:v1, 12538957490:v1, 12538957491:v1, 12538957492:v1,
+12538957493:v1, 12538957494:v1, 12538957495:v1, 12538957496:v1, 12538957497:v1, 12538957498:v1, 12538957499:v1,
+12538957500:v1, 12538957501:v1, 12538957502:v1, 12538957503:v1, 12538957504:v1, 12538957505:v1, 12538957506:v1,
+12538957507:v1, 12538957508:v1, 12539368140:v1, 12538957509:v1, 12538957510:v1, 12538957511:v1, 12538957512:v1,
+12538957513:v1, 12538957514:v1, 12538957515:v1, 12538957516:v1, 12538957517:v1, 12538957518:v1, 12538957519:v1,
+12538957520:v1, 12538957521:v1, 12538957522:v1, 12538957523:v1, 12538957524:v1, 12538957525:v1, 12538957526:v1,
+12538957527:v1, 12538957528:v1, 12538957529:v1, 12538957530:v1, 12538957531:v1, 12538957532:v1, 12538957533:v1,
+12538957534:v1, 12538957535:v1, 12538957536:v1, 12538957537:v1, 12538957538:v1, 12538957539:v1, 12538957540:v1,
+12538957541:v1, 12538957542:v1, 12538957543:v1, 12538957544:v1, 12538957545:v1, 12539368141:v2, 12538957547:v1,
+12538957548:v1, 12538957549:v1, 12538957550:v1, 12538957551:v1, 12538957552:v1, 12538957553:v1, 12538957554:v1,
+12538957555:v1, 12538957556:v1, 12538957557:v1, 12538957558:v1, 12538957559:v1, 12538957560:v1, 12538957561:v1,
+12538957562:v1, 12538957563:v1, 12538957564:v1, 12538957565:v1, 12538957566:v1, 12538957567:v1, 12538957568:v1,
+12538957569:v1, 12538957570:v1, 12538957571:v1, 12538957572:v1, 12538957573:v1, 12538957574:v1, 12538957575:v1,
+12538957576:v1, 12538957577:v1, 12538957578:v1, 12538957579:v1, 12538957580:v1, 12538957581:v1, 12538957582:v1,
+12538957583:v1, 12538957584:v1, 12538957585:v1, 12538957586:v1, 12538957587:v1, 12538957588:v1, 12538957589:v1,
+12538957590:v1, 12538957591:v1, 12538957592:v1, 12538957593:v1, 12538957594:v1, 12538957595:v1, 12538957596:v1,
+12538957597:v1, 12538957598:v1, 12538957599:v1, 12538957600:v1, 12538957601:v1, 12538957602:v1, 12538957603:v1,
+12538957604:v1, 12538957605:v1, 12538957606:v1, 12538957607:v3, 12538957608:v1, 12538957609:v1, 12538957610:v1,
+12538957611:v1, 12538957612:v1, 12538957613:v1, 12538957614:v1, 12538957615:v1, 12538957616:v1, 12538957617:v1,
+12538957618:v1, 12538957619:v1, 12538957620:v1, 12538957621:v1, 12538957622:v1, 12538957623:v1, 12538957624:v1,
+12538957625:v1, 12538957626:v1, 12538957627:v1, 12538957628:v1, 12538957629:v1, 12538957630:v1, 12538957631:v1,
+12538957632:v1, 12538957633:v1, 12538957634:v1, 12538957635:v1, 12538957636:v1, 12538957637:v1, 12538957638:v1,
+12538957639:v1, 12539368142:v1, 12538957640:v1, 12538957641:v1, 12538957642:v1, 12538957643:v1, 12538957644:v1,
+12538957645:v1, 12538957646:v1, 12538957647:v1, 12538957648:v1, 12538957649:v1, 12538957650:v1, 12538957651:v1,
+12538957652:v1, 12538957653:v1, 12538957654:v1, 12538957655:v1, 12538957656:v1, 12538957657:v1, 12538957658:v1,
+12538957659:v1, 12538957660:v1, 12538957661:v1, 12538957662:v1, 12538957663:v1, 12538957664:v1, 12538957665:v1,
+12538957666:v1, 12538957667:v1, 12539368143:v1, 12538957668:v1, 12538957669:v1, 12538957670:v1, 12538957671:v1,
+12538957672:v1, 12538957673:v1, 12538957674:v1, 12538957675:v1, 12538957676:v1, 12538957677:v1, 12538957678:v1,
+12538957679:v1, 12538957680:v1, 12538957681:v1, 12538957682:v1, 12538957683:v1, 12538957684:v1, 12538957685:v1,
+12538957686:v1, 12538957687:v1, 12538957688:v1, 12538957689:v1, 12538957690:v1, 12538957691:v1, 12538957692:v2,
+12538957693:v1, 12538957694:v1, 12538957695:v1, 12538957696:v1, 12538957697:v1, 12538957698:v1, 12538957699:v1,
+12555786455:v2, 12538957700:v1, 12538957701:v1, 12538957702:v1, 12538957703:v1, 12538957704:v1, 12538957705:v1,
+12538957706:v1, 12538957707:v1, 12538957708:v1, 12538957709:v1, 12538957710:v1, 12538957711:v1, 12538957712:v1,
+12538957713:v1, 12538957714:v1, 12538957715:v1, 12538957716:v1, 12538957717:v1, 12538957718:v1, 12538957719:v1,
+12538957720:v1, 12538957721:v1, 12538957722:v1, 12538957723:v1, 12538957724:v1, 12538957725:v1, 12538957726:v1,
+12538957727:v1, 12538957728:v1, 12538957729:v1, 12538957730:v1, 12538957731:v1, 12538957732:v1, 12538957733:v1,
+12538957734:v1, 12538957735:v1, 12539368144:v1, 12538957736:v1, 12538957737:v1, 12538957738:v1, 12538957739:v1,
+12538957740:v1, 12538957741:v1, 12538957742:v1, 12538957743:v1, 12538957744:v1, 12538957745:v1, 12538957746:v1,
+12538957747:v1, 12538957748:v1, 12538957749:v1, 12538957750:v1, 12538957751:v1, 12539368145:v2, 12538957752:v1,
+12538957753:v1, 12538957754:v1, 12538957755:v1, 12538957756:v1, 12538957757:v1, 12538957758:v1, 12538957759:v1,
+12538957760:v1, 12538957761:v1, 12538957762:v1, 12538957763:v1, 12538957764:v1, 12538957765:v1, 12538957766:v1,
+12538957767:v1, 12538957768:v1, 12538957769:v1, 12538957770:v1, 12538957771:v1, 12538957772:v1, 12538957773:v1,
+12538957774:v1, 12538957775:v1, 12538957776:v1, 12538957777:v1, 12538957778:v1, 12538957779:v1, 12538957780:v1,
+12538957781:v1, 12538957782:v1, 12538957783:v1, 12538957784:v1, 12538957785:v1, 12538957786:v1, 12538957787:v1,
+12538957788:v1, 12538957789:v1, 12538957790:v1, 12538957791:v1, 12538957792:v1, 12538957793:v1, 12538957794:v1,
+12538957795:v1, 12538957796:v1, 12538957797:v1, 12538957798:v1, 12538957799:v1, 12538957800:v1, 12538957801:v1,
+12538957802:v1, 12538957803:v1, 12538957804:v1, 12538957805:v1, 12538957806:v1, 12538957807:v1, 12538957808:v1,
+12538957809:v1, 12538957810:v1, 12538957811:v1, 12538957812:v1, 12539368146:v2, 12538957813:v1, 12538957814:v1,
+12538957815:v1, 12538957816:v1, 12538957817:v1, 12538957818:v1, 12538957819:v1, 12538957820:v1, 12538957821:v1,
+12538957822:v1, 12538957823:v1, 12538957824:v1, 12538957825:v1, 12538957826:v1, 12538957827:v1, 12538957828:v1,
+12538957829:v1, 12538957830:v1, 12538957831:v1, 12538957832:v1, 12538957833:v1, 12538957834:v1, 12538957835:v1,
+12538957836:v1, 12538957837:v1, 12538957838:v1, 12538957839:v1, 12538957840:v1, 12538957841:v1, 12538957842:v1,
+12538957843:v1, 12538957844:v1, 12538957845:v1, 12538957846:v1, 12538957847:v1, 12538957848:v1, 12538957849:v1,
+12538957850:v1, 12538957851:v1, 12538957852:v1, 12539368147:v2, 12538957853:v1, 12538957854:v1, 12538957855:v1,
+12538957856:v1, 12538957857:v1, 12538957858:v1, 12538957859:v1, 12538957860:v1, 12538957884:v1, 12538957885:v1,
+12538957886:v1, 12538957887:v1, 12538957888:v1, 12538957889:v1, 12538957890:v1, 12538957891:v1, 12538957892:v1,
+12538957893:v1, 12538957894:v1, 12538957895:v1, 12538957896:v1, 12538957897:v1, 12538957898:v1, 12538957899:v1,
+12538957900:v1, 12539012601:v1, 12539012602:v1, 12539012603:v1, 12539012604:v1, 12539012605:v1, 12539012606:v1,
+12539012607:v1, 12539012608:v1, 12539012609:v1, 12539012610:v1, 12539012611:v1, 12539012612:v1, 12539012613:v1,
+12539012614:v1, 12539012615:v1, 12539012616:v1, 12539012617:v1, 12539012618:v1, 12539012619:v1, 12539012620:v1,
+12539012621:v1, 12539012622:v1, 12539012623:v1, 12539012624:v1, 12539012625:v1, 12539012626:v1, 12539012627:v1,
+12539012628:v1, 12539012629:v1, 12539012630:v1, 12539012631:v1, 12539012632:v1, 12539012633:v1, 12539012634:v1,
+12539012635:v1, 12539012636:v1, 12539012637:v1, 12539012638:v1, 12539012639:v1, 12539012640:v1, 12539012641:v1,
+12539012642:v1, 12539012643:v1, 12539012644:v1, 12539012645:v1, 12539012646:v1, 12539012647:v1, 12539012648:v1,
+12539012649:v1, 12539368148:v1, 12539012650:v1, 12539012651:v1, 12539012652:v1, 12539012653:v1, 12539012654:v1,
+12539012655:v1, 12539012656:v1, 12539012657:v1, 12539012658:v1, 12539012659:v1, 12539012660:v1, 12539012661:v1,
+12539012662:v1, 12539012663:v1, 12539012664:v1, 12539012665:v1, 12539012666:v1, 12539012667:v1, 12539012668:v1,
+12539012669:v1, 12539012670:v1, 12539012671:v1, 12539012672:v1, 12539012673:v1, 12539012674:v1, 12539012675:v1,
+12539012676:v1, 12539368149:v2, 12539012677:v1, 12539012678:v1, 12539012679:v1, 12539012680:v1, 12539012681:v1,
+12539012682:v1, 12539012683:v1, 12539012684:v1, 12539012685:v1, 12539012686:v1, 12539012687:v1, 12539012688:v1,
+12539012689:v1, 12539012690:v1, 12539012691:v1, 12539012692:v1, 12539012693:v1, 12539012694:v1, 12539012695:v1,
+12539012696:v1, 12539012697:v1, 12539012698:v1, 12539368150:v1, 12539012699:v1, 12539012700:v1, 12539012701:v1,
+12539012702:v1, 12539012703:v1, 12539012704:v1, 12539012705:v1, 12539012706:v1, 12539012707:v1, 12539012708:v1,
+12539012709:v1, 12539012710:v1, 12539012711:v1, 12539012712:v1, 12539012713:v1, 12539012714:v1, 12539012715:v1,
+12539368151:v2, 12539012716:v1, 12539368152:v1, 12539012717:v1, 12539012718:v1, 12539012719:v1, 12539012720:v1,
+12539012721:v1, 12539012722:v1, 12539368153:v1, 12539012723:v1, 12539012724:v1, 12539012725:v1, 12539012726:v1,
+12539012727:v1, 12539012728:v1, 12539012729:v1, 12539012730:v1, 12539012731:v1, 12539012732:v1, 12539012733:v1,
+12539012734:v1, 12539368154:v1, 12539012735:v1, 12539012736:v1, 12539012737:v1, 12539012738:v1, 12539012739:v1,
+12539012740:v1, 12539012741:v1, 12539012742:v1, 12539012743:v1, 12539012744:v1, 12539368155:v3, 12539012745:v1,
+12539027171:v1, 12539027172:v1, 12539027173:v1, 12539027174:v1, 12539027175:v1, 12539027176:v1, 12539027177:v1,
+12539027178:v1, 12539027179:v1, 12539027180:v1, 12539368156:v2, 12539027181:v1, 12539027182:v1, 12539027183:v1,
+12539027184:v1, 12539027185:v1, 12539027186:v1, 12539027187:v1, 12539027188:v1, 12539027189:v1, 12539027190:v1,
+12539027191:v1, 12539027192:v1, 12539027193:v1, 12539027194:v1, 12539027195:v1, 12539027196:v1, 12539027197:v1,
+12539027198:v1, 12539027199:v1, 12539027200:v1, 12539051301:v1, 12539051302:v1, 12539051303:v1, 12539051304:v1,
+12539051305:v1, 12539051306:v1, 12539051307:v1, 12539368157:v1, 12539051308:v1, 12539051309:v1, 12539051310:v1,
+12539368158:v2, 12539051311:v1, 12539051312:v1, 12539051313:v1, 12539051314:v1, 12539051315:v1, 12539051316:v1,
+12539051317:v1, 12539051318:v1, 12539051319:v1, 12539051320:v1, 12539051321:v1, 12539051322:v1, 12539051323:v1,
+12539051324:v1, 12539051325:v1, 12539051326:v1, 12539051327:v1, 12539051328:v1, 12539051329:v1, 12539051330:v1,
+12539051331:v1, 12539051332:v1, 12539051333:v1, 12539051334:v1, 12539051335:v1, 12539051336:v1, 12539051337:v1,
+12539051338:v1, 12539051339:v1, 12539051340:v1, 12539051341:v1, 12539059551:v1, 12539059552:v1, 12539059553:v1,
+12539059554:v1, 12539059555:v1, 12539059556:v4, 12539059557:v1, 12539059558:v1, 12539059559:v1, 12539059560:v1,
+12539059561:v1, 12539059562:v1, 12539059563:v1, 12539059564:v1, 12539059565:v1, 12539059566:v1, 12539059567:v1,
+12539059568:v1, 12539059569:v1, 12539059570:v1, 12539059571:v1, 12539059572:v1, 12539059573:v1, 12539059574:v1,
+12539059575:v1, 12539059576:v1, 12539059577:v1, 12539059578:v1, 12539059579:v1, 12539059580:v1, 12539059581:v1,
+12555786454:v2, 12539059582:v1, 12539059583:v1, 12539059584:v1, 12539059585:v1, 12539059586:v1, 12539059587:v1,
+12539059588:v1, 12539059589:v1, 12539059590:v1, 12555786453:v1, 12539059591:v1, 12539059592:v1, 12539059593:v1,
+12539059594:v1, 12539059595:v1, 12539059596:v1, 12539059597:v1, 12539059598:v1, 12539059599:v1, 12539059600:v1,
+12539059601:v1, 12539059602:v1, 12539059603:v1, 12539059604:v1, 12539059605:v1, 12539059606:v1, 12539059607:v1,
+12539059608:v1, 12539059609:v1, 12539059610:v1, 12539059611:v1, 12539059612:v1, 12539059613:v1, 12539059614:v1,
+12539059615:v1, 12539059616:v1, 12539059617:v1, 12539059618:v1, 12539059619:v1, 12539059620:v2, 12539059621:v1,
+12539059622:v1, 12539059623:v1, 12539059624:v1, 12539059625:v1, 12539059626:v1, 12539059627:v1, 12539059628:v1,
+12539059629:v1, 12539059630:v1, 12539059631:v1, 12539059632:v1, 12539059633:v1, 12539059634:v1, 12539059635:v1,
+12539059636:v1, 12539059637:v1, 12539059638:v1, 12539059639:v1, 12539059640:v1, 12539059641:v1, 12539059642:v1,
+12539059643:v1, 12539059644:v1, 12539059645:v2, 12539059646:v1, 12539059647:v1, 12539059648:v1, 12539059649:v1,
+12539059650:v1, 12539059651:v1, 12539059652:v1, 12539059653:v1, 12539059654:v1, 12539059655:v1, 12539059656:v1,
+12539059657:v1, 12539059658:v1, 12539059659:v1, 12539059660:v1, 12539059661:v1, 12539059662:v1, 12539059663:v1,
+12539059664:v1, 12539059665:v1, 12539059666:v1, 12539059667:v1, 12539059668:v1, 12539059669:v1, 12539059670:v1,
+12539059671:v1, 12539059672:v1, 12539059673:v1, 12539059674:v1, 12539059675:v1, 12539059676:v1, 12539059677:v1,
+12539059678:v1, 12539059679:v1, 12539059680:v1, 12539059681:v1, 12539059682:v1, 12539059683:v1, 12539059684:v1,
+12539059685:v1, 12539059686:v1, 12539059687:v1, 12539059688:v1, 12539059689:v1, 12539059690:v1, 12539059691:v1,
+12539059692:v1, 12539059693:v1, 12539059694:v1, 12539059695:v1, 12539059696:v1, 12539059697:v1, 12539059698:v1,
+12539059699:v1, 12539059700:v4, 12538903271:v4, 12538903272:v1, 12538903273:v1, 12538903274:v1, 12538903275:v1,
+12538903276:v1, 12538903277:v1, 12538903278:v1, 12539317312:v2, 12538903279:v1, 12538903280:v1, 12538903281:v1,
+12539276836:v2, 12538903282:v1, 12538903283:v1, 12538903284:v1, 12538903285:v1, 12538903286:v1, 12538903287:v1,
+12538903288:v3, 12538903289:v1, 12538903290:v1, 12538903291:v1, 12538903292:v2, 12538903293:v1, 12538903294:v1,
+12538903295:v1, 12538903296:v1, 12538903297:v1, 12538903298:v1, 12538903299:v1, 12538903300:v1, 12538957201:v1,
+12538957202:v1, 12538957203:v1, 12538957204:v1, 12538957205:v1, 12538957206:v1, 12538957207:v1, 12538957208:v1,
+12538957209:v1, 12538957210:v1, 12538957211:v1, 12538957212:v1, 12538957213:v1, 12538957214:v1, 12538957215:v1,
+12538957216:v1, 12538957217:v1, 12538957218:v1, 12538957219:v1, 12538957220:v1, 12538957221:v1, 12538957222:v1,
+12538957223:v1, 12538957224:v1, 12538957225:v1, 12538957226:v1, 12538957227:v1, 12538957228:v1, 12538957229:v1
+```
+</details>
+
+## 7. Controller refinement amendment — endpoint and direction audit (2026-08-23)
+
+This amendment supersedes the replacement verdicts in section 6 where the controller refinement below is explicit. It
+remains evidence-only and does not create a runtime row or alter the searchable-25 count.
+
+### Provisional replacement and dropped row
+
+- **20739620 赵公山东北环线 — PROVISIONALLY_FROZEN_REPLACEMENT.** The controller accepts the connected closed
+  cycle (relation v1, 3 ways, 210 used nodes, 1 component, 0 branches, 0 endpoints, cycleRank 1) and deterministic
+  loop direction. The relation is presented with user accessMode=walk; its residential member way 1521185467 is
+  disclosed as a road segment and is not silently relabeled as footway. No cableway or shuttle member was observed.
+  OSM relation metadata/full sources and exact manifests are in section 6. Official opening, rights/ODbL derived-database
+  treatment, metrics and public-contract promotion remain UNKNOWN; this provisional freeze is not a count or runtime
+  authorization.
+- **16162196 三杆笔—水祖坑郊野径主线 — FINAL_FREEZE_MAINLINE.** The controller reinstates a narrower canonical
+  variant. Use the shortest simple walking mainline between the relation from context and the mainline junction:
+  ways 1194940128, 1194940129, 869937523, 1490884962, 1490896897, 775673080, 775673082 and 775673084
+  (15.867 km deterministic WGS84 sum; 852 used nodes, 1 component, 0 branches, 2 endpoints, cycleRank 0).
+  Exclude and disclose the relation detour ways 1256485946, 1328677549 and 1328677548 (1.221 km); the complete
+  relation sum is 17.088 km. Relation v6 has from=三杆笔 and to=水祖坑; the selected mainline start is OSM entrance
+  node 11091229573 (ref=白沙湾, access=yes, entrance=yes) and the excluded leg reaches the water-village context.
+  Shenzhen official planning PDF [11467139.pdf](https://www.sz.gov.cn/attachment/1/1445/1445537/11467139.pdf)
+  contains same-named 三水线—坪山段 / 三杆笔—水祖坑 and 东部郊野径（三水线大鹏段） / 三杆笔—水祖坑
+  segment entries. Full way/node manifests and the controller map are in /tmp/tp-159-161-mainline-summary.md and
+  /tmp/tp-159-161-mainline-map.html; no geometry was copied into this repository.
+- **12336480 大明山环线 — DROPPED_REPLACEMENT.** The relation is an open chain (2 endpoints, cycleRank 0) with
+  tertiary/unclassified members; it is not a closed-loop identity for this batch.
+
+### Endpoint direction decisions
+
+- **15852438 阳台山蕉窝郊野径 — REJECTED_REPLACEMENT / replacement needed.** Relation v7 endpoints are
+  3548133761 (22.6647143, 113.9508597) and 11591111973 (22.6611519, 113.9567980). The first is 20 m from the
+  named OSM feature 宪伟亭 (node 10895368615, amenity=shelter), while the second is 4 m from 蕉窝山 and 25 m from
+  蕉窝村旧址 (node 11591111966, tourism=attraction); the relation carries to=蕉窝村旧址. This supports the
+  non-invented OSM naming 宪伟亭 → 蕉窝村旧址, but 宪伟亭 is a shelter, not a tagged access gate/entrance. The
+  Shenzhen planning PDF [11467135.pdf](https://www.sz.gov.cn/attachment/1/1406/1406401/11467135.pdf) describes the
+  broader 阳台山郊野径 network and does not bind this endpoint. Under the strict access-feature gate, direction is
+  not accepted and the candidate is replaced.
+- **17841828 三峡之巅徒步道 — DIRECTION_ACCEPTED / BLOCKED_PROMOTION.** Relation v1 endpoint
+  8200991706 (31.0412584, 109.5749180) is near the named OSM 赤甲楼 feature (way 548858594, about 234 m) and
+  瞿塘关 (node 9531506506, 194 m). Endpoint 9985472499 (31.0313051, 109.6254474) is 59 m from the named
+  三峡之巅 viewpoint (node 8701437193). The Chongqing government notice [2025-01-21](https://cq.gov.cn/zwgk/zfxxgkml/zdlyxxgk/ggwh/ly/zxdt/202501/t20250121_14190770.html)
+  records one-way upward hiking and names 赤甲楼, 坳口 and 石庙 entrances with cutoff times; the [2025-02-07
+  closure notice](https://cq.gov.cn/ywdt/bmts/202502/t20250207_14264898.html) is historical and does not prove
+  current opening. The exact non-invented direction is 赤甲楼方向入口 → 三峡之巅（summit）. Keep
+  operationalStatus=unknown and do not promote until current opening, rights and all runtime fields are independently
+  closed.
+
+### Final bounded endpoint audit — no additional replacement
+
+- **19908413 狮子山大环线 — BLOCKED_REPLACEMENT.** Endpoints are named in OSM: 12538903271 at
+  31.1277086,103.8581669 is 狮子山山口, and 12539059700 at 31.1280585,103.8616035 is 擦耳崖路口. Nearby
+  features include 狮子山户外登山健身步道 trailhead (92 m), 狮子山摩崖石刻 (7 m) and 擦耳崖 (41 m).
+  The two footway members form an open chain (2 endpoints, cycleRank 0) despite the relation name 大环线; a
+  point-to-point reading would not repair the missing loop closure. No bounded route-level official source was
+  established.
+- **12390841 纪龙山徒步 — BLOCKED_REPLACEMENT.** Endpoints are 7501087442 at 29.9252956,119.5412680 and
+  7501071744 at 29.9303840,119.5541319. Only the first is near a named feature (东华村 village, 352 m); the
+  second has no named node/way in the bounded 0.006° map box. Relation tags from=东华村 and to=东华村 do not
+  bind either endpoint precisely. The six members include path and track ways; deterministic identity and an official
+  route-level source remain unresolved.
+
+The controller-readable coordinate/name map for 15852438, 17841828, 19908413 and 12390841 is retained outside the
+repository at /tmp/tp-159-direction-summary.md. The endpoint pass used only bounded OSM relation/full reads and eight
+small map boxes per the controller request; no broad candidate search, elevation/provider call, RED capture, runtime
+edit, commit or push was performed.
+
+### 16162196 current-full provenance manifest (checkedAt 2026-08-23T11:24:30Z)
+
+The relation metadata endpoint and current full endpoint both returned HTTP 200. Historical full-version retrieval is not claimed immutable; this is the exact current-full relation/way/node version manifest used for the controller's mainline decision. IDs and versions only are recorded, not coordinates or raw geometry.
+
+- Relation metadata: https://api.openstreetmap.org/api/0.6/relation/16162196/6.json (HTTP 200)
+- Current full response: https://api.openstreetmap.org/api/0.6/relation/16162196/full.json (HTTP 200)
+- Relation: 16162196:v6, timestamp 2026-03-20T04:38:01Z, changeset 180138480
+- Way manifest (11 relation members, member order):
+
+```text
+1194940128:v1, 1194940129:v1, 869937523:v7, 1490884962:v2, 1490896897:v1, 775673080:v7, 775673082:v2,
+775673084:v3, 1328677549:v1, 1328677548:v1, 1256485946:v1
+```
+- Node manifest (897 unique used nodes, first appearance order):
+
+```text
+11091229573:v1, 11091229574:v1, 11091229575:v1, 11091229576:v1, 11091229577:v1, 11091229578:v1, 11091229579:v1,
+11091229580:v1, 11091229581:v1, 11091229582:v1, 11091229583:v1, 11091229615:v1, 11091229584:v1, 11091229585:v1,
+11091229586:v1, 11091229587:v1, 11091229588:v1, 11091229589:v1, 11091229590:v1, 11091229591:v1, 11091229592:v1,
+11091229593:v1, 11091229594:v1, 11091229595:v1, 11091229596:v1, 11091229597:v1, 11091229598:v1, 11091229599:v1,
+11091229600:v1, 11091229601:v1, 11091229602:v1, 11091229603:v1, 11091229604:v1, 11091229605:v1, 11091229606:v1,
+11091229607:v1, 11091229608:v1, 11091229609:v1, 11091229610:v1, 11091229611:v1, 11091229612:v1, 11091229613:v2,
+11091229614:v2, 12768260935:v1, 11091229616:v2, 11091229617:v2, 11091229618:v2, 11091229619:v2, 12768260934:v1,
+11091229620:v2, 11091229621:v2, 12768260936:v1, 12768260937:v1, 12768260938:v1, 12768260939:v1, 12768260940:v1,
+12768260941:v1, 12768260942:v1, 12768260943:v1, 12768260944:v1, 12768260945:v1, 12768260946:v1, 12768260947:v1,
+12768260948:v1, 12768260949:v1, 12768260950:v1, 12768260951:v1, 12768260952:v1, 12768260953:v1, 12768260954:v1,
+12768260955:v1, 12768260956:v1, 12768260957:v1, 12768260958:v1, 12768260959:v1, 12768260960:v1, 12768260961:v1,
+12768260962:v1, 12768260963:v1, 12768260964:v1, 12768260965:v1, 12768260966:v1, 12768260967:v1, 12768260968:v1,
+12768260969:v1, 12768260970:v1, 12768260971:v1, 12768260972:v1, 12768260973:v1, 12768260974:v1, 12768260975:v1,
+12768260976:v1, 12768260977:v1, 12768260978:v1, 12768260979:v1, 12768260980:v1, 12768260981:v1, 12768260982:v1,
+12768260983:v1, 12768260984:v1, 12768260985:v1, 12768260986:v1, 12768260987:v1, 12768260988:v1, 12768260989:v1,
+12768260990:v1, 12768260991:v1, 12768260992:v1, 12768260993:v1, 12768260994:v1, 12768260995:v1, 12768260996:v1,
+12768260997:v1, 12768260998:v1, 12768260999:v1, 12768261000:v1, 12768280701:v1, 12768280702:v1, 12768280703:v1,
+11091229637:v2, 12768280704:v1, 12768280705:v1, 12768280706:v1, 12768280707:v1, 12768280708:v1, 12768280709:v1,
+12768280710:v1, 7236354318:v2, 7236354319:v1, 7236354320:v1, 7236354321:v1, 7236354322:v1, 7236354323:v1,
+7236943975:v1, 9371917606:v1, 7236943976:v1, 7236943978:v1, 7236943979:v1, 7236943977:v1, 7236354325:v1,
+7236354326:v1, 7236354327:v1, 7236354328:v1, 7236354329:v1, 7236354330:v1, 7236354331:v1, 7236354332:v1,
+7236354333:v1, 7236354334:v1, 7236354335:v1, 7236354336:v1, 7236354337:v1, 7236354338:v1, 7236354339:v1,
+7236354340:v1, 7236354341:v1, 7236354342:v1, 7236354343:v1, 7236354344:v1, 7236354345:v1, 9371917611:v1,
+9371917612:v1, 7236354346:v2, 9371917608:v1, 9371917610:v1, 7236354347:v2, 9371917609:v1, 9371950117:v1,
+7236354348:v1, 9371917616:v1, 7236354349:v1, 9371917615:v1, 9371917613:v1, 9371917614:v1, 7236354350:v1,
+7236354352:v2, 7236354353:v1, 7236354354:v2, 7236354355:v2, 7236354356:v2, 7236354357:v1, 7236354358:v1,
+7236354359:v1, 7236354360:v1, 7236354361:v1, 7236354362:v1, 7236354363:v1, 7236354364:v1, 7236354365:v1,
+7236354366:v1, 7236354367:v1, 7236354368:v1, 7236354369:v1, 7236354370:v1, 7236354371:v1, 7236354372:v1,
+7236354373:v1, 7236354374:v1, 7236354375:v1, 7236354376:v1, 7236354377:v1, 7236354378:v1, 7236354379:v1,
+7236354380:v1, 7236354381:v1, 7236354382:v1, 13663943249:v1, 7236354383:v1, 7236354384:v1, 7236354385:v1,
+7236354386:v1, 7236354387:v1, 7236354388:v1, 7236354389:v1, 7236354390:v1, 7236354391:v1, 7236354392:v1,
+7236354393:v1, 7236354394:v1, 7236354395:v1, 7236354396:v1, 7236354397:v1, 7236354398:v1, 7236354399:v1,
+7236354400:v1, 12292715979:v1, 7236354401:v1, 7236354402:v1, 7236354403:v1, 7236354404:v1, 7236354405:v1,
+7236354406:v1, 7236354407:v1, 7236354408:v1, 7236354409:v1, 7236354410:v1, 7236354411:v1, 7236354412:v1,
+7236354413:v1, 9372026583:v1, 7236354414:v1, 7236354415:v1, 7236354416:v1, 7236354417:v1, 7236354418:v1,
+7236354419:v1, 7236943982:v2, 7236354421:v1, 7236354422:v1, 7236354423:v1, 7236354424:v1, 7236354425:v1,
+7236354426:v1, 7236354427:v1, 7236354428:v1, 7236354429:v1, 7236354430:v1, 7236354431:v1, 7236354432:v1,
+7236943983:v1, 7236354433:v1, 7236354434:v1, 7236354435:v1, 7236354436:v1, 7236354437:v1, 7236354438:v1,
+7236354439:v1, 7236354440:v1, 7236354441:v1, 7236354442:v1, 7236354443:v1, 7236354444:v1, 7236354445:v2,
+7236354446:v1, 7236354447:v1, 7236354448:v1, 7236354449:v1, 7236354450:v1, 7236354451:v1, 7236354452:v1,
+7236354453:v1, 7236354454:v1, 7236354455:v1, 7236354456:v1, 7236354457:v1, 7236354458:v1, 7236354459:v1,
+7236354460:v1, 7236354461:v1, 7236354462:v2, 7236354463:v1, 7236354464:v2, 7236354465:v1, 7236354466:v1,
+7236354467:v1, 7236354468:v1, 7236354469:v1, 7236354470:v1, 7236354471:v1, 7236354472:v1, 7236354473:v1,
+7236354474:v1, 7236354475:v1, 7236354476:v1, 7236354477:v1, 7236354478:v1, 7236354479:v1, 7236354480:v1,
+7236354481:v1, 7236354482:v1, 7236354483:v1, 7236354484:v1, 7236943984:v1, 7236354485:v1, 7236354486:v1,
+7236354487:v1, 7236354488:v1, 7236354489:v1, 7236354490:v1, 7236354491:v1, 7236354492:v1, 7236449418:v1,
+7236449423:v1, 7236354493:v1, 7236354494:v1, 7236354495:v1, 7236354496:v1, 7236354497:v1, 7236354498:v1,
+7236354499:v1, 7236354500:v1, 7236354501:v1, 7236354502:v1, 7236354503:v1, 7236354504:v1, 7236952085:v1,
+7236354505:v1, 7236354506:v1, 7236354507:v1, 7236354508:v1, 7236354509:v1, 7236354510:v1, 7236354511:v1,
+7236354512:v1, 7236354513:v1, 7236354514:v1, 7236354515:v1, 7236354516:v1, 7236354517:v1, 7236354518:v1,
+7236354519:v1, 7236354520:v1, 7236354521:v1, 7236354522:v1, 7236354523:v1, 7236354524:v1, 9372026586:v1,
+7236354525:v1, 7236354526:v1, 7236354527:v1, 7236354528:v1, 7236354529:v1, 7236354530:v1, 7236354531:v1,
+7236354532:v1, 7236354533:v1, 7236354534:v1, 7236354535:v1, 7236354536:v1, 7236354537:v1, 9372026585:v1,
+7236354538:v1, 7236354539:v1, 7236354540:v1, 7236354541:v1, 7236354542:v1, 7236354543:v1, 7236354544:v1,
+7236354545:v1, 9372026584:v1, 7236354546:v1, 7236354547:v1, 7236354548:v1, 7236354549:v1, 7236354550:v1,
+7236354551:v1, 7236354552:v2, 7236354553:v1, 7236354554:v1, 7236354555:v1, 7236354556:v1, 7236354557:v1,
+7236354558:v1, 7236354559:v1, 7236354560:v1, 7236354561:v1, 7236354562:v2, 7236354563:v1, 7236354564:v1,
+7236354565:v1, 7236354566:v1, 7236354567:v1, 7236354568:v1, 7236354569:v1, 7236354570:v1, 7236354571:v1,
+7236354572:v1, 7236354573:v1, 7236354574:v1, 7236354575:v1, 7236354576:v1, 7236354577:v1, 9371950438:v1,
+7236354578:v1, 9372026587:v1, 7236952088:v1, 7236354579:v1, 7236354580:v1, 7236354581:v1, 7236354582:v1,
+7236354583:v1, 7236354584:v1, 7236354585:v1, 7236354586:v1, 7236354587:v1, 7236354588:v1, 7236354589:v1,
+7236354590:v1, 7236354591:v1, 7236354592:v1, 7236354593:v1, 7236354594:v1, 7236354595:v1, 7236354596:v1,
+7236354597:v1, 7236952090:v1, 7236354598:v1, 7236354599:v1, 7236354600:v1, 7236354601:v1, 7236354602:v1,
+7236354603:v1, 7236354604:v1, 7236354605:v1, 7236354606:v1, 7236354607:v1, 7236354608:v1, 7236354609:v1,
+7236354610:v1, 7236354611:v1, 1329181148:v1, 7236354612:v1, 7236354613:v1, 7236354614:v1, 7236354615:v1,
+7236354616:v1, 7236354617:v1, 7236354618:v1, 7236354619:v1, 7236354620:v1, 7236354621:v1, 7236993513:v1,
+7236354622:v1, 7236354623:v1, 7236354624:v1, 7236354625:v1, 7236354626:v1, 7236354627:v1, 7236354628:v1,
+7236354629:v1, 7236354630:v1, 7236354631:v1, 7236354632:v1, 7236354633:v1, 7236354634:v1, 7236354635:v1,
+7236354636:v1, 7236354637:v1, 7236354638:v1, 7236354639:v1, 7236354640:v1, 7236354641:v1, 7236993514:v2,
+7236354642:v1, 7236354643:v1, 7236354644:v1, 7236354645:v1, 7236354646:v1, 7236354647:v1, 7236354648:v1,
+7236354649:v1, 7236354650:v1, 7236354651:v1, 7236354652:v1, 7236354653:v1, 7236354654:v1, 7236354655:v1,
+7236354656:v1, 7236354657:v1, 7236354658:v1, 7236354659:v1, 7236354660:v1, 7236354661:v1, 7236354662:v1,
+7236354663:v1, 7236354664:v1, 7236354665:v1, 7236354666:v1, 7236354667:v1, 7236354668:v1, 7236993515:v1,
+7236354669:v1, 7236354670:v1, 7236354671:v1, 7236354672:v1, 7236354673:v1, 7236354674:v2, 7236354675:v1,
+7236354676:v1, 7236354677:v1, 7236354678:v1, 7236354679:v1, 7236354680:v1, 7236354681:v1, 7236354682:v1,
+7236354683:v1, 7236354684:v1, 7236354685:v1, 7236354686:v1, 7236354687:v1, 7236354688:v1, 7236354689:v1,
+7236354690:v1, 7236354691:v1, 7236354692:v1, 7236354693:v1, 7236354694:v1, 7236354695:v1, 7236354696:v1,
+7236354697:v1, 7236354698:v1, 7236354699:v1, 7236354700:v1, 7236354701:v1, 7236354702:v1, 7236354703:v1,
+7236354704:v1, 7236354705:v1, 7236354706:v1, 7236354707:v1, 7236354708:v1, 7236354709:v1, 7236354710:v1,
+7236354711:v1, 7236354712:v1, 7236354713:v1, 7236354714:v1, 7236354715:v1, 7236354716:v1, 7236354717:v1,
+7236354718:v1, 7236354719:v1, 7236354720:v1, 7236354721:v1, 7236354722:v1, 7236354723:v1, 7236354724:v1,
+7236354725:v1, 7236354726:v1, 7236354727:v1, 7236354728:v1, 7236354729:v1, 7236354730:v1, 7236354731:v1,
+7236354732:v1, 7236354733:v1, 7236354734:v1, 7236354735:v1, 7236354736:v1, 7236354737:v1, 7236354738:v1,
+7236354739:v1, 7236354740:v1, 7236354741:v1, 7236354742:v1, 7236354743:v1, 7236354744:v1, 7236354745:v1,
+7236354746:v1, 7236354747:v1, 7236354748:v1, 7236354749:v1, 7236354750:v1, 7236354751:v1, 7236354752:v1,
+7236354753:v1, 7236354754:v1, 7236354755:v1, 7236354756:v1, 7236354757:v1, 7236354758:v1, 7236354759:v1,
+7236354760:v1, 7236354761:v1, 7236354762:v1, 7236354763:v1, 7236354764:v1, 7236354765:v1, 7236354766:v1,
+7236354767:v1, 7236354768:v1, 7236354769:v1, 7236354770:v1, 7236354771:v1, 7236354772:v1, 7236354773:v1,
+7236354774:v1, 7236354775:v1, 7236354776:v1, 7236354777:v1, 7236354778:v1, 7236354779:v1, 7236354780:v1,
+7236354781:v1, 7236354782:v1, 7236354783:v1, 7236354784:v1, 7236354785:v1, 7236354786:v1, 7236354787:v1,
+7236354788:v1, 7236354789:v1, 7236354790:v1, 7236354791:v1, 7236354792:v1, 7236354793:v1, 7236354794:v1,
+7236354795:v1, 7236354796:v1, 7236354797:v1, 7236354798:v1, 7236354799:v1, 7236354800:v1, 7236354801:v1,
+7236354802:v1, 7236354803:v1, 7236354804:v1, 7236354805:v1, 7236354806:v1, 7236354807:v1, 7236354808:v1,
+7236354809:v1, 7236354810:v1, 7236354811:v1, 7236354812:v1, 7236354813:v1, 7236354814:v1, 7236354815:v1,
+7236354816:v1, 7236354817:v1, 7236354818:v1, 7236354819:v1, 7236354820:v1, 7236354821:v1, 7236354822:v1,
+7236354823:v1, 7236354824:v1, 7236354825:v1, 7236354826:v1, 7236354827:v1, 7236354828:v1, 7236354829:v1,
+7236354830:v1, 7236354831:v1, 7236354832:v1, 7236354833:v1, 7236354834:v1, 7236354835:v1, 7236354836:v1,
+7236354837:v1, 7236354838:v1, 7236354839:v1, 7236354840:v1, 7236354841:v1, 7236354842:v1, 7236354843:v1,
+7236354844:v1, 7236354845:v1, 7236354846:v1, 7236354847:v1, 7236354848:v1, 7236354849:v1, 7236354850:v1,
+7236354851:v1, 7236354852:v1, 7236354853:v1, 7236354854:v1, 7236354855:v1, 7236354856:v1, 7236354857:v1,
+7236354858:v1, 7236354859:v1, 7236354860:v1, 7236354861:v1, 7236354862:v1, 7236354863:v1, 7236354864:v1,
+7236354865:v1, 7236354866:v1, 7236354867:v1, 7236354868:v1, 7236354869:v1, 7236354870:v1, 7236354871:v1,
+7236354872:v1, 7236354873:v1, 7236354874:v1, 7236354875:v1, 7236354876:v1, 7236354877:v1, 7236354878:v1,
+7236354879:v1, 7236354880:v1, 7236354881:v1, 7236354882:v1, 7236354883:v1, 7236354884:v1, 7236354885:v1,
+7236354886:v1, 7236354887:v1, 7236354888:v1, 7236354889:v1, 7236354890:v1, 7236354891:v1, 7236354892:v1,
+7236354893:v1, 7236354894:v1, 7236354895:v1, 7236354896:v1, 7236354897:v1, 7236354898:v1, 7236354899:v1,
+7236354900:v1, 7236354901:v1, 7236354902:v1, 7236354903:v1, 7236354904:v1, 7236354905:v1, 7236354906:v1,
+7236354907:v1, 7236354908:v1, 7236354909:v1, 7236354910:v1, 7236354911:v1, 7236354912:v1, 7236354913:v1,
+7236354914:v1, 7236354915:v1, 7236354916:v1, 7236354917:v1, 7236354918:v1, 7236354919:v1, 7236354920:v1,
+7236354921:v1, 7236354922:v1, 7236354923:v1, 7236354924:v1, 7236354925:v1, 7236354926:v1, 7236354927:v1,
+7236354928:v1, 7236354929:v1, 7236354930:v1, 7236354931:v1, 7236354932:v1, 7236354933:v1, 7236354934:v1,
+7236354935:v1, 7236354936:v1, 7236354937:v1, 7236354938:v1, 7236354939:v1, 7236354940:v1, 7236354941:v1,
+7236354942:v1, 7236354943:v1, 7236354944:v1, 7236354945:v1, 7236354946:v1, 7236354947:v1, 7236354948:v1,
+7236354949:v1, 7236354950:v1, 7236354951:v1, 7236354952:v1, 7236354953:v1, 7236354954:v1, 7236354955:v1,
+7236354956:v1, 7236354957:v1, 7236354958:v1, 7236354959:v1, 7236354960:v1, 7236354961:v1, 7236354962:v1,
+7236354963:v1, 7236354964:v1, 7236354965:v1, 7236354966:v1, 7236354967:v1, 7236354968:v1, 7236354969:v1,
+7236354970:v1, 7236354971:v1, 7236354972:v1, 7236354973:v1, 7236354974:v1, 7236354975:v1, 7236354976:v1,
+7236354977:v1, 7236354978:v1, 7236354979:v1, 7236354980:v1, 7236354981:v1, 7236354982:v1, 7236354983:v1,
+7236354984:v1, 7236354985:v1, 7236354986:v1, 7236354987:v1, 7236354988:v1, 7236354989:v1, 7236354990:v1,
+7236354991:v1, 7236354992:v1, 7236354993:v1, 7236354994:v1, 7236354995:v1, 7236354996:v1, 7236354997:v1,
+7236354998:v1, 7236354999:v1, 7236355000:v1, 7236355001:v1, 7236355002:v1, 7236355003:v1, 7236355004:v1,
+7236355005:v1, 7236355006:v1, 7236355007:v1, 7236355008:v1, 7236355009:v1, 11681057539:v1, 7236436912:v1,
+7236436913:v1, 7236436914:v1, 7236436915:v1, 7236436916:v1, 7236436917:v1, 7236436918:v1, 7236436919:v1,
+7236436920:v1, 7236436921:v1, 7236436922:v1, 7236436923:v1, 7236436924:v1, 7236436925:v1, 7236436926:v1,
+7677189954:v1, 7236436927:v1, 7236436928:v1, 7236436930:v2, 11681057540:v1, 11681057541:v1, 11681057542:v1,
+11681057543:v1, 11681057544:v1, 11681057545:v1, 11681057546:v1, 11681057547:v1, 11681057548:v1, 11681057549:v1,
+11681057550:v1, 11681057551:v1, 11681057552:v1, 11681057553:v1, 11681057554:v1, 11681057555:v1, 11681057556:v1,
+11681057557:v1, 11681057558:v1, 11681057559:v1, 11681057560:v1, 11681057561:v1, 11681057562:v1, 11681057563:v1,
+11681057564:v1
+```
+
+### Final pre-runtime freeze set (controller resolution)
+
+The exact five identities frozen for the next controller-authorized implementation slice are:
+
+1. **16162196 — 三杆笔—水祖坑郊野径主线.** OSM relation v6; selected mainline way set and excluded detour are
+   recorded above and in the controller summary. Identity is supported by the official same-named Shenzhen segment
+   entries; opening, rights and runtime promotion remain UNKNOWN.
+2. **20072118 — 蝴蝶步道.** OSM relation [20072118](https://www.openstreetmap.org/relation/20072118), explicit
+   朴树口 → 马峦山北门 tags, connected path-only topology from the prior evidence row; rights, exact current opening
+   and runtime fields remain UNKNOWN.
+3. **20046643 — 坪惠湿地步道.** OSM relation [20046643](https://www.openstreetmap.org/relation/20046643), explicit
+   聚龙山湿地生态园北门 → 坪山湿地公园南门 tags, connected walking/footway topology from the prior evidence
+   row; rights, exact current opening and runtime fields remain UNKNOWN.
+4. **20739620 — 赵公山东北环线.** OSM relation [20739620](https://www.openstreetmap.org/relation/20739620), a
+   connected closed loop with loop direction; residential way 1521185467 remains disclosed as a road member while
+   user accessMode is walk. Rights, exact current opening and runtime fields remain UNKNOWN.
+5. **17841828 — 三峡之巅徒步道.** OSM relation [17841828](https://www.openstreetmap.org/relation/17841828), with
+   deterministic lower 赤甲楼方向入口 → 三峡之巅 summit direction supported by named endpoint context and the
+   official one-way notice. operationalStatus remains unknown until a current source proves opening.
+
+15852438 is replaced (shelter is not an access entrance); 12336480, 19908413 and 12390841 remain blocked replacement
+rows. This freeze is identity/topology evidence only: it is not the searchable-25 count, runtime data authorization,
+RED/elevation authorization, deployment permission or release approval.
+
+### Historical freeze decision and stop (superseded by section 7)
+
+All three identities are `BLOCKED_REPLACEMENT` and remain outside the searchable-25 denominator. The controller must either amend #159 with a different topology-clean, pure-walking, deterministic candidate set or explicitly authorize a new bounded evidence pass. This executor stops here: no RED capture, runtime catalog/data/schema/test edit, elevation/provider call, commit, push, PR, CloudBase action, or deployment was performed.
+
+### Phase2 supersession — controller freeze 5385785828
+
+The historical stop above is superseded only for the controller-authorized implementation slice. The exact five runtime
+IDs are 16162196 complete relation (not the earlier truncated mainline), 20072118, 20046643, 20739620 complete loop,
+and 17841828 lower entrance → summit. The implementation records full ordered geometry, bounded preview, source/rights
+boundaries and deterministic elevation research in `docs/route-data-licenses.md`; 15852438 remains dropped. This is
+still `READY_FOR_CONTROLLER_REVIEW`, not a claim that the Goal or searchable-25 target is accepted.

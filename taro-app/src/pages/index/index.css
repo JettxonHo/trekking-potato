@@ -272,6 +272,7 @@
 .weather-source-item { border-bottom: none; }
 .source-title { display: block; font-size: 26rpx; color: #1d1d1f; font-weight: 700; }
 .source-meta, .source-url { display: block; margin-top: 6rpx; font-size: 22rpx; color: #86868b; line-height: 1.5; word-break: break-all; }
+.source-attribution { display: block; margin-top: 12rpx; color: #86868b; font-size: 20rpx; line-height: 1.5; }
 .ai-status { display: block; font-size: 26rpx; color: #1d1d1f; line-height: 1.6; }
 .ai-degraded { color: #ff3b30; }
 .ai-additions { margin-top: 12rpx; }
@@ -625,3 +626,4 @@
 .route-preview-fallback-line { position: absolute; height: 6rpx; transform-origin: left center; border-radius: 6rpx; opacity: 0.8; }
 .route-preview-fallback-point { position: absolute; width: 12rpx; height: 12rpx; transform: translate(-50%, -50%); border: 3rpx solid #ffffff; border-radius: 50%; background: #1d1d1f; box-sizing: border-box; }
 .route-preview-legend { display: block; margin-top: 16rpx; color: #86868b; font-size: 22rpx; line-height: 1.4; }
+.route-preview-attribution { display: block; margin-top: 8rpx; color: #86868b; font-size: 20rpx; line-height: 1.4; }

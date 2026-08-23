@@ -1124,3 +1124,74 @@
 - Consequence: all five rows remain `BLOCKED_CANDIDATE`; none is `ELIGIBLE_FOR_IMPLEMENTATION` or counted toward the
   searchable target. A later implementation Issue must repeat a rate-limited topology/mode audit and resolve every
   core field before any route-data change.
+
+## 2026-08-23 — TP-D071 C15-C exact-25 searchable count and discovery freeze
+
+- Status: Issue `#159` docs-only discovery freeze; no runtime catalog/data, CloudBase, deployment, commit or push action
+  occurred. Executor status is `READY_FOR_CONTROLLER_REVIEW`; live controller metadata is authoritative.
+- Decision: Correct the C15 completion denominator to exactly 25 searchable `full` slots: five existing searchable
+  pilots plus twenty missing/replacement slots. Keep the Wutai restriction as `R-WUTAI`, a separate non-counting
+  record. Blocked rows never satisfy the target merely by occupying a slot.
+- Evidence boundary: stop the topology-first pass after twenty bounded OSM full-relation reads (one duplicate
+  verification). The durable
+  report `docs/catalog-batch1-source-evidence.md` proposes exactly five identities: `16162196`, `20072118`,
+  `20046643`, `15852438` and `17841828`. Each has a connected, branch-free, duplicate-reference-free aggregate
+  graph in this pass, with walking paths kept separate from road/cableway/shuttle modes. Ordered-member gaps, missing
+  direction tags, ODbL derived-database treatment and exact current operator opening remain explicit `UNKNOWN` gates;
+  all five are `BLOCKED_PENDING_CONTROLLER_FREEZE` and are not counted or runtime-eligible.
+- Official-source rule: Shenzhen planning/operator pages and Chongqing government/scenic notices establish route-family
+  identity or operating context only; they do not turn an OSM relation into an `open` runtime variant. HTTP, secondary
+  reports, cableway/shuttle notices and road access are not substitutes for route-level walking evidence.
+- Alternatives rejected: retaining stale `24 searchable + Wutai` wording; counting Wutai as a searchable slot; filling
+  the twenty-slot gap with disconnected/road-mixed/branching candidates; or implementing runtime rows before the
+  controller freezes exactly five identities and a later child Issue closes every promotion gate.
+
+## 2026-08-23 — TP-D072 #159 Phase2 frozen five runtime evidence
+
+- The controller freeze `5385785828` authorizes a bounded runtime slice for 16162196 (complete relation, not the
+  earlier truncated mainline), 20072118, 20046643, 20739620 complete loop, and 17841828 lower entrance → summit.
+- Route geometry and distance come from ordered current-full OSM relations. OSM `open_data` sources carry ODbL-1.0,
+  adjacent attribution and relation/way/node version observations; no immutable-full claim or contributor identity is
+  made. The full manifests are retained in `docs/route-data-licenses.md` while runtime source manifests are bounded.
+- Elevation/ascent/descent/highest use one ≤100-point cumulative-distance sample per route from Open-Meteo/Copernicus
+  DEM GLO-90 and deterministic interpolation; no runtime provider or query URL is stored. `operationalStatus=unknown`
+  is retained with a conservative rationale rather than inferred from geometry or elevation. The 20739620 residential
+  member is disclosed and user `accessMode=walk` remains explicit.
+- Consequence: focused domain/data/resolver/result tests are green and the slice is `READY_FOR_CONTROLLER_REVIEW`.
+  No merge, deploy, release, CloudBase action or public searchable-count acceptance is implied.
+
+## 2026-08-23 — TP-D073 #159 Phase2 bounded review-fix truth corrections
+
+- The review RED was recorded before editing: typecheck rejected the optional 207 `official` argument and the
+  normalized variant's post-assignment `operationalStatusRationale`. Defaults/object construction fixed only those
+  seam errors.
+- The unknown-status evidence exception is intentionally narrow: a non-empty rationale can suppress only the opening
+  support requirement for a variant carrying both `routeGeometry` and an `open_data` source. Existing and reviewed
+  geometry variants retain the normal operational-status evidence requirement. OSM supports relation coordinates,
+  order and applicable identity/topology; Open-Meteo/Copernicus supports the joined routeGeometry elevation component
+  and elevation-derived fields, not opening or route coordinates.
+- Identity/attribution corrections are durable: 207 uses neutral `未命名环线起终点` and only the specific alias
+  `赵公山东北徒步环线`; 161 is explicitly the complete relation without the truncated-mainline alias; 20046643's
+  park context source no longer claims variant endpoints. Visible OSM attribution includes
+  `openstreetmap.org/copyright`; elevation attribution is gated by exact trusted source id/kind/publisher.
+- Review-fix gates pass (focused, root, offline integration `55/0`, lint, typecheck, WeChat build, diff/allowlist/
+  sensitive scans). Root audit is clean; Cloud Function audit findings are pre-existing transitive vulnerabilities
+  requiring an out-of-scope dependency upgrade. No commit, push, PR, deploy or dependency change was performed.
+
+## 2026-08-23 — TP-D074 #159 Phase2 review-fix round 2 source/evidence corrections
+
+- Controller review required removal of the 20072118 runtime official block. The linked Shenzhen planning PDF is
+  retained only as documented context; it does not bind the exact relation or establish current opening. The source
+  ledger therefore drops the associated runtime official source, while the direct OSM identity/topology evidence stays.
+- The 16162196 official record now uses the verified title `深圳市绿道网（“鹏城万里”多层次户外步道体系）专项规划
+  （2024–2035年）` and joint publisher `深圳市城市管理和综合执法局、深圳市规划和自然资源局`; supports remain
+  limited to the fields directly reproducible from that document (`canonicalName`, `startPoint`, `endPoint`).
+- Unknown operational-status evidence is fail-closed unless the variant ID is `variant:osm-*`, its linked source is
+  OpenStreetMap with `kind=open_data`, that same source supports `field=routeGeometry` for the exact entity, and the
+  rationale is non-empty. Legacy/non-OSM and cross-source mutations are explicit RED fixtures.
+- The exact production catalog shape is now `22` sources (`180` places, `11` routes, `11` variants in the resolver
+  contract fixture; the runtime variants remain `full=10`, `blocked=1`), and OSM-derived tests pin the deterministic
+  duration formula plus relation/first-way/first-node version anchors. No commit, push, PR, merge, deploy, CloudBase or
+  dependency action is authorized.
+- Validation completed without network research: focused four contracts, root `npm test`, typecheck, lint (0 errors/9
+  existing warnings), host WeChat build, `git diff --check`, exact allowlist and added-line sensitive scans all pass.
