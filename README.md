@@ -16,6 +16,21 @@
 当前 `TP-COMMUNITY-001` 已完成 C01–C05 的实现，C06 正在进行 owner→admin→retention/UI 的离线代码验收：
 它只把经审核的轨迹变成几何证据，不自动发布路线，也不改变路线开放状态、天气、安全规则或出发结论。
 
+`TP-CATALOG-001` 已于 2026-08-24 以 `COMPLETE — CATALOG_READY` 关闭：当前目录恰为 25 条可搜索 `full` 路线、1 条五台山限制（不计入）、缺口 0（Issue #167 closeout）。
+
+## 已验证事实（对访客，2026-08-24 快照）
+
+| 事实 | 状态 | 证据 |
+|---|---|---|
+| 可信路线目录 | **25 条**可搜索完整路线（5 条既有试点 + 4 批各 5 条新增），1 条五台山限制单独保留不计入，缺口为 0；代码 / 数据就绪（不代表已部署） | Issue #167 closeout、`docs/route-catalog-expansion.md` |
+| 安全机制 | "规则决策、AI 解释"：确定性规则输出四态结论（可出行 / 谨慎 / 不建议 / 数据不足），DeepSeek 只生成解释，**不能修改结论**；武功山 staging 真实查询中安全结论未被模型覆盖 | `docs/staging-deployment-validation.md` |
+| Beta 验收 | 自动化门禁全部通过（合同测试、集成 55/0、lint、typecheck、Taro 构建）；微信 DevTools GUI 行如实记为 `UNVERIFIED_RUNTIME_TOOL`——**未宣称截图、真机或真实用户 beta 完成** | `docs/beta-acceptance-report.md` |
+| 真实行为价值 | 本人在武功山出发前依据清单补带头灯（单一但有记录的行为证据） | staging 验证记录 |
+
+## 一句话给访客
+
+它不做"AI 建议你去哪"，而是把行前判断里**不能出错的部分交给确定性规则**，把"解释给人听"的部分交给 AI——顺序不能反。
+
 - 当前产品入口：`taro-app/`
 - 云函数：`cloudfunctions/getAdvice/`、`cloudfunctions/history/`
 - 新云函数：`trackSubmission`（代码已实现并通过离线合同测试，尚未部署或做真实运行时验收）
