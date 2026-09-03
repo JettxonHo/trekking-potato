@@ -1,20 +1,112 @@
 <div align="center">
 
-<img src="./taro-app/src/assets/new_logo.png" width="140" alt="徒步薯 logo" />
+<img src="./taro-app/src/assets/new_logo.png" width="120" alt="徒步薯 logo" />
 
 # 徒步薯 Trekking Potato
 
-**基于可信路线、明确时间窗口和确定性规则的徒步行前可行性检查工具。**
+**出发前，先过一个不会说谎的检查。**
 
-微信小程序 · Taro 4.0.9 · React 18 · CloudBase · Open-Meteo · DeepSeek
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Taro](https://img.shields.io/badge/Taro-4.0.9-0596c7)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![微信小程序](https://img.shields.io/badge/微信小程序-CloudBase-07C160?logo=wechat&logoColor=white)
+
+[快速开始](#快速开始) · [Issues](https://github.com/JettxonHo/trekking-potato/issues) · [决策记录](docs/decision-log.md)
 
 </div>
+
+> 这个项目回答的问题：**在安全攸关的场景里，AI 应该站在哪里？**——答案是靠边站：能不能出发由确定性规则判定，AI 只负责把结论解释给人听，顺序不能反。
+
+## 目录
+
+- [它是什么](#它是什么)
+- [功能特性](#功能特性)
+- [真实界面](#真实界面)
+- [已验证事实](#已验证事实)
+- [它和其他"AI 户外助手"的区别](#它和其他ai-户外助手的区别)
+- [快速开始](#快速开始)
+- [常见问题](#常见问题)
+
+## 它是什么
+
+徒步薯源于一次真实经历：党岭 13 小时、19 公里雪天折返。复盘发现行前的重复判断——路线难不难、天气行不行、装备够不够——完全可以结构化。
+
+它是一个微信小程序：你选定路线、日期和出发时间，它先给你确定性规则算出的四态结论（**可出行 / 谨慎 / 不建议 / 数据不足**），AI 随后只把结论解释成人话，**不能修改结论**。它不是官方预警、专业向导、医疗建议、救援服务或行中导航。
+
+<img src="docs/assets/readme/tp-flow.png" alt="选路线和日期 → 规则判断 → AI 解释原因 → 行前清单" width="100%">
+
+## 功能特性
+
+- **四态确定性结论**：可出行 / 谨慎出发 / 暂不建议 / 数据不足——由规则而非模型给出
+- **多点小时级天气**：起点、途经点、住宿点分别对应活动时段的天气窗口
+- **分级装备清单**：必备 / 推荐 / 可选三级，可按清单逐项核对
+- **日出日落时间**：辅助判断"天亮前要不要出发"
+- **GPX / KML 轨迹补全**：官方只有地点级参考的路线，可上传轨迹补全
+- **私人历史**：微信账号隔离的查询记录，只有本人可见
+- **AI 降级处理**：AI 不可用、超时或输出不合规时，结论与清单照常可用
+
+## 真实界面
+
+| 结论与依据 | 行前清单 | 来源透明 + AI 解释 |
+|---|---|---|
+| <img src="docs/assets/readme/result-verdict-01.png" alt="出发结论与判断依据" width="100%"> | <img src="docs/assets/readme/gear-checklist-02.png" alt="最低装备清单" width="100%"> | <img src="docs/assets/readme/source-and-ai-03.png" alt="来源透明与 AI 补充说明" width="100%"> |
+
+微信开发者工具实机模拟（2026-09）：结论与判断依据由确定性规则给出；路线与天气来源逐条公开，AI 只生成解释。
+
+## 已验证事实
+
+> 截至 2026-09-02，与 `docs/` 验收记录口径一致。
+
+| 事实 | 状态 |
+|---|---|
+| 可信路线目录 | 25 条可搜索完整路线（经来源逐条审阅），代码 / 数据就绪 |
+| 安全机制 | 确定性规则出四态结论，DeepSeek 只生成解释；真实查询中安全结论未被模型覆盖 |
+| Beta 验收 | 自动化门禁全部通过（合同 / 集成 / lint / 类型检查 / 构建）；DevTools 界面行为如实记为未验证，无真实用户 beta |
+| 真实行为价值 | 本人在武功山出发前依据清单补带了头灯 |
+
+## 它和其他"AI 户外助手"的区别
+
+- **AI 无权改结论**：天气差、数据不足时规则直接说"不建议"或"无法判断"，AI 不能把它包装得更好听
+- **数据不足就明说**：查不到可靠数据时显示"暂无法判断"，不硬编结论
+- **每条路线都有出处**：路线事实带来源与核验时间，不接受无出处轨迹
+
+## 快速开始
+
+前置条件：Node.js 24 LTS（`corepack`）、微信开发者工具、微信云开发环境、DeepSeek 与高德 API Key。
+
+```bash
+corepack npm ci && corepack npm run bootstrap
+cd taro-app && npm run dev:weapp
+```
+
+用微信开发者工具打开 `taro-app/`（其 `project.config.json` 指向 `dist/`）。
+
+## 常见问题
+
+**它可以替代官方天气预警吗？**
+不能。它是行前自查工具，不是官方预警、专业向导或救援服务；遇到官方预警一律以官方为准。
+
+**路线数据从哪来？**
+来自公开社区轨迹（如 OpenStreetMap 关系数据），每条经来源审阅与版本核验后才进入目录；无出处的轨迹不会被收录。
+
+**AI 会不会为了讨好我而把风险说轻？**
+不会。AI 只拿到规则已经算好的结论做解释；它不接触决策权。AI 不可用时，结论和清单照常工作。
+
+---
+
+> 以下为开发与治理文档（原 README 内容保留不变，从"## 项目状态"开始）
 
 ## 项目状态
 
 `TP-BETA-001` 已完成核心代码就绪，`TP-STAGING-001` 又以 `CONDITIONAL_GO` 完成受限 staging 验证。
 当前 `TP-COMMUNITY-001` 已完成 C01–C05 的实现，C06 正在进行 owner→admin→retention/UI 的离线代码验收：
 它只把经审核的轨迹变成几何证据，不自动发布路线，也不改变路线开放状态、天气、安全规则或出发结论。
+
+`TP-CATALOG-001` 已于 2026-08-24 以 `COMPLETE — CATALOG_READY` 关闭：当前目录恰为 25 条可搜索 `full` 路线、1 条五台山限制（不计入）、缺口 0（Issue #167 closeout）。
+
+## 一句话给访客
+
+它不做"AI 建议你去哪"，而是把行前判断里**不能出错的部分交给确定性规则**，把"解释给人听"的部分交给 AI——顺序不能反。
 
 - 当前产品入口：`taro-app/`
 - 云函数：`cloudfunctions/getAdvice/`、`cloudfunctions/history/`
